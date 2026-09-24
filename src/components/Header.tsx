@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import SearchBar from "@/components/SearchBar";
+import Logo from "@/components/Logo";
 import { getCartItemCount } from "@/lib/cart";
 import { getCategories } from "@/lib/catalog";
 
@@ -26,9 +27,7 @@ export default async function Header() {
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-lg shadow-sm">
-              ⚡
-            </span>
+            <Logo />
             <span className="text-xl font-bold text-neutral-900">
               FasTrack <span className="text-emerald-600">Shop</span>
             </span>
