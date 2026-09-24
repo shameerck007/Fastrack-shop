@@ -1,5 +1,6 @@
 import ProductCard from "@/components/ProductCard";
 import { searchProducts } from "@/lib/catalog";
+import { getProductRatingsMap } from "@/lib/reviews";
 
 export default async function SearchPage({
   searchParams,
@@ -8,6 +9,7 @@ export default async function SearchPage({
 }) {
   const { q = "" } = await searchParams;
   const products = q ? await searchProducts(q) : [];
+  const ratings = await getProductRatingsMap(products.map((p) => p.id));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -19,7 +21,7 @@ export default async function SearchPage({
       )}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard key={product.id} product={product} rating={ratings.get(product.id)} />
         ))}
       </div>
     </div>

@@ -278,8 +278,23 @@ create table reviews (
   order_id uuid references orders(id),
   rating int not null check (rating between 1 and 5),
   comment text,
+  -- Denormalized at insert time rather than joined from profiles, so the
+  -- public review list doesn't need a broad "profiles are publicly
+  -- readable" policy that would also leak phone numbers.
+  reviewer_name text,
   created_at timestamptz not null default now()
 );
+
+create index reviews_product_idx on reviews(product_id);
+
+create view product_ratings
+with (security_invoker = true) as
+select
+  product_id,
+  round(avg(rating)::numeric, 1) as avg_rating,
+  count(*) as review_count
+from reviews
+group by product_id;
 
 -- ============================================================
 -- updated_at triggers

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Order, OrderItem, OrderStatusHistory } from "@/types/database";
+import type { Order, OrderItem, OrderStatusHistory, ProductWithVariants } from "@/types/database";
 
 export interface OrderDetail extends Order {
   order_items: OrderItem[];
@@ -27,6 +27,43 @@ export async function getMyOrders(): Promise<Order[]> {
 
   if (error) throw error;
   return data ?? [];
+}
+
+export async function getBuyAgainProducts(limit = 10): Promise<ProductWithVariants[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: orders } = await supabase.from("orders").select("id").eq("user_id", user.id);
+  const orderIds = (orders ?? []).map((o) => o.id);
+  if (orderIds.length === 0) return [];
+
+  // order_items has two FKs to product_variants (variant_id and
+  // substituted_variant_id), so the embed must be disambiguated with
+  // !variant_id or PostgREST rejects it as ambiguous.
+  const { data: items, error } = await supabase
+    .from("order_items")
+    .select(
+      "created_at, product_variants!variant_id(id, product_id, products(*, category:categories(*), product_variants(*)))"
+    )
+    .in("order_id", orderIds)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  const seen = new Set<string>();
+  const products: ProductWithVariants[] = [];
+  for (const item of items ?? []) {
+    const variant = item.product_variants as unknown as { products: ProductWithVariants } | null;
+    const product = variant?.products;
+    if (!product || seen.has(product.id) || !product.is_active) continue;
+    seen.add(product.id);
+    products.push(product);
+    if (products.length >= limit) break;
+  }
+  return products;
 }
 
 export async function getOrderDetail(orderId: string): Promise<OrderDetail | null> {

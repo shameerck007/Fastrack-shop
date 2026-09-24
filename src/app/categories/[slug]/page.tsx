@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { getProductsByCategory } from "@/lib/catalog";
+import { getProductRatingsMap } from "@/lib/reviews";
 
 export default async function CategoryPage({
   params,
@@ -12,15 +14,18 @@ export default async function CategoryPage({
 
   if (!category) notFound();
 
+  const ratings = await getProductRatingsMap(products.map((p) => p.id));
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
+      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: category.name }]} />
       <h1 className="mb-4 text-xl font-semibold">{category.name}</h1>
       {products.length === 0 ? (
         <p className="text-sm text-neutral-500">No products in this category yet.</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} rating={ratings.get(product.id)} />
           ))}
         </div>
       )}

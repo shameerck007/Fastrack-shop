@@ -54,8 +54,8 @@ export default function AddToCartForm({
         </div>
       )}
 
-      <div className="flex items-center gap-3">
-        <div className="flex items-center rounded-full border border-neutral-300">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center self-start rounded-full border border-neutral-300">
           <button
             className="px-3 py-1 text-lg"
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -71,7 +71,7 @@ export default function AddToCartForm({
         <button
           onClick={handleAdd}
           disabled={pending || !variantId}
-          className="flex-1 rounded-full bg-emerald-600 px-6 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="w-full whitespace-nowrap rounded-full bg-emerald-600 px-6 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
         >
           {pending ? "Adding..." : "ADD TO CART"}
         </button>

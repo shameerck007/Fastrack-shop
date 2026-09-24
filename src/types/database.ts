@@ -216,6 +216,7 @@ export interface Review {
   order_id: string | null;
   rating: number;
   comment: string | null;
+  reviewer_name: string | null;
   created_at: string;
 }
 

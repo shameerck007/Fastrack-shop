@@ -2,8 +2,16 @@ import Link from "next/link";
 import type { ProductWithVariants } from "@/types/database";
 import { formatSAR } from "@/lib/utils";
 import { getCategoryTheme } from "@/lib/categoryTheme";
+import StarRating from "@/components/StarRating";
+import type { ProductRating } from "@/lib/reviews";
 
-export default function ProductCard({ product }: { product: ProductWithVariants }) {
+export default function ProductCard({
+  product,
+  rating,
+}: {
+  product: ProductWithVariants;
+  rating?: ProductRating;
+}) {
   const variant =
     product.product_variants.find((v) => v.is_default) ?? product.product_variants[0];
   const theme = getCategoryTheme(product.category?.slug);
@@ -43,6 +51,9 @@ export default function ProductCard({ product }: { product: ProductWithVariants 
       <div className="flex flex-1 flex-col gap-1 p-3">
         <span className="text-xs text-neutral-500">{product.brand}</span>
         <span className="line-clamp-2 text-sm font-medium text-neutral-900">{product.name}</span>
+        {rating && rating.review_count > 0 && (
+          <StarRating rating={rating.avg_rating} count={rating.review_count} />
+        )}
         {variant && <span className="text-xs text-neutral-500">{variant.label}</span>}
         <div className="mt-auto flex items-center justify-between pt-2">
           <div className="flex items-baseline gap-2">
