@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
 import { getOrderDetail } from "@/lib/orders";
-import { formatSAR, ORDER_STATUS_FLOW, ORDER_STATUS_LABELS } from "@/lib/utils";
+import { getOrderMessages } from "@/lib/order-messages";
+import { createClient } from "@/lib/supabase/server";
+import { formatSAR } from "@/lib/utils";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
+import LiveOrderStatus from "@/components/LiveOrderStatus";
+import RiderLocationMap from "@/components/RiderLocationMap";
+import OrderChat from "@/components/OrderChat";
 
 export default async function OrderDetailPage({
   params,
@@ -13,10 +18,14 @@ export default async function OrderDetailPage({
 
   if (!order) notFound();
 
-  const isCancelled = order.status === "cancelled";
-  const currentStepIndex = ORDER_STATUS_FLOW.indexOf(
-    order.status as (typeof ORDER_STATUS_FLOW)[number]
-  );
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const rider = order.delivery_assignments?.delivery_partners ?? null;
+  const showTrackingExtras = ["rider_assigned", "out_for_delivery"].includes(order.status);
+  const messages = rider && user ? await getOrderMessages(order.id) : [];
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
@@ -27,53 +36,41 @@ export default async function OrderDetailPage({
             {new Date(order.created_at).toLocaleString()}
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <span
-            className={`rounded-full px-3 py-1 text-sm font-medium ${
-              isCancelled ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700"
-            }`}
-          >
-            {ORDER_STATUS_LABELS[order.status]}
-          </span>
-          <DownloadInvoiceButton orderId={order.id} />
-        </div>
+        <DownloadInvoiceButton orderId={order.id} />
       </div>
 
-      {!isCancelled && (
-        <ol className="mb-6 flex flex-col gap-2">
-          {ORDER_STATUS_FLOW.map((status, i) => (
-            <li key={status} className="flex items-center gap-3 text-sm">
-              <span
-                className={`h-2.5 w-2.5 rounded-full ${
-                  i <= currentStepIndex ? "bg-blue-700" : "bg-neutral-300"
-                }`}
-              />
-              <span className={i <= currentStepIndex ? "text-neutral-900" : "text-neutral-400"}>
-                {ORDER_STATUS_LABELS[status]}
-              </span>
-            </li>
-          ))}
-        </ol>
-      )}
+      <LiveOrderStatus orderId={order.id} initialStatus={order.status} deliveryOtp={order.delivery_otp} />
 
-      {order.delivery_otp && !["delivered", "cancelled"].includes(order.status) && (
-        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-center">
-          <p className="text-sm text-neutral-600">Share this OTP with your rider on arrival</p>
-          <p className="text-2xl font-bold tracking-widest text-blue-700">{order.delivery_otp}</p>
+      {rider && (
+        <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
+          <p className="text-sm text-neutral-500">Rider</p>
+          <p className="font-medium">{rider.profiles.full_name}</p>
+          {rider.profiles.phone && (
+            <a href={`tel:${rider.profiles.phone}`} className="text-sm text-blue-600 hover:underline">
+              📞 {rider.profiles.phone}
+            </a>
+          )}
+
+          {showTrackingExtras && order.delivery_assignments?.rider_id && (
+            <div className="mt-3">
+              <RiderLocationMap
+                riderId={order.delivery_assignments.rider_id}
+                initialLat={rider.current_lat}
+                initialLng={rider.current_lng}
+              />
+            </div>
+          )}
         </div>
       )}
 
-      {order.delivery_assignments?.delivery_partners?.profiles && (
-        <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="text-sm text-neutral-500">Rider</p>
-          <p className="font-medium">
-            {order.delivery_assignments.delivery_partners.profiles.full_name}
-          </p>
-          {order.delivery_assignments.delivery_partners.profiles.phone && (
-            <p className="text-sm text-neutral-500">
-              {order.delivery_assignments.delivery_partners.profiles.phone}
-            </p>
-          )}
+      {rider && user && (
+        <div className="mb-6">
+          <OrderChat
+            orderId={order.id}
+            currentUserId={user.id}
+            otherPartyLabel="rider"
+            initialMessages={messages}
+          />
         </div>
       )}
 

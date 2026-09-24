@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DeliveryActions from "@/components/rider/DeliveryActions";
+import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
+import OrderChat from "@/components/OrderChat";
+import { getOrderMessages } from "@/lib/order-messages";
 import { formatSAR } from "@/lib/utils";
 
 function mapsUrl(query: string) {
@@ -25,10 +28,18 @@ export default async function RiderOrderPage({
 
   if (!order) notFound();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const isPickupStage = ["rider_assigned", "ready_for_pickup", "preparing"].includes(order.status);
+  const isTrackable = ["rider_assigned", "out_for_delivery"].includes(order.status);
+  const messages = user ? await getOrderMessages(order.id) : [];
 
   return (
     <div>
+      {isTrackable && <RiderLocationTracker />}
+
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">Order #{order.order_number}</h1>
         <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
@@ -97,6 +108,12 @@ export default async function RiderOrderPage({
       </div>
 
       <p className="mb-4 text-right font-semibold">Order total: {formatSAR(order.total)}</p>
+
+      {user && (
+        <div className="mb-4">
+          <OrderChat orderId={order.id} currentUserId={user.id} otherPartyLabel="customer" initialMessages={messages} />
+        </div>
+      )}
 
       <DeliveryActions orderId={order.id} status={order.status} />
     </div>

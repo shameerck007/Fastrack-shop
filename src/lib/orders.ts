@@ -8,7 +8,11 @@ export interface OrderDetail extends Order {
   delivery_assignments: {
     id: string;
     rider_id: string | null;
-    delivery_partners: { profiles: { full_name: string | null; phone: string | null } } | null;
+    delivery_partners: {
+      current_lat: number | null;
+      current_lng: number | null;
+      profiles: { full_name: string | null; phone: string | null };
+    } | null;
   } | null;
 }
 
@@ -71,7 +75,7 @@ export async function getOrderDetail(orderId: string): Promise<OrderDetail | nul
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "*, order_items(*), order_status_history(*), addresses(address_line, label), delivery_assignments(id, rider_id, delivery_partners(profiles(full_name, phone)))"
+      "*, order_items(*), order_status_history(*), addresses(address_line, label), delivery_assignments(id, rider_id, delivery_partners(current_lat, current_lng, profiles(full_name, phone)))"
     )
     .eq("id", orderId)
     .maybeSingle();

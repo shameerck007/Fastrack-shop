@@ -192,6 +192,14 @@ export interface OrderStatusHistory {
   created_at: string;
 }
 
+export interface OrderMessage {
+  id: string;
+  order_id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+}
+
 export interface DeliveryPartner {
   id: string;
   vehicle_type: string | null;
