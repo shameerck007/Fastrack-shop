@@ -12,8 +12,13 @@ export default async function Header() {
     <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3">
         <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="text-xl font-bold text-emerald-600">
-            FasTrack <span className="text-neutral-900">Shop</span>
+          <Link href="/" className="flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-lg shadow-sm">
+              ⚡
+            </span>
+            <span className="text-xl font-bold text-neutral-900">
+              FasTrack <span className="text-emerald-600">Shop</span>
+            </span>
           </Link>
 
           <Link

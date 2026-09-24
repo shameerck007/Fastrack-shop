@@ -1,22 +1,43 @@
 import Link from "next/link";
 import type { ProductWithVariants } from "@/types/database";
 import { formatSAR } from "@/lib/utils";
+import { getCategoryTheme } from "@/lib/categoryTheme";
 
 export default function ProductCard({ product }: { product: ProductWithVariants }) {
   const variant =
     product.product_variants.find((v) => v.is_default) ?? product.product_variants[0];
+  const theme = getCategoryTheme(product.category?.slug);
+  const discountPct =
+    variant?.compare_at_price && variant.compare_at_price > variant.price
+      ? Math.round((1 - variant.price / variant.compare_at_price) * 100)
+      : null;
 
   return (
     <Link
       href={`/products/${product.id}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-neutral-200/60"
     >
-      <div className="flex h-32 items-center justify-center bg-neutral-100 text-4xl">
+      <div className={`relative flex h-32 items-center justify-center bg-gradient-to-br ${theme.gradient}`}>
         {product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
         ) : (
-          <span>🛒</span>
+          <span className="text-5xl drop-shadow-sm transition group-hover:scale-110">
+            {theme.emoji}
+          </span>
+        )}
+
+        <div className="absolute left-2 top-2 flex flex-col gap-1">
+          {product.is_fresh && (
+            <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 shadow-sm">
+              Fresh
+            </span>
+          )}
+        </div>
+        {discountPct && (
+          <span className="absolute right-2 top-2 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+            -{discountPct}%
+          </span>
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3">
