@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getMyStore, getMyStoreProducts } from "@/lib/merchant";
+import { updateMerchantProductStock } from "@/lib/actions/merchant-products";
+import StockCell from "@/components/admin/StockCell";
 
 export default async function MerchantDashboardPage() {
   const store = await getMyStore();
@@ -46,6 +48,51 @@ export default async function MerchantDashboardPage() {
           Manage products →
         </Link>
       </div>
+
+      {products.length > 0 && (
+        <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-sm font-medium">Stock overview</p>
+            <Link href="/merchant/products" className="text-xs text-blue-600 hover:underline">
+              Manage products →
+            </Link>
+          </div>
+          <div className="flex flex-col divide-y divide-neutral-100">
+            {products.map((product) => {
+              const variant = product.product_variants[0];
+              const inv = variant?.inventory[0];
+              return (
+                <div key={product.id} className="flex items-center justify-between gap-3 py-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="h-8 w-8 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-50">
+                      {product.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center text-sm">📦</span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{product.name}</p>
+                      <p className="text-xs text-neutral-400">{variant?.label}</p>
+                    </div>
+                  </div>
+                  {inv ? (
+                    <StockCell
+                      inventoryId={inv.id}
+                      stock={inv.stock}
+                      minStock={inv.min_stock}
+                      updateAction={updateMerchantProductStock}
+                    />
+                  ) : (
+                    <span className="text-xs text-neutral-400">No stock row</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
         <p className="mb-3 font-medium">Store details</p>

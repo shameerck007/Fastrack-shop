@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const NAV = [
   { href: "/merchant", label: "Dashboard", icon: "📊" },
-  { href: "/merchant/products", label: "Products", icon: "📦" },
+  { href: "/merchant/products", label: "Products & Stock", icon: "📦" },
 ];
 
 export default function MerchantNav() {
@@ -28,6 +28,14 @@ export default function MerchantNav() {
           </Link>
         );
       })}
+      <div className="my-2 border-t border-neutral-200" />
+      <Link
+        href="/"
+        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+      >
+        <span>←</span>
+        Back to shop
+      </Link>
     </nav>
   );
 }

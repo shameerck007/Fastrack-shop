@@ -26,6 +26,9 @@ export default async function MerchantLayout({ children }: { children: React.Rea
             <span className="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 sm:inline">
               ● Approved seller
             </span>
+            <Link href="/" className="text-neutral-500 hover:text-neutral-900">
+              ← Back to shop
+            </Link>
             <form action={signOut}>
               <button className="text-neutral-500 hover:text-neutral-900">Log out</button>
             </form>
