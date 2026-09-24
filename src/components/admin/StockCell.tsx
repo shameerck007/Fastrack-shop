@@ -2,16 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateProductStock } from "@/lib/actions/admin-products";
 
 export default function StockCell({
   inventoryId,
   stock,
   minStock,
+  updateAction,
 }: {
   inventoryId: string;
   stock: number;
   minStock: number;
+  updateAction: (inventoryId: string, stock: number) => Promise<void>;
 }) {
   const [value, setValue] = useState(String(stock));
   const [pending, startTransition] = useTransition();
@@ -21,7 +22,7 @@ export default function StockCell({
     const num = Number(value);
     if (Number.isNaN(num) || num === stock) return;
     startTransition(async () => {
-      await updateProductStock(inventoryId, num);
+      await updateAction(inventoryId, num);
       router.refresh();
     });
   }

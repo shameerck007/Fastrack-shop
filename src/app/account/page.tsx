@@ -39,9 +39,19 @@ export default async function AccountPage() {
         <Link href="/addresses" className="text-blue-600 hover:underline">
           Manage addresses
         </Link>
-        {(profile?.role === "admin" || profile?.role === "rider") && (
-          <Link href={profile.role === "admin" ? "/admin" : "/rider"} className="text-blue-600 hover:underline">
+        {(profile?.role === "admin" || profile?.role === "rider" || profile?.role === "merchant") && (
+          <Link
+            href={
+              profile.role === "admin" ? "/admin" : profile.role === "rider" ? "/rider" : "/merchant"
+            }
+            className="text-blue-600 hover:underline"
+          >
             Go to {profile.role} dashboard
+          </Link>
+        )}
+        {profile?.role === "customer" && (
+          <Link href="/sell" className="text-blue-600 hover:underline">
+            Sell on FasTrack Shop
           </Link>
         )}
       </div>

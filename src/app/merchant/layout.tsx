@@ -1,28 +1,27 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
+import { getMyStore } from "@/lib/merchant";
 import Logo from "@/components/Logo";
 
 const NAV = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/orders", label: "Orders" },
-  { href: "/admin/merchants", label: "Merchants" },
+  { href: "/merchant", label: "Dashboard" },
+  { href: "/merchant/products", label: "Products" },
 ];
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const profile = await requireRole("admin");
+export default async function MerchantLayout({ children }: { children: React.ReactNode }) {
+  await requireRole("merchant");
+  const store = await getMyStore();
 
   return (
     <div className="min-h-screen bg-neutral-50">
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link href="/admin" className="flex items-center gap-2">
+          <Link href="/merchant" className="flex items-center gap-2">
             <Logo size={28} />
-            <span className="font-semibold text-neutral-900">FasTrack Admin</span>
+            <span className="font-semibold text-neutral-900">{store?.name ?? "FasTrack Merchant"}</span>
           </Link>
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-neutral-500">{profile.full_name}</span>
             <form action={signOut}>
               <button className="text-neutral-500 hover:text-neutral-900">Log out</button>
             </form>

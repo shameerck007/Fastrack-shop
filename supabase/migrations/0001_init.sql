@@ -411,7 +411,11 @@ create policy "admins manage promotions" on promotions for all using (is_admin()
 
 -- Profiles: users see/edit their own row; admins see all
 create policy "users read own profile" on profiles for select using (auth.uid() = id or is_admin());
-create policy "users update own profile" on profiles for update using (auth.uid() = id);
+create policy "users and admins update profile" on profiles for update using (
+  auth.uid() = id or is_admin()
+) with check (
+  auth.uid() = id or is_admin()
+);
 create policy "users insert own profile" on profiles for insert with check (auth.uid() = id);
 
 -- Addresses: owner only, admin full

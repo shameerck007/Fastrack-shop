@@ -2,7 +2,8 @@
 // Regenerate with `supabase gen types typescript` once a live project exists,
 // and this file can be replaced wholesale.
 
-export type UserRole = "customer" | "admin" | "rider";
+export type UserRole = "customer" | "admin" | "rider" | "merchant";
+export type StoreStatus = "pending" | "approved" | "rejected" | "suspended";
 export type AddressLabel = "home" | "office" | "other";
 export type OrderStatus =
   | "pending"
@@ -62,9 +63,28 @@ export interface Warehouse {
   created_at: string;
 }
 
+export interface Store {
+  id: string;
+  owner_id: string;
+  name: string;
+  cr_number: string;
+  vat_number: string | null;
+  bank_name: string | null;
+  bank_iban: string | null;
+  contact_phone: string | null;
+  address_line: string | null;
+  city: string;
+  status: StoreStatus;
+  rejection_reason: string | null;
+  warehouse_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Product {
   id: string;
   category_id: string | null;
+  store_id: string | null;
   sku: string | null;
   barcode: string | null;
   name: string;

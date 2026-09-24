@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import NewProductForm from "@/components/admin/NewProductForm";
 import StockCell from "@/components/admin/StockCell";
+import { updateProductStock } from "@/lib/actions/admin-products";
 import { formatSAR } from "@/lib/utils";
 import type { Category, Warehouse } from "@/types/database";
 
@@ -76,7 +77,12 @@ export default async function AdminProductsPage() {
                     <td className="px-4 py-2">{formatSAR(variant.price)}</td>
                     <td className="px-4 py-2">
                       {inv ? (
-                        <StockCell inventoryId={inv.id} stock={inv.stock} minStock={inv.min_stock} />
+                        <StockCell
+                          inventoryId={inv.id}
+                          stock={inv.stock}
+                          minStock={inv.min_stock}
+                          updateAction={updateProductStock}
+                        />
                       ) : (
                         "—"
                       )}

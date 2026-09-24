@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-const HIDE_PREFIXES = ["/admin", "/rider"];
+const HIDE_PREFIXES = ["/admin", "/rider", "/merchant"];
 
 export default function HeaderGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
