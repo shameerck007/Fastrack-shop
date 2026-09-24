@@ -26,8 +26,13 @@ export async function createMerchantProduct(input: {
   name: string;
   brand?: string;
   sku?: string;
+  description?: string;
+  imageUrl?: string;
   price: number;
+  compareAtPrice?: number;
   variantLabel: string;
+  unit?: string;
+  quantity?: number;
   stock: number;
 }) {
   const supabase = await createClient();
@@ -45,6 +50,8 @@ export async function createMerchantProduct(input: {
       name: input.name,
       brand: input.brand ?? null,
       sku: input.sku ?? null,
+      description: input.description ?? null,
+      image_url: input.imageUrl ?? null,
     })
     .select("id")
     .single();
@@ -55,7 +62,10 @@ export async function createMerchantProduct(input: {
     .insert({
       product_id: product.id,
       label: input.variantLabel,
+      unit: input.unit ?? "unit",
+      quantity: input.quantity ?? 1,
       price: input.price,
+      compare_at_price: input.compareAtPrice ?? null,
       is_default: true,
     })
     .select("id")

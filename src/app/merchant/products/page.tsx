@@ -48,10 +48,22 @@ export default async function MerchantProductsPage() {
                     <tr key={variant.id} className="border-t border-neutral-100">
                       {i === 0 && (
                         <td className="px-4 py-2 font-medium" rowSpan={product.product_variants.length}>
-                          {product.name}
-                          {product.brand && (
-                            <span className="block text-xs text-neutral-400">{product.brand}</span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-50">
+                              {product.image_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+                              ) : (
+                                <span className="flex h-full w-full items-center justify-center text-sm">📦</span>
+                              )}
+                            </div>
+                            <div>
+                              {product.name}
+                              {product.brand && (
+                                <span className="block text-xs text-neutral-400">{product.brand}</span>
+                              )}
+                            </div>
+                          </div>
                         </td>
                       )}
                       {i === 0 && (

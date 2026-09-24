@@ -22,6 +22,7 @@ export interface MerchantProduct {
   id: string;
   name: string;
   brand: string | null;
+  image_url: string | null;
   is_active: boolean;
   category: { name: string } | null;
   product_variants: {
@@ -37,7 +38,7 @@ export async function getMyStoreProducts(storeId: string): Promise<MerchantProdu
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, brand, is_active, category:categories(name), product_variants(id, label, price, inventory(id, stock, min_stock))"
+      "id, name, brand, image_url, is_active, category:categories(name), product_variants(id, label, price, inventory(id, stock, min_stock))"
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
