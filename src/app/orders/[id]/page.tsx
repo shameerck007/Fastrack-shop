@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getOrderDetail } from "@/lib/orders";
 import { formatSAR, ORDER_STATUS_FLOW, ORDER_STATUS_LABELS } from "@/lib/utils";
+import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 
 export default async function OrderDetailPage({
   params,
@@ -19,20 +20,23 @@ export default async function OrderDetailPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Order #{order.order_number}</h1>
           <p className="text-sm text-neutral-500">
             {new Date(order.created_at).toLocaleString()}
           </p>
         </div>
-        <span
-          className={`rounded-full px-3 py-1 text-sm font-medium ${
-            isCancelled ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700"
-          }`}
-        >
-          {ORDER_STATUS_LABELS[order.status]}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <span
+            className={`rounded-full px-3 py-1 text-sm font-medium ${
+              isCancelled ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700"
+            }`}
+          >
+            {ORDER_STATUS_LABELS[order.status]}
+          </span>
+          <DownloadInvoiceButton orderId={order.id} />
+        </div>
       </div>
 
       {!isCancelled && (

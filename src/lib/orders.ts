@@ -79,3 +79,27 @@ export async function getOrderDetail(orderId: string): Promise<OrderDetail | nul
   if (error) throw error;
   return data as OrderDetail | null;
 }
+
+export interface InvoiceData extends Order {
+  order_items: OrderItem[];
+  addresses: { address_line: string; label: string; city: string } | null;
+  profiles: { full_name: string | null; phone: string | null } | null;
+  payments: { method: string; status: string }[];
+}
+
+// Relies on RLS (same policies as getOrderDetail) to scope access: the
+// caller only gets a row back if they own the order, are an admin, or are
+// the assigned rider — no separate authorization check needed here.
+export async function getInvoiceData(orderId: string): Promise<InvoiceData | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      "*, order_items(*), addresses(address_line, label, city), profiles(full_name, phone), payments(method, status)"
+    )
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as InvoiceData | null;
+}
