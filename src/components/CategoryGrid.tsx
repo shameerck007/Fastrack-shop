@@ -14,9 +14,9 @@ export default function CategoryGrid({ categories }: { categories: Category[] })
             className="group flex flex-col items-center gap-2"
           >
             <div className="h-16 w-16 overflow-hidden rounded-2xl shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md sm:h-20 sm:w-20">
-              {theme.image ? (
+              {category.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={theme.image} alt={category.name} className="h-full w-full object-cover" />
+                <img src={category.image_url} alt={category.name} className="h-full w-full object-cover" />
               ) : (
                 <div
                   className={`flex h-full w-full items-center justify-center bg-gradient-to-br text-3xl sm:text-4xl ${theme.gradient}`}

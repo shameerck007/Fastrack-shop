@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createCategory, updateCategory } from "@/lib/actions/admin-categories";
 import Modal from "@/components/Modal";
+import ImageUploader from "@/components/ImageUploader";
 import type { Category } from "@/types/database";
 
 export default function CategoryForm({
@@ -14,6 +15,7 @@ export default function CategoryForm({
   onDone?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(existing?.image_url ?? null);
   const [name, setName] = useState(existing?.name ?? "");
   const [nameAr, setNameAr] = useState(existing?.name_ar ?? "");
   const [slug, setSlug] = useState(existing?.slug ?? "");
@@ -34,6 +36,7 @@ export default function CategoryForm({
             nameAr: nameAr || undefined,
             slug,
             icon: icon || undefined,
+            imageUrl: imageUrl || undefined,
             sortOrder: Number(sortOrder) || 0,
           });
           onDone?.();
@@ -43,8 +46,10 @@ export default function CategoryForm({
             nameAr: nameAr || undefined,
             slug: slug || undefined,
             icon: icon || undefined,
+            imageUrl: imageUrl || undefined,
             sortOrder: Number(sortOrder) || 0,
           });
+          setImageUrl(null);
           setName("");
           setNameAr("");
           setSlug("");
@@ -61,6 +66,10 @@ export default function CategoryForm({
 
   const formBody = (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <div>
+        <p className="mb-1 text-xs font-medium text-neutral-500">Category photo</p>
+        <ImageUploader value={imageUrl} onChange={setImageUrl} />
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <input
           required
@@ -83,7 +92,7 @@ export default function CategoryForm({
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
         <input
-          placeholder="Emoji icon (e.g. 🍿)"
+          placeholder="Emoji fallback (e.g. 🍿) — shown if no photo"
           value={icon}
           onChange={(e) => setIcon(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"

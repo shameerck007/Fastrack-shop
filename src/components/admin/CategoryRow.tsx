@@ -19,7 +19,14 @@ export default function CategoryRow({ category }: { category: Category }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white p-3">
       <div className="flex items-center gap-3">
-        <span className="text-2xl">{category.icon || "🛒"}</span>
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50">
+          {category.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={category.image_url} alt={category.name} className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-2xl">{category.icon || "🛒"}</span>
+          )}
+        </div>
         <div>
           <p className="text-sm font-medium">{category.name}</p>
           <p className="text-xs text-neutral-400">

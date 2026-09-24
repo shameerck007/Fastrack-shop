@@ -16,6 +16,7 @@ export async function createCategory(input: {
   nameAr?: string;
   slug?: string;
   icon?: string;
+  imageUrl?: string;
   sortOrder?: number;
 }) {
   const supabase = await createClient();
@@ -26,6 +27,7 @@ export async function createCategory(input: {
     name_ar: input.nameAr?.trim() || null,
     slug: input.slug?.trim() || slugify(input.name),
     icon: input.icon?.trim() || null,
+    image_url: input.imageUrl || null,
     sort_order: input.sortOrder ?? 0,
   });
 
@@ -41,7 +43,7 @@ export async function createCategory(input: {
 
 export async function updateCategory(
   categoryId: string,
-  input: { name: string; nameAr?: string; slug: string; icon?: string; sortOrder?: number }
+  input: { name: string; nameAr?: string; slug: string; icon?: string; imageUrl?: string; sortOrder?: number }
 ) {
   const supabase = await createClient();
   if (!input.name.trim() || !input.slug.trim()) throw new Error("Name and slug are required.");
@@ -53,6 +55,7 @@ export async function updateCategory(
       name_ar: input.nameAr?.trim() || null,
       slug: input.slug.trim(),
       icon: input.icon?.trim() || null,
+      image_url: input.imageUrl || null,
       sort_order: input.sortOrder ?? 0,
     })
     .eq("id", categoryId);
