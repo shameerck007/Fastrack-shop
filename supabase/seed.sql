@@ -194,3 +194,50 @@ insert into inventory (variant_id, warehouse_id, stock, min_stock) values
   ('31000000-0000-0000-0000-000000000034', '00000000-0000-0000-0000-000000000001', 35, 10),
   ('31000000-0000-0000-0000-000000000035', '00000000-0000-0000-0000-000000000001', 90, 25),
   ('31000000-0000-0000-0000-000000000036', '00000000-0000-0000-0000-000000000001', 65, 20);
+
+-- ============================================================
+-- Product photos, sourced from Wikimedia Commons (public domain / CC).
+-- Special:FilePath redirects to the actual file regardless of its storage
+-- path, so these links are stable without needing to know upload hashes.
+-- Two products (Cheddar Cheese, Lamb Chops) have no verified real photo and
+-- keep the gradient/emoji fallback from src/lib/categoryTheme.ts instead.
+-- ============================================================
+
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Bananas.jpg?width=400' where id = '20000000-0000-0000-0000-000000000001';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Tomato_je.jpg?width=400' where id = '20000000-0000-0000-0000-000000000002';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Milk_glass.jpg?width=400' where id = '20000000-0000-0000-0000-000000000003';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Chicken_meat.jpg?width=400' where id = '20000000-0000-0000-0000-000000000004';
+
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Mint_leaves.jpg?width=400' where id = '21000000-0000-0000-0000-000000000001';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Coriander_leaves.jpg?width=400' where id = '21000000-0000-0000-0000-000000000002';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Iceberg_lettuce.jpg?width=400' where id = '21000000-0000-0000-0000-000000000003';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Curry_leaves.jpg?width=400' where id = '21000000-0000-0000-0000-000000000004';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Red_Apple.jpg?width=400' where id = '21000000-0000-0000-0000-000000000005';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Green_grapes.jpg?width=400' where id = '21000000-0000-0000-0000-000000000006';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Watermelon.jpg?width=400' where id = '21000000-0000-0000-0000-000000000007';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Orange-Fruit-Pieces.jpg?width=400' where id = '21000000-0000-0000-0000-000000000008';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Patates.jpg?width=400' where id = '21000000-0000-0000-0000-000000000009';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Onions.jpg?width=400' where id = '21000000-0000-0000-0000-000000000010';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Cucumbers.jpg?width=400' where id = '21000000-0000-0000-0000-000000000011';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Carrots.jpg?width=400' where id = '21000000-0000-0000-0000-000000000012';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Rice_p1160004.jpg?width=400' where id = '21000000-0000-0000-0000-000000000013';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Sugar_2xmacro.jpg?width=400' where id = '21000000-0000-0000-0000-000000000014';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Wheat_flour.jpg?width=400' where id = '21000000-0000-0000-0000-000000000015';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Masoor%20dal.JPG?width=400' where id = '21000000-0000-0000-0000-000000000016';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Sunflower_oil.jpg?width=400' where id = '21000000-0000-0000-0000-000000000017';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Food%20Portions%20%28Team%20Nutrition%29%20%2820210902-FNS-UNC-0054%29.jpg?width=400' where id = '21000000-0000-0000-0000-000000000018';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Labneh%20%285196911587%29.jpg?width=400' where id = '21000000-0000-0000-0000-000000000020';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Beurre.jpg?width=400' where id = '21000000-0000-0000-0000-000000000021';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Minced_meat.jpg?width=400' where id = '21000000-0000-0000-0000-000000000024';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Khubz.jpg?width=400' where id = '21000000-0000-0000-0000-000000000025';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/White_bread.jpg?width=400' where id = '21000000-0000-0000-0000-000000000026';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Croissants.jpg?width=400' where id = '21000000-0000-0000-0000-000000000027';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Chocolate_cake.jpg?width=400' where id = '21000000-0000-0000-0000-000000000028';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Orange_juice_2.jpg?width=400' where id = '21000000-0000-0000-0000-000000000029';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Sparkling_water.jpg?width=400' where id = '21000000-0000-0000-0000-000000000030';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Arabic_coffee.jpg?width=400' where id = '21000000-0000-0000-0000-000000000031';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Cola.jpg?width=400' where id = '21000000-0000-0000-0000-000000000032';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Tesco%20and%20Sainsburys%20own%20dishwashing%20liquid.jpg?width=400' where id = '21000000-0000-0000-0000-000000000033';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Laundry_detergents.jpg?width=400' where id = '21000000-0000-0000-0000-000000000034';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Tissue_box.jpg?width=400' where id = '21000000-0000-0000-0000-000000000035';
+update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/A_typical_black_bin_bag_from_the_UK_20060811.jpg?width=400' where id = '21000000-0000-0000-0000-000000000036';
