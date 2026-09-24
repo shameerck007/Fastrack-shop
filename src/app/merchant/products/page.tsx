@@ -1,10 +1,8 @@
 import { redirect } from "next/navigation";
 import { getMyStore, getMyStoreProducts } from "@/lib/merchant";
 import { createClient } from "@/lib/supabase/server";
-import NewMerchantProductForm from "@/components/merchant/NewMerchantProductForm";
-import StockCell from "@/components/admin/StockCell";
-import { updateMerchantProductStock, toggleMerchantProductActive } from "@/lib/actions/merchant-products";
-import { formatSAR } from "@/lib/utils";
+import MerchantProductForm from "@/components/merchant/MerchantProductForm";
+import MerchantProductCard from "@/components/merchant/MerchantProductCard";
 import type { Category } from "@/types/database";
 
 export default async function MerchantProductsPage() {
@@ -16,102 +14,31 @@ export default async function MerchantProductsPage() {
     getMyStoreProducts(store.id),
     supabase.from("categories").select("*").order("sort_order"),
   ]);
+  const categoryList = (categories as Category[]) ?? [];
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold">Products</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">Products</h1>
+          <p className="text-sm text-neutral-500">{products.length} product{products.length === 1 ? "" : "s"} in your catalog</p>
+        </div>
+      </div>
 
-      <div className="mb-6">
-        <NewMerchantProductForm categories={(categories as Category[]) ?? []} />
+      <div className="mb-8">
+        <h2 className="mb-2 text-sm font-medium text-neutral-500">Add a new product</h2>
+        <MerchantProductForm categories={categoryList} />
       </div>
 
       {products.length === 0 ? (
-        <p className="text-sm text-neutral-500">You haven&apos;t added any products yet.</p>
+        <div className="rounded-xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
+          You haven&apos;t added any products yet. Use the form above to add your first one.
+        </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-neutral-500">
-              <tr>
-                <th className="px-4 py-2">Product</th>
-                <th className="px-4 py-2">Category</th>
-                <th className="px-4 py-2">Variant</th>
-                <th className="px-4 py-2">Price</th>
-                <th className="px-4 py-2">Stock</th>
-                <th className="px-4 py-2">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) =>
-                product.product_variants.map((variant, i) => {
-                  const inv = variant.inventory[0];
-                  return (
-                    <tr key={variant.id} className="border-t border-neutral-100">
-                      {i === 0 && (
-                        <td className="px-4 py-2 font-medium" rowSpan={product.product_variants.length}>
-                          <div className="flex items-center gap-2">
-                            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-md border border-neutral-200 bg-neutral-50">
-                              {product.image_url ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
-                              ) : (
-                                <span className="flex h-full w-full items-center justify-center text-sm">📦</span>
-                              )}
-                            </div>
-                            <div>
-                              {product.name}
-                              {product.brand && (
-                                <span className="block text-xs text-neutral-400">{product.brand}</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                      )}
-                      {i === 0 && (
-                        <td className="px-4 py-2 text-neutral-600" rowSpan={product.product_variants.length}>
-                          {product.category?.name ?? "—"}
-                        </td>
-                      )}
-                      <td className="px-4 py-2">{variant.label}</td>
-                      <td className="px-4 py-2">{formatSAR(variant.price)}</td>
-                      <td className="px-4 py-2">
-                        {inv ? (
-                          <StockCell
-                            inventoryId={inv.id}
-                            stock={inv.stock}
-                            minStock={inv.min_stock}
-                            updateAction={updateMerchantProductStock}
-                          />
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      {i === 0 && (
-                        <td className="px-4 py-2" rowSpan={product.product_variants.length}>
-                          <form
-                            action={async () => {
-                              "use server";
-                              await toggleMerchantProductActive(product.id, !product.is_active);
-                            }}
-                          >
-                            <button
-                              type="submit"
-                              className={`rounded-full px-2 py-0.5 text-xs ${
-                                product.is_active
-                                  ? "bg-blue-50 text-blue-700"
-                                  : "bg-neutral-100 text-neutral-500"
-                              }`}
-                            >
-                              {product.is_active ? "Active" : "Inactive"}
-                            </button>
-                          </form>
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => (
+            <MerchantProductCard key={product.id} product={product} categories={categoryList} />
+          ))}
         </div>
       )}
     </div>

@@ -82,6 +82,68 @@ export async function createMerchantProduct(input: {
   revalidatePath("/merchant/products");
 }
 
+export async function updateMerchantProduct(
+  productId: string,
+  variantId: string,
+  input: {
+    categoryId: string;
+    name: string;
+    brand?: string;
+    sku?: string;
+    description?: string;
+    imageUrl?: string;
+    price: number;
+    compareAtPrice?: number;
+    variantLabel: string;
+    unit?: string;
+    quantity?: number;
+  }
+) {
+  const supabase = await createClient();
+  const store = await getOwnApprovedStore(supabase);
+
+  // Verify the product actually belongs to this merchant's store before
+  // writing — RLS would otherwise just silently affect 0 rows on a
+  // mismatch instead of erroring, which is exactly the bug that bit the
+  // profiles-role update earlier in this project.
+  const { data: product, error: fetchError } = await supabase
+    .from("products")
+    .select("id, store_id")
+    .eq("id", productId)
+    .maybeSingle();
+  if (fetchError) throw fetchError;
+  if (!product || product.store_id !== store.id) {
+    throw new Error("You can only edit your own products.");
+  }
+
+  const { error: productError } = await supabase
+    .from("products")
+    .update({
+      category_id: input.categoryId,
+      name: input.name,
+      brand: input.brand ?? null,
+      sku: input.sku ?? null,
+      description: input.description ?? null,
+      image_url: input.imageUrl ?? null,
+    })
+    .eq("id", productId);
+  if (productError) throw productError;
+
+  const { error: variantError } = await supabase
+    .from("product_variants")
+    .update({
+      label: input.variantLabel,
+      unit: input.unit ?? "unit",
+      quantity: input.quantity ?? 1,
+      price: input.price,
+      compare_at_price: input.compareAtPrice ?? null,
+    })
+    .eq("id", variantId);
+  if (variantError) throw variantError;
+
+  revalidatePath("/merchant/products");
+}
+
 export async function updateMerchantProductStock(inventoryId: string, stock: number) {
   const supabase = await createClient();
   const { error } = await supabase.from("inventory").update({ stock }).eq("id", inventoryId);
