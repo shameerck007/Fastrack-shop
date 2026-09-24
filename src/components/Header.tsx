@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import SearchBar from "@/components/SearchBar";
+import { getCartItemCount } from "@/lib/cart";
 
 export default async function Header() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const cartCount = await getCartItemCount();
 
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white">
@@ -32,8 +34,13 @@ export default async function Header() {
             <Link href="/orders" className="hover:text-emerald-600">
               Orders
             </Link>
-            <Link href="/cart" className="hover:text-emerald-600">
+            <Link href="/cart" className="relative flex items-center gap-1 hover:text-emerald-600">
               🛒 Cart
+              {cartCount > 0 && (
+                <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-semibold text-white">
+                  {cartCount}
+                </span>
+              )}
             </Link>
             {user ? (
               <Link href="/account" className="hover:text-emerald-600">
