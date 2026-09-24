@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { Map as LeafletMap, Marker } from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 const RIYADH: [number, number] = [24.7136, 46.6753];
-const PIN_SPAN = 0.006; // ~650m box around the pin, tight enough to read street-level detail
 
 export default function LocationPicker({
   lat,
@@ -14,17 +15,59 @@ export default function LocationPicker({
   lng: number | null;
   onChange: (lat: number, lng: number) => void;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const markerRef = useRef<Marker | null>(null);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manualLat, setManualLat] = useState(lat != null ? String(lat) : "");
   const [manualLng, setManualLng] = useState(lng != null ? String(lng) : "");
 
-  const point: [number, number] = lat != null && lng != null ? [lat, lng] : RIYADH;
-  const hasPin = lat != null && lng != null;
-  const bbox = [point[1] - PIN_SPAN, point[0] - PIN_SPAN, point[1] + PIN_SPAN, point[0] + PIN_SPAN].join(",");
-  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik${
-    hasPin ? `&marker=${point[0]},${point[1]}` : ""
-  }`;
+  useEffect(() => {
+    let cancelled = false;
+    import("leaflet").then((L) => {
+      if (cancelled || !containerRef.current || mapRef.current) return;
+
+      const icon = L.icon({
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+      });
+
+      const start: [number, number] = lat != null && lng != null ? [lat, lng] : RIYADH;
+      const map = L.map(containerRef.current).setView(start, lat != null && lng != null ? 15 : 11);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(map);
+
+      const marker = L.marker(start, { icon, draggable: true }).addTo(map);
+      marker.on("dragend", () => {
+        const pos = marker.getLatLng();
+        onChange(pos.lat, pos.lng);
+        setManualLat(String(pos.lat));
+        setManualLng(String(pos.lng));
+      });
+      map.on("click", (e) => {
+        marker.setLatLng(e.latlng);
+        onChange(e.latlng.lat, e.latlng.lng);
+        setManualLat(String(e.latlng.lat));
+        setManualLng(String(e.latlng.lng));
+      });
+
+      mapRef.current = map;
+      markerRef.current = marker;
+    });
+
+    return () => {
+      cancelled = true;
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function useMyLocation() {
     if (!navigator.geolocation) {
@@ -39,6 +82,8 @@ export default function LocationPicker({
         onChange(latitude, longitude);
         setManualLat(String(latitude));
         setManualLng(String(longitude));
+        mapRef.current?.setView([latitude, longitude], 16);
+        markerRef.current?.setLatLng([latitude, longitude]);
         setLocating(false);
       },
       () => {
@@ -58,14 +103,14 @@ export default function LocationPicker({
     }
     setError(null);
     onChange(newLat, newLng);
+    mapRef.current?.setView([newLat, newLng], 16);
+    markerRef.current?.setLatLng([newLat, newLng]);
   }
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-neutral-500">
-          {hasPin ? "Pin set — adjust the coordinates below if needed." : "Set your delivery location."}
-        </p>
+        <p className="text-xs text-neutral-500">Drag the pin or tap the map to set your exact location.</p>
         <button
           type="button"
           onClick={useMyLocation}
@@ -76,15 +121,7 @@ export default function LocationPicker({
         </button>
       </div>
 
-      <div className="h-56 w-full overflow-hidden rounded-lg border border-neutral-300">
-        <iframe
-          key={mapSrc}
-          src={mapSrc}
-          title="Location map"
-          className="h-full w-full"
-          loading="lazy"
-        />
-      </div>
+      <div ref={containerRef} className="h-56 w-full overflow-hidden rounded-lg border border-neutral-300" />
 
       <div className="flex items-center gap-2">
         <input
@@ -111,6 +148,11 @@ export default function LocationPicker({
       </div>
 
       {error && <p className="text-xs text-red-600">{error}</p>}
+      {lat != null && lng != null && (
+        <p className="text-xs text-neutral-400">
+          {lat.toFixed(6)}, {lng.toFixed(6)}
+        </p>
+      )}
     </div>
   );
 }
