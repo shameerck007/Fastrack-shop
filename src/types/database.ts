@@ -83,6 +83,8 @@ export interface Store {
   status: StoreStatus;
   rejection_reason: string | null;
   warehouse_id: string | null;
+  cr_document_path: string | null;
+  vat_document_path: string | null;
   created_at: string;
   updated_at: string;
 }

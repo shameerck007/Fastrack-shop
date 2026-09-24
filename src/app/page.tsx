@@ -1,5 +1,4 @@
 import CategoryGrid from "@/components/CategoryGrid";
-import Hero from "@/components/Hero";
 import ProductCard from "@/components/ProductCard";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import {
@@ -60,8 +59,6 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
-      <Hero />
-
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-semibold">Shop by category</h2>
         <CategoryGrid categories={categories} />

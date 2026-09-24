@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { applyForStore } from "@/lib/actions/merchant";
+import DocumentUploader from "@/components/merchant/DocumentUploader";
 
 export default function StoreApplicationForm() {
   const [name, setName] = useState("");
@@ -12,6 +13,8 @@ export default function StoreApplicationForm() {
   const [bankName, setBankName] = useState("");
   const [bankIban, setBankIban] = useState("");
   const [addressLine, setAddressLine] = useState("");
+  const [crDocumentPath, setCrDocumentPath] = useState<string | null>(null);
+  const [vatDocumentPath, setVatDocumentPath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -19,6 +22,10 @@ export default function StoreApplicationForm() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!crDocumentPath) {
+      setError("Please upload a copy of your CR document.");
+      return;
+    }
     startTransition(async () => {
       try {
         await applyForStore({
@@ -29,6 +36,8 @@ export default function StoreApplicationForm() {
           bankName,
           bankIban,
           addressLine,
+          crDocumentPath,
+          vatDocumentPath: vatDocumentPath ?? undefined,
         });
         router.refresh();
       } catch (err) {
@@ -105,6 +114,24 @@ export default function StoreApplicationForm() {
           />
         </div>
       </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <DocumentUploader
+          label="CR document copy *"
+          kind="cr"
+          value={crDocumentPath}
+          onChange={setCrDocumentPath}
+        />
+        <DocumentUploader
+          label="VAT certificate copy"
+          kind="vat"
+          value={vatDocumentPath}
+          onChange={setVatDocumentPath}
+        />
+      </div>
+      <p className="text-xs text-neutral-400">
+        PDF or image, up to 10 MB. Used by FasTrack to verify your business before approval.
+      </p>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

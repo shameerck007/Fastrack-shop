@@ -13,10 +13,17 @@ export default function CategoryGrid({ categories }: { categories: Category[] })
             href={`/categories/${category.slug}`}
             className="group flex flex-col items-center gap-2"
           >
-            <div
-              className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br text-3xl shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md sm:h-20 sm:w-20 sm:text-4xl ${theme.gradient}`}
-            >
-              <span className="drop-shadow-sm">{theme.emoji}</span>
+            <div className="h-16 w-16 overflow-hidden rounded-2xl shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md sm:h-20 sm:w-20">
+              {theme.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={theme.image} alt={category.name} className="h-full w-full object-cover" />
+              ) : (
+                <div
+                  className={`flex h-full w-full items-center justify-center bg-gradient-to-br text-3xl sm:text-4xl ${theme.gradient}`}
+                >
+                  <span className="drop-shadow-sm">{theme.emoji}</span>
+                </div>
+              )}
             </div>
             <span className="text-center text-xs font-medium text-neutral-700 sm:text-sm">
               {category.name}

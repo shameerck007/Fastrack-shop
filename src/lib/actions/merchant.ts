@@ -12,6 +12,8 @@ export async function applyForStore(input: {
   contactPhone?: string;
   addressLine?: string;
   city?: string;
+  crDocumentPath?: string;
+  vatDocumentPath?: string;
 }) {
   const supabase = await createClient();
   const {
@@ -21,6 +23,9 @@ export async function applyForStore(input: {
 
   if (!input.name.trim() || !input.crNumber.trim()) {
     throw new Error("Store name and CR number are required.");
+  }
+  if (!input.crDocumentPath) {
+    throw new Error("Please upload a copy of your CR document.");
   }
 
   const { error } = await supabase.from("stores").insert({
@@ -33,6 +38,8 @@ export async function applyForStore(input: {
     contact_phone: input.contactPhone?.trim() || null,
     address_line: input.addressLine?.trim() || null,
     city: input.city?.trim() || "Riyadh",
+    cr_document_path: input.crDocumentPath,
+    vat_document_path: input.vatDocumentPath ?? null,
   });
 
   if (error) {
