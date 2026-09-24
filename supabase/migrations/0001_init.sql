@@ -325,6 +325,7 @@ create trigger on_auth_user_created
 alter table profiles enable row level security;
 alter table addresses enable row level security;
 alter table categories enable row level security;
+alter table warehouses enable row level security;
 alter table products enable row level security;
 alter table product_variants enable row level security;
 alter table inventory enable row level security;
@@ -356,6 +357,8 @@ $$ language sql stable security definer;
 
 -- Public catalog: anyone can read active categories/products/variants/promotions
 create policy "categories are publicly readable" on categories for select using (true);
+create policy "warehouses are publicly readable" on warehouses for select using (true);
+create policy "admins manage warehouses" on warehouses for all using (is_admin()) with check (is_admin());
 create policy "products are publicly readable" on products for select using (is_active or is_admin());
 create policy "variants are publicly readable" on product_variants for select using (true);
 create policy "inventory is publicly readable" on inventory for select using (true);
@@ -408,7 +411,16 @@ create policy "users read own orders" on orders for select using (
   auth.uid() = user_id or is_admin() or is_assigned_rider(id)
 );
 create policy "users create own orders" on orders for insert with check (auth.uid() = user_id);
-create policy "admins update orders" on orders for update using (is_admin() or is_rider());
+create policy "admins and assigned riders update orders" on orders for update using (
+  is_admin() or (is_rider() and is_assigned_rider(id))
+);
+
+-- Unassigned orders the store has started preparing are the "available pool"
+-- online riders can browse and self-assign from.
+create policy "riders view available order pool" on orders for select using (
+  is_rider() and status in ('preparing', 'ready_for_pickup')
+  and not exists (select 1 from delivery_assignments da where da.order_id = orders.id)
+);
 
 create policy "users read own order items" on order_items for select using (
   exists (
@@ -419,6 +431,15 @@ create policy "users insert own order items" on order_items for insert with chec
   exists (select 1 from orders o where o.id = order_id and o.user_id = auth.uid())
 );
 create policy "admins manage order items" on order_items for all using (is_admin()) with check (is_admin());
+create policy "riders view available pool items" on order_items for select using (
+  exists (
+    select 1 from orders o
+    where o.id = order_id
+      and is_rider()
+      and o.status in ('preparing', 'ready_for_pickup')
+      and not exists (select 1 from delivery_assignments da where da.order_id = o.id)
+  )
+);
 
 create policy "users read own order history" on order_status_history for select using (
   exists (select 1 from orders o where o.id = order_id and o.user_id = auth.uid())
@@ -427,7 +448,28 @@ create policy "users read own order history" on order_status_history for select 
 create policy "users insert own order history" on order_status_history for insert with check (
   exists (select 1 from orders o where o.id = order_id and o.user_id = auth.uid())
 );
-create policy "admins manage order history" on order_status_history for all using (is_admin() or is_rider());
+create policy "admins and assigned riders manage order history" on order_status_history for all using (
+  is_admin() or (is_rider() and is_assigned_rider(order_id))
+) with check (
+  is_admin() or (is_rider() and is_assigned_rider(order_id))
+);
+
+-- A rider assigned to an order can see the customer's delivery address for it
+-- (in addition to the owner/admin access already granted above).
+create policy "assigned riders read delivery address" on addresses for select using (
+  exists (
+    select 1 from orders o
+    where o.address_id = addresses.id and is_assigned_rider(o.id)
+  )
+);
+
+-- A rider assigned to an order can see the customer's name/phone for it
+-- (in addition to the owner/admin access already granted above).
+create policy "assigned riders read customer profile" on profiles for select using (
+  exists (
+    select 1 from orders o where o.user_id = profiles.id and is_assigned_rider(o.id)
+  )
+);
 
 -- Delivery
 create policy "riders read own profile" on delivery_partners for select using (auth.uid() = id or is_admin());
@@ -438,6 +480,12 @@ create policy "riders read own assignments" on delivery_assignments for select u
   rider_id = auth.uid() or is_admin() or is_order_owner(order_id)
 );
 create policy "admins manage assignments" on delivery_assignments for insert with check (is_admin());
+create policy "riders accept available orders" on delivery_assignments for insert with check (
+  rider_id = auth.uid()
+  and exists (
+    select 1 from orders o where o.id = order_id and o.status in ('preparing', 'ready_for_pickup')
+  )
+);
 create policy "riders update own assignments" on delivery_assignments for update using (rider_id = auth.uid() or is_admin());
 
 -- Payments / refunds: owner + admin
