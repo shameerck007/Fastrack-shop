@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAddresses } from "@/lib/addresses";
 import AddressForm from "@/components/AddressForm";
+import AddressCard from "@/components/AddressCard";
 
 export default async function AddressesPage() {
   const supabase = await createClient();
@@ -13,18 +14,16 @@ export default async function AddressesPage() {
   const addresses = await getAddresses();
 
   return (
-    <div className="mx-auto max-w-sm px-4 py-10">
+    <div className="mx-auto max-w-lg px-4 py-10">
       <h1 className="mb-4 text-xl font-semibold">Your Addresses</h1>
 
-      <div className="mb-4 flex flex-col gap-2">
+      <div className="mb-6 flex flex-col gap-3">
         {addresses.map((addr) => (
-          <div key={addr.id} className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
-            <p className="font-medium capitalize">{addr.label}</p>
-            <p className="text-neutral-600">{addr.address_line}</p>
-          </div>
+          <AddressCard key={addr.id} address={addr} />
         ))}
       </div>
 
+      <h2 className="mb-2 text-sm font-medium text-neutral-500">Add a new address</h2>
       <AddressForm />
     </div>
   );

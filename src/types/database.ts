@@ -36,6 +36,12 @@ export interface Address {
   label: AddressLabel;
   address_line: string;
   city: string;
+  district: string | null;
+  building_number: string | null;
+  additional_number: string | null;
+  unit_number: string | null;
+  postal_code: string | null;
+  short_address: string | null;
   lat: number | null;
   lng: number | null;
   is_default: boolean;
