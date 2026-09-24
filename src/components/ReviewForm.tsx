@@ -1,10 +1,16 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { addReview } from "@/lib/actions/reviews";
 
-export default function ReviewForm({ productId }: { productId: string }) {
+export default function ReviewForm({
+  productId,
+  isLoggedIn,
+}: {
+  productId: string;
+  isLoggedIn: boolean;
+}) {
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -12,9 +18,14 @@ export default function ReviewForm({ productId }: { productId: string }) {
   const [submitted, setSubmitted] = useState(false);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const pathname = usePathname();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
     setError(null);
     startTransition(async () => {
       try {

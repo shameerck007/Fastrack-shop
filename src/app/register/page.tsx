@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -14,6 +14,8 @@ export default function RegisterPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,7 +37,7 @@ export default function RegisterPage() {
     }
 
     if (data.session) {
-      router.push("/");
+      router.push(redirectTo);
       router.refresh();
     } else {
       setNotice("Check your email to confirm your account before logging in.");
@@ -88,8 +90,22 @@ export default function RegisterPage() {
         </button>
       </form>
       <p className="mt-4 text-sm text-neutral-500">
-        Already have an account? <Link href="/login" className="text-emerald-600 hover:underline">Log in</Link>
+        Already have an account?{" "}
+        <Link
+          href={`/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
+          className="text-emerald-600 hover:underline"
+        >
+          Log in
+        </Link>
       </p>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }

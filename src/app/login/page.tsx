@@ -1,16 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,7 +27,7 @@ export default function LoginPage() {
       setError(error.message);
       return;
     }
-    router.push("/");
+    router.push(redirectTo);
     router.refresh();
   }
 
@@ -59,8 +61,22 @@ export default function LoginPage() {
         </button>
       </form>
       <p className="mt-4 text-sm text-neutral-500">
-        No account? <Link href="/register" className="text-emerald-600 hover:underline">Register</Link>
+        No account?{" "}
+        <Link
+          href={`/register${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
+          className="text-emerald-600 hover:underline"
+        >
+          Register
+        </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

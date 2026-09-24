@@ -10,6 +10,7 @@ import { getProductRating, getProductReviews } from "@/lib/reviews";
 import { getVariantStockMap } from "@/lib/inventory";
 import { formatSAR } from "@/lib/utils";
 import { getCategoryTheme } from "@/lib/categoryTheme";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function ProductPage({
   params,
@@ -21,12 +22,15 @@ export default async function ProductPage({
 
   if (!product) notFound();
 
-  const [rating, reviews, stockMap] = await Promise.all([
+  const supabase = await createClient();
+  const [rating, reviews, stockMap, { data: { user } }] = await Promise.all([
     getProductRating(id),
     getProductReviews(id),
     getVariantStockMap(product.product_variants.map((v) => v.id)),
+    supabase.auth.getUser(),
   ]);
   const stock = Object.fromEntries(stockMap);
+  const isLoggedIn = !!user;
 
   const variant =
     product.product_variants.find((v) => v.is_default) ?? product.product_variants[0];
@@ -125,7 +129,11 @@ export default async function ProductPage({
             </p>
 
             {product.product_variants.length > 0 ? (
-              <AddToCartForm variants={product.product_variants} stock={stock} />
+              <AddToCartForm
+                variants={product.product_variants}
+                stock={stock}
+                isLoggedIn={isLoggedIn}
+              />
             ) : (
               <p className="text-sm text-red-600">Currently unavailable.</p>
             )}
@@ -144,7 +152,7 @@ export default async function ProductPage({
         )}
 
         <div className="mb-6">
-          <ReviewForm productId={id} />
+          <ReviewForm productId={id} isLoggedIn={isLoggedIn} />
         </div>
 
         {reviews.length > 0 && (

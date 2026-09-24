@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { addToCart } from "@/lib/actions/cart";
 import type { ProductVariant } from "@/types/database";
 
 export default function AddToCartForm({
   variants,
   stock,
+  isLoggedIn,
 }: {
   variants: ProductVariant[];
   stock: Record<string, number>;
+  isLoggedIn: boolean;
 }) {
   const [variantId, setVariantId] = useState(
     variants.find((v) => v.is_default)?.id ?? variants[0]?.id
@@ -19,6 +21,7 @@ export default function AddToCartForm({
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   const available = stock[variantId] ?? 0;
   const inStock = available > 0;
@@ -28,6 +31,10 @@ export default function AddToCartForm({
   const quantity = Math.min(rawQuantity, Math.max(available, 1));
 
   function handleAdd() {
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
     setMessage(null);
     startTransition(async () => {
       try {
