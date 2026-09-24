@@ -65,66 +65,6 @@ export async function getPendingStores(): Promise<Store[]> {
   return data ?? [];
 }
 
-export interface MerchantOrderItem {
-  id: string;
-  order_id: string;
-  product_name: string;
-  variant_label: string;
-  ordered_quantity: number;
-  unit_price: number;
-  line_total: number;
-  order: {
-    order_number: string;
-    status: string;
-    created_at: string;
-  };
-}
-
-export interface MerchantOrder {
-  orderId: string;
-  orderNumber: string;
-  status: string;
-  createdAt: string;
-  items: MerchantOrderItem[];
-  total: number;
-}
-
-/** Orders containing this merchant's products — grouped by order, with only
- * this merchant's own line items included (RLS scopes order_items to rows
- * whose product belongs to the caller's store; a co-seller's items in the
- * same order never come back). */
-export async function getMyStoreOrders(): Promise<MerchantOrder[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("order_items")
-    .select(
-      "id, order_id, product_name, variant_label, ordered_quantity, unit_price, line_total, order:orders(order_number, status, created_at)"
-    )
-    .order("created_at", { ascending: false });
-
-  if (error) throw error;
-  const items = (data as unknown as MerchantOrderItem[]) ?? [];
-
-  const byOrder = new Map<string, MerchantOrder>();
-  for (const item of items) {
-    let group = byOrder.get(item.order_id);
-    if (!group) {
-      group = {
-        orderId: item.order_id,
-        orderNumber: item.order.order_number,
-        status: item.order.status,
-        createdAt: item.order.created_at,
-        items: [],
-        total: 0,
-      };
-      byOrder.set(item.order_id, group);
-    }
-    group.items.push(item);
-    group.total += item.line_total;
-  }
-  return [...byOrder.values()];
-}
-
 export async function getAllStores(): Promise<Store[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

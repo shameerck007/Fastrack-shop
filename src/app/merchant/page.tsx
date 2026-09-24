@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getMyStore, getMyStoreProducts, getMyStoreOrders } from "@/lib/merchant";
+import { getMyStore, getMyStoreProducts } from "@/lib/merchant";
 import { updateMerchantProductStock } from "@/lib/actions/merchant-products";
 import StockCell from "@/components/admin/StockCell";
 
@@ -7,7 +7,7 @@ export default async function MerchantDashboardPage() {
   const store = await getMyStore();
   if (!store) return null;
 
-  const [products, orders] = await Promise.all([getMyStoreProducts(store.id), getMyStoreOrders()]);
+  const products = await getMyStoreProducts(store.id);
   const lowStock = products.filter((p) =>
     p.product_variants.some((v) => v.inventory.some((i) => i.stock < i.min_stock))
   ).length;
@@ -15,7 +15,6 @@ export default async function MerchantDashboardPage() {
 
   const stats = [
     { label: "Products", value: products.length, icon: "📦", color: "bg-blue-50 text-blue-700", href: "/merchant/products" },
-    { label: "Orders", value: orders.length, icon: "🧾", color: "bg-blue-50 text-blue-700", href: "/merchant/orders" },
     { label: "Low stock", value: lowStock, icon: "⚠️", color: lowStock > 0 ? "bg-amber-50 text-amber-700" : "bg-neutral-50 text-neutral-500", href: "/merchant/products" },
     { label: "Active", value: activeCount, icon: "✅", color: "bg-emerald-50 text-emerald-700", href: "/merchant/products" },
   ];
@@ -25,7 +24,7 @@ export default async function MerchantDashboardPage() {
       <h1 className="mb-1 text-xl font-semibold">Welcome back, {store.name}</h1>
       <p className="mb-6 text-sm text-neutral-500">Here&apos;s how your storefront is doing.</p>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {stats.map((s) => (
           <Link
             key={s.label}
