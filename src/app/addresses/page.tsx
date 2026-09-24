@@ -15,16 +15,23 @@ export default async function AddressesPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
-      <h1 className="mb-4 text-xl font-semibold">Your Addresses</h1>
-
-      <div className="mb-6 flex flex-col gap-3">
-        {addresses.map((addr) => (
-          <AddressCard key={addr.id} address={addr} />
-        ))}
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Your Addresses</h1>
+        <AddressForm />
       </div>
 
-      <h2 className="mb-2 text-sm font-medium text-neutral-500">Add a new address</h2>
-      <AddressForm />
+      {addresses.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center">
+          <span className="text-4xl">📍</span>
+          <p className="text-sm text-neutral-500">You haven&apos;t saved any addresses yet.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {addresses.map((addr) => (
+            <AddressCard key={addr.id} address={addr} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

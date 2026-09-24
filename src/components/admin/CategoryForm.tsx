@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createCategory, updateCategory } from "@/lib/actions/admin-categories";
+import Modal from "@/components/Modal";
 import type { Category } from "@/types/database";
 
 export default function CategoryForm({
@@ -12,6 +13,7 @@ export default function CategoryForm({
   existing?: Category;
   onDone?: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState(existing?.name ?? "");
   const [nameAr, setNameAr] = useState(existing?.name_ar ?? "");
   const [slug, setSlug] = useState(existing?.slug ?? "");
@@ -48,6 +50,7 @@ export default function CategoryForm({
           setSlug("");
           setIcon("");
           setSortOrder("0");
+          setOpen(false);
         }
         router.refresh();
       } catch (err) {
@@ -56,8 +59,8 @@ export default function CategoryForm({
     });
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+  const formBody = (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3">
         <input
           required
@@ -103,16 +106,32 @@ export default function CategoryForm({
         >
           {pending ? "Saving..." : existing ? "Save changes" : "Add category"}
         </button>
-        {existing && onDone && (
-          <button
-            type="button"
-            onClick={onDone}
-            className="rounded-full border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100"
-          >
-            Cancel
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => (existing ? onDone?.() : setOpen(false))}
+          className="rounded-full border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100"
+        >
+          Cancel
+        </button>
       </div>
     </form>
+  );
+
+  if (existing) {
+    return <div className="rounded-xl border border-neutral-200 bg-white p-4">{formBody}</div>;
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md"
+      >
+        <span className="text-base leading-none">+</span> Add category
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)} title="Add a new category">
+        {formBody}
+      </Modal>
+    </>
   );
 }

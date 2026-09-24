@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addAddress, updateAddress, type AddressInput } from "@/lib/actions/addresses";
 import LocationPicker from "@/components/LocationPicker";
+import Modal from "@/components/Modal";
 import type { Address, AddressLabel } from "@/types/database";
 
 export default function AddressForm({
@@ -13,6 +14,7 @@ export default function AddressForm({
   existing?: Address;
   onDone?: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   const [label, setLabel] = useState<AddressLabel>(existing?.label ?? "home");
   const [addressLine, setAddressLine] = useState(existing?.address_line ?? "");
   const [city, setCity] = useState(existing?.city ?? "Riyadh");
@@ -64,6 +66,7 @@ export default function AddressForm({
           setShortAddress("");
           setLat(null);
           setLng(null);
+          setOpen(false);
         }
         router.refresh();
       } catch (err) {
@@ -72,8 +75,8 @@ export default function AddressForm({
     });
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+  const formBody = (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <div className="flex gap-2">
         {(["home", "office", "other"] as AddressLabel[]).map((l) => (
           <button
@@ -167,16 +170,32 @@ export default function AddressForm({
         >
           {pending ? "Saving..." : existing ? "Save changes" : "Save address"}
         </button>
-        {existing && onDone && (
-          <button
-            type="button"
-            onClick={onDone}
-            className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm hover:bg-neutral-100"
-          >
-            Cancel
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => (existing ? onDone?.() : setOpen(false))}
+          className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm hover:bg-neutral-100"
+        >
+          Cancel
+        </button>
       </div>
     </form>
+  );
+
+  if (existing) {
+    return <div className="rounded-xl border border-neutral-200 bg-white p-4">{formBody}</div>;
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md"
+      >
+        <span className="text-base leading-none">+</span> Add new address
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)} title="Add a new address">
+        {formBody}
+      </Modal>
+    </>
   );
 }

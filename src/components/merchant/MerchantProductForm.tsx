@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createMerchantProduct, updateMerchantProduct } from "@/lib/actions/merchant-products";
 import ImageUploader from "@/components/ImageUploader";
+import Modal from "@/components/Modal";
 import type { Category } from "@/types/database";
 import type { MerchantProduct } from "@/lib/merchant";
 
@@ -18,6 +19,7 @@ export default function MerchantProductForm({
   existing?: MerchantProduct;
   onDone?: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   const existingVariant = existing?.product_variants[0];
 
   const [imageUrl, setImageUrl] = useState<string | null>(existing?.image_url ?? null);
@@ -37,6 +39,17 @@ export default function MerchantProductForm({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  function resetForm() {
+    setImageUrl(null);
+    setName("");
+    setBrand("");
+    setSku("");
+    setDescription("");
+    setPrice("");
+    setCompareAtPrice("");
+    setStock("");
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -77,14 +90,8 @@ export default function MerchantProductForm({
             quantity: Number(quantity) || 1,
             stock: Number(stock),
           });
-          setImageUrl(null);
-          setName("");
-          setBrand("");
-          setSku("");
-          setDescription("");
-          setPrice("");
-          setCompareAtPrice("");
-          setStock("");
+          resetForm();
+          setOpen(false);
         }
         router.refresh();
       } catch (err) {
@@ -93,8 +100,8 @@ export default function MerchantProductForm({
     });
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-4">
+  const formBody = (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <ImageUploader value={imageUrl} onChange={setImageUrl} />
 
       <div className="grid grid-cols-2 gap-3">
@@ -207,16 +214,32 @@ export default function MerchantProductForm({
         >
           {pending ? "Saving..." : existing ? "Save changes" : "Add product"}
         </button>
-        {existing && onDone && (
-          <button
-            type="button"
-            onClick={onDone}
-            className="rounded-full border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100"
-          >
-            Cancel
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => (existing ? onDone?.() : setOpen(false))}
+          className="rounded-full border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100"
+        >
+          Cancel
+        </button>
       </div>
     </form>
+  );
+
+  if (existing) {
+    return <div className="rounded-xl border border-neutral-200 bg-white p-4">{formBody}</div>;
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md"
+      >
+        <span className="text-base leading-none">+</span> Add product
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)} title="Add a new product">
+        {formBody}
+      </Modal>
+    </>
   );
 }

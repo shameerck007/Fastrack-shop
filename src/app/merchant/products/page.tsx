@@ -18,21 +18,18 @@ export default async function MerchantProductsPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Products</h1>
           <p className="text-sm text-neutral-500">{products.length} product{products.length === 1 ? "" : "s"} in your catalog</p>
         </div>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="mb-2 text-sm font-medium text-neutral-500">Add a new product</h2>
         <MerchantProductForm categories={categoryList} />
       </div>
 
       {products.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
-          You haven&apos;t added any products yet. Use the form above to add your first one.
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center">
+          <span className="text-4xl">📦</span>
+          <p className="text-sm text-neutral-500">You haven&apos;t added any products yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

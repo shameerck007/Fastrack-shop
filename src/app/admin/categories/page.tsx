@@ -10,16 +10,14 @@ export default async function AdminCategoriesPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold">Categories</h1>
-        <p className="text-sm text-neutral-500">
-          {categoryList.length} categor{categoryList.length === 1 ? "y" : "ies"} — controls what shows in &quot;Shop by
-          category&quot; and category pages.
-        </p>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="mb-2 text-sm font-medium text-neutral-500">Add a new category</h2>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">Categories</h1>
+          <p className="text-sm text-neutral-500">
+            {categoryList.length} categor{categoryList.length === 1 ? "y" : "ies"} — controls what shows in &quot;Shop
+            by category&quot; and category pages.
+          </p>
+        </div>
         <CategoryForm />
       </div>
 

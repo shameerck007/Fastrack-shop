@@ -142,16 +142,15 @@ export default async function ProductPage({
       </div>
 
       <section id="reviews" className="mt-10 max-w-3xl scroll-mt-20">
-        <h2 className="mb-1 text-lg font-semibold">Customer Reviews</h2>
-        {rating ? (
-          <div className="mb-4">
-            <StarRating rating={rating.avg_rating} count={rating.review_count} size="lg" />
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="mb-1 text-lg font-semibold">Customer Reviews</h2>
+            {rating ? (
+              <StarRating rating={rating.avg_rating} count={rating.review_count} size="lg" />
+            ) : (
+              <p className="text-sm text-neutral-500">Be the first to review this product.</p>
+            )}
           </div>
-        ) : (
-          <p className="mb-4 text-sm text-neutral-500">Be the first to review this product.</p>
-        )}
-
-        <div className="mb-6">
           <ReviewForm productId={id} isLoggedIn={isLoggedIn} />
         </div>
 
