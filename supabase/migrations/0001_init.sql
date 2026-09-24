@@ -383,28 +383,49 @@ create policy "users manage own cart items" on cart_items for all
   using (exists (select 1 from carts where carts.id = cart_id and carts.user_id = auth.uid()))
   with check (exists (select 1 from carts where carts.id = cart_id and carts.user_id = auth.uid()));
 
+-- Cross-table checks below run as SECURITY DEFINER (bypassing RLS on the
+-- tables they query internally) rather than as inline EXISTS subqueries in a
+-- USING clause. orders <-> delivery_assignments policies both reference the
+-- other table, so inline subqueries would make Postgres evaluate each
+-- table's RLS while evaluating the other's, recursing forever (error 42P17).
+create or replace function is_assigned_rider(target_order_id uuid)
+returns boolean as $$
+  select exists (
+    select 1 from delivery_assignments
+    where order_id = target_order_id and rider_id = auth.uid()
+  );
+$$ language sql stable security definer set search_path = public;
+
+create or replace function is_order_owner(target_order_id uuid)
+returns boolean as $$
+  select exists (
+    select 1 from orders where id = target_order_id and user_id = auth.uid()
+  );
+$$ language sql stable security definer set search_path = public;
+
 -- Orders: owner can read own; admin full; rider can read assigned
 create policy "users read own orders" on orders for select using (
-  auth.uid() = user_id or is_admin()
-  or exists (
-    select 1 from delivery_assignments da
-    where da.order_id = orders.id and da.rider_id = auth.uid()
-  )
+  auth.uid() = user_id or is_admin() or is_assigned_rider(id)
 );
 create policy "users create own orders" on orders for insert with check (auth.uid() = user_id);
 create policy "admins update orders" on orders for update using (is_admin() or is_rider());
 
 create policy "users read own order items" on order_items for select using (
   exists (
-    select 1 from orders o where o.id = order_id
-    and (o.user_id = auth.uid() or is_admin()
-      or exists (select 1 from delivery_assignments da where da.order_id = o.id and da.rider_id = auth.uid()))
-  )
+    select 1 from orders o where o.id = order_id and o.user_id = auth.uid()
+  ) or is_admin() or is_assigned_rider(order_id)
+);
+create policy "users insert own order items" on order_items for insert with check (
+  exists (select 1 from orders o where o.id = order_id and o.user_id = auth.uid())
 );
 create policy "admins manage order items" on order_items for all using (is_admin()) with check (is_admin());
 
 create policy "users read own order history" on order_status_history for select using (
-  exists (select 1 from orders o where o.id = order_id and (o.user_id = auth.uid() or is_admin()))
+  exists (select 1 from orders o where o.id = order_id and o.user_id = auth.uid())
+  or is_admin() or is_assigned_rider(order_id)
+);
+create policy "users insert own order history" on order_status_history for insert with check (
+  exists (select 1 from orders o where o.id = order_id and o.user_id = auth.uid())
 );
 create policy "admins manage order history" on order_status_history for all using (is_admin() or is_rider());
 
@@ -414,8 +435,7 @@ create policy "riders update own profile" on delivery_partners for update using 
 create policy "admins insert riders" on delivery_partners for insert with check (is_admin());
 
 create policy "riders read own assignments" on delivery_assignments for select using (
-  rider_id = auth.uid() or is_admin()
-  or exists (select 1 from orders o where o.id = order_id and o.user_id = auth.uid())
+  rider_id = auth.uid() or is_admin() or is_order_owner(order_id)
 );
 create policy "admins manage assignments" on delivery_assignments for insert with check (is_admin());
 create policy "riders update own assignments" on delivery_assignments for update using (rider_id = auth.uid() or is_admin());
@@ -423,6 +443,9 @@ create policy "riders update own assignments" on delivery_assignments for update
 -- Payments / refunds: owner + admin
 create policy "users read own payments" on payments for select using (
   exists (select 1 from orders o where o.id = order_id and (o.user_id = auth.uid() or is_admin()))
+);
+create policy "users insert own payments" on payments for insert with check (
+  exists (select 1 from orders o where o.id = order_id and o.user_id = auth.uid())
 );
 create policy "admins manage payments" on payments for all using (is_admin()) with check (is_admin());
 create policy "users read own refunds" on refunds for select using (

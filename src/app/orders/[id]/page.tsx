@@ -59,12 +59,16 @@ export default async function OrderDetailPage({
         </div>
       )}
 
-      {order.delivery_assignments?.profiles && (
+      {order.delivery_assignments?.delivery_partners?.profiles && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
           <p className="text-sm text-neutral-500">Rider</p>
-          <p className="font-medium">{order.delivery_assignments.profiles.full_name}</p>
-          {order.delivery_assignments.profiles.phone && (
-            <p className="text-sm text-neutral-500">{order.delivery_assignments.profiles.phone}</p>
+          <p className="font-medium">
+            {order.delivery_assignments.delivery_partners.profiles.full_name}
+          </p>
+          {order.delivery_assignments.delivery_partners.profiles.phone && (
+            <p className="text-sm text-neutral-500">
+              {order.delivery_assignments.delivery_partners.profiles.phone}
+            </p>
           )}
         </div>
       )}

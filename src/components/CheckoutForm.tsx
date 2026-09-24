@@ -27,7 +27,14 @@ export default function CheckoutForm({
   addresses: Address[];
   subtotal: number;
 }) {
-  const [addressId, setAddressId] = useState(addresses[0]?.id ?? "");
+  // null means "no explicit user selection yet" — fall back to the first
+  // address, which also picks up addresses added after this component mounted
+  // (the addresses prop refreshes via server-action revalidation).
+  const [selectedAddressId, setAddressId] = useState<string | null>(null);
+  const addressId =
+    selectedAddressId && addresses.some((a) => a.id === selectedAddressId)
+      ? selectedAddressId
+      : addresses[0]?.id ?? "";
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("standard");
   const [scheduledFor, setScheduledFor] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
