@@ -42,7 +42,7 @@ export default function ProductCard({
 
         <div className="absolute left-2 top-2 flex flex-col gap-1">
           {product.is_fresh && (
-            <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 shadow-sm">
+            <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-blue-700 shadow-sm">
               Fresh
             </span>
           )}
@@ -68,7 +68,7 @@ export default function ProductCard({
         {variant && <span className="text-xs text-neutral-500">{variant.label}</span>}
         <div className="mt-auto flex items-center justify-between pt-2">
           <div className="flex items-baseline gap-2">
-            <span className="font-semibold text-emerald-700">
+            <span className="font-semibold text-blue-700">
               {variant ? formatSAR(variant.price) : "—"}
             </span>
             {variant?.compare_at_price && (

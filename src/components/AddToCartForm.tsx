@@ -60,7 +60,7 @@ export default function AddToCartForm({
                 disabled={!variantInStock}
                 className={`rounded-full border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-40 ${
                   variantId === v.id
-                    ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                    ? "border-blue-600 bg-blue-50 text-blue-700"
                     : "border-neutral-300 text-neutral-600"
                 }`}
               >
@@ -95,7 +95,7 @@ export default function AddToCartForm({
             <button
               onClick={handleAdd}
               disabled={pending}
-              className="w-full whitespace-nowrap rounded-full bg-emerald-600 px-6 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="w-full whitespace-nowrap rounded-full bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
             >
               {pending ? "Adding..." : "ADD TO CART"}
             </button>

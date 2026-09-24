@@ -55,7 +55,7 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="rounded-full bg-emerald-600 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-full bg-blue-700 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
         >
           {loading ? "Logging in..." : "Log In"}
         </button>
@@ -64,7 +64,7 @@ function LoginForm() {
         No account?{" "}
         <Link
           href={`/register${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
-          className="text-emerald-600 hover:underline"
+          className="text-blue-600 hover:underline"
         >
           Register
         </Link>

@@ -89,7 +89,7 @@ export default function CheckoutForm({
             <label
               key={addr.id}
               className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm ${
-                addressId === addr.id ? "border-emerald-600 bg-emerald-50" : "border-neutral-200"
+                addressId === addr.id ? "border-blue-600 bg-blue-50" : "border-neutral-200"
               }`}
             >
               <input
@@ -123,7 +123,7 @@ export default function CheckoutForm({
           ) : (
             <button
               onClick={() => setShowAddressForm(true)}
-              className="text-left text-sm text-emerald-600 hover:underline"
+              className="text-left text-sm text-blue-600 hover:underline"
             >
               + Add new address
             </button>
@@ -138,7 +138,7 @@ export default function CheckoutForm({
             <label
               key={opt.value}
               className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 text-sm ${
-                deliveryType === opt.value ? "border-emerald-600 bg-emerald-50" : "border-neutral-200"
+                deliveryType === opt.value ? "border-blue-600 bg-blue-50" : "border-neutral-200"
               }`}
             >
               <span className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export default function CheckoutForm({
             <label
               key={opt.value}
               className={`flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm ${
-                paymentMethod === opt.value ? "border-emerald-600 bg-emerald-50" : "border-neutral-200"
+                paymentMethod === opt.value ? "border-blue-600 bg-blue-50" : "border-neutral-200"
               }`}
             >
               <input
@@ -213,7 +213,7 @@ export default function CheckoutForm({
       <button
         onClick={handlePlaceOrder}
         disabled={pending}
-        className="rounded-full bg-emerald-600 py-3 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="rounded-full bg-blue-700 py-3 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
       >
         {pending ? "Placing order..." : `Place Order — ${formatSAR(total)}`}
       </button>

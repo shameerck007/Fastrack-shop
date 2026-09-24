@@ -11,7 +11,7 @@ export default async function OrdersPage() {
 
       {orders.length === 0 ? (
         <p className="text-sm text-neutral-500">
-          No orders yet. <Link href="/" className="text-emerald-600 hover:underline">Start shopping</Link>.
+          No orders yet. <Link href="/" className="text-blue-600 hover:underline">Start shopping</Link>.
         </p>
       ) : (
         <div className="flex flex-col gap-3">
@@ -29,7 +29,7 @@ export default async function OrdersPage() {
               </div>
               <div className="text-right">
                 <p className="font-medium">{formatSAR(order.total)}</p>
-                <p className="text-sm text-emerald-600">{ORDER_STATUS_LABELS[order.status]}</p>
+                <p className="text-sm text-blue-600">{ORDER_STATUS_LABELS[order.status]}</p>
               </div>
             </Link>
           ))}

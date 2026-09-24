@@ -32,7 +32,7 @@ export default function DeliveryActions({ orderId, status }: { orderId: string; 
   }
 
   if (status === "delivered") {
-    return <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">Delivered ✓</p>;
+    return <p className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700">Delivered ✓</p>;
   }
 
   if (status === "rider_assigned" || status === "ready_for_pickup") {
@@ -40,7 +40,7 @@ export default function DeliveryActions({ orderId, status }: { orderId: string; 
       <button
         onClick={handlePickedUp}
         disabled={pending}
-        className="w-full rounded-full bg-emerald-600 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="w-full rounded-full bg-blue-700 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
       >
         Mark picked up / out for delivery
       </button>
@@ -62,7 +62,7 @@ export default function DeliveryActions({ orderId, status }: { orderId: string; 
         <button
           type="submit"
           disabled={pending || otp.length !== 4}
-          className="rounded-full bg-emerald-600 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-full bg-blue-700 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
         >
           {pending ? "Verifying..." : "Complete Delivery"}
         </button>

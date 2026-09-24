@@ -33,14 +33,14 @@ export default async function AccountPage() {
       </div>
 
       <div className="flex flex-col gap-2 text-sm">
-        <Link href="/orders" className="text-emerald-600 hover:underline">
+        <Link href="/orders" className="text-blue-600 hover:underline">
           Order history
         </Link>
-        <Link href="/addresses" className="text-emerald-600 hover:underline">
+        <Link href="/addresses" className="text-blue-600 hover:underline">
           Manage addresses
         </Link>
         {(profile?.role === "admin" || profile?.role === "rider") && (
-          <Link href={profile.role === "admin" ? "/admin" : "/rider"} className="text-emerald-600 hover:underline">
+          <Link href={profile.role === "admin" ? "/admin" : "/rider"} className="text-blue-600 hover:underline">
             Go to {profile.role} dashboard
           </Link>
         )}

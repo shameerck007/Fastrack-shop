@@ -26,7 +26,7 @@ export default function AcceptOrderButton({ orderId }: { orderId: string }) {
       <button
         onClick={handleAccept}
         disabled={pending}
-        className="rounded-full bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
       >
         {pending ? "Accepting..." : "Accept"}
       </button>

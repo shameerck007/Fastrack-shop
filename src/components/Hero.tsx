@@ -1,6 +1,6 @@
 export default function Hero() {
   return (
-    <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 px-6 py-8 text-white sm:px-10 sm:py-12">
+    <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 px-6 py-8 text-white sm:px-10 sm:py-12">
       <div className="pointer-events-none absolute -right-6 -top-10 text-[140px] leading-none opacity-20 sm:text-[200px]">
         🥬
       </div>
@@ -13,7 +13,7 @@ export default function Hero() {
           <br />
           Delivered.
         </h1>
-        <p className="mt-2 text-sm text-emerald-50/90">
+        <p className="mt-2 text-sm text-blue-50/90">
           Fresh groceries, household essentials and more — straight to your door in Riyadh.
         </p>
       </div>

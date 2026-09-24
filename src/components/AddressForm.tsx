@@ -30,7 +30,7 @@ export default function AddressForm() {
             key={l}
             onClick={() => setLabel(l)}
             className={`rounded-full border px-3 py-1 text-sm capitalize ${
-              label === l ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-neutral-300"
+              label === l ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-300"
             }`}
           >
             {l}
@@ -46,7 +46,7 @@ export default function AddressForm() {
       <button
         type="submit"
         disabled={pending}
-        className="self-start rounded-full bg-emerald-600 px-4 py-1.5 text-sm text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="self-start rounded-full bg-blue-700 px-4 py-1.5 text-sm text-white hover:bg-blue-800 disabled:opacity-50"
       >
         {pending ? "Saving..." : "Save address"}
       </button>

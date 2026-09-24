@@ -28,7 +28,7 @@ export default async function OrderDetailPage({
         </div>
         <span
           className={`rounded-full px-3 py-1 text-sm font-medium ${
-            isCancelled ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"
+            isCancelled ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700"
           }`}
         >
           {ORDER_STATUS_LABELS[order.status]}
@@ -41,7 +41,7 @@ export default async function OrderDetailPage({
             <li key={status} className="flex items-center gap-3 text-sm">
               <span
                 className={`h-2.5 w-2.5 rounded-full ${
-                  i <= currentStepIndex ? "bg-emerald-600" : "bg-neutral-300"
+                  i <= currentStepIndex ? "bg-blue-700" : "bg-neutral-300"
                 }`}
               />
               <span className={i <= currentStepIndex ? "text-neutral-900" : "text-neutral-400"}>
@@ -53,9 +53,9 @@ export default async function OrderDetailPage({
       )}
 
       {order.delivery_otp && !["delivered", "cancelled"].includes(order.status) && (
-        <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
+        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-center">
           <p className="text-sm text-neutral-600">Share this OTP with your rider on arrival</p>
-          <p className="text-2xl font-bold tracking-widest text-emerald-700">{order.delivery_otp}</p>
+          <p className="text-2xl font-bold tracking-widest text-blue-700">{order.delivery_otp}</p>
         </div>
       )}
 
@@ -109,7 +109,7 @@ export default async function OrderDetailPage({
           <span>{formatSAR(order.vat)}</span>
         </div>
         {order.discount > 0 && (
-          <div className="flex justify-between text-emerald-600">
+          <div className="flex justify-between text-blue-600">
             <span>Discount</span>
             <span>-{formatSAR(order.discount)}</span>
           </div>

@@ -31,7 +31,7 @@ export default async function RiderOrderPage({
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">Order #{order.order_number}</h1>
-        <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
+        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
           {formatSAR(order.delivery_fee)}
         </span>
       </div>
@@ -39,7 +39,7 @@ export default async function RiderOrderPage({
       {order.warehouses && (
         <div
           className={`mb-3 rounded-xl border p-4 ${
-            isPickupStage ? "border-emerald-300 bg-emerald-50" : "border-neutral-200 bg-white"
+            isPickupStage ? "border-blue-300 bg-blue-50" : "border-neutral-200 bg-white"
           }`}
         >
           <p className="text-xs font-medium uppercase text-neutral-500">Pickup</p>
@@ -51,7 +51,7 @@ export default async function RiderOrderPage({
             href={mapsUrl(order.warehouses.address_line ?? order.warehouses.name)}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-block text-sm font-medium text-emerald-700 hover:underline"
+            className="mt-2 inline-block text-sm font-medium text-blue-700 hover:underline"
           >
             Navigate to store →
           </a>
@@ -61,7 +61,7 @@ export default async function RiderOrderPage({
       {order.addresses && (
         <div
           className={`mb-4 rounded-xl border p-4 ${
-            !isPickupStage ? "border-emerald-300 bg-emerald-50" : "border-neutral-200 bg-white"
+            !isPickupStage ? "border-blue-300 bg-blue-50" : "border-neutral-200 bg-white"
           }`}
         >
           <p className="text-xs font-medium uppercase text-neutral-500">Drop-off</p>
@@ -72,12 +72,12 @@ export default async function RiderOrderPage({
               href={mapsUrl(order.addresses.address_line)}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-emerald-700 hover:underline"
+              className="text-sm font-medium text-blue-700 hover:underline"
             >
               Navigate to customer →
             </a>
             {order.profiles?.phone && (
-              <a href={`tel:${order.profiles.phone}`} className="text-sm font-medium text-emerald-700 hover:underline">
+              <a href={`tel:${order.profiles.phone}`} className="text-sm font-medium text-blue-700 hover:underline">
                 Call customer
               </a>
             )}

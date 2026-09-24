@@ -26,11 +26,11 @@ export default async function RiderHomePage() {
         <h1 className="mb-4 text-xl font-semibold">Active Delivery</h1>
         <Link
           href={`/rider/orders/${activeDelivery.id}`}
-          className="block rounded-2xl border border-emerald-200 bg-emerald-50 p-4 hover:shadow-sm"
+          className="block rounded-2xl border border-blue-200 bg-blue-50 p-4 hover:shadow-sm"
         >
           <div className="mb-2 flex items-center justify-between">
             <p className="font-medium">#{activeDelivery.order_number}</p>
-            <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white">
+            <span className="rounded-full bg-blue-700 px-2 py-0.5 text-xs font-medium text-white">
               {ORDER_STATUS_LABELS[activeDelivery.status]}
             </span>
           </div>
@@ -40,7 +40,7 @@ export default async function RiderHomePage() {
           {activeDelivery.addresses && (
             <p className="text-sm text-neutral-600">🏠 Drop: {activeDelivery.addresses.address_line}</p>
           )}
-          <p className="mt-2 text-sm font-semibold text-emerald-700">
+          <p className="mt-2 text-sm font-semibold text-blue-700">
             Earnings: {formatSAR(activeDelivery.delivery_fee)}
           </p>
         </Link>
@@ -84,7 +84,7 @@ function AvailableOrderCard({
           )}
         </div>
         <div className="text-right">
-          <p className="mb-1 font-semibold text-emerald-700">{formatSAR(order.delivery_fee)}</p>
+          <p className="mb-1 font-semibold text-blue-700">{formatSAR(order.delivery_fee)}</p>
           <AcceptOrderButton orderId={order.id} />
         </div>
       </div>

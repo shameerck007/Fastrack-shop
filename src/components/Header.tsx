@@ -29,7 +29,7 @@ export default async function Header() {
           <Link href="/" className="flex items-center gap-2">
             <Logo />
             <span className="text-xl font-bold text-neutral-900">
-              FasTrack <span className="text-emerald-600">Shop</span>
+              FasTrack <span className="text-blue-600">Shop</span>
             </span>
           </Link>
 
@@ -41,11 +41,11 @@ export default async function Header() {
           </Link>
 
           <div className="flex items-center gap-4 text-sm">
-            <Link href="/orders" className="leading-tight hover:text-emerald-600">
+            <Link href="/orders" className="leading-tight hover:text-blue-600">
               <span className="block text-[11px] text-neutral-500">Returns</span>
               <span className="font-medium">& Orders</span>
             </Link>
-            <Link href="/cart" className="relative flex items-center gap-1 hover:text-emerald-600">
+            <Link href="/cart" className="relative flex items-center gap-1 hover:text-blue-600">
               🛒 Cart
               {cartCount > 0 && (
                 <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-semibold text-white">
@@ -54,14 +54,14 @@ export default async function Header() {
               )}
             </Link>
             {user ? (
-              <Link href="/account" className="leading-tight hover:text-emerald-600">
+              <Link href="/account" className="leading-tight hover:text-blue-600">
                 <span className="block text-[11px] text-neutral-500">Hello, {firstName ?? "there"}</span>
                 <span className="font-medium">Account</span>
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="rounded-full bg-emerald-600 px-4 py-1.5 text-white hover:bg-emerald-700"
+                className="rounded-full bg-blue-700 px-4 py-1.5 text-white hover:bg-blue-800"
               >
                 Login
               </Link>
@@ -72,22 +72,22 @@ export default async function Header() {
         <SearchBar />
       </div>
 
-      <div className="border-t border-emerald-700 bg-emerald-700">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 overflow-x-auto px-4 py-2 text-sm text-white">
-          <Link href="/" className="shrink-0 font-medium hover:text-emerald-100">
+      <div className="border-t border-blue-100 bg-blue-50/60">
+        <div className="mx-auto flex max-w-6xl items-center gap-4 overflow-x-auto px-4 py-2 text-sm text-blue-950">
+          <Link href="/" className="shrink-0 font-medium hover:text-blue-700">
             All
           </Link>
           {categories.map((category) => (
             <Link
               key={category.id}
               href={`/categories/${category.slug}`}
-              className="shrink-0 whitespace-nowrap hover:text-emerald-100"
+              className="shrink-0 whitespace-nowrap hover:text-blue-700"
             >
               {category.name}
             </Link>
           ))}
           {user && (
-            <Link href="/orders" className="shrink-0 whitespace-nowrap hover:text-emerald-100">
+            <Link href="/orders" className="shrink-0 whitespace-nowrap hover:text-blue-700">
               Buy Again
             </Link>
           )}

@@ -80,11 +80,11 @@ function RegisterForm() {
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
-        {notice && <p className="text-sm text-emerald-600">{notice}</p>}
+        {notice && <p className="text-sm text-blue-600">{notice}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="rounded-full bg-emerald-600 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-full bg-blue-700 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
         >
           {loading ? "Creating account..." : "Register"}
         </button>
@@ -93,7 +93,7 @@ function RegisterForm() {
         Already have an account?{" "}
         <Link
           href={`/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
-          className="text-emerald-600 hover:underline"
+          className="text-blue-600 hover:underline"
         >
           Log in
         </Link>

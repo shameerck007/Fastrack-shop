@@ -68,7 +68,7 @@ export default async function ProductPage({
             <div className="mb-1 flex items-center gap-2">
               <p className="text-sm text-neutral-500">{product.brand}</p>
               {product.is_fresh && (
-                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
                   Fresh
                 </span>
               )}
@@ -110,7 +110,7 @@ export default async function ProductPage({
         <div className="lg:col-span-3">
           <div className="rounded-2xl border border-neutral-200 bg-white p-4 lg:sticky lg:top-20">
             <div className="mb-2 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-emerald-700">
+              <span className="text-2xl font-bold text-blue-700">
                 {variant ? formatSAR(variant.price) : "—"}
               </span>
               {variant?.compare_at_price && (
@@ -124,7 +124,7 @@ export default async function ProductPage({
                 {formatSAR(product.price_per_kg)}/kg — final price adjusted to packed weight
               </p>
             )}
-            <p className="mb-3 text-sm font-medium text-emerald-700">
+            <p className="mb-3 text-sm font-medium text-blue-700">
               ⚡ Get it in 15–60 minutes
             </p>
 

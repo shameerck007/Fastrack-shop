@@ -20,7 +20,7 @@ export default function AvailabilityToggle({ isAvailable }: { isAvailable: boole
       onClick={handleToggle}
       disabled={pending}
       className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition disabled:opacity-60 ${
-        isAvailable ? "bg-emerald-500 text-white" : "bg-neutral-200 text-neutral-600"
+        isAvailable ? "bg-blue-500 text-white" : "bg-neutral-200 text-neutral-600"
       }`}
     >
       <span

@@ -40,7 +40,7 @@ export default function ReviewForm({
   }
 
   if (submitted) {
-    return <p className="text-sm text-emerald-700">Thanks for your review!</p>;
+    return <p className="text-sm text-blue-700">Thanks for your review!</p>;
   }
 
   return (
@@ -73,7 +73,7 @@ export default function ReviewForm({
       <button
         type="submit"
         disabled={pending}
-        className="self-start rounded-full bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="self-start rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
       >
         {pending ? "Submitting..." : "Submit review"}
       </button>

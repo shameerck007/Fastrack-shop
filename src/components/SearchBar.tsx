@@ -70,7 +70,7 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           placeholder="Search vegetables, milk, rice... / موز، حليب، أرز"
-          className="w-full rounded-full border border-neutral-300 px-4 py-2 text-sm outline-none focus:border-emerald-500"
+          className="w-full rounded-full border border-neutral-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
         />
       </form>
 
@@ -89,13 +89,13 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
                 {s.brand && <span className="ml-1 text-neutral-500">· {s.brand}</span>}
               </span>
               {s.price !== null && (
-                <span className="text-sm font-medium text-emerald-700">{formatSAR(s.price)}</span>
+                <span className="text-sm font-medium text-blue-700">{formatSAR(s.price)}</span>
               )}
             </Link>
           ))}
           <button
             onClick={() => goToSearch(value)}
-            className="block w-full px-4 py-2 text-left text-sm font-medium text-emerald-700 hover:bg-neutral-50"
+            className="block w-full px-4 py-2 text-left text-sm font-medium text-blue-700 hover:bg-neutral-50"
           >
             See all results for &ldquo;{value}&rdquo;
           </button>

@@ -86,7 +86,7 @@ export default async function AdminProductsPage() {
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs ${
                             product.is_active
-                              ? "bg-emerald-50 text-emerald-700"
+                              ? "bg-blue-50 text-blue-700"
                               : "bg-neutral-100 text-neutral-500"
                           }`}
                         >
