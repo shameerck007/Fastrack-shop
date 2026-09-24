@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { SubstitutionPreference } from "@/types/database";
+import { getVariantStock } from "@/lib/inventory";
 
 async function getOrCreateCartId(): Promise<string> {
   const supabase = await createClient();
@@ -30,11 +30,7 @@ async function getOrCreateCartId(): Promise<string> {
   return created.id;
 }
 
-export async function addToCart(
-  variantId: string,
-  quantity: number,
-  substitutionPreference: SubstitutionPreference = "allow"
-) {
+export async function addToCart(variantId: string, quantity: number) {
   const supabase = await createClient();
   const cartId = await getOrCreateCartId();
 
@@ -45,10 +41,20 @@ export async function addToCart(
     .eq("variant_id", variantId)
     .maybeSingle();
 
+  const requestedTotal = (existing?.quantity ?? 0) + quantity;
+  const available = await getVariantStock(variantId);
+  if (requestedTotal > available) {
+    throw new Error(
+      available > 0
+        ? `Only ${available} left in stock — you already have ${existing?.quantity ?? 0} in your cart.`
+        : "This item is out of stock."
+    );
+  }
+
   if (existing) {
     const { error } = await supabase
       .from("cart_items")
-      .update({ quantity: existing.quantity + quantity })
+      .update({ quantity: requestedTotal })
       .eq("id", existing.id);
     if (error) throw error;
   } else {
@@ -56,7 +62,6 @@ export async function addToCart(
       cart_id: cartId,
       variant_id: variantId,
       quantity,
-      substitution_preference: substitutionPreference,
     });
     if (error) throw error;
   }
@@ -71,6 +76,19 @@ export async function updateCartItemQuantity(cartItemId: string, quantity: numbe
     const { error } = await supabase.from("cart_items").delete().eq("id", cartItemId);
     if (error) throw error;
   } else {
+    const { data: item } = await supabase
+      .from("cart_items")
+      .select("variant_id")
+      .eq("id", cartItemId)
+      .maybeSingle();
+
+    if (item) {
+      const available = await getVariantStock(item.variant_id);
+      if (quantity > available) {
+        throw new Error(`Only ${available} left in stock.`);
+      }
+    }
+
     const { error } = await supabase
       .from("cart_items")
       .update({ quantity })

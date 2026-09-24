@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
+import { getVariantStockMap } from "@/lib/inventory";
 import { generateOrderNumber, generateOtp } from "@/lib/utils";
 import type { DeliveryType, PaymentMethod } from "@/types/database";
 
@@ -29,6 +30,17 @@ export async function placeOrder(input: {
 
   const items = await getCartItems();
   if (items.length === 0) throw new Error("Your cart is empty.");
+
+  // Re-validate stock at checkout time — the cart page only warns, this is
+  // the actual gate. decrement_stock() below is the race-safe check for
+  // concurrent checkouts; this pass just gives an early, specific error
+  // instead of a generic failure partway through order creation.
+  const stockMap = await getVariantStockMap(items.map((item) => item.variant_id));
+  const shortItems = items.filter((item) => item.quantity > (stockMap.get(item.variant_id) ?? 0));
+  if (shortItems.length > 0) {
+    const names = shortItems.map((item) => item.product_variants.products.name).join(", ");
+    throw new Error(`Not enough stock for: ${names}. Please update your cart.`);
+  }
 
   const subtotal = cartSubtotal(items);
   const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEES[input.deliveryType];
@@ -77,6 +89,21 @@ export async function placeOrder(input: {
 
   const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
   if (itemsError) throw itemsError;
+
+  if (warehouse) {
+    for (const item of items) {
+      const { error: stockError } = await supabase.rpc("decrement_stock", {
+        p_variant_id: item.variant_id,
+        p_warehouse_id: warehouse.id,
+        p_qty: item.quantity,
+      });
+      if (stockError) {
+        throw new Error(
+          `${item.product_variants.products.name} sold out while placing your order. Please remove it and try again.`
+        );
+      }
+    }
+  }
 
   await supabase.from("order_status_history").insert({ order_id: order.id, status: "pending" });
 

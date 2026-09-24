@@ -7,6 +7,7 @@ import TrackRecentlyViewed from "@/components/TrackRecentlyViewed";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import { getProductById } from "@/lib/catalog";
 import { getProductRating, getProductReviews } from "@/lib/reviews";
+import { getVariantStockMap } from "@/lib/inventory";
 import { formatSAR } from "@/lib/utils";
 import { getCategoryTheme } from "@/lib/categoryTheme";
 
@@ -20,7 +21,12 @@ export default async function ProductPage({
 
   if (!product) notFound();
 
-  const [rating, reviews] = await Promise.all([getProductRating(id), getProductReviews(id)]);
+  const [rating, reviews, stockMap] = await Promise.all([
+    getProductRating(id),
+    getProductReviews(id),
+    getVariantStockMap(product.product_variants.map((v) => v.id)),
+  ]);
+  const stock = Object.fromEntries(stockMap);
 
   const variant =
     product.product_variants.find((v) => v.is_default) ?? product.product_variants[0];
@@ -119,7 +125,7 @@ export default async function ProductPage({
             </p>
 
             {product.product_variants.length > 0 ? (
-              <AddToCartForm variants={product.product_variants} isFresh={product.is_fresh} />
+              <AddToCartForm variants={product.product_variants} stock={stock} />
             ) : (
               <p className="text-sm text-red-600">Currently unavailable.</p>
             )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateCartItemQuantity, removeCartItem } from "@/lib/actions/cart";
 import { formatSAR } from "@/lib/utils";
@@ -8,14 +8,20 @@ import type { CartItemWithVariant } from "@/types/database";
 
 export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const variant = item.product_variants;
   const product = variant.products;
 
   function updateQuantity(quantity: number) {
+    setError(null);
     startTransition(async () => {
-      await updateCartItemQuantity(item.id, quantity);
-      router.refresh();
+      try {
+        await updateCartItemQuantity(item.id, quantity);
+        router.refresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not update quantity.");
+      }
     });
   }
 
@@ -31,6 +37,7 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
       <div>
         <p className="font-medium">{product.name}</p>
         <p className="text-sm text-neutral-500">{variant.label}</p>
+        {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
 
       <div className="flex items-center gap-4">

@@ -3,6 +3,7 @@ import ProductCard from "@/components/ProductCard";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { getProductsByCategory } from "@/lib/catalog";
 import { getProductRatingsMap } from "@/lib/reviews";
+import { getDefaultVariantStockMap } from "@/lib/inventory";
 
 export default async function CategoryPage({
   params,
@@ -14,7 +15,10 @@ export default async function CategoryPage({
 
   if (!category) notFound();
 
-  const ratings = await getProductRatingsMap(products.map((p) => p.id));
+  const [ratings, stock] = await Promise.all([
+    getProductRatingsMap(products.map((p) => p.id)),
+    getDefaultVariantStockMap(products),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -25,7 +29,12 @@ export default async function CategoryPage({
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} rating={ratings.get(product.id)} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              rating={ratings.get(product.id)}
+              stock={stock.get(product.id)}
+            />
           ))}
         </div>
       )}
