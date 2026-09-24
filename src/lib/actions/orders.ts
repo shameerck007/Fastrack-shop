@@ -4,10 +4,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
-import { generateOrderNumber, generateOtp } from "@/lib/utils";
+import { generateOrderNumber, generateOtp, extractVat } from "@/lib/utils";
 import type { DeliveryType, PaymentMethod } from "@/types/database";
 
-const VAT_RATE = 0.15;
 const FREE_DELIVERY_THRESHOLD = 50;
 const DELIVERY_FEES: Record<DeliveryType, number> = {
   express: 12,
@@ -42,10 +41,13 @@ export async function placeOrder(input: {
     throw new Error(`Not enough stock for: ${names}. Please update your cart.`);
   }
 
+  // Product prices are VAT-inclusive (what's shown in the catalog is what
+  // the item costs) — vat here is the tax portion already inside subtotal,
+  // extracted for the receipt/ZATCA breakdown, not added on top.
   const subtotal = cartSubtotal(items);
   const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEES[input.deliveryType];
-  const vat = Math.round(subtotal * VAT_RATE * 100) / 100;
-  const total = Math.round((subtotal + deliveryFee + vat) * 100) / 100;
+  const vat = extractVat(subtotal);
+  const total = Math.round((subtotal + deliveryFee) * 100) / 100;
 
   // Resolve which warehouse actually stocks each item. Merchant products
   // live in that merchant's own warehouse (created on store approval); a

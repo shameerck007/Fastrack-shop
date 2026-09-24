@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { addAddress } from "@/lib/actions/addresses";
 import { placeOrder } from "@/lib/actions/orders";
-import { formatSAR } from "@/lib/utils";
+import { formatSAR, extractVat } from "@/lib/utils";
 import type { Address, DeliveryType, PaymentMethod } from "@/types/database";
 
 const DELIVERY_OPTIONS: { value: DeliveryType; label: string; hint: string; fee: number }[] = [
@@ -45,8 +45,10 @@ export default function CheckoutForm({
 
   const deliveryFee =
     subtotal >= 50 ? 0 : DELIVERY_OPTIONS.find((d) => d.value === deliveryType)!.fee;
-  const vat = Math.round(subtotal * 0.15 * 100) / 100;
-  const total = Math.round((subtotal + deliveryFee + vat) * 100) / 100;
+  // Item prices already include VAT — this is the included tax portion for
+  // the breakdown, not an amount added on top of subtotal.
+  const vat = extractVat(subtotal);
+  const total = Math.round((subtotal + deliveryFee) * 100) / 100;
 
   function handleAddAddress() {
     if (!newAddressLine.trim()) return;
@@ -191,16 +193,16 @@ export default function CheckoutForm({
 
       <section className="space-y-1 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
         <div className="flex justify-between">
-          <span className="text-neutral-500">Subtotal</span>
+          <span className="text-neutral-500">Subtotal (incl. VAT)</span>
           <span>{formatSAR(subtotal)}</span>
+        </div>
+        <div className="flex justify-between pl-3 text-xs">
+          <span className="text-neutral-400">of which VAT (15%)</span>
+          <span className="text-neutral-400">{formatSAR(vat)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-neutral-500">Delivery fee</span>
           <span>{deliveryFee === 0 ? "Free" : formatSAR(deliveryFee)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-neutral-500">VAT (15%)</span>
-          <span>{formatSAR(vat)}</span>
         </div>
         <div className="flex justify-between border-t border-neutral-200 pt-1 font-semibold">
           <span>Total</span>

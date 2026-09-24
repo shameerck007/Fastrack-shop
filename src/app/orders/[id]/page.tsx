@@ -98,16 +98,16 @@ export default async function OrderDetailPage({
 
       <div className="space-y-1 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
         <div className="flex justify-between">
-          <span className="text-neutral-500">Subtotal</span>
+          <span className="text-neutral-500">Subtotal (incl. VAT)</span>
           <span>{formatSAR(order.subtotal)}</span>
+        </div>
+        <div className="flex justify-between pl-3 text-xs">
+          <span className="text-neutral-400">of which VAT (15%)</span>
+          <span className="text-neutral-400">{formatSAR(order.vat)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-neutral-500">Delivery fee</span>
           <span>{order.delivery_fee === 0 ? "Free" : formatSAR(order.delivery_fee)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-neutral-500">VAT</span>
-          <span>{formatSAR(order.vat)}</span>
         </div>
         {order.discount > 0 && (
           <div className="flex justify-between text-blue-600">

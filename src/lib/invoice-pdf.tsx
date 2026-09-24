@@ -123,8 +123,12 @@ export function InvoiceDocument({
 
         <View style={styles.totals}>
           <View style={styles.totalRow}>
-            <Text>Subtotal</Text>
+            <Text>Subtotal (incl. VAT)</Text>
             <Text>{formatSAR(order.subtotal)}</Text>
+          </View>
+          <View style={styles.totalRow}>
+            <Text>  of which VAT (15%)</Text>
+            <Text>{formatSAR(order.vat)}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text>Delivery fee</Text>
@@ -136,10 +140,6 @@ export function InvoiceDocument({
               <Text>-{formatSAR(order.discount)}</Text>
             </View>
           )}
-          <View style={styles.totalRow}>
-            <Text>VAT (15%)</Text>
-            <Text>{formatSAR(order.vat)}</Text>
-          </View>
           <View style={styles.grandTotalRow}>
             <Text style={styles.grandTotalLabel}>Total</Text>
             <Text style={styles.grandTotalValue}>{formatSAR(order.total)}</Text>
