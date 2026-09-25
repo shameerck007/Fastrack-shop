@@ -98,6 +98,38 @@ export default async function MerchantDashboardPage() {
         </div>
       )}
 
+      {store.status === "approved" && (
+        <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4">
+          <p className="mb-1 text-sm font-medium">Your store QR code</p>
+          <p className="mb-3 text-xs text-neutral-500">
+            Print this and display it in your shop — customers scan it to open your storefront
+            in the app and order directly from you.
+          </p>
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/stores/${store.id}/qr`}
+              alt={`QR code linking to ${store.name}'s storefront`}
+              width={160}
+              height={160}
+              className="rounded-lg border border-neutral-200"
+            />
+            <div className="flex flex-col gap-2 text-sm">
+              <Link href={`/store/${store.id}`} className="text-blue-600 hover:underline">
+                View your public storefront →
+              </Link>
+              <a
+                href={`/api/stores/${store.id}/qr`}
+                download={`${store.name}-qr-code.png`}
+                className="inline-flex w-fit items-center gap-1 rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-100"
+              >
+                Download QR code
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
         <p className="mb-3 font-medium">Store details</p>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">

@@ -89,6 +89,37 @@ export async function getProductById(id: string): Promise<ProductWithVariants | 
   return (data as ProductWithVariants) ?? null;
 }
 
+export interface PublicStoreProfile {
+  id: string;
+  name: string;
+  city: string;
+}
+
+export async function getApprovedStoreById(storeId: string): Promise<PublicStoreProfile | null> {
+  const supabase = await createClient();
+  // `stores` has no public select policy (it holds cr/vat/bank details), so
+  // the storefront looks up only the safe fields via this RPC.
+  const { data, error } = await supabase
+    .rpc("public_store_profile", { target_store_id: storeId })
+    .maybeSingle();
+
+  if (error) throw error;
+  return data ?? null;
+}
+
+export async function getStoreProducts(storeId: string): Promise<ProductWithVariants[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*, category:categories(*), product_variants(*)")
+    .eq("store_id", storeId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data as ProductWithVariants[]) ?? [];
+}
+
 export async function searchProducts(query: string): Promise<ProductWithVariants[]> {
   const supabase = await createClient();
   // Escape PostgREST filter syntax characters so the raw query can't alter the .or() clause.
