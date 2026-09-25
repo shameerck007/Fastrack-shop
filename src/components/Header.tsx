@@ -1,26 +1,11 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import SearchBar from "@/components/SearchBar";
 import Logo from "@/components/Logo";
-import { getCartItemCount } from "@/lib/cart";
+import UserHeaderActions from "@/components/UserHeaderActions";
 import { getCategories } from "@/lib/catalog";
 
 export default async function Header() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const [cartCount, categories] = await Promise.all([getCartItemCount(), getCategories()]);
-
-  let firstName: string | null = null;
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("id", user.id)
-      .maybeSingle();
-    firstName = profile?.full_name?.split(" ")[0] ?? null;
-  }
+  const categories = await getCategories();
 
   return (
     <header className="sticky top-0 z-30 bg-white shadow-sm">
@@ -40,33 +25,7 @@ export default async function Header() {
             📍 Deliver to <span className="font-medium text-neutral-900">Home</span>
           </Link>
 
-          <div className="flex items-center gap-4 text-sm">
-            <Link href="/orders" className="leading-tight hover:text-blue-600">
-              <span className="block text-[11px] text-neutral-500">Returns</span>
-              <span className="font-medium">& Orders</span>
-            </Link>
-            <Link href="/cart" className="relative flex items-center gap-1 hover:text-blue-600">
-              🛒 Cart
-              {cartCount > 0 && (
-                <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-semibold text-white">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-            {user ? (
-              <Link href="/account" className="leading-tight hover:text-blue-600">
-                <span className="block text-[11px] text-neutral-500">Hello, {firstName ?? "there"}</span>
-                <span className="font-medium">Account</span>
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="rounded-full bg-blue-700 px-4 py-1.5 text-white hover:bg-blue-800"
-              >
-                Login
-              </Link>
-            )}
-          </div>
+          <UserHeaderActions />
         </div>
 
         <SearchBar />
@@ -86,11 +45,9 @@ export default async function Header() {
               {category.name}
             </Link>
           ))}
-          {user && (
-            <Link href="/orders" className="shrink-0 whitespace-nowrap hover:text-blue-700">
-              Buy Again
-            </Link>
-          )}
+          <Link href="/orders" className="shrink-0 whitespace-nowrap hover:text-blue-700">
+            Buy Again
+          </Link>
         </div>
       </div>
     </header>

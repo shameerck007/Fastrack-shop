@@ -1,13 +1,13 @@
 import CategoryGrid from "@/components/CategoryGrid";
 import ProductCard from "@/components/ProductCard";
 import RecentlyViewed from "@/components/RecentlyViewed";
+import BuyAgainSection from "@/components/BuyAgainSection";
 import {
   getCategories,
   getFeaturedProducts,
   getFreshTodayProducts,
   getOfferProducts,
 } from "@/lib/catalog";
-import { getBuyAgainProducts } from "@/lib/orders";
 import { getProductRatingsMap, type ProductRating } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
 import type { ProductWithVariants } from "@/types/database";
@@ -42,15 +42,14 @@ function ProductSection({
 }
 
 export default async function HomePage() {
-  const [categories, featured, freshToday, offers, buyAgain] = await Promise.all([
+  const [categories, featured, freshToday, offers] = await Promise.all([
     getCategories(),
     getFeaturedProducts(),
     getFreshTodayProducts(),
     getOfferProducts(),
-    getBuyAgainProducts(),
   ]);
 
-  const allProducts = [...featured, ...freshToday, ...offers, ...buyAgain];
+  const allProducts = [...featured, ...freshToday, ...offers];
   const allIds = [...new Set(allProducts.map((p) => p.id))];
   const [ratings, stock] = await Promise.all([
     getProductRatingsMap(allIds),
@@ -64,7 +63,7 @@ export default async function HomePage() {
         <CategoryGrid categories={categories} />
       </section>
 
-      <ProductSection title="🔄 Buy Again" products={buyAgain} ratings={ratings} stock={stock} />
+      <BuyAgainSection />
       <ProductSection title="🏷️ Offers" products={offers} ratings={ratings} stock={stock} />
       <ProductSection title="🥬 Fresh Today" products={freshToday} ratings={ratings} stock={stock} />
 
