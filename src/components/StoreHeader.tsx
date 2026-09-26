@@ -1,30 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 
 export default function StoreHeader({ storeName }: { storeName: string }) {
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    const supabase = createClient();
-
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (cancelled || !user) return;
-      const { data: cart } = await supabase.from("carts").select("id").eq("user_id", user.id).maybeSingle();
-      if (cancelled || !cart) return;
-      const { data: items } = await supabase.from("cart_items").select("quantity").eq("cart_id", cart.id);
-      if (!cancelled) {
-        setCartCount((items ?? []).reduce((sum, item) => sum + item.quantity, 0));
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { cartCount } = useCustomerHeaderState();
 
   return (
     <header className="sticky top-0 z-30 bg-white shadow-sm">

@@ -1,51 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 
 export default function UserHeaderActions() {
-  const [loaded, setLoaded] = useState(false);
-  const [firstName, setFirstName] = useState<string | null>(null);
-  const [signedIn, setSignedIn] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    const supabase = createClient();
-
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (cancelled) return;
-      if (!user) {
-        setSignedIn(false);
-        setLoaded(true);
-        return;
-      }
-      setSignedIn(true);
-
-      const [{ data: profile }, { data: cart }] = await Promise.all([
-        supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
-        supabase.from("carts").select("id").eq("user_id", user.id).maybeSingle(),
-      ]);
-      if (cancelled) return;
-      setFirstName(profile?.full_name?.split(" ")[0] ?? null);
-
-      if (cart) {
-        const { data: items } = await supabase
-          .from("cart_items")
-          .select("quantity")
-          .eq("cart_id", cart.id);
-        if (!cancelled) {
-          setCartCount((items ?? []).reduce((sum, item) => sum + item.quantity, 0));
-        }
-      }
-      setLoaded(true);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { loaded, signedIn, firstName, cartCount } = useCustomerHeaderState();
 
   return (
     <div className="flex items-center gap-4 text-sm">
