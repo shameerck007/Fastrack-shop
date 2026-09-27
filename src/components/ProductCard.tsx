@@ -3,6 +3,7 @@ import type { ProductWithVariants } from "@/types/database";
 import { formatSAR } from "@/lib/utils";
 import { getCategoryTheme } from "@/lib/categoryTheme";
 import StarRating from "@/components/StarRating";
+import DeliveryOverlay from "@/components/DeliveryOverlay";
 import type { ProductRating } from "@/lib/reviews";
 
 export default function ProductCard({
@@ -40,6 +41,7 @@ export default function ProductCard({
           </span>
         )}
 
+        <DeliveryOverlay storeId={product.store_id} />
         <div className="absolute left-2 top-2 flex flex-col gap-1">
           {product.is_fresh && (
             <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-blue-700 shadow-sm">

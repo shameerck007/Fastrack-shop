@@ -5,18 +5,19 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { addToCart } from "@/lib/actions/cart";
 import { notifyCartChanged } from "@/lib/cart-events";
+import { useDeliveryLocation } from "@/components/delivery-location-context";
 import type { ProductVariant } from "@/types/database";
 
 export default function AddToCartForm({
   variants,
   stock,
   isLoggedIn,
-  deliveryBlockedMessage,
+  storeId,
 }: {
   variants: ProductVariant[];
   stock: Record<string, number>;
   isLoggedIn: boolean;
-  deliveryBlockedMessage?: string | null;
+  storeId: string | null;
 }) {
   const [variantId, setVariantId] = useState(
     variants.find((v) => v.is_default)?.id ?? variants[0]?.id
@@ -26,6 +27,14 @@ export default function AddToCartForm({
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const { location, statusForStore, openPicker } = useDeliveryLocation();
+  const delivery = statusForStore(storeId);
+  const deliveryBlockedMessage =
+    delivery.state === "outside"
+      ? `This seller delivers within ${delivery.radiusKm} km and ${location?.label ?? "your location"} is ${delivery.distanceKm.toFixed(1)} km away.`
+      : delivery.state === "no_location"
+        ? "Choose your delivery location to see if this seller delivers to you."
+        : null;
 
   const available = stock[variantId] ?? 0;
   const inStock = available > 0;
@@ -42,7 +51,7 @@ export default function AddToCartForm({
     setMessage(null);
     startTransition(async () => {
       try {
-        await addToCart(variantId, quantity);
+        await addToCart(variantId, quantity, location ? { lat: location.lat, lng: location.lng } : undefined);
         setMessage("Added to cart.");
         notifyCartChanged();
         router.refresh();
@@ -78,11 +87,11 @@ export default function AddToCartForm({
 
       {deliveryBlockedMessage && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          <p className="font-medium">📍 Can&apos;t deliver to you</p>
+          <p className="font-medium">📍 {delivery.state === "outside" ? "Can't deliver to you" : "Location needed"}</p>
           <p>{deliveryBlockedMessage}</p>
-          <Link href="/addresses" className="mt-1 inline-block font-medium text-blue-700 hover:underline">
-            Change or add an address →
-          </Link>
+          <button onClick={openPicker} className="mt-1 inline-block font-medium text-blue-700 hover:underline">
+            Change delivery location →
+          </button>
         </div>
       )}
 

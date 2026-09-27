@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
+import DeliverToChip from "@/components/DeliverToChip";
 
 export default function StoreHeader({ storeName }: { storeName: string }) {
   const { cartCount } = useCustomerHeaderState();
@@ -12,6 +13,7 @@ export default function StoreHeader({ storeName }: { storeName: string }) {
         <div className="min-w-0">
           <p className="truncate text-lg font-semibold text-neutral-900">{storeName}</p>
           <p className="text-xs text-neutral-400">Powered by FasTrack Shop</p>
+          <DeliverToChip className="mt-0.5 text-xs" />
         </div>
         <Link href="/cart" className="relative flex shrink-0 items-center gap-1 text-sm hover:text-blue-600">
           🛒 Cart

@@ -2,6 +2,7 @@ import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 import Wordmark from "@/components/Wordmark";
 import UserHeaderActions from "@/components/UserHeaderActions";
+import DeliverToChip from "@/components/DeliverToChip";
 import { getCategories } from "@/lib/catalog";
 
 export default async function Header() {
@@ -16,16 +17,12 @@ export default async function Header() {
             <span className="hidden rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700 sm:inline">Shop</span>
           </Link>
 
-          <Link
-            href="/addresses"
-            className="hidden items-center gap-1 text-sm text-neutral-600 hover:text-neutral-900 sm:flex"
-          >
-            📍 Deliver to <span className="font-medium text-neutral-900">Home</span>
-          </Link>
+          <DeliverToChip className="hidden sm:flex" />
 
           <UserHeaderActions />
         </div>
 
+        <DeliverToChip className="sm:hidden" />
         <SearchBar />
       </div>
 

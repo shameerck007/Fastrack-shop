@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { checkZone, type Coords, type ZoneVerdict } from "@/lib/delivery-geo";
 
 // A delivery boundary is a circle around a warehouse (each merchant store
 // has its own warehouse; FasTrack's own dark store is the default one).
@@ -10,34 +11,6 @@ export interface WarehouseZone {
   lat: number | null;
   lng: number | null;
   radiusKm: number | null;
-}
-
-export interface Coords {
-  lat: number | null;
-  lng: number | null;
-}
-
-export type ZoneVerdict =
-  | { ok: true }
-  | { ok: false; reason: "no_location" }
-  | { ok: false; reason: "outside"; distanceKm: number; radiusKm: number };
-
-export function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
-  const R = 6371;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(bLat - aLat);
-  const dLng = toRad(bLng - aLng);
-  const h =
-    Math.sin(dLat / 2) ** 2 + Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
-
-export function checkZone(zone: WarehouseZone | undefined, coords: Coords | null): ZoneVerdict {
-  if (!zone || zone.radiusKm == null || zone.lat == null || zone.lng == null) return { ok: true };
-  if (!coords || coords.lat == null || coords.lng == null) return { ok: false, reason: "no_location" };
-  const d = distanceKm(zone.lat, zone.lng, coords.lat, coords.lng);
-  if (d <= zone.radiusKm) return { ok: true };
-  return { ok: false, reason: "outside", distanceKm: d, radiusKm: zone.radiusKm };
 }
 
 export function verdictMessage(verdict: ZoneVerdict, itemName?: string): string | null {

@@ -11,17 +11,6 @@ import { getVariantStockMap } from "@/lib/inventory";
 import { formatSAR } from "@/lib/utils";
 import { getCategoryTheme } from "@/lib/categoryTheme";
 import { createClient } from "@/lib/supabase/server";
-import { checkProductsDeliverable, getCustomerLocation } from "@/lib/delivery-zones";
-
-function verdictMessageFor(
-  verdict: { ok: false; reason: "no_location" } | { ok: false; reason: "outside"; distanceKm: number; radiusKm: number },
-  addressLabel?: string
-): string {
-  if (verdict.reason === "no_location") {
-    return "Set your delivery location (add an address with a map pin) to check if this seller delivers to you.";
-  }
-  return `Not deliverable to your ${addressLabel ?? "delivery"} location — this seller delivers within ${verdict.radiusKm} km and you're ${verdict.distanceKm.toFixed(1)} km away.`;
-}
 
 export default async function ProductPage({
   params,
@@ -42,16 +31,6 @@ export default async function ProductPage({
   ]);
   const stock = Object.fromEntries(stockMap);
   const isLoggedIn = !!user;
-
-  // Seller's delivery boundary vs the customer's delivery location.
-  let deliveryBlockedMessage: string | null = null;
-  if (user) {
-    const location = await getCustomerLocation();
-    const result = (
-      await checkProductsDeliverable([{ id: product.id, store_id: product.store_id }], location)
-    ).get(product.id);
-    deliveryBlockedMessage = result?.verdict.ok === false ? verdictMessageFor(result.verdict, location?.label) : null;
-  }
 
   const variant =
     product.product_variants.find((v) => v.is_default) ?? product.product_variants[0];
@@ -154,7 +133,7 @@ export default async function ProductPage({
                 variants={product.product_variants}
                 stock={stock}
                 isLoggedIn={isLoggedIn}
-                deliveryBlockedMessage={deliveryBlockedMessage}
+                storeId={product.store_id}
               />
             ) : (
               <p className="text-sm text-red-600">Currently unavailable.</p>

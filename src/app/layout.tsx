@@ -5,6 +5,8 @@ import HeaderGate from "@/components/HeaderGate";
 import MobileNavGate from "@/components/MobileNavGate";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import BackBar from "@/components/BackBar";
+import DeliveryLocationProvider from "@/components/DeliveryLocationProvider";
+import DeliveryBanner from "@/components/DeliveryBanner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,9 +45,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} overscroll-none antialiased bg-neutral-50 text-neutral-900`}>
+        <DeliveryLocationProvider>
         <HeaderGate>
           <Header />
         </HeaderGate>
+        <DeliveryBanner />
         <main className="min-h-screen pb-16 md:pb-0">
           <BackBar />
           {children}
@@ -53,6 +57,7 @@ export default function RootLayout({
         <MobileNavGate>
           <MobileBottomNav />
         </MobileNavGate>
+        </DeliveryLocationProvider>
       </body>
     </html>
   );

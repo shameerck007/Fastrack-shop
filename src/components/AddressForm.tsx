@@ -6,6 +6,7 @@ import { addAddress, updateAddress, type AddressInput } from "@/lib/actions/addr
 import LocationPicker from "@/components/LocationPicker";
 import Modal from "@/components/Modal";
 import { createClient } from "@/lib/supabase/client";
+import { useDeliveryLocation } from "@/components/delivery-location-context";
 import type { Address, AddressLabel } from "@/types/database";
 
 export default function AddressForm({
@@ -36,6 +37,14 @@ export default function AddressForm({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { location: deliveryLocation } = useDeliveryLocation();
+
+  // A brand-new address starts pinned at the shopper's chosen delivery location.
+  useEffect(() => {
+    if (existing || !open || !deliveryLocation) return;
+    setLat((v) => v ?? deliveryLocation.lat);
+    setLng((v) => v ?? deliveryLocation.lng);
+  }, [open, existing, deliveryLocation]);
 
   // Prefill a brand-new address with the account holder's name/phone
   // (they can change it if the order is for someone else).

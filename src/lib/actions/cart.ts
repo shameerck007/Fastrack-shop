@@ -31,7 +31,11 @@ async function getOrCreateCartId(): Promise<string> {
   return created.id;
 }
 
-export async function addToCart(variantId: string, quantity: number) {
+export async function addToCart(
+  variantId: string,
+  quantity: number,
+  location?: { lat: number; lng: number }
+) {
   const supabase = await createClient();
 
   // Enforce the seller's delivery boundary against the customer's delivery
@@ -45,8 +49,10 @@ export async function addToCart(variantId: string, quantity: number) {
   const product = (variantRow as unknown as { products: { id: string; name: string; store_id: string | null } | null } | null)
     ?.products;
   if (product) {
-    const location = await getCustomerLocation();
-    const result = (await checkProductsDeliverable([product], location)).get(product.id);
+    // The shopper's chosen browsing location if given, else their default
+    // address. Checkout re-checks against the actual delivery address.
+    const where = location ?? (await getCustomerLocation());
+    const result = (await checkProductsDeliverable([product], where)).get(product.id);
     if (result?.message) throw new Error(result.message);
   }
 
