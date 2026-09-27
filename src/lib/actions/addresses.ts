@@ -14,6 +14,8 @@ export interface AddressInput {
   unitNumber?: string;
   postalCode?: string;
   shortAddress?: string;
+  receiverName?: string;
+  receiverPhone?: string;
   lat?: number;
   lng?: number;
 }
@@ -29,6 +31,8 @@ function toRow(input: AddressInput) {
     unit_number: input.unitNumber || null,
     postal_code: input.postalCode || null,
     short_address: input.shortAddress || null,
+    receiver_name: input.receiverName || null,
+    receiver_phone: input.receiverPhone || null,
     lat: input.lat ?? null,
     lng: input.lng ?? null,
   };

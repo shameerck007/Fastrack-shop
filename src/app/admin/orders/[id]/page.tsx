@@ -200,6 +200,16 @@ export default async function AdminOrderDetailPage({
             {addr ? (
               <div className="text-sm">
                 <p className="mb-0.5 text-xs font-medium uppercase text-neutral-400">{addr.label}</p>
+                {addr.receiver_name && (
+                  <p className="font-medium">
+                    Receiver: {addr.receiver_name}
+                    {addr.receiver_phone && (
+                      <a href={`tel:${addr.receiver_phone}`} className="ml-2 font-normal text-blue-600 hover:underline">
+                        📞 {addr.receiver_phone}
+                      </a>
+                    )}
+                  </p>
+                )}
                 <p>{addr.address_line}</p>
                 <p className="text-neutral-500">
                   {[addr.building_number && `Bldg ${addr.building_number}`, addr.unit_number && `Unit ${addr.unit_number}`]

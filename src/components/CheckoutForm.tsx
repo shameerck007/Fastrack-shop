@@ -98,6 +98,14 @@ export default function CheckoutForm({
                     </span>
                   )}
                 </span>
+                {addr.receiver_name && (
+                  <span className="font-medium">
+                    {addr.receiver_name}
+                    {addr.receiver_phone && (
+                      <span className="ml-2 font-normal text-neutral-500">📞 {addr.receiver_phone}</span>
+                    )}
+                  </span>
+                )}
                 <span>{addr.address_line}</span>
                 <span className="text-xs text-neutral-500">
                   {[

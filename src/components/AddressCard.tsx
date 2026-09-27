@@ -35,6 +35,14 @@ export default function AddressCard({ address }: { address: Address }) {
               <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">Default</span>
             )}
           </div>
+          {address.receiver_name && (
+            <p className="mt-1 text-sm font-medium">
+              {address.receiver_name}
+              {address.receiver_phone && (
+                <span className="ml-2 font-normal text-neutral-500">📞 {address.receiver_phone}</span>
+              )}
+            </p>
+          )}
           <p className="mt-1 text-sm">{address.address_line}</p>
           {nationalParts.length > 0 && (
             <p className="text-xs text-neutral-500">{nationalParts.join(" · ")}</p>

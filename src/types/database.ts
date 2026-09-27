@@ -42,6 +42,8 @@ export interface Address {
   unit_number: string | null;
   postal_code: string | null;
   short_address: string | null;
+  receiver_name: string | null;
+  receiver_phone: string | null;
   lat: number | null;
   lng: number | null;
   is_default: boolean;

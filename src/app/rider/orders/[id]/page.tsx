@@ -21,7 +21,7 @@ export default async function RiderOrderPage({
   const { data: order } = await supabase
     .from("orders")
     .select(
-      "*, order_items(*), addresses(address_line), warehouses(name, address_line), profiles(full_name, phone)"
+      "*, order_items(*), addresses(address_line, receiver_name, receiver_phone), warehouses(name, address_line), profiles(full_name, phone)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -77,6 +77,9 @@ export default async function RiderOrderPage({
         >
           <p className="text-xs font-medium uppercase text-neutral-500">Drop-off</p>
           <p className="font-medium capitalize">{order.addresses.label}</p>
+          {order.addresses.receiver_name && (
+            <p className="text-sm font-medium">Receiver: {order.addresses.receiver_name}</p>
+          )}
           <p className="text-sm text-neutral-600">{order.addresses.address_line}</p>
           <div className="mt-2 flex gap-4">
             <a
@@ -87,9 +90,12 @@ export default async function RiderOrderPage({
             >
               Navigate to customer →
             </a>
-            {order.profiles?.phone && (
-              <a href={`tel:${order.profiles.phone}`} className="text-sm font-medium text-blue-700 hover:underline">
-                Call customer
+            {(order.addresses.receiver_phone || order.profiles?.phone) && (
+              <a
+                href={`tel:${order.addresses.receiver_phone || order.profiles?.phone}`}
+                className="text-sm font-medium text-blue-700 hover:underline"
+              >
+                Call receiver
               </a>
             )}
           </div>

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addAddress, updateAddress, type AddressInput } from "@/lib/actions/addresses";
 import LocationPicker from "@/components/LocationPicker";
 import Modal from "@/components/Modal";
+import { createClient } from "@/lib/supabase/client";
 import type { Address, AddressLabel } from "@/types/database";
 
 export default function AddressForm({
@@ -28,15 +29,47 @@ export default function AddressForm({
   const [unitNumber, setUnitNumber] = useState(existing?.unit_number ?? "");
   const [postalCode, setPostalCode] = useState(existing?.postal_code ?? "");
   const [shortAddress, setShortAddress] = useState(existing?.short_address ?? "");
+  const [receiverName, setReceiverName] = useState(existing?.receiver_name ?? "");
+  const [receiverPhone, setReceiverPhone] = useState(existing?.receiver_phone ?? "");
   const [lat, setLat] = useState<number | null>(existing?.lat ?? null);
   const [lng, setLng] = useState<number | null>(existing?.lng ?? null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  // Prefill a brand-new address with the account holder's name/phone
+  // (they can change it if the order is for someone else).
+  useEffect(() => {
+    if (existing || !open) return;
+    let cancelled = false;
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (cancelled || !user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled || !profile) return;
+      setReceiverName((v) => v || profile.full_name || "");
+      setReceiverPhone((v) => v || profile.phone || "");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, existing]);
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!receiverName.trim()) {
+      setError("Enter the receiver's name.");
+      return;
+    }
+    if (!/^[+\d][\d\s-]{7,15}$/.test(receiverPhone.trim())) {
+      setError("Enter a valid receiver mobile number (e.g. 05XXXXXXXX or +9665XXXXXXXX).");
+      return;
+    }
     if (!addressLine.trim()) {
       setError("Add a short description (e.g. villa/apartment, street).");
       return;
@@ -51,6 +84,8 @@ export default function AddressForm({
       unitNumber: unitNumber.trim() || undefined,
       postalCode: postalCode.trim() || undefined,
       shortAddress: shortAddress.trim() || undefined,
+      receiverName: receiverName.trim(),
+      receiverPhone: receiverPhone.trim(),
       lat: lat ?? undefined,
       lng: lng ?? undefined,
     };
@@ -69,6 +104,8 @@ export default function AddressForm({
           setUnitNumber("");
           setPostalCode("");
           setShortAddress("");
+          setReceiverName("");
+          setReceiverPhone("");
           setLat(null);
           setLng(null);
           setOpen(false);
@@ -105,6 +142,25 @@ export default function AddressForm({
           setLng(newLng);
         }}
       />
+
+      <p className="text-xs font-medium text-neutral-500">Who will receive the order?</p>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <input
+          value={receiverName}
+          onChange={(e) => setReceiverName(e.target.value)}
+          placeholder="Receiver's full name"
+          autoComplete="name"
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        />
+        <input
+          value={receiverPhone}
+          onChange={(e) => setReceiverPhone(e.target.value)}
+          placeholder="Receiver's mobile (05XXXXXXXX)"
+          inputMode="tel"
+          autoComplete="tel"
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        />
+      </div>
 
       <input
         value={addressLine}
