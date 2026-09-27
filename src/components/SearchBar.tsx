@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { formatSAR } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 
 interface Suggestion {
   id: string;
@@ -15,6 +16,7 @@ interface Suggestion {
 
 export default function SearchBar({ defaultValue = "" }: { defaultValue?: string }) {
   const router = useRouter();
+  const { t } = useLocale();
   const [value, setValue] = useState(defaultValue);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
@@ -69,7 +71,7 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
-          placeholder="Search vegetables, milk, rice... / موز، حليب، أرز"
+          placeholder={t("header.search_placeholder")}
           className="w-full rounded-full border border-neutral-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
         />
       </form>
@@ -86,7 +88,7 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
               <span className="text-lg">🛒</span>
               <span className="flex-1 truncate text-sm">
                 <span className="font-medium text-neutral-900">{s.name}</span>
-                {s.brand && <span className="ml-1 text-neutral-500">· {s.brand}</span>}
+                {s.brand && <span className="ms-1 text-neutral-500">· {s.brand}</span>}
               </span>
               {s.price !== null && (
                 <span className="text-sm font-medium text-blue-700">{formatSAR(s.price)}</span>
@@ -95,9 +97,9 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
           ))}
           <button
             onClick={() => goToSearch(value)}
-            className="block w-full px-4 py-2 text-left text-sm font-medium text-blue-700 hover:bg-neutral-50"
+            className="block w-full px-4 py-2 text-start text-sm font-medium text-blue-700 hover:bg-neutral-50"
           >
-            See all results for &ldquo;{value}&rdquo;
+            {t("header.see_all_results_for", { query: value })}
           </button>
         </div>
       )}

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Tajawal } from "next/font/google";
 import Header from "@/components/Header";
 import HeaderGate from "@/components/HeaderGate";
 import MobileNavGate from "@/components/MobileNavGate";
@@ -8,6 +8,9 @@ import BackBar from "@/components/BackBar";
 import DeliveryLocationProvider from "@/components/DeliveryLocationProvider";
 import DeliveryBanner from "@/components/DeliveryBanner";
 import ChunkErrorReload from "@/components/ChunkErrorReload";
+import LocaleProvider from "@/components/LocaleProvider";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { dirFor } from "@/lib/i18n/config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,6 +21,16 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// Geist has no Arabic glyphs — Tajawal (the family most Saudi e-commerce
+// sites use) fills that gap and is listed as a fallback in globals.css'
+// font stack, so it's picked up for Arabic UI without needing per-component
+// font-family switching.
+const tajawal = Tajawal({
+  variable: "--font-tajawal",
+  subsets: ["arabic"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -38,15 +51,20 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getServerLocale();
+
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} overscroll-none antialiased bg-neutral-50 text-neutral-900`}>
+    <html lang={locale} dir={dirFor(locale)}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${tajawal.variable} overscroll-none font-sans antialiased bg-neutral-50 text-neutral-900`}
+      >
         <ChunkErrorReload />
+        <LocaleProvider locale={locale}>
         <DeliveryLocationProvider>
         <HeaderGate>
           <Header />
@@ -60,6 +78,7 @@ export default function RootLayout({
           <MobileBottomNav />
         </MobileNavGate>
         </DeliveryLocationProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

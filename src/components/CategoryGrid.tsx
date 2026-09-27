@@ -4,10 +4,13 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import type { CategoryWithChildren } from "@/lib/catalog";
 import { getCategoryTheme } from "@/lib/categoryTheme";
+import { useLocale } from "@/components/LocaleProvider";
+import { localizedName } from "@/lib/i18n/localized";
 
 // Amazon/Noon-style: the home page shows only main categories; hovering a
 // tile flies out its subcategories instead of navigating away immediately.
 export default function CategoryGrid({ categories }: { categories: CategoryWithChildren[] }) {
+  const { t, locale } = useLocale();
   const [openId, setOpenId] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -46,7 +49,7 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
                 )}
               </div>
               <span className="flex items-center gap-0.5 text-center text-xs font-medium text-neutral-700 sm:text-sm">
-                {category.name}
+                {localizedName(category, locale)}
                 {hasChildren && (
                   <span aria-hidden className="text-[8px] text-neutral-400">
                     ▾
@@ -65,7 +68,7 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
                   href={`/categories/${category.slug}`}
                   className="block whitespace-nowrap px-4 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-50"
                 >
-                  All {category.name}
+                  {t("category.all_of", { name: localizedName(category, locale) })}
                 </Link>
                 <div className="my-1 border-t border-neutral-100" />
                 {category.children.map((sub) => (
@@ -75,7 +78,7 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
                     className="flex items-center gap-2 whitespace-nowrap px-4 py-1.5 text-sm text-neutral-700 hover:bg-blue-50 hover:text-blue-700"
                   >
                     {sub.icon && <span aria-hidden>{sub.icon}</span>}
-                    {sub.name}
+                    {localizedName(sub, locale)}
                   </Link>
                 ))}
               </div>

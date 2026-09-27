@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useLocale } from "@/components/LocaleProvider";
 
 // Routes that have no page of their own (only /x/[id] exists), so "up one
 // level" from them should skip to the next real ancestor.
@@ -28,6 +29,7 @@ function parentPath(pathname: string): string {
 export default function BackBar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLocale();
   const depth = useRef(0);
   const popped = useRef(false);
   const first = useRef(true);
@@ -66,10 +68,10 @@ export default function BackBar() {
         <button
           type="button"
           onClick={goBack}
-          aria-label="Go back"
+          aria-label={t("common.back")}
           className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200"
         >
-          <span aria-hidden className="text-lg leading-none">←</span> Back
+          <span aria-hidden className="text-lg leading-none rtl:-scale-x-100">←</span> {t("common.back")}
         </button>
       </div>
     </div>

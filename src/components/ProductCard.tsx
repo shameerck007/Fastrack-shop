@@ -1,9 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ProductWithVariants } from "@/types/database";
 import { formatSAR } from "@/lib/utils";
 import { getCategoryTheme } from "@/lib/categoryTheme";
 import StarRating from "@/components/StarRating";
 import type { ProductRating } from "@/lib/reviews";
+import { useLocale } from "@/components/LocaleProvider";
+import { localizedName } from "@/lib/i18n/localized";
+
+// This card is also reused inside the admin/merchant product lists, which
+// stay English-only by design (see Header/BackBar's HIDE_PREFIXES) — so it
+// ignores the site-wide locale there rather than translating an internal
+// ops screen just because an admin's browser happens to be set to Arabic.
+const INTERNAL_PREFIXES = ["/admin", "/merchant", "/rider"];
 
 export default function ProductCard({
   product,
@@ -14,6 +25,10 @@ export default function ProductCard({
   rating?: ProductRating;
   stock?: number;
 }) {
+  const pathname = usePathname();
+  const { t, locale: siteLocale } = useLocale();
+  const locale = INTERNAL_PREFIXES.some((p) => pathname.startsWith(p)) ? "en" : siteLocale;
+
   const variant =
     product.product_variants.find((v) => v.is_default) ?? product.product_variants[0];
   const theme = getCategoryTheme(product.category?.slug);
@@ -22,6 +37,7 @@ export default function ProductCard({
       ? Math.round((1 - variant.price / variant.compare_at_price) * 100)
       : null;
   const outOfStock = stock !== undefined && stock <= 0;
+  const name = locale === "ar" ? localizedName(product, "ar") : product.name;
 
   return (
     <Link
@@ -33,27 +49,27 @@ export default function ProductCard({
       <div className={`relative flex h-32 items-center justify-center bg-gradient-to-br ${theme.gradient}`}>
         {product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+          <img src={product.image_url} alt={name} className="h-full w-full object-cover" />
         ) : (
           <span className="text-5xl drop-shadow-sm transition group-hover:scale-110">
             {theme.emoji}
           </span>
         )}
 
-        <div className="absolute left-2 top-2 flex flex-col gap-1">
+        <div className="absolute start-2 top-2 flex flex-col gap-1">
           {product.is_fresh && (
             <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-blue-700 shadow-sm">
-              Fresh
+              {locale === "ar" ? "طازج" : "Fresh"}
             </span>
           )}
         </div>
         {outOfStock ? (
-          <span className="absolute right-2 top-2 rounded-full bg-neutral-800 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
-            Out of stock
+          <span className="absolute end-2 top-2 rounded-full bg-neutral-800 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+            {t("product.out_of_stock")}
           </span>
         ) : (
           discountPct && (
-            <span className="absolute right-2 top-2 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+            <span className="absolute end-2 top-2 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
               -{discountPct}%
             </span>
           )
@@ -61,7 +77,7 @@ export default function ProductCard({
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3">
         <span className="text-xs text-neutral-500">{product.brand}</span>
-        <span className="line-clamp-2 text-sm font-medium text-neutral-900">{product.name}</span>
+        <span className="line-clamp-2 text-sm font-medium text-neutral-900">{name}</span>
         {rating && rating.review_count > 0 && (
           <StarRating rating={rating.avg_rating} count={rating.review_count} />
         )}

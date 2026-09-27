@@ -10,8 +10,12 @@ import {
 } from "@/lib/catalog";
 import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 export default async function HomePage() {
+  const locale = await getServerLocale();
+  const t = (key: string) => translate(locale, key);
   const [categories, featured, freshToday, offers] = await Promise.all([
     getCategoriesWithChildren(),
     getFeaturedProducts(),
@@ -36,19 +40,19 @@ export default async function HomePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <section className="mb-8">
-        <h2 className="mb-3 text-lg font-semibold">Shop by category</h2>
+        <h2 className="mb-3 text-lg font-semibold">{t("home.shop_by_category")}</h2>
         <CategoryGrid categories={categories} />
       </section>
 
       <BuyAgainSection />
-      <ProductSection title="🏷️ Offers" products={offers} ratings={ratings} stock={stock} />
-      <ProductSection title="🥬 Fresh Today" products={freshToday} ratings={ratings} stock={stock} />
+      <ProductSection title={t("home.offers")} products={offers} ratings={ratings} stock={stock} />
+      <ProductSection title={t("home.fresh_today")} products={freshToday} ratings={ratings} stock={stock} />
       <ProductSection
-        title="🔥 Best Sellers"
+        title={t("home.best_sellers")}
         products={featured}
         ratings={ratings}
         stock={stock}
-        emptyMessage="No products yet — connect Supabase and run the seed script to populate the catalog."
+        emptyMessage={t("home.no_products_yet")}
       />
 
       <RecentlyViewed />

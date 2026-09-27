@@ -1,17 +1,21 @@
 import Link from "next/link";
 import { getMyOrders } from "@/lib/orders";
 import { formatSAR, ORDER_STATUS_LABELS } from "@/lib/utils";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 export default async function OrdersPage() {
+  const locale = await getServerLocale();
+  const t = (key: string) => translate(locale, key);
   const orders = await getMyOrders();
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
-      <h1 className="mb-4 text-xl font-semibold">Your Orders</h1>
+      <h1 className="mb-4 text-xl font-semibold">{t("orders.title")}</h1>
 
       {orders.length === 0 ? (
         <p className="text-sm text-neutral-500">
-          No orders yet. <Link href="/" className="text-blue-600 hover:underline">Start shopping</Link>.
+          {t("orders.no_orders")}. <Link href="/" className="text-blue-600 hover:underline">{t("cart.start_shopping")}</Link>.
         </p>
       ) : (
         <div className="flex flex-col gap-3">

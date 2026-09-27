@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { addToCart } from "@/lib/actions/cart";
 import { notifyCartChanged } from "@/lib/cart-events";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
+import { useLocale } from "@/components/LocaleProvider";
 import type { ProductVariant } from "@/types/database";
 
 export default function AddToCartForm({
@@ -26,6 +27,7 @@ export default function AddToCartForm({
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useLocale();
   const { location, statusForStore, openPicker } = useDeliveryLocation();
   // "outside" is handled by ProductBuyBox before this form ever renders —
   // this only needs to cover "we don't know your location yet" for stores
@@ -48,11 +50,11 @@ export default function AddToCartForm({
     startTransition(async () => {
       try {
         await addToCart(variantId, quantity, location ? { lat: location.lat, lng: location.lng } : undefined);
-        setMessage("Added to cart.");
+        setMessage(t("product.added_to_cart"));
         notifyCartChanged();
         router.refresh();
       } catch (err) {
-        setMessage(err instanceof Error ? err.message : "Could not add to cart.");
+        setMessage(err instanceof Error ? err.message : t("product.could_not_add"));
       }
     });
   }
@@ -83,10 +85,10 @@ export default function AddToCartForm({
 
       {needsLocation && (
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
-          <p className="font-medium">📍 Set your delivery location</p>
-          <p>This seller has a delivery area — choose your location to check they reach you.</p>
+          <p className="font-medium">{t("product.set_delivery_location")}</p>
+          <p>{t("product.delivery_area_hint")}</p>
           <button onClick={openPicker} className="mt-1 inline-block font-medium text-blue-700 hover:underline">
-            Choose delivery location →
+            {t("product.choose_delivery_location")}
           </button>
         </div>
       )}
@@ -117,15 +119,17 @@ export default function AddToCartForm({
               disabled={pending || needsLocation}
               className="w-full whitespace-nowrap rounded-full bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
             >
-              {pending ? "Adding..." : "ADD TO CART"}
+              {pending ? t("product.adding") : t("product.add_to_cart")}
             </button>
           </div>
 
-          {available <= 10 && <p className="text-sm text-amber-600">Only {available} left in stock</p>}
+          {available <= 10 && (
+            <p className="text-sm text-amber-600">{t("product.only_left_in_stock", { count: available })}</p>
+          )}
         </>
       ) : (
         <div className="rounded-lg bg-neutral-100 px-4 py-2 text-center text-sm font-medium text-neutral-500">
-          Out of stock
+          {t("product.out_of_stock")}
         </div>
       )}
 

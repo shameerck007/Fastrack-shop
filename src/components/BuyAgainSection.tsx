@@ -6,8 +6,10 @@ import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { createClient } from "@/lib/supabase/client";
 import type { ProductWithVariants } from "@/types/database";
 import type { ProductRating } from "@/lib/reviews";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function BuyAgainSection() {
+  const { t } = useLocale();
   const [products, setProducts] = useState<ProductWithVariants[] | null>(null);
   const [ratings, setRatings] = useState<Record<string, ProductRating>>({});
   const [stock, setStock] = useState<Record<string, number>>({});
@@ -37,7 +39,7 @@ export default function BuyAgainSection() {
 
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-lg font-semibold">🔄 Buy Again</h2>
+      <h2 className="mb-3 text-lg font-semibold">{t("home.buy_again")}</h2>
       <DeliverableProductGrid products={products} ratings={ratings} stock={stock} />
     </section>
   );

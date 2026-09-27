@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getAddresses } from "@/lib/addresses";
 import AddressForm from "@/components/AddressForm";
 import AddressCard from "@/components/AddressCard";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 export default async function AddressesPage() {
   const supabase = await createClient();
@@ -11,12 +13,14 @@ export default async function AddressesPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const locale = await getServerLocale();
+  const t = (key: string) => translate(locale, key);
   const addresses = await getAddresses();
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Your Addresses</h1>
+        <h1 className="text-xl font-semibold">{t("addresses.title")}</h1>
         <AddressForm />
       </div>
 

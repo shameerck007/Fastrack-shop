@@ -4,6 +4,7 @@ import Wordmark from "@/components/Wordmark";
 import UserHeaderActions from "@/components/UserHeaderActions";
 import DeliverToChip from "@/components/DeliverToChip";
 import CategoryNavBar from "@/components/CategoryNavBar";
+import LanguageToggle from "@/components/LanguageToggle";
 import { getCategoriesWithChildren } from "@/lib/catalog";
 
 export default async function Header() {
@@ -20,7 +21,10 @@ export default async function Header() {
 
           <DeliverToChip className="hidden sm:flex" />
 
-          <UserHeaderActions />
+          <div className="flex items-center gap-3">
+            <LanguageToggle />
+            <UserHeaderActions />
+          </div>
         </div>
 
         <DeliverToChip className="sm:hidden" />

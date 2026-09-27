@@ -6,11 +6,14 @@ import { updateCartItemQuantity, removeCartItem } from "@/lib/actions/cart";
 import { notifyCartChanged } from "@/lib/cart-events";
 import { formatSAR } from "@/lib/utils";
 import type { CartItemWithVariant } from "@/types/database";
+import { useLocale } from "@/components/LocaleProvider";
+import { localizedName } from "@/lib/i18n/localized";
 
 export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { t, locale } = useLocale();
   const variant = item.product_variants;
   const product = variant.products;
 
@@ -22,7 +25,7 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
         notifyCartChanged();
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not update quantity.");
+        setError(err instanceof Error ? err.message : t("cart.could_not_update_quantity"));
       }
     });
   }
@@ -38,7 +41,7 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
   return (
     <div className="flex items-center justify-between gap-4 border-b border-neutral-200 py-3">
       <div>
-        <p className="font-medium">{product.name}</p>
+        <p className="font-medium">{localizedName(product, locale)}</p>
         <p className="text-sm text-neutral-500">{variant.label}</p>
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
@@ -62,7 +65,7 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
           </button>
         </div>
 
-        <span className="w-20 text-right font-medium">
+        <span className="w-20 text-end font-medium">
           {formatSAR(item.quantity * variant.price)}
         </span>
 
@@ -71,7 +74,7 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
           disabled={pending}
           className="text-sm text-red-500 hover:text-red-700"
         >
-          Remove
+          {t("cart.remove")}
         </button>
       </div>
     </div>

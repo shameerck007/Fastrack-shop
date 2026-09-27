@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { CategoryWithChildren } from "@/lib/catalog";
+import { useLocale } from "@/components/LocaleProvider";
+import { localizedName } from "@/lib/i18n/localized";
 
 // Amazon/Noon-style: hovering a top-level category flies out its
 // subcategories; clicking the category name still goes to its own page
@@ -15,6 +17,7 @@ import type { CategoryWithChildren } from "@/lib/catalog";
 // off. We render the flyout as a `position: fixed` panel anchored to the
 // hovered item's on-screen position instead, which escapes that clipping.
 export default function CategoryNavBar({ categories }: { categories: CategoryWithChildren[] }) {
+  const { t, locale } = useLocale();
   const [openId, setOpenId] = useState<string | null>(null);
   const [anchorRect, setAnchorRect] = useState<{ left: number; top: number } | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -52,7 +55,7 @@ export default function CategoryNavBar({ categories }: { categories: CategoryWit
   return (
     <div className="mx-auto flex max-w-6xl items-center gap-4 overflow-x-auto px-4 py-2 text-sm text-blue-950">
       <Link href="/" className="shrink-0 font-medium hover:text-blue-700">
-        All
+        {t("header.all")}
       </Link>
       {categories.map((category) => (
         <div
@@ -65,7 +68,7 @@ export default function CategoryNavBar({ categories }: { categories: CategoryWit
             href={`/categories/${category.slug}`}
             className="flex items-center gap-1 whitespace-nowrap py-1 hover:text-blue-700"
           >
-            {category.name}
+            {localizedName(category, locale)}
             {category.children.length > 0 && (
               <span aria-hidden className="text-[9px] text-blue-400">
                 ▾
@@ -75,7 +78,7 @@ export default function CategoryNavBar({ categories }: { categories: CategoryWit
         </div>
       ))}
       <Link href="/orders" className="shrink-0 whitespace-nowrap hover:text-blue-700">
-        Buy Again
+        {t("header.buy_again")}
       </Link>
 
       {openCategory && openCategory.children.length > 0 && anchorRect && (
@@ -89,7 +92,7 @@ export default function CategoryNavBar({ categories }: { categories: CategoryWit
             href={`/categories/${openCategory.slug}`}
             className="block whitespace-nowrap px-4 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-50"
           >
-            All {openCategory.name}
+            {t("category.all_of", { name: localizedName(openCategory, locale) })}
           </Link>
           <div className="my-1 border-t border-neutral-100" />
           {openCategory.children.map((sub) => (
@@ -99,7 +102,7 @@ export default function CategoryNavBar({ categories }: { categories: CategoryWit
               className="flex items-center gap-2 whitespace-nowrap px-4 py-1.5 text-sm text-neutral-700 hover:bg-blue-50 hover:text-blue-700"
             >
               {sub.icon && <span aria-hidden>{sub.icon}</span>}
-              {sub.name}
+              {localizedName(sub, locale)}
             </Link>
           ))}
         </div>

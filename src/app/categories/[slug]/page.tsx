@@ -6,6 +6,9 @@ import { getProductsByCategory } from "@/lib/catalog";
 import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
 import { getCategoryTheme } from "@/lib/categoryTheme";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
+import { localizedName } from "@/lib/i18n/localized";
 
 export default async function CategoryPage({
   params,
@@ -13,6 +16,8 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const { category, subcategories, parent, products } = await getProductsByCategory(slug);
 
   if (!category) notFound();
@@ -22,18 +27,20 @@ export default async function CategoryPage({
     getDefaultVariantStockMap(products),
   ]);
 
+  const categoryLabel = localizedName(category, locale);
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <Breadcrumbs
         items={[
-          { label: "Home", href: "/" },
-          ...(parent ? [{ label: parent.name, href: `/categories/${parent.slug}` }] : []),
-          { label: category.name },
+          { label: t("category.home"), href: "/" },
+          ...(parent ? [{ label: localizedName(parent, locale), href: `/categories/${parent.slug}` }] : []),
+          { label: categoryLabel },
         ]}
       />
-      <h1 className="mb-1 text-xl font-semibold">{category.name}</h1>
+      <h1 className="mb-1 text-xl font-semibold">{categoryLabel}</h1>
       {subcategories.length > 0 && (
-        <p className="mb-3 text-sm text-neutral-500">Showing all of {category.name}, or pick a subcategory below.</p>
+        <p className="mb-3 text-sm text-neutral-500">{t("category.showing_all_of", { name: categoryLabel })}</p>
       )}
 
       {subcategories.length > 0 && (
@@ -49,7 +56,7 @@ export default async function CategoryPage({
                 <div className="h-14 w-14 overflow-hidden rounded-xl border border-neutral-200 shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
                   {sub.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={sub.image_url} alt={sub.name} className="h-full w-full object-cover" />
+                    <img src={sub.image_url} alt={localizedName(sub, locale)} className="h-full w-full object-cover" />
                   ) : (
                     <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br text-2xl ${theme.gradient}`}>
                       {sub.icon || theme.emoji}
@@ -57,7 +64,7 @@ export default async function CategoryPage({
                   )}
                 </div>
                 <span className="max-w-[4.5rem] truncate text-center text-xs font-medium text-neutral-700">
-                  {sub.name}
+                  {localizedName(sub, locale)}
                 </span>
               </Link>
             );
@@ -69,7 +76,7 @@ export default async function CategoryPage({
         products={products}
         ratings={Object.fromEntries(ratingsMap)}
         stock={Object.fromEntries(stockMap)}
-        emptyMessage="No products in this category yet."
+        emptyMessage={t("category.no_products")}
       />
     </div>
   );
