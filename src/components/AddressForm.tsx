@@ -10,9 +10,13 @@ import type { Address, AddressLabel } from "@/types/database";
 export default function AddressForm({
   existing,
   onDone,
+  onAdded,
+  triggerLabel = "Add new address",
 }: {
   existing?: Address;
   onDone?: () => void;
+  onAdded?: (addressId: string) => void;
+  triggerLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState<AddressLabel>(existing?.label ?? "home");
@@ -56,7 +60,8 @@ export default function AddressForm({
           await updateAddress(existing.id, input);
           onDone?.();
         } else {
-          await addAddress(input);
+          const newId = await addAddress(input);
+          onAdded?.(newId);
           setAddressLine("");
           setDistrict("");
           setBuildingNumber("");
@@ -191,7 +196,7 @@ export default function AddressForm({
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md"
       >
-        <span className="text-base leading-none">+</span> Add new address
+        <span className="text-base leading-none">+</span> {triggerLabel}
       </button>
       <Modal open={open} onClose={() => setOpen(false)} title="Add a new address">
         {formBody}

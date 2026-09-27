@@ -41,14 +41,19 @@ export async function addAddress(input: AddressInput) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("You must be logged in.");
 
-  const { error } = await supabase.from("addresses").insert({
-    user_id: user.id,
-    ...toRow(input),
-  });
+  const { data, error } = await supabase
+    .from("addresses")
+    .insert({
+      user_id: user.id,
+      ...toRow(input),
+    })
+    .select("id")
+    .single();
 
   if (error) throw error;
   revalidatePath("/checkout");
   revalidatePath("/addresses");
+  return data.id as string;
 }
 
 export async function updateAddress(addressId: string, input: AddressInput) {

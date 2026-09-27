@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { addAddress } from "@/lib/actions/addresses";
+import AddressForm from "@/components/AddressForm";
 import { placeOrder } from "@/lib/actions/orders";
 import { formatSAR, extractVat } from "@/lib/utils";
 import type { Address, DeliveryType, PaymentMethod } from "@/types/database";
@@ -38,8 +38,6 @@ export default function CheckoutForm({
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("standard");
   const [scheduledFor, setScheduledFor] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
-  const [showAddressForm, setShowAddressForm] = useState(addresses.length === 0);
-  const [newAddressLine, setNewAddressLine] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -49,15 +47,6 @@ export default function CheckoutForm({
   // the breakdown, not an amount added on top of subtotal.
   const vat = extractVat(subtotal);
   const total = Math.round((subtotal + deliveryFee) * 100) / 100;
-
-  function handleAddAddress() {
-    if (!newAddressLine.trim()) return;
-    startTransition(async () => {
-      await addAddress({ label: "home", addressLine: newAddressLine.trim() });
-      setShowAddressForm(false);
-      setNewAddressLine("");
-    });
-  }
 
   function handlePlaceOrder() {
     setError(null);
@@ -100,36 +89,40 @@ export default function CheckoutForm({
                 checked={addressId === addr.id}
                 onChange={() => setAddressId(addr.id)}
               />
-              <span>
-                <span className="font-medium capitalize">{addr.label}</span> — {addr.address_line}
+              <span className="flex flex-col gap-0.5">
+                <span className="flex items-center gap-2">
+                  <span className="font-medium capitalize">{addr.label}</span>
+                  {addr.short_address && (
+                    <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-neutral-600">
+                      {addr.short_address}
+                    </span>
+                  )}
+                </span>
+                <span>{addr.address_line}</span>
+                <span className="text-xs text-neutral-500">
+                  {[
+                    addr.building_number && `Bldg ${addr.building_number}`,
+                    addr.unit_number && `Unit ${addr.unit_number}`,
+                    addr.district,
+                    addr.city,
+                    addr.postal_code,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                </span>
+                {addr.lat != null && addr.lng != null && (
+                  <span className="text-xs text-emerald-600">📍 Map location pinned</span>
+                )}
               </span>
             </label>
           ))}
 
-          {showAddressForm ? (
-            <div className="flex gap-2">
-              <input
-                value={newAddressLine}
-                onChange={(e) => setNewAddressLine(e.target.value)}
-                placeholder="Building, street, district"
-                className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-              />
-              <button
-                onClick={handleAddAddress}
-                disabled={pending}
-                className="rounded-lg bg-neutral-900 px-3 py-2 text-sm text-white"
-              >
-                Save
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowAddressForm(true)}
-              className="text-left text-sm text-blue-600 hover:underline"
-            >
-              + Add new address
-            </button>
-          )}
+          <div className="pt-1">
+            <AddressForm
+              onAdded={setAddressId}
+              triggerLabel={addresses.length === 0 ? "Add delivery address" : "Add new address"}
+            />
+          </div>
         </div>
       </section>
 
