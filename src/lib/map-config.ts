@@ -1,22 +1,28 @@
 // The default OpenStreetMap raster tiles label places in the local script
-// (Arabic in Saudi Arabia). When a MapTiler key is configured
-// (NEXT_PUBLIC_MAPTILER_KEY), we use their "Streets" tiles instead — like
-// Esri these label places in English, but they also render individual
-// shops, businesses and building outlines (closer to Google Maps' level of
-// detail). Without a key, Esri's World Street Map tiles are the fallback:
-// free, no key needed, English labels, but no shop-level detail.
+// (Arabic in Saudi Arabia). When a Stadia Maps key is configured
+// (NEXT_PUBLIC_STADIAMAPS_KEY), we use their "OSM Bright" tiles instead —
+// these label places in English AND render individual shops, businesses,
+// building outlines and POI icons (close to Google Maps' level of detail).
+// Falls back to MapTiler if that key is set instead, then to Esri's World
+// Street Map tiles (free, no key, English labels, but no shop-level detail).
+const STADIA_KEY = process.env.NEXT_PUBLIC_STADIAMAPS_KEY;
 const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY;
 
-export const TILE_URL = MAPTILER_KEY
-  ? `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`
-  : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
+export const TILE_URL = STADIA_KEY
+  ? `https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png?api_key=${STADIA_KEY}`
+  : MAPTILER_KEY
+    ? `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`
+    : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
 
 export const TILE_OPTIONS = {
-  attribution: MAPTILER_KEY
-    ? '&copy; <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
-    : "Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, (c) OpenStreetMap contributors, and the GIS User Community",
-  maxZoom: MAPTILER_KEY ? 20 : 19,
+  attribution: STADIA_KEY
+    ? '&copy; <a href="https://stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+    : MAPTILER_KEY
+      ? '&copy; <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+      : "Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, (c) OpenStreetMap contributors, and the GIS User Community",
+  maxZoom: STADIA_KEY || MAPTILER_KEY ? 20 : 19,
   tileSize: 256,
+  detectRetina: !!STADIA_KEY,
 };
 
 export const MARKER_ICON = {

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import ZoneEditor from "@/components/admin/ZoneEditor";
+import ZonesList, { type ZoneCard } from "@/components/admin/ZonesList";
 import ZonesOverviewMap, { type OverviewZone } from "@/components/admin/ZonesOverviewMap";
 import { distanceKm } from "@/lib/delivery-geo";
 
@@ -73,6 +73,22 @@ export default async function AdminZonesPage() {
 
   cards.sort((a, b) => Number(a.zoned) - Number(b.zoned));
 
+  const listCards: ZoneCard[] = cards.map((c) => ({
+    warehouseId: c.w.id,
+    warehouseName: c.w.name,
+    storeAddress: c.store?.address_line ?? c.w.address_line ?? null,
+    contactPhone: c.store?.contact_phone ?? null,
+    displayName: c.displayName,
+    color: c.color,
+    zoned: c.zoned,
+    radius: c.radius,
+    lat: c.w.lat,
+    lng: c.w.lng,
+    productCount: c.productCount,
+    orderCount: c.orderCount,
+    inside: c.inside,
+  }));
+
   const overviewZones: OverviewZone[] = cards
     .filter((c) => c.zoned)
     .map((c) => ({
@@ -139,48 +155,7 @@ export default async function AdminZonesPage() {
         )}
       </div>
 
-      <div className="flex flex-col gap-3">
-        {cards.map((c) => (
-          <details key={c.w.id} className="rounded-xl border border-neutral-200 bg-white" open={!c.zoned}>
-            <summary className="flex cursor-pointer flex-wrap items-start justify-between gap-3 p-4">
-              <div className="flex items-start gap-3">
-                <span className="mt-1.5 h-3 w-3 shrink-0 rounded-full" style={{ background: c.color }} />
-                <div>
-                  <p className="font-medium">{c.displayName}</p>
-                  <p className="text-xs text-neutral-400">{c.w.name}</p>
-                  {(c.store?.address_line ?? c.w.address_line) && (
-                    <p className="text-xs text-neutral-500">📍 {c.store?.address_line ?? c.w.address_line}</p>
-                  )}
-                  {c.store?.contact_phone && <p className="text-xs text-neutral-500">📞 {c.store.contact_phone}</p>}
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-1.5 text-right">
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    c.zoned ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
-                  }`}
-                >
-                  {c.zoned ? `Delivers within ${c.radius} km` : "No boundary — delivers everywhere"}
-                </span>
-                <span className="text-xs text-neutral-500">
-                  {c.productCount} active products · {c.orderCount} orders
-                  {c.inside != null && ` · ${c.inside} customer addresses inside`}
-                </span>
-              </div>
-            </summary>
-            <div className="border-t border-neutral-100 p-4">
-              <ZoneEditor
-                warehouseId={c.w.id}
-                storeAddress={c.store?.address_line ?? c.w.address_line}
-                initialLat={c.w.lat}
-                initialLng={c.w.lng}
-                initialRadiusKm={c.radius}
-              />
-            </div>
-          </details>
-        ))}
-        {cards.length === 0 && <p className="text-sm text-neutral-500">No active warehouses yet.</p>}
-      </div>
+      <ZonesList cards={listCards} />
     </div>
   );
 }
