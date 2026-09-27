@@ -23,9 +23,11 @@ const PAYMENT_OPTIONS: { value: PaymentMethod; label: string }[] = [
 export default function CheckoutForm({
   addresses,
   subtotal,
+  blockedByAddress = {},
 }: {
   addresses: Address[];
   subtotal: number;
+  blockedByAddress?: Record<string, string[]>;
 }) {
   // null means "no explicit user selection yet" — fall back to the first
   // address, which also picks up addresses added after this component mounted
@@ -35,6 +37,7 @@ export default function CheckoutForm({
     selectedAddressId && addresses.some((a) => a.id === selectedAddressId)
       ? selectedAddressId
       : addresses[0]?.id ?? "";
+  const blockedItems = blockedByAddress[addressId] ?? [];
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("standard");
   const [scheduledFor, setScheduledFor] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
@@ -52,6 +55,10 @@ export default function CheckoutForm({
     setError(null);
     if (!addressId) {
       setError("Please select or add a delivery address.");
+      return;
+    }
+    if (blockedItems.length > 0) {
+      setError(`We can't deliver ${blockedItems.join(", ")} to this address.`);
       return;
     }
     startTransition(async () => {
@@ -118,9 +125,13 @@ export default function CheckoutForm({
                     .filter(Boolean)
                     .join(", ")}
                 </span>
-                {addr.lat != null && addr.lng != null && (
-                  <span className="text-xs text-emerald-600">📍 Map location pinned</span>
-                )}
+                {blockedByAddress[addr.id] ? (
+                  <span className="text-xs font-medium text-red-600">
+                    ⛔ Outside delivery area for: {blockedByAddress[addr.id].join(", ")}
+                  </span>
+                ) : addr.lat != null && addr.lng != null ? (
+                  <span className="text-xs text-emerald-600">📍 Map location pinned · deliverable</span>
+                ) : null}
               </span>
             </label>
           ))}
@@ -215,11 +226,16 @@ export default function CheckoutForm({
 
       <button
         onClick={handlePlaceOrder}
-        disabled={pending}
+        disabled={pending || blockedItems.length > 0}
         className="rounded-full bg-blue-700 py-3 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
       >
         {pending ? "Placing order..." : `Place Order — ${formatSAR(total)}`}
       </button>
+      {blockedItems.length > 0 && (
+        <p className="-mt-3 text-center text-sm text-red-600">
+          Some items can't be delivered to this address. Choose another address or remove: {blockedItems.join(", ")}.
+        </p>
+      )}
     </div>
   );
 }

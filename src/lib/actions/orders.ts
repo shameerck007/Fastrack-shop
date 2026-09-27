@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
+import { checkProductsDeliverable } from "@/lib/delivery-zones";
 import { generateOrderNumber, generateOtp, extractVat } from "@/lib/utils";
 import type { DeliveryType, PaymentMethod } from "@/types/database";
 
@@ -67,9 +68,8 @@ export async function placeOrder(input: {
   );
 
   const { data: warehouses } = await supabase.from("warehouses").select("id").eq("is_active", true);
-  const merchantWarehouseIds = new Set([...storeWarehouseMap.values()].filter(Boolean));
-  const defaultWarehouseId =
-    (warehouses ?? []).find((w) => !merchantWarehouseIds.has(w.id))?.id ?? warehouses?.[0]?.id ?? null;
+  const { data: defaultWarehouse } = await supabase.rpc("default_warehouse_id");
+  const defaultWarehouseId = (defaultWarehouse as string | null) ?? warehouses?.[0]?.id ?? null;
 
   const itemWarehouseIds = items.map((item) => {
     const storeId = item.product_variants.products.store_id;
@@ -82,6 +82,27 @@ export async function placeOrder(input: {
     }
     return defaultWarehouseId;
   });
+
+  // Delivery boundary: every item's seller must deliver to the chosen address.
+  const { data: chosenAddress } = await supabase
+    .from("addresses")
+    .select("lat, lng")
+    .eq("id", input.addressId)
+    .maybeSingle();
+  const deliverability = await checkProductsDeliverable(
+    items.map((i) => ({
+      id: i.product_variants.products.id,
+      store_id: i.product_variants.products.store_id,
+      name: i.product_variants.products.name,
+    })),
+    chosenAddress ? { lat: chosenAddress.lat, lng: chosenAddress.lng } : null
+  );
+  const blocked = [...deliverability.values()].filter((d) => d.message);
+  if (blocked.length > 0) {
+    throw new Error(
+      `We can't deliver some items to this address: ${blocked.map((d) => d.message).join(" ")} Please remove them or choose another address.`
+    );
+  }
 
   const { data: order, error: orderError } = await supabase
     .from("orders")

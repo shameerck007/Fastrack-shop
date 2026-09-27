@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { addToCart } from "@/lib/actions/cart";
 import { notifyCartChanged } from "@/lib/cart-events";
@@ -10,10 +11,12 @@ export default function AddToCartForm({
   variants,
   stock,
   isLoggedIn,
+  deliveryBlockedMessage,
 }: {
   variants: ProductVariant[];
   stock: Record<string, number>;
   isLoggedIn: boolean;
+  deliveryBlockedMessage?: string | null;
 }) {
   const [variantId, setVariantId] = useState(
     variants.find((v) => v.is_default)?.id ?? variants[0]?.id
@@ -73,6 +76,16 @@ export default function AddToCartForm({
         </div>
       )}
 
+      {deliveryBlockedMessage && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <p className="font-medium">📍 Can&apos;t deliver to you</p>
+          <p>{deliveryBlockedMessage}</p>
+          <Link href="/addresses" className="mt-1 inline-block font-medium text-blue-700 hover:underline">
+            Change or add an address →
+          </Link>
+        </div>
+      )}
+
       {inStock ? (
         <>
           <div className="flex flex-col gap-2">
@@ -96,7 +109,7 @@ export default function AddToCartForm({
 
             <button
               onClick={handleAdd}
-              disabled={pending}
+              disabled={pending || !!deliveryBlockedMessage}
               className="w-full whitespace-nowrap rounded-full bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
             >
               {pending ? "Adding..." : "ADD TO CART"}

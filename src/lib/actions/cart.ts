@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getVariantStock } from "@/lib/inventory";
+import { checkProductsDeliverable, getCustomerLocation } from "@/lib/delivery-zones";
 
 async function getOrCreateCartId(): Promise<string> {
   const supabase = await createClient();
@@ -32,6 +33,23 @@ async function getOrCreateCartId(): Promise<string> {
 
 export async function addToCart(variantId: string, quantity: number) {
   const supabase = await createClient();
+
+  // Enforce the seller's delivery boundary against the customer's delivery
+  // location before anything is added — the UI also hides the button, but
+  // this is the real gate.
+  const { data: variantRow } = await supabase
+    .from("product_variants")
+    .select("products(id, name, store_id)")
+    .eq("id", variantId)
+    .maybeSingle();
+  const product = (variantRow as unknown as { products: { id: string; name: string; store_id: string | null } | null } | null)
+    ?.products;
+  if (product) {
+    const location = await getCustomerLocation();
+    const result = (await checkProductsDeliverable([product], location)).get(product.id);
+    if (result?.message) throw new Error(result.message);
+  }
+
   const cartId = await getOrCreateCartId();
 
   const { data: existing } = await supabase

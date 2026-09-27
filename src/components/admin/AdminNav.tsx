@@ -9,6 +9,7 @@ const NAV = [
   { href: "/admin/categories", label: "Categories", icon: "🗂️" },
   { href: "/admin/orders", label: "Orders", icon: "🧾" },
   { href: "/admin/merchants", label: "Merchants", icon: "🏪" },
+  { href: "/admin/zones", label: "Delivery zones", icon: "📍" },
 ];
 
 export default function AdminNav() {

@@ -68,6 +68,7 @@ export interface Warehouse {
   address_line: string | null;
   lat: number | null;
   lng: number | null;
+  delivery_radius_km: number | null;
   is_active: boolean;
   created_at: string;
 }
