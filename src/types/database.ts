@@ -84,6 +84,7 @@ export interface Store {
   contact_phone: string | null;
   address_line: string | null;
   city: string;
+  country: string;
   status: StoreStatus;
   rejection_reason: string | null;
   warehouse_id: string | null;
