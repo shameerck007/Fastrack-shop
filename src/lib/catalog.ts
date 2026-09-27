@@ -104,7 +104,7 @@ export async function getApprovedStoreById(storeId: string): Promise<PublicStore
     .maybeSingle();
 
   if (error) throw error;
-  return data ?? null;
+  return (data as PublicStoreProfile | null) ?? null;
 }
 
 export async function getStoreProducts(storeId: string): Promise<ProductWithVariants[]> {

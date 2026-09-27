@@ -40,6 +40,20 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
   cancelled: "Cancelled",
 };
 
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  mada: "Mada",
+  visa: "Visa",
+  mastercard: "Mastercard",
+  apple_pay: "Apple Pay",
+  cash_on_delivery: "Cash on delivery",
+};
+
+export const DELIVERY_TYPE_LABELS: Record<string, string> = {
+  express: "Express (15–30 min)",
+  standard: "Standard (30–60 min)",
+  scheduled: "Scheduled",
+};
+
 export const ORDER_STATUS_FLOW = [
   "pending",
   "confirmed",
