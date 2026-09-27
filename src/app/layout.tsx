@@ -7,6 +7,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import BackBar from "@/components/BackBar";
 import DeliveryLocationProvider from "@/components/DeliveryLocationProvider";
 import DeliveryBanner from "@/components/DeliveryBanner";
+import ChunkErrorReload from "@/components/ChunkErrorReload";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,6 +46,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} overscroll-none antialiased bg-neutral-50 text-neutral-900`}>
+        <ChunkErrorReload />
         <DeliveryLocationProvider>
         <HeaderGate>
           <Header />

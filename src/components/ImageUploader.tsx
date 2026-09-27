@@ -3,6 +3,36 @@
 import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+const MAX_BYTES = 5 * 1024 * 1024; // 5 MB — matches the product-images bucket's own limit (defense in depth)
+const MAX_DIMENSION = 1600; // px, longest side — plenty for product photos, keeps pages fast
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+// Large photos straight from a phone camera (10-20+ MB, 4000px+) are common
+// and would otherwise slow the page down for every shopper who loads it —
+// resize/re-encode client-side before upload rather than just rejecting them.
+async function prepareImage(file: File): Promise<Blob> {
+  if (file.type === "image/gif") return file; // don't re-encode animated GIFs
+
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+  if (scale === 1 && file.size <= MAX_BYTES) return file;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return file;
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+  for (const quality of [0.85, 0.7, 0.55]) {
+    const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+    if (blob && blob.size <= MAX_BYTES) return blob;
+  }
+  // Fall back to the last (smallest) attempt even if still over, so the
+  // upload's own size check gives a clear final answer rather than looping.
+  return (await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.5))) ?? file;
+}
+
 export default function ImageUploader({
   value,
   onChange,
@@ -15,28 +45,34 @@ export default function ImageUploader({
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
-    if (!file.type.startsWith("image/")) {
-      setError("Please choose an image file.");
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError("Please choose a JPG, PNG, WEBP or GIF image.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image must be under 5 MB.");
+    if (file.size > 25 * 1024 * 1024) {
+      setError("That image is too large (over 25 MB) — please choose a smaller file.");
       return;
     }
     setError(null);
     setUploading(true);
     try {
+      const prepared = await prepareImage(file);
+      if (prepared.size > MAX_BYTES) {
+        setError("Image is still too large after compression — please choose a smaller photo.");
+        return;
+      }
+
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("You must be logged in.");
 
-      const ext = file.name.split(".").pop() ?? "jpg";
+      const ext = prepared.type === "image/gif" ? "gif" : "jpg";
       const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("product-images")
-        .upload(path, file, { cacheControl: "3600", upsert: false });
+        .upload(path, prepared, { cacheControl: "3600", upsert: false, contentType: prepared.type });
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from("product-images").getPublicUrl(path);
@@ -62,7 +98,7 @@ export default function ImageUploader({
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp,image/gif"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -78,7 +114,7 @@ export default function ImageUploader({
         >
           {uploading ? "Uploading..." : value ? "Change photo" : "Add photo"}
         </button>
-        {value && (
+        {value && !uploading && (
           <button
             type="button"
             onClick={() => onChange(null)}
@@ -87,6 +123,7 @@ export default function ImageUploader({
             Remove
           </button>
         )}
+        {!error && <p className="text-[11px] text-neutral-400">JPG, PNG, WEBP or GIF — large photos are resized automatically</p>}
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
     </div>

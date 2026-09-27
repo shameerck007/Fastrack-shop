@@ -81,6 +81,7 @@ export default function DocumentUploader({
           <span className="truncate text-xs text-neutral-500">✓ {fileName ?? "Uploaded"}</span>
         )}
       </div>
+      {!error && <p className="mt-1 text-[11px] text-neutral-400">PDF, JPG or PNG, up to 10 MB</p>}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
   );
