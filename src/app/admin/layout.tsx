@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
-import Logo from "@/components/Logo";
+import Wordmark from "@/components/Wordmark";
 import AdminNav from "@/components/admin/AdminNav";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -12,11 +12,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link href="/admin" className="flex items-center gap-2">
-            <Logo size={28} />
-            <div>
-              <span className="block font-semibold leading-tight text-neutral-900">FasTrack Admin</span>
-              <span className="block text-xs leading-tight text-neutral-400">Control Center</span>
-            </div>
+            <Wordmark height={24} />
+            <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
+              Admin · Control Center
+            </span>
           </Link>
           <div className="flex items-center gap-4 text-sm">
             <span className="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 sm:inline">

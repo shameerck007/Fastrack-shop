@@ -1,6 +1,6 @@
 import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
-import Logo from "@/components/Logo";
+import Wordmark from "@/components/Wordmark";
 import UserHeaderActions from "@/components/UserHeaderActions";
 import { getCategories } from "@/lib/catalog";
 
@@ -12,10 +12,8 @@ export default async function Header() {
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <Logo />
-            <span className="text-xl font-bold text-neutral-900">
-              FasTrack <span className="text-blue-600">Shop</span>
-            </span>
+            <Wordmark height={26} />
+            <span className="hidden rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700 sm:inline">Shop</span>
           </Link>
 
           <Link

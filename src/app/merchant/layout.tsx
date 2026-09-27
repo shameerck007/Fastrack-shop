@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
 import { getMyStore } from "@/lib/merchant";
-import Logo from "@/components/Logo";
+import Wordmark from "@/components/Wordmark";
 import MerchantNav from "@/components/merchant/MerchantNav";
 
 export default async function MerchantLayout({ children }: { children: React.ReactNode }) {
@@ -14,7 +14,7 @@ export default async function MerchantLayout({ children }: { children: React.Rea
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link href="/merchant" className="flex items-center gap-2">
-            <Logo size={28} />
+            <Wordmark height={24} />
             <div>
               <span className="block font-semibold leading-tight text-neutral-900">
                 {store?.name ?? "FasTrack Merchant"}

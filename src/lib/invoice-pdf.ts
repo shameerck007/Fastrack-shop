@@ -62,7 +62,7 @@ export async function buildInvoicePdf({
 
   // Header: logo left, invoice meta right
   const logo = await pdf.embedPng(logoPng);
-  const logoW = 130;
+  const logoW = 150;
   const logoH = (logo.height / logo.width) * logoW;
   page.drawImage(logo, { x: M, y: y - logoH, width: logoW, height: logoH });
   text(page, "TAX INVOICE", PAGE_W - M, y - 14, { size: 16, font: bold, color: BLUE, right: true });
