@@ -13,13 +13,13 @@
     "deploy:vinext": "vinext-cloudflare deploy --config dist/server/wrangler.json"
   },
   "dependencies": {
-    "@react-pdf/renderer": "^4.9.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.1",
     "@types/leaflet": "^1.9.22",
     "@vinext/cloudflare": "^1.0.0-beta.10",
     "leaflet": "^1.9.4",
     "next": "16.0.4",
+    "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

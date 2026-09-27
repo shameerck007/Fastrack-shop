@@ -36,7 +36,7 @@ export default async function OrderDetailPage({
             {new Date(order.created_at).toLocaleString()}
           </p>
         </div>
-        <DownloadInvoiceButton orderId={order.id} />
+        <DownloadInvoiceButton orderId={order.id} orderNumber={order.order_number} />
       </div>
 
       <LiveOrderStatus orderId={order.id} initialStatus={order.status} deliveryOtp={order.delivery_otp} />

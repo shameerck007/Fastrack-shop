@@ -1,11 +1,9 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
-import { renderToBuffer } from "@react-pdf/renderer";
 import QRCode from "qrcode";
 import { getInvoiceData } from "@/lib/orders";
-import { InvoiceDocument } from "@/lib/invoice-pdf";
+import { buildInvoicePdf } from "@/lib/invoice-pdf";
 import { buildZatcaQrPayload } from "@/lib/zatca";
+import { INVOICE_LOGO_DATA_URL } from "@/lib/invoice-logo";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -24,17 +22,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     totalWithVat: order.total,
     vatTotal: order.vat,
   });
-  const qrDataUrl = await QRCode.toDataURL(qrPayload, { margin: 1, width: 300 });
+  const qrPng = new Uint8Array(await QRCode.toBuffer(qrPayload, { type: "png", margin: 1, width: 300 }));
+  const logoPng = Uint8Array.from(atob(INVOICE_LOGO_DATA_URL.split(",")[1]), (c) => c.charCodeAt(0));
 
-  // @react-pdf/renderer's Image doesn't reliably resolve local file paths
-  // inside a Next.js route handler, so read it ourselves and pass a data URI
-  // (the same approach already used for the QR code).
-  const logoBuffer = await readFile(path.join(process.cwd(), "public/fastrack-logo-full.png"));
-  const logoDataUrl = `data:image/png;base64,${logoBuffer.toString("base64")}`;
+  const pdfBytes = await buildInvoicePdf({ order, qrPng, logoPng });
 
-  const pdfBuffer = await renderToBuffer(InvoiceDocument({ order, qrDataUrl, logoDataUrl }));
-
-  return new NextResponse(new Uint8Array(pdfBuffer), {
+  return new NextResponse(pdfBytes as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="invoice-${order.order_number}.pdf"`,

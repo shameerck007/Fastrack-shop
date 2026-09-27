@@ -62,7 +62,7 @@ export default async function AdminOrderDetailPage({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <OrderStatusSelect orderId={order.id} status={order.status} />
-          <DownloadInvoiceButton orderId={order.id} />
+          <DownloadInvoiceButton orderId={order.id} orderNumber={order.order_number} />
         </div>
       </div>
 

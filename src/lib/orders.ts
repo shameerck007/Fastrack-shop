@@ -86,7 +86,18 @@ export async function getOrderDetail(orderId: string): Promise<OrderDetail | nul
 
 export interface InvoiceData extends Order {
   order_items: OrderItem[];
-  addresses: { address_line: string; label: string; city: string } | null;
+  addresses: {
+    address_line: string;
+    label: string;
+    city: string;
+    district: string | null;
+    building_number: string | null;
+    unit_number: string | null;
+    postal_code: string | null;
+    short_address: string | null;
+    receiver_name: string | null;
+    receiver_phone: string | null;
+  } | null;
   profiles: { full_name: string | null; phone: string | null } | null;
   payments: { method: string; status: string }[];
 }
@@ -99,7 +110,7 @@ export async function getInvoiceData(orderId: string): Promise<InvoiceData | nul
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "*, order_items(*), addresses(address_line, label, city), profiles(full_name, phone), payments(method, status)"
+      "*, order_items(*), addresses(address_line, label, city, district, building_number, unit_number, postal_code, short_address, receiver_name, receiver_phone), profiles(full_name, phone), payments(method, status)"
     )
     .eq("id", orderId)
     .maybeSingle();
