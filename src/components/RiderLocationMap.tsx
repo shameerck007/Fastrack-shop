@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, Marker } from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { TILE_URL, TILE_OPTIONS, MARKER_ICON } from "@/lib/map-config";
 import { createClient } from "@/lib/supabase/client";
 
 export default function RiderLocationMap({
@@ -30,19 +31,10 @@ export default function RiderLocationMap({
     let cancelled = false;
     import("leaflet").then((L) => {
       if (cancelled || !containerRef.current || mapRef.current) return;
-      const icon = L.icon({
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-      });
+      const icon = L.icon(MARKER_ICON);
       const start: [number, number] = [lat as number, lng as number];
       const map = L.map(containerRef.current, { zoomControl: true }).setView(start, 15);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
-      }).addTo(map);
+      L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
       markerRef.current = L.marker(start, { icon }).addTo(map);
       mapRef.current = map;
     });

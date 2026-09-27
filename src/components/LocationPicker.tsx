@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, Marker } from "leaflet";
 import "leaflet/dist/leaflet.css";
+import PlaceSearch from "@/components/PlaceSearch";
+import { TILE_URL, TILE_OPTIONS, MARKER_ICON, DEFAULT_CENTER, type PlaceResult } from "@/lib/map-config";
 
-const RIYADH: [number, number] = [24.7136, 46.6753];
 
 export default function LocationPicker({
   lat,
@@ -28,20 +29,11 @@ export default function LocationPicker({
     import("leaflet").then((L) => {
       if (cancelled || !containerRef.current || mapRef.current) return;
 
-      const icon = L.icon({
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-      });
+      const icon = L.icon(MARKER_ICON);
 
-      const start: [number, number] = lat != null && lng != null ? [lat, lng] : RIYADH;
+      const start: [number, number] = lat != null && lng != null ? [lat, lng] : DEFAULT_CENTER;
       const map = L.map(containerRef.current).setView(start, lat != null && lng != null ? 15 : 11);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
-      }).addTo(map);
+      L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
 
       const marker = L.marker(start, { icon, draggable: true }).addTo(map);
       marker.on("dragend", () => {
@@ -94,6 +86,15 @@ export default function LocationPicker({
     );
   }
 
+  function selectPlace(place: PlaceResult) {
+    onChange(place.lat, place.lng);
+    setManualLat(String(place.lat));
+    setManualLng(String(place.lng));
+    setError(null);
+    mapRef.current?.setView([place.lat, place.lng], 16);
+    markerRef.current?.setLatLng([place.lat, place.lng]);
+  }
+
   function applyManual() {
     const newLat = Number(manualLat);
     const newLng = Number(manualLng);
@@ -121,7 +122,9 @@ export default function LocationPicker({
         </button>
       </div>
 
-      <div ref={containerRef} className="h-56 w-full overflow-hidden rounded-lg border border-neutral-300" />
+      <PlaceSearch onSelect={selectPlace} />
+
+      <div ref={containerRef} className="h-64 w-full overflow-hidden rounded-lg border border-neutral-300" />
 
       <div className="flex items-center gap-2">
         <input

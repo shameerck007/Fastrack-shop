@@ -5,6 +5,7 @@ import Modal from "@/components/Modal";
 import LocationPicker from "@/components/LocationPicker";
 import { createClient } from "@/lib/supabase/client";
 import { setDefaultAddress } from "@/lib/actions/addresses";
+import { reverseAreaName } from "@/lib/map-config";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 
 interface SavedAddress {
@@ -16,21 +17,6 @@ interface SavedAddress {
   lat: number | null;
   lng: number | null;
   is_default: boolean;
-}
-
-async function areaName(lat: number, lng: number): Promise<string> {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&lat=${lat}&lon=${lng}`,
-      { headers: { Accept: "application/json" } }
-    );
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    const a = data.address ?? {};
-    return a.suburb || a.neighbourhood || a.city_district || a.quarter || a.city || a.town || "Selected location";
-  } catch {
-    return "Selected location";
-  }
 }
 
 export default function DeliveryLocationModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -76,7 +62,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
-        const label = await areaName(latitude, longitude);
+        const label = await reverseAreaName(latitude, longitude);
         setLocating(false);
         setLocation({ lat: latitude, lng: longitude, label });
       },
@@ -99,7 +85,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
   async function confirmPin() {
     if (!pin) return;
     setSaving(true);
-    const label = await areaName(pin.lat, pin.lng);
+    const label = await reverseAreaName(pin.lat, pin.lng);
     setSaving(false);
     setLocation({ lat: pin.lat, lng: pin.lng, label });
   }
