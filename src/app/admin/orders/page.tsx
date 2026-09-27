@@ -25,15 +25,15 @@ export default async function AdminOrdersPage() {
 
       <OrdersKPIBar kpis={kpis} />
 
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">Order queue</p>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">📋 Order queue</p>
       <OrdersQueueBoard orders={queueOrders} />
 
-      <div className="mb-2 flex items-baseline justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Recent orders</p>
-        <p className="text-sm text-neutral-500">{orders.length} most recent</p>
-      </div>
-
-      <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <div className="flex items-baseline justify-between border-b border-neutral-100 px-4 py-3">
+          <h2 className="text-sm font-semibold text-neutral-700">🕓 Recent orders</h2>
+          <p className="text-xs text-neutral-400">{orders.length} most recent</p>
+        </div>
+        <div className="overflow-x-auto">
         <table className="w-full min-w-[860px] text-sm">
           <thead className="bg-neutral-50 text-left text-neutral-500">
             <tr>
@@ -106,6 +106,7 @@ export default async function AdminOrdersPage() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
