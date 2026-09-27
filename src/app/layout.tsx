@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import HeaderGate from "@/components/HeaderGate";
 import MobileNavGate from "@/components/MobileNavGate";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import BackBar from "@/components/BackBar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,7 +46,10 @@ export default function RootLayout({
         <HeaderGate>
           <Header />
         </HeaderGate>
-        <main className="min-h-screen pb-16 md:pb-0">{children}</main>
+        <main className="min-h-screen pb-16 md:pb-0">
+          <BackBar />
+          {children}
+        </main>
         <MobileNavGate>
           <MobileBottomNav />
         </MobileNavGate>
