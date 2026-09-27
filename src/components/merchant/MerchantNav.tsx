@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAV = [
   { href: "/merchant", label: "Dashboard", icon: "📊" },
   { href: "/merchant/products", label: "Products & Stock", icon: "📦" },
+  { href: "/merchant/settlements", label: "Settlement ledger", icon: "📒" },
 ];
 
 export default function MerchantNav() {

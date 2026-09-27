@@ -90,6 +90,7 @@ export interface Store {
   warehouse_id: string | null;
   cr_document_path: string | null;
   vat_document_path: string | null;
+  commission_rate: number;
   created_at: string;
   updated_at: string;
 }
