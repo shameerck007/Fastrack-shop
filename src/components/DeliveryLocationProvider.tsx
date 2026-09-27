@@ -69,7 +69,7 @@ export default function DeliveryLocationProvider({ children }: { children: React
             const loc: DeliveryLocation = {
               lat: addr.lat,
               lng: addr.lng,
-              label: addr.district || addr.city || addr.label,
+              label: addr.label.charAt(0).toUpperCase() + addr.label.slice(1),
               addressId: addr.id,
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(loc));

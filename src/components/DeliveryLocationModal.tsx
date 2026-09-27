@@ -7,8 +7,17 @@ import PlaceSearch from "@/components/PlaceSearch";
 import { createClient } from "@/lib/supabase/client";
 import { setDefaultAddress } from "@/lib/actions/addresses";
 import { reverseAreaName, type PlaceResult } from "@/lib/map-config";
+import { distanceKm } from "@/lib/delivery-geo";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import type { AddressLabel } from "@/types/database";
+
+function addressLabelText(a: AddressLabel): string {
+  return a.charAt(0).toUpperCase() + a.slice(1);
+}
+
+// Close enough to count as "you're at this saved address" despite normal
+// GPS/geocoding drift.
+const SAME_PLACE_KM = 0.3;
 
 interface SavedAddress {
   id: string;
@@ -76,6 +85,33 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
     };
   }, [open]);
 
+  // If these coordinates are basically on top of a saved address, prefer
+  // that address's own name ("Home") over a generic geocoded area name —
+  // matches how Instamart shows the saved label when you're at that place.
+  function matchSavedAddress(lat: number, lng: number): SavedAddress | null {
+    let best: SavedAddress | null = null;
+    let bestDist = SAME_PLACE_KM;
+    for (const a of addresses) {
+      if (a.lat == null || a.lng == null) continue;
+      const d = distanceKm(lat, lng, a.lat, a.lng);
+      if (d <= bestDist) {
+        best = a;
+        bestDist = d;
+      }
+    }
+    return best;
+  }
+
+  async function resolveLocation(lat: number, lng: number, addressId?: string) {
+    const match = matchSavedAddress(lat, lng);
+    if (match) {
+      setLocation({ lat, lng, label: addressLabelText(match.label), addressId: match.id });
+      return;
+    }
+    const label = await reverseAreaName(lat, lng);
+    setLocation({ lat, lng, label, addressId });
+  }
+
   function useCurrentLocation() {
     if (!navigator.geolocation) {
       setError("Location isn't supported on this device — search or add an address instead.");
@@ -86,9 +122,8 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
-        const label = await reverseAreaName(latitude, longitude);
+        await resolveLocation(latitude, longitude);
         setLocating(false);
-        setLocation({ lat: latitude, lng: longitude, label });
       },
       () => {
         setLocating(false);
@@ -100,21 +135,25 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
 
   function chooseAddress(a: SavedAddress) {
     if (a.lat == null || a.lng == null) return;
-    setLocation({ lat: a.lat, lng: a.lng, label: a.district || a.city || a.label, addressId: a.id });
+    setLocation({ lat: a.lat, lng: a.lng, label: addressLabelText(a.label), addressId: a.id });
     // Keep the server-side default in step so add-to-cart checks agree.
     setDefaultAddress(a.id).catch(() => {});
   }
 
   async function pickSearchResult(place: PlaceResult) {
+    const match = matchSavedAddress(place.lat, place.lng);
+    if (match) {
+      setLocation({ lat: place.lat, lng: place.lng, label: addressLabelText(match.label), addressId: match.id });
+      return;
+    }
     setLocation({ lat: place.lat, lng: place.lng, label: place.label });
   }
 
   async function confirmPin() {
     if (!pin) return;
     setSaving(true);
-    const label = await reverseAreaName(pin.lat, pin.lng);
+    await resolveLocation(pin.lat, pin.lng);
     setSaving(false);
-    setLocation({ lat: pin.lat, lng: pin.lng, label });
   }
 
   if (!open) return null;

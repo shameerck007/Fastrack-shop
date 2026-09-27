@@ -60,8 +60,8 @@ export async function reverseAreaName(lat: number, lng: number): Promise<string>
     const res = await fetch(`/api/geo/reverse?lat=${lat}&lng=${lng}`);
     if (!res.ok) throw new Error();
     const data = (await res.json()) as { label: string | null };
-    return data.label ?? `Pinned location (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
+    return data.label ?? "Current location";
   } catch {
-    return `Pinned location (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
+    return "Current location";
   }
 }

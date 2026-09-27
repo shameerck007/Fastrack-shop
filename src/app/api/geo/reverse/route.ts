@@ -27,7 +27,12 @@ export async function GET(request: Request) {
     if (!res.ok) throw new Error(`Nominatim returned ${res.status}`);
     const data = (await res.json()) as { address?: Record<string, string> };
     const a = data.address ?? {};
-    const label = a.suburb || a.neighbourhood || a.city_district || a.quarter || a.city || a.town || null;
+    // Prefer a named area (stable, human-friendly); if the point is too rural/
+    // new for one, fall back to the street name rather than coordinates.
+    const area = a.suburb || a.neighbourhood || a.city_district || a.quarter || null;
+    const street = a.road || a.pedestrian || null;
+    const cityLevel = a.city || a.town || a.village || null;
+    const label = area || street || cityLevel || null;
     return NextResponse.json({ label }, { headers: { "Cache-Control": "public, max-age=300" } });
   } catch {
     return NextResponse.json({ label: null });
