@@ -7,6 +7,11 @@ import { usePathname, useRouter } from "next/navigation";
 // level" from them should skip to the next real ancestor.
 const NON_PAGE_PATHS = new Set(["/categories", "/products", "/store", "/rider/orders", "/api"]);
 
+// Portal sections (merchant/admin/rider) have their own chrome — a header
+// with a single explicit "Back to shop" exit and a sidebar nav — so this
+// generic bar would just be a second, redundant "back" control there.
+const HIDE_PREFIXES = ["/admin", "/rider", "/merchant", "/store"];
+
 function parentPath(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);
   segments.pop();
@@ -48,7 +53,7 @@ export default function BackBar() {
     }
   }, [pathname]);
 
-  if (pathname === "/") return null;
+  if (pathname === "/" || HIDE_PREFIXES.some((p) => pathname.startsWith(p))) return null;
 
   function goBack() {
     if (depth.current > 0) router.back();

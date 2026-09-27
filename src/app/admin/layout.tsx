@@ -21,9 +21,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <span className="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 sm:inline">
               ● {profile.full_name ?? "Admin"}
             </span>
-            <Link href="/" className="text-neutral-500 hover:text-neutral-900">
-              ← Back to shop
-            </Link>
             <form action={signOut}>
               <button className="text-neutral-500 hover:text-neutral-900">Log out</button>
             </form>
