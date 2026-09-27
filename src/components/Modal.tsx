@@ -37,7 +37,10 @@ export default function Modal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    // z-[2000]: Leaflet's own layers (tooltip pane 650, popup pane 700,
+    // zoom controls 1000) sit above Tailwind's z-50, so any map rendered on
+    // the page behind this modal would otherwise show through on top of it.
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-neutral-900/50 backdrop-blur-sm" onClick={onClose} />
       <div className={`relative flex max-h-[90vh] w-full ${SIZES[size]} flex-col overflow-hidden rounded-2xl bg-white shadow-2xl`}>
         {title && (
