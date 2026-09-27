@@ -7,6 +7,7 @@ import ImageUploader from "@/components/ImageUploader";
 import Modal from "@/components/Modal";
 import type { Category, Warehouse } from "@/types/database";
 import type { AdminProduct } from "@/lib/admin-products";
+import { orderedCategories } from "@/lib/category-tree";
 
 const UNITS = ["unit", "kg", "g", "L", "ml", "pack"];
 
@@ -125,9 +126,9 @@ export default function ProductForm({
           onChange={(e) => setCategoryId(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         >
-          {categories.map((c) => (
+          {orderedCategories(categories).map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
+              {c.parent_id ? `↳ ${c.name}` : c.name}
             </option>
           ))}
         </select>

@@ -9,9 +9,15 @@ import type { Category } from "@/types/database";
 
 export default function CategoryForm({
   existing,
+  parentOptions,
+  defaultParentId,
   onDone,
 }: {
   existing?: Category;
+  /** Top-level categories only — a subcategory can't itself be a parent (kept to two levels, like Amazon/Noon). */
+  parentOptions: Category[];
+  /** Preselect a parent when adding a subcategory from within that parent's group. */
+  defaultParentId?: string | null;
   onDone?: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -21,9 +27,12 @@ export default function CategoryForm({
   const [slug, setSlug] = useState(existing?.slug ?? "");
   const [icon, setIcon] = useState(existing?.icon ?? "");
   const [sortOrder, setSortOrder] = useState(String(existing?.sort_order ?? 0));
+  const [parentId, setParentId] = useState(existing?.parent_id ?? defaultParentId ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+
+  const availableParents = parentOptions.filter((c) => c.id !== existing?.id);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,6 +47,7 @@ export default function CategoryForm({
             icon: icon || undefined,
             imageUrl: imageUrl || undefined,
             sortOrder: Number(sortOrder) || 0,
+            parentId: parentId || null,
           });
           onDone?.();
         } else {
@@ -48,6 +58,7 @@ export default function CategoryForm({
             icon: icon || undefined,
             imageUrl: imageUrl || undefined,
             sortOrder: Number(sortOrder) || 0,
+            parentId: parentId || null,
           });
           setImageUrl(null);
           setName("");
@@ -55,6 +66,7 @@ export default function CategoryForm({
           setSlug("");
           setIcon("");
           setSortOrder("0");
+          setParentId(defaultParentId ?? "");
           setOpen(false);
         }
         router.refresh();
@@ -104,6 +116,18 @@ export default function CategoryForm({
           onChange={(e) => setSortOrder(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
+        <select
+          value={parentId}
+          onChange={(e) => setParentId(e.target.value)}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        >
+          <option value="">No parent — top-level category</option>
+          {availableParents.map((p) => (
+            <option key={p.id} value={p.id}>
+              Subcategory of {p.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -136,9 +160,9 @@ export default function CategoryForm({
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md"
       >
-        <span className="text-base leading-none">+</span> Add category
+        <span className="text-base leading-none">+</span> {defaultParentId ? "Add subcategory" : "Add category"}
       </button>
-      <Modal open={open} onClose={() => setOpen(false)} title="Add a new category">
+      <Modal open={open} onClose={() => setOpen(false)} title={defaultParentId ? "Add a subcategory" : "Add a new category"}>
         {formBody}
       </Modal>
     </>

@@ -7,6 +7,7 @@ import ImageUploader from "@/components/ImageUploader";
 import Modal from "@/components/Modal";
 import type { Category } from "@/types/database";
 import type { MerchantProduct } from "@/lib/merchant";
+import { orderedCategories } from "@/lib/category-tree";
 
 const UNITS = ["unit", "kg", "g", "L", "ml", "pack"];
 
@@ -122,9 +123,9 @@ export default function MerchantProductForm({
           onChange={(e) => setCategoryId(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         >
-          {categories.map((c) => (
+          {orderedCategories(categories).map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name}
+              {c.parent_id ? `↳ ${c.name}` : c.name}
             </option>
           ))}
         </select>

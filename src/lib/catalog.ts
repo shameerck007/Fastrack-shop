@@ -1,11 +1,27 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Category, ProductWithVariants } from "@/types/database";
 
+// Top-level only — this is what the header nav and the home page's "Shop by
+// category" grid show. Subcategories are fetched per-parent (getSubcategories)
+// where they're actually shown, mirroring Amazon/Noon's two-level structure.
 export async function getCategories(): Promise<Category[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("categories")
     .select("*")
+    .is("parent_id", null)
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getSubcategories(parentId: string): Promise<Category[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("parent_id", parentId)
     .order("sort_order", { ascending: true });
 
   if (error) throw error;
@@ -55,6 +71,8 @@ export async function getOfferProducts(limit = 8): Promise<ProductWithVariants[]
 
 export async function getProductsByCategory(slug: string): Promise<{
   category: Category | null;
+  subcategories: Category[];
+  parent: Category | null;
   products: ProductWithVariants[];
 }> {
   const supabase = await createClient();
@@ -65,16 +83,28 @@ export async function getProductsByCategory(slug: string): Promise<{
     .eq("slug", slug)
     .maybeSingle();
 
-  if (!category) return { category: null, products: [] };
+  if (!category) return { category: null, subcategories: [], parent: null, products: [] };
+
+  const [subcategories, parent] = await Promise.all([
+    category.parent_id ? Promise.resolve([]) : getSubcategories(category.id),
+    category.parent_id
+      ? supabase.from("categories").select("*").eq("id", category.parent_id).maybeSingle().then((r) => r.data)
+      : Promise.resolve(null),
+  ]);
+
+  // Browsing a parent category (e.g. "Grocery") shows products from it and
+  // all of its subcategories combined, like Amazon/Noon; a subcategory page
+  // shows only its own products.
+  const categoryIds = [category.id, ...subcategories.map((c) => c.id)];
 
   const { data: products, error } = await supabase
     .from("products")
     .select("*, category:categories(*), product_variants(*)")
-    .eq("category_id", category.id)
+    .in("category_id", categoryIds)
     .eq("is_active", true);
 
   if (error) throw error;
-  return { category, products: (products as ProductWithVariants[]) ?? [] };
+  return { category, subcategories, parent, products: (products as ProductWithVariants[]) ?? [] };
 }
 
 export async function getProductById(id: string): Promise<ProductWithVariants | null> {

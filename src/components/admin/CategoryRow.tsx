@@ -6,19 +6,28 @@ import { deleteCategory } from "@/lib/actions/admin-categories";
 import CategoryForm from "@/components/admin/CategoryForm";
 import type { Category } from "@/types/database";
 
-export default function CategoryRow({ category }: { category: Category }) {
+export default function CategoryRow({
+  category,
+  parentOptions,
+  indent,
+}: {
+  category: Category;
+  parentOptions: Category[];
+  indent?: boolean;
+}) {
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   if (editing) {
-    return <CategoryForm existing={category} onDone={() => setEditing(false)} />;
+    return <CategoryForm existing={category} parentOptions={parentOptions} onDone={() => setEditing(false)} />;
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white p-3">
+    <div className={`flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white p-3 ${indent ? "ml-8" : ""}`}>
       <div className="flex items-center gap-3">
+        {indent && <span className="text-neutral-300">↳</span>}
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50">
           {category.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element

@@ -241,3 +241,48 @@ update products set image_url = 'https://commons.wikimedia.org/wiki/Special:File
 update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Laundry_detergents.jpg?width=400' where id = '21000000-0000-0000-0000-000000000034';
 update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/Tissue_box.jpg?width=400' where id = '21000000-0000-0000-0000-000000000035';
 update products set image_url = 'https://commons.wikimedia.org/wiki/Special:FilePath/A_typical_black_bin_bag_from_the_UK_20060811.jpg?width=400' where id = '21000000-0000-0000-0000-000000000036';
+
+-- Subcategories (Amazon/Noon-style two-level categories) for a few of the
+-- busiest top-level categories, with existing demo products reassigned into
+-- them so the hierarchy has real data to show immediately.
+insert into categories (name, slug, icon, sort_order, parent_id) values
+  ('Rice & Grains', 'rice-grains', '🌾', 1, '10000000-0000-0000-0000-000000000004'),
+  ('Oils & Ghee', 'oils-ghee', '🫙', 2, '10000000-0000-0000-0000-000000000004'),
+  ('Baking Essentials', 'baking-essentials', '🥣', 3, '10000000-0000-0000-0000-000000000004'),
+  ('Soft Drinks', 'soft-drinks', '🥤', 1, '10000000-0000-0000-0000-000000000008'),
+  ('Juices', 'juices', '🧃', 2, '10000000-0000-0000-0000-000000000008'),
+  ('Coffee & Tea', 'coffee-tea', '☕', 3, '10000000-0000-0000-0000-000000000008'),
+  ('Milk & Cream', 'milk-cream', '🥛', 1, '10000000-0000-0000-0000-000000000005'),
+  ('Cheese & Yogurt', 'cheese-yogurt', '🧀', 2, '10000000-0000-0000-0000-000000000005'),
+  ('Butter & Ghee', 'butter-ghee', '🧈', 3, '10000000-0000-0000-0000-000000000005'),
+  ('Chicken', 'chicken', '🍗', 1, '10000000-0000-0000-0000-000000000006'),
+  ('Lamb & Beef', 'lamb-beef', '🥩', 2, '10000000-0000-0000-0000-000000000006'),
+  ('Bread', 'bread', '🍞', 1, '10000000-0000-0000-0000-000000000007'),
+  ('Cakes & Pastries', 'cakes-pastries', '🍰', 2, '10000000-0000-0000-0000-000000000007');
+
+update products set category_id = (select id from categories where slug = 'rice-grains')
+  where name in ('Basmati Rice 5kg', 'Red Lentils 1kg');
+update products set category_id = (select id from categories where slug = 'oils-ghee')
+  where name in ('Sunflower Cooking Oil 1.5L');
+update products set category_id = (select id from categories where slug = 'baking-essentials')
+  where name in ('All Purpose Flour 1kg', 'White Sugar 1kg');
+update products set category_id = (select id from categories where slug = 'soft-drinks')
+  where name in ('Cola 6-Pack (330ml)', 'Sparkling Water 750ml');
+update products set category_id = (select id from categories where slug = 'juices')
+  where name in ('Fresh Orange Juice 1L');
+update products set category_id = (select id from categories where slug = 'coffee-tea')
+  where name in ('Arabic Coffee (Qahwa) 250g');
+update products set category_id = (select id from categories where slug = 'milk-cream')
+  where name in ('Full Cream Milk');
+update products set category_id = (select id from categories where slug = 'cheese-yogurt')
+  where name in ('Cheddar Cheese Block 200g', 'Greek Yogurt 500g', 'Labneh 400g');
+update products set category_id = (select id from categories where slug = 'butter-ghee')
+  where name in ('Salted Butter 200g');
+update products set category_id = (select id from categories where slug = 'chicken')
+  where name in ('Chicken Breast Fillet', 'Whole Chicken');
+update products set category_id = (select id from categories where slug = 'lamb-beef')
+  where name in ('Lamb Chops', 'Minced Beef');
+update products set category_id = (select id from categories where slug = 'bread')
+  where name in ('Arabic Bread (Khubz) 5-pack', 'White Sandwich Bread');
+update products set category_id = (select id from categories where slug = 'cakes-pastries')
+  where name in ('Butter Croissant 4-pack', 'Chocolate Cake Slice');
