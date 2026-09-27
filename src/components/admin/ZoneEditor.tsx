@@ -192,7 +192,7 @@ export default function ZoneEditor({
         <li className="rounded-lg bg-neutral-50 p-2">
           <b>1. Locate the store</b>
           <br />
-          Search below, click the map, or drag the pin.
+          Search below, click the map, drag the pin, or tap 🎯 on the map for your current location.
         </li>
         <li className="rounded-lg bg-neutral-50 p-2">
           <b>2. Set the radius</b>
@@ -208,8 +208,8 @@ export default function ZoneEditor({
 
       <PlaceSearch onSelect={pickPlace} />
 
-      <div className="flex flex-wrap gap-2">
-        {storeAddress && (
+      {storeAddress && (
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={useStoreAddress}
@@ -218,19 +218,27 @@ export default function ZoneEditor({
           >
             🏪 Use store address
           </button>
-        )}
+          <p className="text-xs text-neutral-400">On file: {storeAddress}</p>
+        </div>
+      )}
+
+      <div className="relative">
+        <div ref={containerRef} className="h-80 w-full overflow-hidden rounded-lg border border-neutral-300 md:h-[26rem]" />
         <button
           type="button"
           onClick={useMyLocation}
           disabled={busy}
-          className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium hover:bg-neutral-50 disabled:opacity-50"
+          title="Locate me"
+          aria-label="Use my current location"
+          className="absolute bottom-3 right-3 z-[1000] flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-300 bg-white text-base shadow-md transition hover:bg-neutral-50 disabled:opacity-50"
         >
-          🎯 Use my current location
+          {busy ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-blue-600" />
+          ) : (
+            "🎯"
+          )}
         </button>
       </div>
-      {storeAddress && <p className="-mt-1 text-xs text-neutral-400">Store address on file: {storeAddress}</p>}
-
-      <div ref={containerRef} className="h-80 w-full overflow-hidden rounded-lg border border-neutral-300 md:h-[26rem]" />
 
       <div className="rounded-lg border border-neutral-200 p-3">
         <div className="mb-2 flex flex-wrap gap-1.5">

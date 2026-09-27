@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import ZonesList, { type ZoneCard } from "@/components/admin/ZonesList";
-import ZonesOverviewMap, { type OverviewZone } from "@/components/admin/ZonesOverviewMap";
+import ZonesCoverageButton from "@/components/admin/ZonesCoverageButton";
+import type { OverviewZone } from "@/components/admin/ZonesOverviewMap";
 import { distanceKm } from "@/lib/delivery-geo";
 
 const COLORS = ["#1d4ed8", "#059669", "#d97706", "#7c3aed", "#db2777", "#0891b2", "#65a30d", "#dc2626"];
@@ -14,12 +15,32 @@ interface WarehouseRow {
   delivery_radius_km: number | null;
 }
 
-function Stat({ label, value, hint, tone = "text-neutral-900" }: { label: string; value: string | number; hint?: string; tone?: string }) {
+function Stat({
+  icon,
+  label,
+  value,
+  hint,
+  accent,
+}: {
+  icon: string;
+  label: string;
+  value: string | number;
+  hint?: string;
+  accent: string;
+}) {
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <p className="text-xs text-neutral-500">{label}</p>
-      <p className={`text-2xl font-semibold ${tone}`}>{value}</p>
-      {hint && <p className="text-xs text-neutral-400">{hint}</p>}
+    <div className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <span
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
+        style={{ background: `${accent}1a`, color: accent }}
+      >
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-neutral-500">{label}</p>
+        <p className="text-2xl font-semibold leading-tight text-neutral-900">{value}</p>
+        {hint && <p className="truncate text-xs text-neutral-400">{hint}</p>}
+      </div>
     </div>
   );
 }
@@ -108,25 +129,45 @@ export default async function AdminZonesPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold">Delivery zones</h1>
-      <p className="mb-4 text-sm text-neutral-500">
-        Draw a delivery circle for each store. Customers outside a store&apos;s circle can&apos;t add its products to
-        the cart or order them. A store with no boundary delivers everywhere.
-      </p>
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-5">
+        <div className="flex items-start gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-sm">
+            📍
+          </span>
+          <div>
+            <h1 className="text-xl font-semibold text-neutral-900">Delivery zones</h1>
+            <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">
+              Draw a delivery circle for each store. Customers outside a store&apos;s circle can&apos;t add its
+              products to the cart or order them. A store with no boundary delivers everywhere.
+            </p>
+          </div>
+        </div>
+        <ZonesCoverageButton
+          zones={overviewZones}
+          customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}
+        />
+      </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Stores / warehouses" value={cards.length} />
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat icon="🏪" label="Stores / warehouses" value={cards.length} accent="#2563eb" />
         <Stat
+          icon="🎯"
           label="With a boundary"
           value={`${zonedCount} of ${cards.length}`}
-          tone={zonedCount === cards.length ? "text-emerald-600" : "text-amber-600"}
           hint={zonedCount === cards.length ? "All configured" : `${cards.length - zonedCount} still unrestricted`}
+          accent={zonedCount === cards.length ? "#059669" : "#d97706"}
         />
-        <Stat label="Customer addresses pinned" value={pins.length} hint="Saved with a map location" />
         <Stat
+          icon="📌"
+          label="Customer addresses pinned"
+          value={pins.length}
+          hint="Saved with a map location"
+          accent="#7c3aed"
+        />
+        <Stat
+          icon="⚠️"
           label="Outside every zone"
           value={overviewZones.length === 0 ? "—" : anyUnrestricted ? `${uncovered}*` : uncovered}
-          tone={uncovered > 0 ? "text-red-600" : "text-neutral-900"}
           hint={
             overviewZones.length === 0
               ? "Set a boundary to see this"
@@ -134,25 +175,8 @@ export default async function AdminZonesPage() {
                 ? "*Unrestricted stores still reach them"
                 : "Can't order from any store"
           }
+          accent={uncovered > 0 ? "#dc2626" : "#404040"}
         />
-      </div>
-
-      <div className="mb-2">
-        <ZonesOverviewMap zones={overviewZones} customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))} />
-      </div>
-      <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-600">
-        {overviewZones.map((z) => (
-          <span key={z.id} className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: z.color }} />
-            {z.name} · {z.radiusKm} km
-          </span>
-        ))}
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-slate-500" /> Customer address
-        </span>
-        {overviewZones.length === 0 && (
-          <span className="text-neutral-400">No boundaries drawn yet — open a store below to set one.</span>
-        )}
       </div>
 
       <ZonesList cards={listCards} />
