@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { CART_CHANGED_EVENT } from "@/lib/cart-events";
 
 export interface CustomerHeaderState {
   loaded: boolean;
@@ -28,6 +29,15 @@ const INITIAL_STATE: CustomerHeaderState = {
 export function useCustomerHeaderState(): CustomerHeaderState {
   const pathname = usePathname();
   const [state, setState] = useState<CustomerHeaderState>(INITIAL_STATE);
+  const [cartVersion, setCartVersion] = useState(0);
+
+  // Cart mutations that stay on the same page (add to cart, +/- quantity)
+  // don't change the pathname, so they signal via this event instead.
+  useEffect(() => {
+    const onChange = () => setCartVersion((v) => v + 1);
+    window.addEventListener(CART_CHANGED_EVENT, onChange);
+    return () => window.removeEventListener(CART_CHANGED_EVENT, onChange);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +74,7 @@ export function useCustomerHeaderState(): CustomerHeaderState {
     return () => {
       cancelled = true;
     };
-  }, [pathname]);
+  }, [pathname, cartVersion]);
 
   return state;
 }

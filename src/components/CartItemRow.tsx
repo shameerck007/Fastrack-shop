@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateCartItemQuantity, removeCartItem } from "@/lib/actions/cart";
+import { notifyCartChanged } from "@/lib/cart-events";
 import { formatSAR } from "@/lib/utils";
 import type { CartItemWithVariant } from "@/types/database";
 
@@ -18,6 +19,7 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
     startTransition(async () => {
       try {
         await updateCartItemQuantity(item.id, quantity);
+        notifyCartChanged();
         router.refresh();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not update quantity.");
@@ -28,6 +30,7 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
   function remove() {
     startTransition(async () => {
       await removeCartItem(item.id);
+      notifyCartChanged();
       router.refresh();
     });
   }

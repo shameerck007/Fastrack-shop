@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { addToCart } from "@/lib/actions/cart";
+import { notifyCartChanged } from "@/lib/cart-events";
 import type { ProductVariant } from "@/types/database";
 
 export default function AddToCartForm({
@@ -40,6 +41,7 @@ export default function AddToCartForm({
       try {
         await addToCart(variantId, quantity);
         setMessage("Added to cart.");
+        notifyCartChanged();
         router.refresh();
       } catch (err) {
         setMessage(err instanceof Error ? err.message : "Could not add to cart.");
