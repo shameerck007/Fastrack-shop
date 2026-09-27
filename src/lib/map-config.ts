@@ -1,12 +1,22 @@
 // The default OpenStreetMap raster tiles label places in the local script
-// (Arabic in Saudi Arabia). Esri's World Street Map tiles are free, need no
-// API key, and label places in English — used instead everywhere in the app.
-export const TILE_URL =
-  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
+// (Arabic in Saudi Arabia). When a MapTiler key is configured
+// (NEXT_PUBLIC_MAPTILER_KEY), we use their "Streets" tiles instead — like
+// Esri these label places in English, but they also render individual
+// shops, businesses and building outlines (closer to Google Maps' level of
+// detail). Without a key, Esri's World Street Map tiles are the fallback:
+// free, no key needed, English labels, but no shop-level detail.
+const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+
+export const TILE_URL = MAPTILER_KEY
+  ? `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`
+  : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}";
+
 export const TILE_OPTIONS = {
-  attribution:
-    "Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, (c) OpenStreetMap contributors, and the GIS User Community",
-  maxZoom: 19,
+  attribution: MAPTILER_KEY
+    ? '&copy; <a href="https://www.maptiler.com/copyright/" target="_blank">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
+    : "Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, (c) OpenStreetMap contributors, and the GIS User Community",
+  maxZoom: MAPTILER_KEY ? 20 : 19,
+  tileSize: 256,
 };
 
 export const MARKER_ICON = {
