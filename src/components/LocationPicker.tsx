@@ -5,6 +5,7 @@ import type { Map as LeafletMap, Marker } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import PlaceSearch from "@/components/PlaceSearch";
 import { TILE_URL, TILE_OPTIONS, MARKER_ICON, DEFAULT_CENTER, type PlaceResult } from "@/lib/map-config";
+import { useLocale } from "@/components/LocaleProvider";
 
 
 export default function LocationPicker({
@@ -16,6 +17,7 @@ export default function LocationPicker({
   lng: number | null;
   onChange: (lat: number, lng: number) => void;
 }) {
+  const { t } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
@@ -63,7 +65,7 @@ export default function LocationPicker({
 
   function useMyLocation() {
     if (!navigator.geolocation) {
-      setError("Geolocation isn't supported on this device.");
+      setError(t("common.geolocation_not_supported"));
       return;
     }
     setLocating(true);
@@ -79,7 +81,7 @@ export default function LocationPicker({
         setLocating(false);
       },
       () => {
-        setError("Couldn't get your location — check that location access is allowed for this site.");
+        setError(t("common.couldnt_get_location_short"));
         setLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -99,7 +101,7 @@ export default function LocationPicker({
     const newLat = Number(manualLat);
     const newLng = Number(manualLng);
     if (Number.isNaN(newLat) || Number.isNaN(newLng)) {
-      setError("Enter valid latitude and longitude numbers.");
+      setError(t("common.invalid_lat_lng"));
       return;
     }
     setError(null);
@@ -111,14 +113,14 @@ export default function LocationPicker({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-neutral-500">Drag the pin or tap the map to set your exact location.</p>
+        <p className="text-xs text-neutral-500">{t("common.drag_pin_hint")}</p>
         <button
           type="button"
           onClick={useMyLocation}
           disabled={locating}
           className="shrink-0 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50"
         >
-          {locating ? "Locating..." : "📍 Use my current location"}
+          {locating ? t("common.locating") : t("common.use_my_current_location")}
         </button>
       </div>
 
@@ -130,14 +132,14 @@ export default function LocationPicker({
         <input
           value={manualLat}
           onChange={(e) => setManualLat(e.target.value)}
-          placeholder="Latitude"
+          placeholder={t("common.latitude")}
           inputMode="decimal"
           className="w-1/2 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
         <input
           value={manualLng}
           onChange={(e) => setManualLng(e.target.value)}
-          placeholder="Longitude"
+          placeholder={t("common.longitude")}
           inputMode="decimal"
           className="w-1/2 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
@@ -146,7 +148,7 @@ export default function LocationPicker({
           onClick={applyManual}
           className="shrink-0 rounded-full border border-neutral-300 px-3 py-2 text-xs font-medium hover:bg-neutral-100"
         >
-          Apply
+          {t("common.apply")}
         </button>
       </div>
 

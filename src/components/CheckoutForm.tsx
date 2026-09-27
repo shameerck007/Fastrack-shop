@@ -4,12 +4,13 @@ import { useState, useTransition } from "react";
 import AddressForm from "@/components/AddressForm";
 import { placeOrder } from "@/lib/actions/orders";
 import { formatSAR, extractVat } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 import type { Address, DeliveryType, PaymentMethod } from "@/types/database";
 
-const DELIVERY_OPTIONS: { value: DeliveryType; label: string; hint: string; fee: number }[] = [
-  { value: "express", label: "Express", hint: "15–30 minutes", fee: 12 },
-  { value: "standard", label: "Standard", hint: "30–60 minutes", fee: 7 },
-  { value: "scheduled", label: "Scheduled", hint: "Choose date/time", fee: 7 },
+const DELIVERY_OPTIONS: { value: DeliveryType; labelKey: string; hintKey: string; fee: number }[] = [
+  { value: "express", labelKey: "checkout.express", hintKey: "checkout.minutes_15_30", fee: 12 },
+  { value: "standard", labelKey: "checkout.standard", hintKey: "checkout.minutes_30_60", fee: 7 },
+  { value: "scheduled", labelKey: "checkout.scheduled", hintKey: "checkout.choose_datetime", fee: 7 },
 ];
 
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string }[] = [
@@ -29,6 +30,7 @@ export default function CheckoutForm({
   subtotal: number;
   blockedByAddress?: Record<string, string[]>;
 }) {
+  const { t, locale } = useLocale();
   // null means "no explicit user selection yet" — fall back to the first
   // address, which also picks up addresses added after this component mounted
   // (the addresses prop refreshes via server-action revalidation).
@@ -54,11 +56,11 @@ export default function CheckoutForm({
   function handlePlaceOrder() {
     setError(null);
     if (!addressId) {
-      setError("Please select or add a delivery address.");
+      setError(t("checkout.select_address_error"));
       return;
     }
     if (blockedItems.length > 0) {
-      setError(`We can't deliver ${blockedItems.join(", ")} to this address.`);
+      setError(t("checkout.cant_deliver_items", { items: blockedItems.join(locale === "ar" ? "، " : ", ") }));
       return;
     }
     startTransition(async () => {
@@ -73,15 +75,17 @@ export default function CheckoutForm({
         // Next.js redirect() throws an object with a NEXT_REDIRECT digest — rethrow so navigation still happens.
         const digest = (err as { digest?: string } | null)?.digest;
         if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) throw err;
-        setError(err instanceof Error ? err.message : "Could not place order.");
+        setError(err instanceof Error ? err.message : t("checkout.could_not_place_order"));
       }
     });
   }
 
+  const listSep = locale === "ar" ? "، " : ", ";
+
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <h2 className="mb-2 font-medium">Delivery address</h2>
+        <h2 className="mb-2 font-medium">{t("checkout.delivery_address")}</h2>
         <div className="flex flex-col gap-2">
           {addresses.map((addr) => (
             <label
@@ -98,7 +102,13 @@ export default function CheckoutForm({
               />
               <span className="flex flex-col gap-0.5">
                 <span className="flex items-center gap-2">
-                  <span className="font-medium capitalize">{addr.label}</span>
+                  <span className="font-medium capitalize">
+                    {addr.label === "home"
+                      ? t("addresses.label_home")
+                      : addr.label === "office"
+                        ? t("addresses.label_office")
+                        : t("addresses.label_other")}
+                  </span>
                   {addr.short_address && (
                     <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-neutral-600">
                       {addr.short_address}
@@ -109,15 +119,15 @@ export default function CheckoutForm({
                   <span className="font-medium">
                     {addr.receiver_name}
                     {addr.receiver_phone && (
-                      <span className="ml-2 font-normal text-neutral-500">📞 {addr.receiver_phone}</span>
+                      <span className="ms-2 font-normal text-neutral-500">📞 {addr.receiver_phone}</span>
                     )}
                   </span>
                 )}
                 <span>{addr.address_line}</span>
                 <span className="text-xs text-neutral-500">
                   {[
-                    addr.building_number && `Bldg ${addr.building_number}`,
-                    addr.unit_number && `Unit ${addr.unit_number}`,
+                    addr.building_number && `${t("addresses.bldg_short")} ${addr.building_number}`,
+                    addr.unit_number && `${t("addresses.unit_short")} ${addr.unit_number}`,
                     addr.district,
                     addr.city,
                     addr.postal_code,
@@ -127,10 +137,10 @@ export default function CheckoutForm({
                 </span>
                 {blockedByAddress[addr.id] ? (
                   <span className="text-xs font-medium text-red-600">
-                    ⛔ Outside delivery area for: {blockedByAddress[addr.id].join(", ")}
+                    {t("checkout.outside_delivery_area", { items: blockedByAddress[addr.id].join(listSep) })}
                   </span>
                 ) : addr.lat != null && addr.lng != null ? (
-                  <span className="text-xs text-emerald-600">📍 Map location pinned · deliverable</span>
+                  <span className="text-xs text-emerald-600">{t("checkout.map_pinned_deliverable")}</span>
                 ) : null}
               </span>
             </label>
@@ -139,14 +149,14 @@ export default function CheckoutForm({
           <div className="pt-1">
             <AddressForm
               onAdded={setAddressId}
-              triggerLabel={addresses.length === 0 ? "Add delivery address" : "Add new address"}
+              triggerLabel={addresses.length === 0 ? t("checkout.add_delivery_address") : t("common.add_new_address")}
             />
           </div>
         </div>
       </section>
 
       <section>
-        <h2 className="mb-2 font-medium">Delivery time</h2>
+        <h2 className="mb-2 font-medium">{t("checkout.delivery_time")}</h2>
         <div className="flex flex-col gap-2">
           {DELIVERY_OPTIONS.map((opt) => (
             <label
@@ -163,11 +173,11 @@ export default function CheckoutForm({
                   onChange={() => setDeliveryType(opt.value)}
                 />
                 <span>
-                  <span className="font-medium">{opt.label}</span>{" "}
-                  <span className="text-neutral-500">— {opt.hint}</span>
+                  <span className="font-medium">{t(opt.labelKey)}</span>{" "}
+                  <span className="text-neutral-500">— {t(opt.hintKey)}</span>
                 </span>
               </span>
-              <span>{subtotal >= 50 ? "Free" : formatSAR(opt.fee)}</span>
+              <span>{subtotal >= 50 ? t("checkout.free") : formatSAR(opt.fee)}</span>
             </label>
           ))}
           {deliveryType === "scheduled" && (
@@ -182,7 +192,7 @@ export default function CheckoutForm({
       </section>
 
       <section>
-        <h2 className="mb-2 font-medium">Payment</h2>
+        <h2 className="mb-2 font-medium">{t("checkout.payment")}</h2>
         <div className="grid grid-cols-2 gap-2">
           {PAYMENT_OPTIONS.map((opt) => (
             <label
@@ -205,19 +215,19 @@ export default function CheckoutForm({
 
       <section className="space-y-1 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
         <div className="flex justify-between">
-          <span className="text-neutral-500">Subtotal (incl. VAT)</span>
+          <span className="text-neutral-500">{t("checkout.subtotal_incl_vat")}</span>
           <span>{formatSAR(subtotal)}</span>
         </div>
-        <div className="flex justify-between pl-3 text-xs">
-          <span className="text-neutral-400">of which VAT (15%)</span>
+        <div className="flex justify-between ps-3 text-xs">
+          <span className="text-neutral-400">{t("checkout.of_which_vat")}</span>
           <span className="text-neutral-400">{formatSAR(vat)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-500">Delivery fee</span>
-          <span>{deliveryFee === 0 ? "Free" : formatSAR(deliveryFee)}</span>
+          <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
+          <span>{deliveryFee === 0 ? t("checkout.free") : formatSAR(deliveryFee)}</span>
         </div>
         <div className="flex justify-between border-t border-neutral-200 pt-1 font-semibold">
-          <span>Total</span>
+          <span>{t("checkout.total")}</span>
           <span>{formatSAR(total)}</span>
         </div>
       </section>
@@ -229,11 +239,11 @@ export default function CheckoutForm({
         disabled={pending || blockedItems.length > 0}
         className="rounded-full bg-blue-700 py-3 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
       >
-        {pending ? "Placing order..." : `Place Order — ${formatSAR(total)}`}
+        {pending ? t("checkout.placing_order") : t("checkout.place_order_with_total", { total: formatSAR(total) })}
       </button>
       {blockedItems.length > 0 && (
         <p className="-mt-3 text-center text-sm text-red-600">
-          Some items can't be delivered to this address. Choose another address or remove: {blockedItems.join(", ")}.
+          {t("checkout.some_items_blocked", { items: blockedItems.join(listSep) })}
         </p>
       )}
     </div>

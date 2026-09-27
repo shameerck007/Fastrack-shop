@@ -2,6 +2,7 @@
 
 import DeliverableProductGrid from "@/components/DeliverableProductGrid";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
+import { useLocale } from "@/components/LocaleProvider";
 import type { ProductWithVariants } from "@/types/database";
 import type { ProductRating } from "@/lib/reviews";
 
@@ -17,12 +18,13 @@ export default function ProductAlternatives({
   stock: Record<string, number>;
 }) {
   const { statusForStore } = useDeliveryLocation();
+  const { t } = useLocale();
   if (statusForStore(storeId).state !== "outside") return null;
   if (products.length === 0) return null;
 
   return (
     <section className="mt-8">
-      <h2 className="mb-3 text-lg font-semibold">You might like instead</h2>
+      <h2 className="mb-3 text-lg font-semibold">{t("product.you_might_like_instead")}</h2>
       <DeliverableProductGrid products={products} ratings={ratings} stock={stock} />
     </section>
   );

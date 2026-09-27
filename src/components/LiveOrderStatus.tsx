@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { ORDER_STATUS_FLOW, ORDER_STATUS_LABELS } from "@/lib/utils";
+import { ORDER_STATUS_FLOW } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 import type { OrderStatus } from "@/types/database";
 
 export default function LiveOrderStatus({
@@ -15,6 +16,7 @@ export default function LiveOrderStatus({
   deliveryOtp: string | null;
 }) {
   const [status, setStatus] = useState(initialStatus);
+  const { t } = useLocale();
 
   useEffect(() => {
     const supabase = createClient();
@@ -56,7 +58,7 @@ export default function LiveOrderStatus({
             isCancelled ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700"
           }`}
         >
-          {ORDER_STATUS_LABELS[status]}
+          {t(`order_status.${status}`)}
         </span>
       </div>
 
@@ -66,7 +68,7 @@ export default function LiveOrderStatus({
             <li key={s} className="flex items-center gap-3 text-sm">
               <span className={`h-2.5 w-2.5 rounded-full ${i <= currentStepIndex ? "bg-blue-700" : "bg-neutral-300"}`} />
               <span className={i <= currentStepIndex ? "text-neutral-900" : "text-neutral-400"}>
-                {ORDER_STATUS_LABELS[s]}
+                {t(`order_status.${s}`)}
               </span>
             </li>
           ))}
@@ -75,7 +77,7 @@ export default function LiveOrderStatus({
 
       {deliveryOtp && !["delivered", "cancelled"].includes(status) && (
         <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-center">
-          <p className="text-sm text-neutral-600">Share this OTP with your rider on arrival</p>
+          <p className="text-sm text-neutral-600">{t("orders.share_otp")}</p>
           <p className="text-2xl font-bold tracking-widest text-blue-700">{deliveryOtp}</p>
         </div>
       )}

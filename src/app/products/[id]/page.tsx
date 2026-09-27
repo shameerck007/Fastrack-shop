@@ -12,6 +12,9 @@ import { getVariantStockMap, getDefaultVariantStockMap } from "@/lib/inventory";
 import { formatSAR } from "@/lib/utils";
 import { getCategoryTheme } from "@/lib/categoryTheme";
 import { createClient } from "@/lib/supabase/server";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
+import { localizedName } from "@/lib/i18n/localized";
 
 export default async function ProductPage({
   params,
@@ -19,6 +22,8 @@ export default async function ProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const product = await getProductById(id);
 
   if (!product) notFound();
@@ -36,6 +41,7 @@ export default async function ProductPage({
   const variant =
     product.product_variants.find((v) => v.is_default) ?? product.product_variants[0];
   const theme = getCategoryTheme(product.category?.slug);
+  const productName = localizedName(product, locale);
 
   // In case the seller can't deliver here — a few deliverable alternatives
   // from the same category, so a blocked shopper isn't left at a dead end.
@@ -54,11 +60,11 @@ export default async function ProductPage({
       <TrackRecentlyViewed productId={id} />
       <Breadcrumbs
         items={[
-          { label: "Home", href: "/" },
+          { label: t("category.home"), href: "/" },
           ...(product.category
-            ? [{ label: product.category.name, href: `/categories/${product.category.slug}` }]
+            ? [{ label: localizedName(product.category, locale), href: `/categories/${product.category.slug}` }]
             : []),
-          { label: product.name },
+          { label: productName },
         ]}
       />
 
@@ -69,7 +75,7 @@ export default async function ProductPage({
           >
             {product.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={product.image_url} alt={product.name} className="h-full w-full rounded-2xl object-cover" />
+              <img src={product.image_url} alt={productName} className="h-full w-full rounded-2xl object-cover" />
             ) : (
               <span className="drop-shadow-sm">{theme.emoji}</span>
             )}
@@ -82,39 +88,39 @@ export default async function ProductPage({
               <p className="text-sm text-neutral-500">{product.brand}</p>
               {product.is_fresh && (
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
-                  Fresh
+                  {locale === "ar" ? "طازج" : "Fresh"}
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-semibold">{product.name}</h1>
-            {product.name_ar && <p className="text-neutral-500" dir="rtl">{product.name_ar}</p>}
+            <h1 className="text-2xl font-semibold">{productName}</h1>
+            {locale !== "ar" && product.name_ar && <p className="text-neutral-500" dir="rtl">{product.name_ar}</p>}
             {rating ? (
               <a href="#reviews" className="mt-1 inline-block">
                 <StarRating rating={rating.avg_rating} count={rating.review_count} />
               </a>
             ) : (
-              <p className="mt-1 text-xs text-neutral-400">No reviews yet</p>
+              <p className="mt-1 text-xs text-neutral-400">{t("product.no_reviews_yet")}</p>
             )}
           </div>
 
           <dl className="grid grid-cols-2 gap-2 text-sm text-neutral-600">
             {product.origin && (
               <>
-                <dt className="font-medium">Origin</dt>
+                <dt className="font-medium">{t("product.origin")}</dt>
                 <dd>{product.origin}</dd>
               </>
             )}
             {product.category && (
               <>
-                <dt className="font-medium">Category</dt>
-                <dd>{product.category.name}</dd>
+                <dt className="font-medium">{t("product.category_label")}</dt>
+                <dd>{localizedName(product.category, locale)}</dd>
               </>
             )}
           </dl>
 
           {product.description && (
             <div>
-              <h2 className="mb-1 font-medium">About this item</h2>
+              <h2 className="mb-1 font-medium">{t("product.about_item")}</h2>
               <p className="text-sm text-neutral-600">{product.description}</p>
             </div>
           )}
@@ -134,11 +140,11 @@ export default async function ProductPage({
             </div>
             {product.is_variable_weight && product.price_per_kg && (
               <p className="mb-2 text-xs text-neutral-500">
-                {formatSAR(product.price_per_kg)}/kg — final price adjusted to packed weight
+                {t("product.price_per_kg_note", { price: formatSAR(product.price_per_kg) })}
               </p>
             )}
             <p className="mb-3 text-sm font-medium text-blue-700">
-              ⚡ Get it in 15–60 minutes
+              {t("product.get_it_in")}
             </p>
 
             {product.product_variants.length > 0 ? (
@@ -149,7 +155,7 @@ export default async function ProductPage({
                 storeId={product.store_id}
               />
             ) : (
-              <p className="text-sm text-red-600">Currently unavailable.</p>
+              <p className="text-sm text-red-600">{t("product.currently_unavailable")}</p>
             )}
           </div>
         </div>
@@ -165,11 +171,11 @@ export default async function ProductPage({
       <section id="reviews" className="mt-10 max-w-3xl scroll-mt-20">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
-            <h2 className="mb-1 text-lg font-semibold">Customer Reviews</h2>
+            <h2 className="mb-1 text-lg font-semibold">{t("reviews.customer_reviews")}</h2>
             {rating ? (
               <StarRating rating={rating.avg_rating} count={rating.review_count} size="lg" />
             ) : (
-              <p className="text-sm text-neutral-500">Be the first to review this product.</p>
+              <p className="text-sm text-neutral-500">{t("reviews.be_first")}</p>
             )}
           </div>
           <ReviewForm productId={id} isLoggedIn={isLoggedIn} />
@@ -181,11 +187,11 @@ export default async function ProductPage({
               <div key={review.id} className="border-b border-neutral-100 pb-4 last:border-none">
                 <div className="mb-1 flex items-center gap-2">
                   <StarRating rating={review.rating} />
-                  <span className="text-sm font-medium">{review.reviewer_name ?? "FasTrack customer"}</span>
+                  <span className="text-sm font-medium">{review.reviewer_name ?? t("reviews.fastrack_customer")}</span>
                 </div>
                 {review.comment && <p className="text-sm text-neutral-600">{review.comment}</p>}
                 <p className="mt-1 text-xs text-neutral-400">
-                  {new Date(review.created_at).toLocaleDateString()}
+                  {new Date(review.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
                 </p>
               </div>
             ))}

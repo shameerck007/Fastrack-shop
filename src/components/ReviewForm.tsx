@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { addReview } from "@/lib/actions/reviews";
 import Modal from "@/components/Modal";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function ReviewForm({
   productId,
@@ -21,6 +22,7 @@ export default function ReviewForm({
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useLocale();
 
   function handleTriggerClick() {
     if (!isLoggedIn) {
@@ -40,7 +42,7 @@ export default function ReviewForm({
         setSubmitted(true);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not submit your review.");
+        setError(err instanceof Error ? err.message : t("reviews.could_not_submit"));
       }
     });
   }
@@ -51,11 +53,11 @@ export default function ReviewForm({
         onClick={handleTriggerClick}
         className="flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-blue-600 hover:text-blue-700"
       >
-        ★ Write a review
+        {t("reviews.write_a_review")}
       </button>
-      <Modal open={open} onClose={() => setOpen(false)} title="Write a review">
+      <Modal open={open} onClose={() => setOpen(false)} title={t("reviews.write_a_review_title")}>
         {submitted ? (
-          <p className="text-sm text-blue-700">Thanks for your review!</p>
+          <p className="text-sm text-blue-700">{t("reviews.thanks")}</p>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <div className="flex gap-1" onMouseLeave={() => setHoverRating(0)}>
@@ -77,7 +79,7 @@ export default function ReviewForm({
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Share your experience with this product (optional)"
+              placeholder={t("reviews.share_experience")}
               rows={3}
               className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
             />
@@ -87,7 +89,7 @@ export default function ReviewForm({
               disabled={pending}
               className="self-start rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
             >
-              {pending ? "Submitting..." : "Submit review"}
+              {pending ? t("reviews.submitting") : t("reviews.submit")}
             </button>
           </form>
         )}

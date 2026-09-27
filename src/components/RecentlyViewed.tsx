@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import DeliverableProductGrid from "@/components/DeliverableProductGrid";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
+import { useLocale } from "@/components/LocaleProvider";
 import type { ProductWithVariants } from "@/types/database";
 
 const STORAGE_KEY = "ft_recently_viewed";
 
 export default function RecentlyViewed({ excludeProductId }: { excludeProductId?: string }) {
+  const { t } = useLocale();
   const [products, setProducts] = useState<ProductWithVariants[] | null>(null);
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export default function RecentlyViewed({ excludeProductId }: { excludeProductId?
 
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-lg font-semibold">🕘 Recently Viewed</h2>
+      <h2 className="mb-3 text-lg font-semibold">{t("product.recently_viewed")}</h2>
       <DeliverableProductGrid products={products} />
     </section>
   );

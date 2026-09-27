@@ -2,16 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { searchPlaces, type PlaceResult } from "@/lib/map-config";
+import { useLocale } from "@/components/LocaleProvider";
 
 // Search box for finding an area/address/landmark and jumping the map there.
 // Searches as you type (debounced, to respect the free geocoder's limits).
 export default function PlaceSearch({
   onSelect,
-  placeholder = "Search area, street or landmark (e.g. Olaya, Riyadh)",
+  placeholder,
 }: {
   onSelect: (place: PlaceResult) => void;
   placeholder?: string;
 }) {
+  const { t } = useLocale();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PlaceResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -34,10 +36,10 @@ export default function PlaceSearch({
         if (!cancelled) {
           setResults(r);
           setOpen(true);
-          if (r.length === 0) setError("No places found — try a different spelling or a nearby landmark.");
+          if (r.length === 0) setError(t("common.no_places_found"));
         }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Search failed.");
+        if (!cancelled) setError(err instanceof Error ? err.message : t("common.search_failed"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -67,10 +69,10 @@ export default function PlaceSearch({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t("common.search_area_placeholder")}
           className="w-full bg-transparent text-sm outline-none"
         />
-        {loading && <span className="text-xs text-neutral-400">Searching…</span>}
+        {loading && <span className="text-xs text-neutral-400">{t("common.searching")}</span>}
         {query && !loading && (
           <button
             type="button"
@@ -79,7 +81,7 @@ export default function PlaceSearch({
               setResults([]);
             }}
             className="text-neutral-400 hover:text-neutral-700"
-            aria-label="Clear search"
+            aria-label={t("common.clear_search")}
           >
             ✕
           </button>
@@ -98,7 +100,7 @@ export default function PlaceSearch({
                 setQuery(r.label);
                 setOpen(false);
               }}
-              className="flex w-full flex-col items-start border-b border-neutral-100 px-3 py-2 text-left last:border-none hover:bg-blue-50"
+              className="flex w-full flex-col items-start border-b border-neutral-100 px-3 py-2 text-start last:border-none hover:bg-blue-50"
             >
               <span className="text-sm font-medium text-neutral-900">📍 {r.label}</span>
               <span className="text-xs text-neutral-500">{r.detail}</span>

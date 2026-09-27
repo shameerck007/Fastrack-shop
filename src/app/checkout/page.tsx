@@ -3,8 +3,13 @@ import CheckoutForm from "@/components/CheckoutForm";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getAddresses } from "@/lib/addresses";
 import { checkProductsDeliverable } from "@/lib/delivery-zones";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
+import { localizedName } from "@/lib/i18n/localized";
 
 export default async function CheckoutPage() {
+  const locale = await getServerLocale();
+  const t = (key: string) => translate(locale, key);
   const [items, addresses] = await Promise.all([getCartItems(), getAddresses()]);
 
   if (items.length === 0) redirect("/cart");
@@ -15,7 +20,7 @@ export default async function CheckoutPage() {
   const products = items.map((i) => ({
     id: i.product_variants.products.id,
     store_id: i.product_variants.products.store_id,
-    name: i.product_variants.products.name,
+    name: localizedName(i.product_variants.products, locale),
   }));
   const blockedByAddress: Record<string, string[]> = {};
   await Promise.all(
@@ -28,7 +33,7 @@ export default async function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
-      <h1 className="mb-4 text-xl font-semibold">Checkout</h1>
+      <h1 className="mb-4 text-xl font-semibold">{t("checkout.title")}</h1>
       <CheckoutForm addresses={addresses} subtotal={subtotal} blockedByAddress={blockedByAddress} />
     </div>
   );

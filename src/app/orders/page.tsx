@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { getMyOrders } from "@/lib/orders";
-import { formatSAR, ORDER_STATUS_LABELS } from "@/lib/utils";
+import { formatSAR } from "@/lib/utils";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
 export default async function OrdersPage() {
   const locale = await getServerLocale();
-  const t = (key: string) => translate(locale, key);
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const orders = await getMyOrders();
 
   return (
@@ -26,14 +26,14 @@ export default async function OrdersPage() {
               className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-4 hover:shadow-sm"
             >
               <div>
-                <p className="font-medium">Order #{order.order_number}</p>
+                <p className="font-medium">{t("orders.order_hash", { number: order.order_number })}</p>
                 <p className="text-sm text-neutral-500">
-                  {new Date(order.created_at).toLocaleString()}
+                  {new Date(order.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}
                 </p>
               </div>
-              <div className="text-right">
+              <div className="text-end">
                 <p className="font-medium">{formatSAR(order.total)}</p>
-                <p className="text-sm text-blue-600">{ORDER_STATUS_LABELS[order.status]}</p>
+                <p className="text-sm text-blue-600">{t(`order_status.${order.status}`)}</p>
               </div>
             </Link>
           ))}

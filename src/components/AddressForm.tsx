@@ -7,19 +7,21 @@ import LocationPicker from "@/components/LocationPicker";
 import Modal from "@/components/Modal";
 import { createClient } from "@/lib/supabase/client";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
+import { useLocale } from "@/components/LocaleProvider";
 import type { Address, AddressLabel } from "@/types/database";
 
 export default function AddressForm({
   existing,
   onDone,
   onAdded,
-  triggerLabel = "Add new address",
+  triggerLabel,
 }: {
   existing?: Address;
   onDone?: () => void;
   onAdded?: (addressId: string) => void;
   triggerLabel?: string;
 }) {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState<AddressLabel>(existing?.label ?? "home");
   const [addressLine, setAddressLine] = useState(existing?.address_line ?? "");
@@ -72,15 +74,15 @@ export default function AddressForm({
     e.preventDefault();
     setError(null);
     if (!receiverName.trim()) {
-      setError("Enter the receiver's name.");
+      setError(t("addresses.enter_receiver_name"));
       return;
     }
     if (!/^[+\d][\d\s-]{7,15}$/.test(receiverPhone.trim())) {
-      setError("Enter a valid receiver mobile number (e.g. 05XXXXXXXX or +9665XXXXXXXX).");
+      setError(t("addresses.enter_valid_phone"));
       return;
     }
     if (!addressLine.trim()) {
-      setError("Add a short description (e.g. villa/apartment, street).");
+      setError(t("addresses.add_address_description"));
       return;
     }
     const input: AddressInput = {
@@ -121,7 +123,7 @@ export default function AddressForm({
         }
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not save address.");
+        setError(err instanceof Error ? err.message : t("addresses.could_not_save"));
       }
     });
   }
@@ -134,11 +136,11 @@ export default function AddressForm({
             type="button"
             key={l}
             onClick={() => setLabel(l)}
-            className={`rounded-full border px-3 py-1 text-sm capitalize ${
+            className={`rounded-full border px-3 py-1 text-sm ${
               label === l ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-300"
             }`}
           >
-            {l}
+            {t(`addresses.label_${l}`)}
           </button>
         ))}
       </div>
@@ -152,19 +154,19 @@ export default function AddressForm({
         }}
       />
 
-      <p className="text-xs font-medium text-neutral-500">Who will receive the order?</p>
+      <p className="text-xs font-medium text-neutral-500">{t("addresses.who_receives")}</p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <input
           value={receiverName}
           onChange={(e) => setReceiverName(e.target.value)}
-          placeholder="Receiver's full name"
+          placeholder={t("addresses.receiver_name_placeholder")}
           autoComplete="name"
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
         <input
           value={receiverPhone}
           onChange={(e) => setReceiverPhone(e.target.value)}
-          placeholder="Receiver's mobile (05XXXXXXXX)"
+          placeholder={t("addresses.receiver_phone_placeholder")}
           inputMode="tel"
           autoComplete="tel"
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -174,28 +176,28 @@ export default function AddressForm({
       <input
         value={addressLine}
         onChange={(e) => setAddressLine(e.target.value)}
-        placeholder="Address description (e.g. Villa 12, near Al Nakheel Mall)"
+        placeholder={t("addresses.address_description_placeholder")}
         className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
       />
 
-      <p className="text-xs font-medium text-neutral-500">National Address details (optional but speeds up delivery)</p>
+      <p className="text-xs font-medium text-neutral-500">{t("addresses.national_address_hint")}</p>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <input
           value={district}
           onChange={(e) => setDistrict(e.target.value)}
-          placeholder="District"
+          placeholder={t("addresses.district_placeholder")}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
         <input
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          placeholder="City"
+          placeholder={t("addresses.city_placeholder")}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
         <input
           value={postalCode}
           onChange={(e) => setPostalCode(e.target.value)}
-          placeholder="Postal code"
+          placeholder={t("addresses.postal_code_placeholder")}
           inputMode="numeric"
           maxLength={5}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -203,7 +205,7 @@ export default function AddressForm({
         <input
           value={buildingNumber}
           onChange={(e) => setBuildingNumber(e.target.value)}
-          placeholder="Building no."
+          placeholder={t("addresses.building_no_placeholder")}
           inputMode="numeric"
           maxLength={4}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -211,7 +213,7 @@ export default function AddressForm({
         <input
           value={additionalNumber}
           onChange={(e) => setAdditionalNumber(e.target.value)}
-          placeholder="Additional no."
+          placeholder={t("addresses.additional_no_placeholder")}
           inputMode="numeric"
           maxLength={4}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -219,14 +221,14 @@ export default function AddressForm({
         <input
           value={unitNumber}
           onChange={(e) => setUnitNumber(e.target.value)}
-          placeholder="Unit / apt no. (optional)"
+          placeholder={t("addresses.unit_no_placeholder")}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
       </div>
       <input
         value={shortAddress}
         onChange={(e) => setShortAddress(e.target.value.toUpperCase())}
-        placeholder="Short address code (e.g. RRRD2929) — optional"
+        placeholder={t("addresses.short_address_placeholder")}
         maxLength={8}
         className="rounded-lg border border-neutral-300 px-3 py-2 text-sm uppercase"
       />
@@ -238,14 +240,14 @@ export default function AddressForm({
           disabled={pending}
           className="rounded-full bg-blue-700 px-4 py-1.5 text-sm text-white hover:bg-blue-800 disabled:opacity-50"
         >
-          {pending ? "Saving..." : existing ? "Save changes" : "Save address"}
+          {pending ? t("common.saving") : existing ? t("addresses.save_changes") : t("addresses.save_address")}
         </button>
         <button
           type="button"
           onClick={() => (existing ? onDone?.() : setOpen(false))}
           className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm hover:bg-neutral-100"
         >
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
     </form>
@@ -261,9 +263,9 @@ export default function AddressForm({
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md"
       >
-        <span className="text-base leading-none">+</span> {triggerLabel}
+        <span className="text-base leading-none">+</span> {triggerLabel ?? t("addresses.add_new")}
       </button>
-      <Modal open={open} onClose={() => setOpen(false)} title="Add a new address">
+      <Modal open={open} onClose={() => setOpen(false)} title={t("addresses.add_a_new_address")}>
         {formBody}
       </Modal>
     </>

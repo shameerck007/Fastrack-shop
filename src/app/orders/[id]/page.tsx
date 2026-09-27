@@ -7,6 +7,8 @@ import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import LiveOrderStatus from "@/components/LiveOrderStatus";
 import RiderLocationMap from "@/components/RiderLocationMap";
 import OrderChat from "@/components/OrderChat";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 export default async function OrderDetailPage({
   params,
@@ -14,6 +16,8 @@ export default async function OrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const order = await getOrderDetail(id);
 
   if (!order) notFound();
@@ -31,7 +35,7 @@ export default async function OrderDetailPage({
     <div className="mx-auto max-w-2xl px-4 py-6">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Order #{order.order_number}</h1>
+          <h1 className="text-xl font-semibold">{t("orders.order_hash", { number: order.order_number })}</h1>
           <p className="text-sm text-neutral-500">
             {new Date(order.created_at).toLocaleString()}
           </p>
@@ -43,7 +47,7 @@ export default async function OrderDetailPage({
 
       {rider && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="text-sm text-neutral-500">Rider</p>
+          <p className="text-sm text-neutral-500">{t("orders.rider")}</p>
           <p className="font-medium">{rider.profiles.full_name}</p>
           {rider.profiles.phone && (
             <a href={`tel:${rider.profiles.phone}`} className="text-sm text-blue-600 hover:underline">
@@ -85,8 +89,8 @@ export default async function OrderDetailPage({
               <p className="text-sm text-neutral-500">
                 {item.variant_label} × {item.ordered_quantity}
                 {item.is_substituted && (
-                  <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs text-amber-700">
-                    Substituted
+                  <span className="ms-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs text-amber-700">
+                    {t("product.substituted")}
                   </span>
                 )}
               </p>
@@ -98,25 +102,25 @@ export default async function OrderDetailPage({
 
       <div className="space-y-1 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
         <div className="flex justify-between">
-          <span className="text-neutral-500">Subtotal (incl. VAT)</span>
+          <span className="text-neutral-500">{t("checkout.subtotal_incl_vat")}</span>
           <span>{formatSAR(order.subtotal)}</span>
         </div>
-        <div className="flex justify-between pl-3 text-xs">
-          <span className="text-neutral-400">of which VAT (15%)</span>
+        <div className="flex justify-between ps-3 text-xs">
+          <span className="text-neutral-400">{t("checkout.of_which_vat")}</span>
           <span className="text-neutral-400">{formatSAR(order.vat)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-500">Delivery fee</span>
-          <span>{order.delivery_fee === 0 ? "Free" : formatSAR(order.delivery_fee)}</span>
+          <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
+          <span>{order.delivery_fee === 0 ? t("checkout.free") : formatSAR(order.delivery_fee)}</span>
         </div>
         {order.discount > 0 && (
           <div className="flex justify-between text-blue-600">
-            <span>Discount</span>
+            <span>{t("orders.discount")}</span>
             <span>-{formatSAR(order.discount)}</span>
           </div>
         )}
         <div className="flex justify-between border-t border-neutral-200 pt-1 font-semibold">
-          <span>Total</span>
+          <span>{t("checkout.total")}</span>
           <span>{formatSAR(order.total)}</span>
         </div>
       </div>

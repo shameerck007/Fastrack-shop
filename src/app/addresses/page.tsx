@@ -27,7 +27,7 @@ export default async function AddressesPage() {
       {addresses.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center">
           <span className="text-4xl">📍</span>
-          <p className="text-sm text-neutral-500">You haven&apos;t saved any addresses yet.</p>
+          <p className="text-sm text-neutral-500">{t("addresses.no_addresses_yet")}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
