@@ -10,7 +10,7 @@ export default function UserHeaderActions() {
     <div className="flex items-center gap-4 text-sm">
       <Link href="/orders" className="leading-tight hover:text-blue-600">
         <span className="block text-[11px] text-neutral-500">Returns</span>
-        <span className="font-medium">& Orders</span>
+        <span className="font-medium">My Orders</span>
       </Link>
       <Link href="/cart" className="relative flex items-center gap-1 hover:text-blue-600">
         🛒 Cart
