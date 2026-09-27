@@ -7,11 +7,17 @@ import type {
   PaymentStatus,
 } from "@/types/database";
 
+export interface FulfillmentSummary {
+  fromFastrack: boolean;
+  merchantNames: string[];
+}
+
 export interface AdminOrderListRow extends Order {
   profiles: { full_name: string | null; phone: string | null } | null;
   payments: { method: PaymentMethod; status: PaymentStatus }[];
   order_items: { id: string; ordered_quantity: number }[];
   addresses: { city: string; district: string | null } | null;
+  fulfillment: FulfillmentSummary;
 }
 
 export async function getAdminOrders(limit = 100): Promise<AdminOrderListRow[]> {
@@ -19,13 +25,44 @@ export async function getAdminOrders(limit = 100): Promise<AdminOrderListRow[]> 
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "*, profiles(full_name, phone), payments(method, status), order_items(id, ordered_quantity), addresses(city, district)"
+      "*, profiles(full_name, phone), payments(method, status), order_items(id, ordered_quantity, variant_id), addresses(city, district)"
     )
     .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) throw error;
-  return (data as unknown as AdminOrderListRow[]) ?? [];
+  const orders = (data as unknown as (AdminOrderListRow & { order_items: { id: string; ordered_quantity: number; variant_id: string }[] })[]) ?? [];
+
+  // Who actually fulfils each line item — FasTrack's own stock (no store_id)
+  // or a named third-party merchant — resolved in one batch query rather
+  // than per order, then attached below.
+  const variantIds = [...new Set(orders.flatMap((o) => o.order_items.map((i) => i.variant_id)))];
+  const storeByVariant = new Map<string, string | null>();
+  if (variantIds.length > 0) {
+    const { data: variants } = await supabase
+      .from("product_variants")
+      .select("id, products(store_id, stores(name))")
+      .in("id", variantIds);
+    for (const v of (variants ?? []) as unknown as {
+      id: string;
+      products: { store_id: string | null; stores: { name: string } | null } | null;
+    }[]) {
+      storeByVariant.set(v.id, v.products?.stores?.name ?? null);
+    }
+  }
+
+  for (const order of orders) {
+    const merchantNames = new Set<string>();
+    let fromFastrack = false;
+    for (const item of order.order_items) {
+      const storeName = storeByVariant.get(item.variant_id);
+      if (storeName) merchantNames.add(storeName);
+      else fromFastrack = true;
+    }
+    order.fulfillment = { fromFastrack, merchantNames: [...merchantNames] };
+  }
+
+  return orders;
 }
 
 export interface AdminOrderItem extends OrderItem {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
+import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
 import { getAdminOrderDetail } from "@/lib/admin-orders";
 import {
   formatSAR,
@@ -45,6 +46,9 @@ export default async function AdminOrderDetailPage({
   const currentStep = ORDER_STATUS_FLOW.indexOf(order.status as (typeof ORDER_STATUS_FLOW)[number]);
   const historyByStatus = new Map(order.order_status_history.map((h) => [h.status, h]));
   const totalUnits = order.items.reduce((sum, i) => sum + Number(i.ordered_quantity), 0);
+  const merchantNames = [...new Set(order.items.filter((i) => i.store_name).map((i) => i.store_name as string))];
+  const fromFastrack = order.items.some((i) => !i.store_name);
+  const fulfillment = { fromFastrack, merchantNames };
 
   return (
     <div>
@@ -59,6 +63,10 @@ export default async function AdminOrderDetailPage({
             Placed {new Date(order.created_at).toLocaleString()} · {order.items.length} item
             {order.items.length === 1 ? "" : "s"} ({totalUnits} units)
           </p>
+          <div className="mt-1.5 flex items-center gap-1.5">
+            <span className="text-xs text-neutral-400">Fulfilled by:</span>
+            <FulfillmentBadge fulfillment={fulfillment} />
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <OrderStatusSelect orderId={order.id} status={order.status} />
@@ -124,14 +132,20 @@ export default async function AdminOrderDetailPage({
                     <p className="text-xs text-neutral-500">
                       {[item.brand, item.variant_label].filter(Boolean).join(" · ")}
                     </p>
-                    <p className="text-xs text-neutral-400">
-                      Sold by {item.store_name ?? "FasTrack"}
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                          item.store_name ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"
+                        }`}
+                      >
+                        {item.store_name ? `🏪 ${item.store_name}` : "🏬 FasTrack"}
+                      </span>
                       {item.is_substituted && (
-                        <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-amber-700">
+                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
                           Substituted
                         </span>
                       )}
-                    </p>
+                    </div>
                   </div>
                   <div className="text-right text-sm">
                     <p className="text-neutral-500">
