@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { checkZone, type ZoneVerdict } from "@/lib/delivery-geo";
+import { reverseAreaName } from "@/lib/map-config";
 import DeliveryLocationModal from "@/components/DeliveryLocationModal";
 import {
   DeliveryCtx,
@@ -101,18 +102,6 @@ export default function DeliveryLocationProvider({ children }: { children: React
     };
   }, []);
 
-  // First visit with no location: ask for it, once per browser session.
-  useEffect(() => {
-    if (!ready || location) return;
-    if (NO_PROMPT_PREFIXES.some((p) => pathname.startsWith(p))) return;
-    try {
-      if (sessionStorage.getItem(SKIPPED_KEY)) return;
-    } catch {
-      /* ignore */
-    }
-    setPickerOpen(true);
-  }, [ready, location, pathname]);
-
   const setLocation = useCallback((loc: DeliveryLocation) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(loc));
@@ -131,6 +120,68 @@ export default function DeliveryLocationProvider({ children }: { children: React
     }
     setPickerOpen(false);
   }, []);
+
+  // First visit with no location: detect it automatically instead of
+  // interrupting the shopper with a full-screen picker (Swiggy/Instamart
+  // style). The browser's own small native permission prompt is the only
+  // thing shown — if that's granted we resolve a place name silently and
+  // the shopper lands straight on the storefront. Only when detection
+  // fails (denied, unsupported, or timed out) do we fall back to the
+  // manual picker so they always have a way forward.
+  useEffect(() => {
+    if (!ready || location) return;
+    if (NO_PROMPT_PREFIXES.some((p) => pathname.startsWith(p))) return;
+    try {
+      if (sessionStorage.getItem(SKIPPED_KEY)) return;
+    } catch {
+      /* ignore */
+    }
+
+    let cancelled = false;
+
+    async function autoDetect() {
+      if (!navigator.geolocation) {
+        if (!cancelled) setPickerOpen(true);
+        return;
+      }
+      // If the browser already remembers a denial, asking again would just
+      // silently fail after the OS/browser's own cooldown — go straight to
+      // the manual picker instead of making them wait on nothing.
+      try {
+        if (navigator.permissions?.query) {
+          const status = await navigator.permissions.query({ name: "geolocation" as PermissionName });
+          if (cancelled) return;
+          if (status.state === "denied") {
+            setPickerOpen(true);
+            return;
+          }
+        }
+      } catch {
+        /* Permissions API isn't available everywhere — fall through and just ask. */
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          if (cancelled) return;
+          try {
+            const label = await reverseAreaName(pos.coords.latitude, pos.coords.longitude);
+            if (!cancelled) setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, label });
+          } catch {
+            if (!cancelled) setPickerOpen(true);
+          }
+        },
+        () => {
+          if (!cancelled) setPickerOpen(true);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    autoDetect();
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, location, pathname, setLocation]);
 
   const statusForStore = useCallback(
     (storeId: string | null): DeliveryStatus => {
