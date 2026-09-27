@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Modal from "@/components/Modal";
+import { useRouter } from "next/navigation";
 import LocationPicker from "@/components/LocationPicker";
+import PlaceSearch from "@/components/PlaceSearch";
 import { createClient } from "@/lib/supabase/client";
 import { setDefaultAddress } from "@/lib/actions/addresses";
-import { reverseAreaName } from "@/lib/map-config";
+import { reverseAreaName, type PlaceResult } from "@/lib/map-config";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
+import type { AddressLabel } from "@/types/database";
 
 interface SavedAddress {
   id: string;
-  label: string;
+  label: AddressLabel;
   address_line: string;
   district: string | null;
   city: string;
@@ -19,18 +21,41 @@ interface SavedAddress {
   is_default: boolean;
 }
 
+const LABEL_ICON: Record<AddressLabel, string> = {
+  home: "🏠",
+  office: "💼",
+  other: "📍",
+};
+
 export default function DeliveryLocationModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { location, setLocation, serviceableAt } = useDeliveryLocation();
+  const router = useRouter();
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showMap, setShowMap] = useState(false);
+  const [showAddNew, setShowAddNew] = useState(false);
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) return;
     setError(null);
+    setShowAddNew(false);
+    setPin(null);
     let cancelled = false;
     (async () => {
       const supabase = createClient();
@@ -53,8 +78,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
 
   function useCurrentLocation() {
     if (!navigator.geolocation) {
-      setError("Location isn't supported on this device — pick it on the map instead.");
-      setShowMap(true);
+      setError("Location isn't supported on this device — search or add an address instead.");
       return;
     }
     setLocating(true);
@@ -68,8 +92,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
       },
       () => {
         setLocating(false);
-        setError("Couldn't get your location. Allow location access for this site, or pick it on the map.");
-        setShowMap(true);
+        setError("Couldn't get your location. Allow location access, or search / add an address.");
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -82,6 +105,10 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
     setDefaultAddress(a.id).catch(() => {});
   }
 
+  async function pickSearchResult(place: PlaceResult) {
+    setLocation({ lat: place.lat, lng: place.lng, label: place.label });
+  }
+
   async function confirmPin() {
     if (!pin) return;
     setSaving(true);
@@ -90,28 +117,85 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
     setLocation({ lat: pin.lat, lng: pin.lng, label });
   }
 
+  if (!open) return null;
+
   const pinServiceable = pin ? serviceableAt(pin.lat, pin.lng) : null;
 
   return (
-    <Modal open={open} onClose={onClose} title="Choose your delivery location">
-      <div className="flex flex-col gap-4 overflow-y-auto p-5">
-        <p className="text-sm text-neutral-500">
-          We show what can be delivered to you based on where you are. Pick a location to get started.
-        </p>
-
+    <div className="fixed inset-0 z-[2000] flex flex-col bg-white">
+      <div className="flex shrink-0 items-center gap-3 border-b border-neutral-100 px-4 py-3">
         <button
-          onClick={useCurrentLocation}
-          disabled={locating}
-          className="flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-60"
+          onClick={onClose}
+          aria-label="Back"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-lg text-neutral-600 hover:bg-neutral-100"
         >
-          📍 {locating ? "Detecting your location..." : "Use my current location"}
+          ←
         </button>
+        <h1 className="text-base font-semibold text-neutral-900">Select your location</h1>
+      </div>
+
+      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 overflow-y-auto p-4">
+        <PlaceSearch onSelect={pickSearchResult} placeholder="Search an area or address" />
+
+        <div className="flex gap-2">
+          <button
+            onClick={useCurrentLocation}
+            disabled={locating}
+            className="flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-2 py-2.5 text-[13px] font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-60 sm:gap-2 sm:px-3 sm:text-sm"
+          >
+            <span aria-hidden>🧭</span>
+            {locating ? "Detecting…" : "Current Location"}
+          </button>
+          <button
+            onClick={() => setShowAddNew((v) => !v)}
+            className={`flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-2.5 text-[13px] font-medium sm:gap-2 sm:px-3 sm:text-sm ${
+              showAddNew
+                ? "border-neutral-900 bg-neutral-900 text-white"
+                : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+            }`}
+          >
+            <span aria-hidden>{showAddNew ? "✕" : "＋"}</span>
+            {showAddNew ? "Cancel" : "Add New Address"}
+          </button>
+        </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
+        {showAddNew && (
+          <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-3">
+            <LocationPicker lat={pin?.lat ?? null} lng={pin?.lng ?? null} onChange={(lat, lng) => setPin({ lat, lng })} />
+            {pin && pinServiceable === true && (
+              <p className="text-sm font-medium text-emerald-600">✓ We deliver to this location</p>
+            )}
+            {pin && pinServiceable === false && (
+              <p className="text-sm font-medium text-red-600">
+                Sorry, we don&apos;t deliver here yet — you can still browse, but items can&apos;t be ordered.
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={confirmPin}
+                disabled={!pin || saving}
+                className="flex-1 rounded-full bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-40"
+              >
+                {saving ? "Saving…" : "Use this location"}
+              </button>
+              <button
+                onClick={() => {
+                  onClose();
+                  router.push("/addresses");
+                }}
+                className="rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+              >
+                Save as address
+              </button>
+            </div>
+          </div>
+        )}
+
         {addresses.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase text-neutral-400">Your saved addresses</p>
+          <div className="flex flex-col gap-1">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">Saved addresses</p>
             {addresses.map((a) => {
               const pinned = a.lat != null && a.lng != null;
               const ok = pinned ? serviceableAt(a.lat as number, a.lng as number) : null;
@@ -121,59 +205,40 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
                   key={a.id}
                   onClick={() => chooseAddress(a)}
                   disabled={!pinned}
-                  className={`flex items-start justify-between gap-3 rounded-xl border p-3 text-left text-sm disabled:cursor-not-allowed disabled:opacity-50 ${
+                  className={`flex items-start gap-3 rounded-xl border p-3 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-50 ${
                     selected ? "border-blue-600 bg-blue-50" : "border-neutral-200 hover:bg-neutral-50"
                   }`}
                 >
-                  <span>
-                    <span className="font-medium capitalize">{a.label}</span>
-                    <span className="block text-neutral-600">{a.address_line}</span>
-                    <span className="block text-xs text-neutral-400">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-base">
+                    {LABEL_ICON[a.label] ?? "📍"}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2">
+                      <span className="font-medium capitalize text-neutral-900">{a.label}</span>
+                      {ok === false && (
+                        <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">
+                          Not serviceable
+                        </span>
+                      )}
+                    </span>
+                    <span className="block truncate text-neutral-500">{a.address_line}</span>
+                    <span className="block truncate text-xs text-neutral-400">
                       {[a.district, a.city].filter(Boolean).join(", ")}
                       {!pinned && " · no map pin — edit it in Addresses"}
                     </span>
                   </span>
-                  {ok === true && <span className="shrink-0 text-xs font-medium text-emerald-600">✓ Deliverable</span>}
-                  {ok === false && <span className="shrink-0 text-xs font-medium text-red-600">✕ Not serviceable</span>}
                 </button>
               );
             })}
           </div>
         )}
 
-        <div className="border-t border-neutral-100 pt-3">
-          {!showMap ? (
-            <button onClick={() => setShowMap(true)} className="text-sm font-medium text-blue-700 hover:underline">
-              Or pick a location on the map →
-            </button>
-          ) : (
-            <div className="flex flex-col gap-2">
-              <LocationPicker lat={pin?.lat ?? null} lng={pin?.lng ?? null} onChange={(lat, lng) => setPin({ lat, lng })} />
-              {pin && pinServiceable === true && (
-                <p className="text-sm font-medium text-emerald-600">✓ We deliver to this location</p>
-              )}
-              {pin && pinServiceable === false && (
-                <p className="text-sm font-medium text-red-600">
-                  ✕ Sorry, we don&apos;t deliver here yet. You can still browse, but items can&apos;t be ordered.
-                </p>
-              )}
-              <button
-                onClick={confirmPin}
-                disabled={!pin || saving}
-                className="rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-40"
-              >
-                {saving ? "Saving..." : "Confirm this location"}
-              </button>
-            </div>
-          )}
-        </div>
-
         {!location && (
-          <button onClick={onClose} className="text-center text-xs text-neutral-400 hover:underline">
+          <button onClick={onClose} className="pb-2 text-center text-xs text-neutral-400 hover:underline">
             Skip for now — I&apos;m just browsing
           </button>
         )}
       </div>
-    </Modal>
+    </div>
   );
 }
