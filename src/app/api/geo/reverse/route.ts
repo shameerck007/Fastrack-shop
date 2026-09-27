@@ -10,9 +10,9 @@ import { NextResponse } from "next/server";
 // Nominatim's free tier occasionally rate-limits — that shows up as an
 // intermittent failure for one request that would succeed a moment later.
 // One retry absorbs that without the shopper ever seeing it.
-async function fetchNominatim(lat: string, lng: string, timeoutMs: number) {
-  return fetch(
-    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&accept-language=en&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`,
+async function fetchNominatim(lat: string, lng: string, zoom: number, timeoutMs: number) {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=${zoom}&accept-language=en&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`,
     {
       headers: {
         Accept: "application/json",
@@ -21,27 +21,24 @@ async function fetchNominatim(lat: string, lng: string, timeoutMs: number) {
       signal: AbortSignal.timeout(timeoutMs),
     }
   );
+  if (!res.ok) throw new Error(`Nominatim returned ${res.status}`);
+  return (await res.json()) as { name?: string; address?: Record<string, string> };
 }
 
-function pickLabel(address: Record<string, string>): string | null {
-  // Prefer a named area (stable, human-friendly); fall back through street,
-  // then city/town/village, then the broader district/state so even a
-  // sparse rural response still yields something better than coordinates.
-  return (
-    address.suburb ||
-    address.neighbourhood ||
-    address.city_district ||
-    address.quarter ||
-    address.road ||
-    address.pedestrian ||
-    address.city ||
-    address.town ||
-    address.village ||
-    address.county ||
-    address.state_district ||
-    address.state ||
-    null
-  );
+// Amazon/Instamart-style "street, area" rather than one bare field. Sparse
+// areas (industrial zones, new developments) often carry only one of these,
+// or neither in the structured address fields — hence the coarser-zoom
+// retry below, which is more likely to match a named polygon (e.g. an
+// industrial city) instead of an empty nearby road segment.
+function buildLabel(data: { name?: string; address?: Record<string, string> }): string | null {
+  const a = data.address ?? {};
+  const street = a.road || a.pedestrian || null;
+  const area = a.suburb || a.neighbourhood || a.city_district || a.quarter || a.city_block || a.municipality || null;
+  if (street && area && street !== area) return `${street}, ${area}`;
+  if (street) return street;
+  if (area) return area;
+  if (data.name) return data.name;
+  return a.city || a.town || a.village || a.county || a.state_district || a.state || null;
 }
 
 export async function GET(request: Request) {
@@ -52,17 +49,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "lat and lng are required" }, { status: 400 });
   }
 
-  for (const timeoutMs of [6000, 4000]) {
-    try {
-      const res = await fetchNominatim(lat, lng, timeoutMs);
-      if (!res.ok) continue;
-      const data = (await res.json()) as { address?: Record<string, string> };
-      const label = pickLabel(data.address ?? {});
-      if (label) {
-        return NextResponse.json({ label }, { headers: { "Cache-Control": "public, max-age=300" } });
+  // Fine zoom first (street-level); a coarser zoom as a second attempt picks
+  // up named areas (e.g. an industrial city) when the fine-grained lookup
+  // has nothing better than a country/region name to offer.
+  for (const zoom of [16, 12]) {
+    for (const timeoutMs of [6000, 4000]) {
+      try {
+        const data = await fetchNominatim(lat, lng, zoom, timeoutMs);
+        const label = buildLabel(data);
+        if (label) {
+          return NextResponse.json({ label }, { headers: { "Cache-Control": "public, max-age=300" } });
+        }
+        break; // got a response but nothing usable — try the next zoom, not the same zoom again
+      } catch {
+        // try again (shorter timeout), then fall through to the next zoom
       }
-    } catch {
-      // try again with the next timeout, or fall through below
     }
   }
 
