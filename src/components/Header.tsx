@@ -3,10 +3,11 @@ import SearchBar from "@/components/SearchBar";
 import Wordmark from "@/components/Wordmark";
 import UserHeaderActions from "@/components/UserHeaderActions";
 import DeliverToChip from "@/components/DeliverToChip";
-import { getCategories } from "@/lib/catalog";
+import CategoryNavBar from "@/components/CategoryNavBar";
+import { getCategoriesWithChildren } from "@/lib/catalog";
 
 export default async function Header() {
-  const categories = await getCategories();
+  const categories = await getCategoriesWithChildren();
 
   return (
     <header className="sticky top-0 z-30 bg-white shadow-sm">
@@ -27,23 +28,7 @@ export default async function Header() {
       </div>
 
       <div className="border-t border-blue-100 bg-blue-50/60">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 overflow-x-auto px-4 py-2 text-sm text-blue-950">
-          <Link href="/" className="shrink-0 font-medium hover:text-blue-700">
-            All
-          </Link>
-          {categories.map((category) => (
-            <Link
-              key={category.id}
-              href={`/categories/${category.slug}`}
-              className="shrink-0 whitespace-nowrap hover:text-blue-700"
-            >
-              {category.name}
-            </Link>
-          ))}
-          <Link href="/orders" className="shrink-0 whitespace-nowrap hover:text-blue-700">
-            Buy Again
-          </Link>
-        </div>
+        <CategoryNavBar categories={categories} />
       </div>
     </header>
   );

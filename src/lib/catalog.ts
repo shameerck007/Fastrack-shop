@@ -28,6 +28,27 @@ export async function getSubcategories(parentId: string): Promise<Category[]> {
   return data ?? [];
 }
 
+export interface CategoryWithChildren extends Category {
+  children: Category[];
+}
+
+// One query for the whole tree (rather than a per-category subcategory
+// fetch) — used wherever the nav needs to show subcategories on hover, like
+// Amazon/Noon's category flyout menus.
+export async function getCategoriesWithChildren(): Promise<CategoryWithChildren[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("categories").select("*").order("sort_order", { ascending: true });
+  if (error) throw error;
+
+  const all = (data ?? []) as Category[];
+  const topLevel = all.filter((c) => !c.parent_id);
+  const childrenByParent = new Map<string, Category[]>();
+  for (const c of all) {
+    if (c.parent_id) childrenByParent.set(c.parent_id, [...(childrenByParent.get(c.parent_id) ?? []), c]);
+  }
+  return topLevel.map((c) => ({ ...c, children: childrenByParent.get(c.id) ?? [] }));
+}
+
 export async function getFeaturedProducts(limit = 8): Promise<ProductWithVariants[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

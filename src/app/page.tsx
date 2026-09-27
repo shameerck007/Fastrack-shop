@@ -3,7 +3,7 @@ import ProductSection from "@/components/ProductSection";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import BuyAgainSection from "@/components/BuyAgainSection";
 import {
-  getCategories,
+  getCategoriesWithChildren,
   getFeaturedProducts,
   getFreshTodayProducts,
   getOfferProducts,
@@ -13,7 +13,7 @@ import { getDefaultVariantStockMap } from "@/lib/inventory";
 
 export default async function HomePage() {
   const [categories, featured, freshToday, offers] = await Promise.all([
-    getCategories(),
+    getCategoriesWithChildren(),
     getFeaturedProducts(),
     getFreshTodayProducts(),
     getOfferProducts(),
