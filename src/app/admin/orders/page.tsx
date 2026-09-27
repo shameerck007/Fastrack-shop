@@ -1,16 +1,35 @@
 import Link from "next/link";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
-import { getAdminOrders } from "@/lib/admin-orders";
+import OrdersKPIBar from "@/components/admin/OrdersKPIBar";
+import OrdersQueueBoard from "@/components/admin/OrdersQueueBoard";
+import OrdersLiveRefresher from "@/components/admin/OrdersLiveRefresher";
+import { getAdminOrders, getAdminOrdersQueue, getAdminOrderKPIs } from "@/lib/admin-orders";
 import { formatSAR, PAYMENT_METHOD_LABELS, DELIVERY_TYPE_LABELS } from "@/lib/utils";
 
 export default async function AdminOrdersPage() {
-  const orders = await getAdminOrders();
+  const [kpis, queueOrders, orders] = await Promise.all([
+    getAdminOrderKPIs(),
+    getAdminOrdersQueue(),
+    getAdminOrders(50),
+  ]);
 
   return (
     <div>
       <div className="mb-4 flex items-baseline justify-between">
-        <h1 className="text-xl font-semibold">Orders</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-semibold">Orders</h1>
+          <OrdersLiveRefresher />
+        </div>
+      </div>
+
+      <OrdersKPIBar kpis={kpis} />
+
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">Order queue</p>
+      <OrdersQueueBoard orders={queueOrders} />
+
+      <div className="mb-2 flex items-baseline justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Recent orders</p>
         <p className="text-sm text-neutral-500">{orders.length} most recent</p>
       </div>
 
