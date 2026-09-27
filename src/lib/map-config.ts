@@ -42,48 +42,26 @@ export interface PlaceResult {
   lng: number;
 }
 
-interface NominatimItem {
-  display_name: string;
-  lat: string;
-  lon: string;
-  name?: string;
-  address?: Record<string, string>;
-}
-
-// OpenStreetMap's Nominatim geocoder (free; keep requests infrequent —
-// callers debounce). Results are requested in English and biased to Saudi
-// Arabia, where the app operates.
+// Both routed through our own server (see src/app/api/geo/*) rather than
+// calling Nominatim directly from the browser: its usage policy requires an
+// identifying User-Agent, which a browser fetch() can't set, so direct
+// client calls were unreliable — that's what caused the delivery-location
+// chip to keep falling back to a generic label instead of a real area name.
 export async function searchPlaces(query: string): Promise<PlaceResult[]> {
   const q = query.trim();
   if (q.length < 3) return [];
-  const url =
-    "https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&countrycodes=sa&accept-language=en&q=" +
-    encodeURIComponent(q);
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  const res = await fetch(`/api/geo/search?q=${encodeURIComponent(q)}`);
   if (!res.ok) throw new Error("Search is unavailable right now.");
-  const items = (await res.json()) as NominatimItem[];
-  return items.map((i) => {
-    const parts = i.display_name.split(",").map((p) => p.trim());
-    return {
-      label: i.name || parts[0],
-      detail: parts.slice(1, 4).join(", "),
-      lat: Number(i.lat),
-      lng: Number(i.lon),
-    };
-  });
+  return (await res.json()) as PlaceResult[];
 }
 
 export async function reverseAreaName(lat: number, lng: number): Promise<string> {
   try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&accept-language=en&lat=${lat}&lon=${lng}`,
-      { headers: { Accept: "application/json" } }
-    );
+    const res = await fetch(`/api/geo/reverse?lat=${lat}&lng=${lng}`);
     if (!res.ok) throw new Error();
-    const data = await res.json();
-    const a = data.address ?? {};
-    return a.suburb || a.neighbourhood || a.city_district || a.quarter || a.city || a.town || "Selected location";
+    const data = (await res.json()) as { label: string | null };
+    return data.label ?? `Pinned location (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
   } catch {
-    return "Selected location";
+    return `Pinned location (${lat.toFixed(3)}, ${lng.toFixed(3)})`;
   }
 }

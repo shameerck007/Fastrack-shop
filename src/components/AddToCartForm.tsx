@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { addToCart } from "@/lib/actions/cart";
 import { notifyCartChanged } from "@/lib/cart-events";
@@ -28,13 +27,10 @@ export default function AddToCartForm({
   const router = useRouter();
   const pathname = usePathname();
   const { location, statusForStore, openPicker } = useDeliveryLocation();
-  const delivery = statusForStore(storeId);
-  const deliveryBlockedMessage =
-    delivery.state === "outside"
-      ? `This seller delivers within ${delivery.radiusKm} km and ${location?.label ?? "your location"} is ${delivery.distanceKm.toFixed(1)} km away.`
-      : delivery.state === "no_location"
-        ? "Choose your delivery location to see if this seller delivers to you."
-        : null;
+  // "outside" is handled by ProductBuyBox before this form ever renders —
+  // this only needs to cover "we don't know your location yet" for stores
+  // that do have a delivery boundary set.
+  const needsLocation = statusForStore(storeId).state === "no_location";
 
   const available = stock[variantId] ?? 0;
   const inStock = available > 0;
@@ -85,12 +81,12 @@ export default function AddToCartForm({
         </div>
       )}
 
-      {deliveryBlockedMessage && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          <p className="font-medium">📍 {delivery.state === "outside" ? "Can't deliver to you" : "Location needed"}</p>
-          <p>{deliveryBlockedMessage}</p>
+      {needsLocation && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+          <p className="font-medium">📍 Set your delivery location</p>
+          <p>This seller has a delivery area — choose your location to check they reach you.</p>
           <button onClick={openPicker} className="mt-1 inline-block font-medium text-blue-700 hover:underline">
-            Change delivery location →
+            Choose delivery location →
           </button>
         </div>
       )}
@@ -118,7 +114,7 @@ export default function AddToCartForm({
 
             <button
               onClick={handleAdd}
-              disabled={pending || !!deliveryBlockedMessage}
+              disabled={pending || needsLocation}
               className="w-full whitespace-nowrap rounded-full bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
             >
               {pending ? "Adding..." : "ADD TO CART"}

@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation";
-import AddToCartForm from "@/components/AddToCartForm";
+import ProductBuyBox from "@/components/ProductBuyBox";
+import ProductAlternatives from "@/components/ProductAlternatives";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import StarRating from "@/components/StarRating";
 import ReviewForm from "@/components/ReviewForm";
 import TrackRecentlyViewed from "@/components/TrackRecentlyViewed";
 import RecentlyViewed from "@/components/RecentlyViewed";
-import { getProductById } from "@/lib/catalog";
-import { getProductRating, getProductReviews } from "@/lib/reviews";
-import { getVariantStockMap } from "@/lib/inventory";
+import { getProductById, getProductsByCategory } from "@/lib/catalog";
+import { getProductRating, getProductReviews, getProductRatingsMap } from "@/lib/reviews";
+import { getVariantStockMap, getDefaultVariantStockMap } from "@/lib/inventory";
 import { formatSAR } from "@/lib/utils";
 import { getCategoryTheme } from "@/lib/categoryTheme";
 import { createClient } from "@/lib/supabase/server";
@@ -35,6 +36,18 @@ export default async function ProductPage({
   const variant =
     product.product_variants.find((v) => v.is_default) ?? product.product_variants[0];
   const theme = getCategoryTheme(product.category?.slug);
+
+  // In case the seller can't deliver here — a few deliverable alternatives
+  // from the same category, so a blocked shopper isn't left at a dead end.
+  const alternativeProducts = product.category
+    ? (await getProductsByCategory(product.category.slug)).products
+        .filter((p) => p.id !== product.id)
+        .slice(0, 6)
+    : [];
+  const [altRatingsMap, altStockMap] = await Promise.all([
+    getProductRatingsMap(alternativeProducts.map((p) => p.id)),
+    getDefaultVariantStockMap(alternativeProducts),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -129,7 +142,7 @@ export default async function ProductPage({
             </p>
 
             {product.product_variants.length > 0 ? (
-              <AddToCartForm
+              <ProductBuyBox
                 variants={product.product_variants}
                 stock={stock}
                 isLoggedIn={isLoggedIn}
@@ -141,6 +154,13 @@ export default async function ProductPage({
           </div>
         </div>
       </div>
+
+      <ProductAlternatives
+        storeId={product.store_id}
+        products={alternativeProducts}
+        ratings={Object.fromEntries(altRatingsMap)}
+        stock={Object.fromEntries(altStockMap)}
+      />
 
       <section id="reviews" className="mt-10 max-w-3xl scroll-mt-20">
         <div className="mb-6 flex items-center justify-between gap-3">

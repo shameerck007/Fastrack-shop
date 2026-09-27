@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ProductCard from "@/components/ProductCard";
+import DeliverableProductGrid from "@/components/DeliverableProductGrid";
+import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { createClient } from "@/lib/supabase/client";
 import type { ProductWithVariants } from "@/types/database";
 import type { ProductRating } from "@/lib/reviews";
@@ -30,21 +31,14 @@ export default function BuyAgainSection() {
     };
   }, []);
 
+  const { statusForStore } = useDeliveryLocation();
   if (!products || products.length === 0) return null;
+  if (!products.some((p) => statusForStore(p.store_id).state !== "outside")) return null;
 
   return (
     <section className="mb-8">
       <h2 className="mb-3 text-lg font-semibold">🔄 Buy Again</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            rating={ratings[product.id]}
-            stock={stock[product.id]}
-          />
-        ))}
-      </div>
+      <DeliverableProductGrid products={products} ratings={ratings} stock={stock} />
     </section>
   );
 }

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import ProductCard from "@/components/ProductCard";
 import StoreHeader from "@/components/StoreHeader";
+import DeliverableProductList from "@/components/DeliverableProductList";
 import { getApprovedStoreById, getStoreProducts } from "@/lib/catalog";
 import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
@@ -15,7 +15,7 @@ export default async function StorePage({
   if (!store) notFound();
 
   const products = await getStoreProducts(id);
-  const [ratings, stock] = await Promise.all([
+  const [ratingsMap, stockMap] = await Promise.all([
     getProductRatingsMap(products.map((p) => p.id)),
     getDefaultVariantStockMap(products),
   ]);
@@ -25,20 +25,12 @@ export default async function StorePage({
       <StoreHeader storeName={store.name} />
       <div className="mx-auto max-w-6xl px-4 py-6">
         <p className="mb-4 text-sm text-neutral-500">{store.city}</p>
-        {products.length === 0 ? (
-          <p className="text-sm text-neutral-500">This store hasn&apos;t listed any products yet.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                rating={ratings.get(product.id)}
-                stock={stock.get(product.id)}
-              />
-            ))}
-          </div>
-        )}
+        <DeliverableProductList
+          products={products}
+          ratings={Object.fromEntries(ratingsMap)}
+          stock={Object.fromEntries(stockMap)}
+          emptyMessage="This store hasn't listed any products yet."
+        />
       </div>
     </div>
   );

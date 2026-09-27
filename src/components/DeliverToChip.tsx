@@ -8,19 +8,32 @@ export default function DeliverToChip({ className = "" }: { className?: string }
   return (
     <button
       onClick={openPicker}
-      className={`flex max-w-full items-center gap-1.5 rounded-full text-sm hover:text-blue-700 ${className}`}
+      className={`group flex max-w-full items-center gap-2 rounded-full border border-neutral-200 bg-white py-1 pl-1 pr-3 text-left shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 ${className}`}
       aria-label="Change delivery location"
     >
-      <span aria-hidden>📍</span>
-      <span className="truncate">
-        <span className="text-neutral-500">Deliver to </span>
-        <span className="font-semibold text-neutral-900">
-          {!ready ? "…" : (location?.label ?? "Select location")}
-        </span>
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm transition group-hover:bg-blue-100">
+        📍
       </span>
-      <span aria-hidden className="text-xs text-neutral-400">▾</span>
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">Deliver to</span>
+        {!ready ? (
+          <span className="h-3.5 w-20 animate-pulse rounded bg-neutral-200" />
+        ) : (
+          <span className="max-w-[9rem] truncate text-sm font-semibold text-neutral-900 sm:max-w-[14rem]">
+            {location?.label ?? "Choose location"}
+          </span>
+        )}
+      </span>
+      <svg
+        aria-hidden
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        className="h-3.5 w-3.5 shrink-0 text-neutral-400 transition group-hover:text-blue-600"
+      >
+        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clipRule="evenodd" />
+      </svg>
       {location && serviceable === false && (
-        <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">
+        <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">
           Not serviceable
         </span>
       )}

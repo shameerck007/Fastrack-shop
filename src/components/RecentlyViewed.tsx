@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import ProductCard from "@/components/ProductCard";
+import DeliverableProductGrid from "@/components/DeliverableProductGrid";
+import { useDeliveryLocation } from "@/components/delivery-location-context";
 import type { ProductWithVariants } from "@/types/database";
 
 const STORAGE_KEY = "ft_recently_viewed";
@@ -39,16 +40,14 @@ export default function RecentlyViewed({ excludeProductId }: { excludeProductId?
     return () => clearTimeout(timeout);
   }, [excludeProductId]);
 
+  const { statusForStore } = useDeliveryLocation();
   if (!products || products.length === 0) return null;
+  if (!products.some((p) => statusForStore(p.store_id).state !== "outside")) return null;
 
   return (
     <section className="mb-8">
       <h2 className="mb-3 text-lg font-semibold">🕘 Recently Viewed</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      <DeliverableProductGrid products={products} />
     </section>
   );
 }

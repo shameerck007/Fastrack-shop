@@ -1,5 +1,5 @@
 import CategoryGrid from "@/components/CategoryGrid";
-import ProductCard from "@/components/ProductCard";
+import ProductSection from "@/components/ProductSection";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import BuyAgainSection from "@/components/BuyAgainSection";
 import {
@@ -8,38 +8,8 @@ import {
   getFreshTodayProducts,
   getOfferProducts,
 } from "@/lib/catalog";
-import { getProductRatingsMap, type ProductRating } from "@/lib/reviews";
+import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
-import type { ProductWithVariants } from "@/types/database";
-
-function ProductSection({
-  title,
-  products,
-  ratings,
-  stock,
-}: {
-  title: string;
-  products: ProductWithVariants[];
-  ratings: Map<string, ProductRating>;
-  stock: Map<string, number>;
-}) {
-  if (products.length === 0) return null;
-  return (
-    <section className="mb-8">
-      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            rating={ratings.get(product.id)}
-            stock={stock.get(product.id)}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
 
 export default async function HomePage() {
   const [categories, featured, freshToday, offers] = await Promise.all([
@@ -51,10 +21,17 @@ export default async function HomePage() {
 
   const allProducts = [...featured, ...freshToday, ...offers];
   const allIds = [...new Set(allProducts.map((p) => p.id))];
-  const [ratings, stock] = await Promise.all([
+  const [ratingsMap, stockMap] = await Promise.all([
     getProductRatingsMap(allIds),
     getDefaultVariantStockMap(allProducts),
   ]);
+  // Maps aren't serializable across the server/client boundary — plain
+  // objects are, and the client-side product grid filters by the
+  // shopper's chosen delivery location (Swiggy/Instamart-style: sellers
+  // that can't reach them are left out of browsing rather than shown and
+  // blocked).
+  const ratings = Object.fromEntries(ratingsMap);
+  const stock = Object.fromEntries(stockMap);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -66,26 +43,13 @@ export default async function HomePage() {
       <BuyAgainSection />
       <ProductSection title="🏷️ Offers" products={offers} ratings={ratings} stock={stock} />
       <ProductSection title="🥬 Fresh Today" products={freshToday} ratings={ratings} stock={stock} />
-
-      <section className="mb-8">
-        <h2 className="mb-3 text-lg font-semibold">🔥 Best Sellers</h2>
-        {featured.length === 0 ? (
-          <p className="text-sm text-neutral-500">
-            No products yet — connect Supabase and run the seed script to populate the catalog.
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {featured.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                rating={ratings.get(product.id)}
-                stock={stock.get(product.id)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+      <ProductSection
+        title="🔥 Best Sellers"
+        products={featured}
+        ratings={ratings}
+        stock={stock}
+        emptyMessage="No products yet — connect Supabase and run the seed script to populate the catalog."
+      />
 
       <RecentlyViewed />
     </div>
