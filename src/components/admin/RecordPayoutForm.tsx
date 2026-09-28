@@ -3,15 +3,12 @@
 import { useState } from "react";
 import { recordSettlementPayout } from "@/lib/actions/admin-settlements";
 import { formatSAR } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 
-const METHODS = [
-  { value: "bank_transfer", label: "Bank transfer" },
-  { value: "cheque", label: "Cheque" },
-  { value: "cash", label: "Cash" },
-  { value: "other", label: "Other" },
-];
+const METHODS = ["bank_transfer", "cheque", "cash", "other"];
 
 export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: string; balanceDue: number }) {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("bank_transfer");
@@ -24,7 +21,7 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
     e.preventDefault();
     const parsed = Number(amount);
     if (!(parsed > 0)) {
-      setError("Enter a payout amount greater than zero.");
+      setError(t("payout_form.invalid_amount"));
       return;
     }
     setSaving(true);
@@ -36,7 +33,7 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
       setReference("");
       setNote("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't record the payout.");
+      setError(err instanceof Error ? err.message : t("payout_form.couldnt_record"));
     } finally {
       setSaving(false);
     }
@@ -51,7 +48,7 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
         }}
         className="rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
       >
-        ＋ Record payout
+        {t("payout_form.record_payout")}
       </button>
     );
   }
@@ -59,15 +56,15 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
   return (
     <form onSubmit={submit} className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-neutral-800">Record a payout</h3>
+        <h3 className="text-sm font-semibold text-neutral-800">{t("payout_form.record_a_payout")}</h3>
         <button type="button" onClick={() => setOpen(false)} className="text-xs text-neutral-500 hover:underline">
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-xs font-medium text-neutral-500">Amount (SAR)</span>
+          <span className="text-xs font-medium text-neutral-500">{t("payout_form.amount_sar")}</span>
           <input
             type="number"
             min={0.01}
@@ -79,41 +76,41 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-xs font-medium text-neutral-500">Method</span>
+          <span className="text-xs font-medium text-neutral-500">{t("payout_form.method")}</span>
           <select
             value={method}
             onChange={(e) => setMethod(e.target.value)}
             className="rounded-lg border border-neutral-300 px-3 py-2"
           >
             {METHODS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
+              <option key={m} value={m}>
+                {t(`merchant.${m}`)}
               </option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-xs font-medium text-neutral-500">Reference (optional)</span>
+          <span className="text-xs font-medium text-neutral-500">{t("payout_form.reference_optional")}</span>
           <input
             value={reference}
             onChange={(e) => setReference(e.target.value)}
-            placeholder="Transfer ID, cheque no…"
+            placeholder={t("payout_form.reference_placeholder")}
             className="rounded-lg border border-neutral-300 px-3 py-2"
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-xs font-medium text-neutral-500">Note (optional)</span>
+          <span className="text-xs font-medium text-neutral-500">{t("payout_form.note_optional")}</span>
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Internal note"
+            placeholder={t("payout_form.note_placeholder")}
             className="rounded-lg border border-neutral-300 px-3 py-2"
           />
         </label>
       </div>
 
       {balanceDue > 0.005 && (
-        <p className="text-xs text-neutral-400">Outstanding balance: {formatSAR(balanceDue)}</p>
+        <p className="text-xs text-neutral-400">{t("payout_form.outstanding_balance", { amount: formatSAR(balanceDue) })}</p>
       )}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -122,7 +119,7 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
         disabled={saving}
         className="self-start rounded-full bg-blue-700 px-5 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
       >
-        {saving ? "Recording…" : "Record payout"}
+        {saving ? t("payout_form.recording") : t("payout_form.record_a_payout")}
       </button>
     </form>
   );

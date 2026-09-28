@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Modal from "@/components/Modal";
 import ZoneEditor from "@/components/admin/ZoneEditor";
+import { useLocale } from "@/components/LocaleProvider";
 
 export interface ZoneCard {
   warehouseId: string;
@@ -26,6 +27,7 @@ function initials(name: string): string {
 }
 
 export default function ZonesList({ cards }: { cards: ZoneCard[] }) {
+  const { t } = useLocale();
   const [activeId, setActiveId] = useState<string | null>(null);
   const active = cards.find((c) => c.warehouseId === activeId) ?? null;
 
@@ -33,12 +35,12 @@ export default function ZonesList({ cards }: { cards: ZoneCard[] }) {
     <>
       <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-3">
-          <h2 className="text-sm font-semibold text-neutral-700">Stores</h2>
-          <span className="text-xs text-neutral-400">{cards.length} total</span>
+          <h2 className="text-sm font-semibold text-neutral-700">{t("zones_list.stores")}</h2>
+          <span className="text-xs text-neutral-400">{t("zones_list.total_count", { count: cards.length })}</span>
         </div>
 
         {cards.length === 0 ? (
-          <p className="p-6 text-sm text-neutral-500">No active warehouses yet.</p>
+          <p className="p-6 text-sm text-neutral-500">{t("zones_list.no_warehouses")}</p>
         ) : (
           <ul className="divide-y divide-neutral-100">
             {cards.map((c) => (
@@ -67,31 +69,31 @@ export default function ZonesList({ cards }: { cards: ZoneCard[] }) {
                       c.zoned ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
                     }`}
                   >
-                    {c.zoned ? `🎯 Within ${c.radius} km` : "🌐 Everywhere"}
+                    {c.zoned ? t("zones_list.within_km", { radius: c.radius ?? 0 }) : t("zones_list.everywhere")}
                   </span>
                   {c.inside != null && (
-                    <span className="text-xs text-neutral-400">{c.inside} addresses inside</span>
+                    <span className="text-xs text-neutral-400">{t("zones_list.addresses_inside", { count: c.inside })}</span>
                   )}
                 </div>
 
                 <div className="hidden shrink-0 gap-4 text-xs text-neutral-500 sm:flex">
                   <span>
-                    <b className="text-neutral-700">{c.productCount}</b> products
+                    <b className="text-neutral-700">{c.productCount}</b> {t("zones_list.products_count")}
                   </span>
                   <span>
-                    <b className="text-neutral-700">{c.orderCount}</b> orders
+                    <b className="text-neutral-700">{c.orderCount}</b> {t("zones_list.orders_count")}
                   </span>
                 </div>
 
                 <button
                   onClick={() => setActiveId(c.warehouseId)}
-                  className={`ml-auto shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+                  className={`ms-auto shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition ${
                     c.zoned
                       ? "border border-neutral-300 text-neutral-700 hover:bg-neutral-100"
                       : "bg-blue-600 text-white shadow-sm hover:bg-blue-700"
                   }`}
                 >
-                  {c.zoned ? "Edit boundary" : "Set boundary →"}
+                  {c.zoned ? t("zones_list.edit_boundary") : t("zones_list.set_boundary")}
                 </button>
               </li>
             ))}

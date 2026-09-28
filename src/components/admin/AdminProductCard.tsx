@@ -6,6 +6,7 @@ import { toggleProductActive, updateProductStock } from "@/lib/actions/admin-pro
 import StockCell from "@/components/admin/StockCell";
 import ProductForm from "@/components/admin/ProductForm";
 import { formatSAR } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 import type { Category, Warehouse } from "@/types/database";
 import type { AdminProduct } from "@/lib/admin-products";
 
@@ -18,6 +19,7 @@ export default function AdminProductCard({
   categories: Category[];
   warehouses: Warehouse[];
 }) {
+  const { t } = useLocale();
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -66,12 +68,12 @@ export default function AdminProductCard({
               product.is_active ? "bg-blue-50 text-blue-700" : "bg-neutral-100 text-neutral-500"
             }`}
           >
-            {product.is_active ? "Active" : "Inactive"}
+            {product.is_active ? t("product_card_admin.active") : t("product_card_admin.inactive")}
           </button>
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5">{product.category?.name ?? "Uncategorized"}</span>
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5">{product.category?.name ?? t("product_card_admin.uncategorized")}</span>
           <span>{variant?.label}</span>
         </div>
 
@@ -91,13 +93,13 @@ export default function AdminProductCard({
               updateAction={updateProductStock}
             />
           ) : (
-            <span className="text-xs text-neutral-400">No stock row</span>
+            <span className="text-xs text-neutral-400">{t("product_card_admin.no_stock_row")}</span>
           )}
           <button
             onClick={() => setEditing(true)}
             className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium hover:bg-neutral-50"
           >
-            Edit
+            {t("addresses.edit")}
           </button>
         </div>
       </div>

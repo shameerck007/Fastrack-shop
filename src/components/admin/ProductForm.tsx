@@ -8,6 +8,8 @@ import Modal from "@/components/Modal";
 import type { Category, Warehouse } from "@/types/database";
 import type { AdminProduct } from "@/lib/admin-products";
 import { orderedCategories } from "@/lib/category-tree";
+import { useLocale } from "@/components/LocaleProvider";
+import { localizedName } from "@/lib/i18n/localized";
 
 const UNITS = ["unit", "kg", "g", "L", "ml", "pack"];
 
@@ -22,6 +24,7 @@ export default function ProductForm({
   existing?: AdminProduct;
   onDone?: () => void;
 }) {
+  const { t, locale } = useLocale();
   const [open, setOpen] = useState(false);
   const existingVariant = existing?.product_variants[0];
 
@@ -58,7 +61,7 @@ export default function ProductForm({
     e.preventDefault();
     setError(null);
     if (!name || !price || (!existing && !stock) || !categoryId || (!existing && !warehouses[0])) {
-      setError("Fill in all required fields.");
+      setError(t("product_form.fill_required"));
       return;
     }
     startTransition(async () => {
@@ -99,7 +102,7 @@ export default function ProductForm({
         }
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not save product.");
+        setError(err instanceof Error ? err.message : t("product_form.could_not_save"));
       }
     });
   }
@@ -110,13 +113,13 @@ export default function ProductForm({
 
       <div className="grid grid-cols-2 gap-3">
         <input
-          placeholder="Product name"
+          placeholder={t("product_form.product_name")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
         <input
-          placeholder="Brand"
+          placeholder={t("product_form.brand")}
           value={brand}
           onChange={(e) => setBrand(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -128,12 +131,12 @@ export default function ProductForm({
         >
           {orderedCategories(categories).map((c) => (
             <option key={c.id} value={c.id}>
-              {c.parent_id ? `↳ ${c.name}` : c.name}
+              {c.parent_id ? `↳ ${localizedName(c, locale)}` : localizedName(c, locale)}
             </option>
           ))}
         </select>
         <input
-          placeholder="SKU (optional)"
+          placeholder={t("product_form.sku_optional")}
           value={sku}
           onChange={(e) => setSku(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -141,7 +144,7 @@ export default function ProductForm({
       </div>
 
       <textarea
-        placeholder="Description (optional)"
+        placeholder={t("product_form.description_optional")}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         rows={3}
@@ -150,7 +153,7 @@ export default function ProductForm({
 
       <div className={`grid grid-cols-2 gap-3 ${existing ? "sm:grid-cols-3" : "sm:grid-cols-4"}`}>
         <input
-          placeholder="Variant label (e.g. 1 kg)"
+          placeholder={t("product_form.variant_label")}
           value={variantLabel}
           onChange={(e) => setVariantLabel(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -169,7 +172,7 @@ export default function ProductForm({
         <input
           type="number"
           step="0.001"
-          placeholder="Qty per unit"
+          placeholder={t("product_form.qty_per_unit")}
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -178,7 +181,7 @@ export default function ProductForm({
           <input
             type="number"
             step="0.001"
-            placeholder="Initial stock"
+            placeholder={t("product_form.initial_stock")}
             value={stock}
             onChange={(e) => setStock(e.target.value)}
             className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -190,7 +193,7 @@ export default function ProductForm({
         <input
           type="number"
           step="0.01"
-          placeholder="Price (SAR)"
+          placeholder={t("product_form.price_sar")}
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -198,7 +201,7 @@ export default function ProductForm({
         <input
           type="number"
           step="0.01"
-          placeholder="Compare-at price (optional)"
+          placeholder={t("product_form.compare_at_price")}
           value={compareAtPrice}
           onChange={(e) => setCompareAtPrice(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
@@ -206,7 +209,7 @@ export default function ProductForm({
       </div>
 
       {existing && (
-        <p className="text-xs text-neutral-400">Stock is managed separately from the product table.</p>
+        <p className="text-xs text-neutral-400">{t("product_form.stock_managed_separately")}</p>
       )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -216,14 +219,14 @@ export default function ProductForm({
           disabled={pending}
           className="rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
         >
-          {pending ? "Saving..." : existing ? "Save changes" : "Add product"}
+          {pending ? t("common.saving") : existing ? t("category_form.save_changes") : t("product_form.add_product")}
         </button>
         <button
           type="button"
           onClick={() => (existing ? onDone?.() : setOpen(false))}
           className="rounded-full border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100"
         >
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
     </form>
@@ -239,9 +242,9 @@ export default function ProductForm({
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md"
       >
-        <span className="text-base leading-none">+</span> Add product
+        <span className="text-base leading-none">+</span> {t("product_form.add_product")}
       </button>
-      <Modal open={open} onClose={() => setOpen(false)} title="Add a new product">
+      <Modal open={open} onClose={() => setOpen(false)} title={t("product_form.add_a_new_product")}>
         {formBody}
       </Modal>
     </>

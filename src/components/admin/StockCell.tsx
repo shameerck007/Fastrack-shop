@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function StockCell({
   inventoryId,
@@ -14,6 +15,7 @@ export default function StockCell({
   minStock: number;
   updateAction: (inventoryId: string, stock: number) => Promise<void>;
 }) {
+  const { t } = useLocale();
   const [value, setValue] = useState(String(stock));
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -40,7 +42,7 @@ export default function StockCell({
 
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] font-medium text-neutral-400">Stock</span>
+      <span className="text-[11px] font-medium text-neutral-400">{t("stock_cell.stock")}</span>
       <div className="flex items-center gap-1">
         <button
           type="button"
@@ -69,7 +71,7 @@ export default function StockCell({
         >
           +
         </button>
-        {isLow && <span title="Below minimum stock">⚠️</span>}
+        {isLow && <span title={t("stock_cell.below_minimum")}>⚠️</span>}
       </div>
     </div>
   );

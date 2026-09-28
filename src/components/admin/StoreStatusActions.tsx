@@ -3,8 +3,10 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { approveStore, rejectStore, suspendStore, reinstateStore } from "@/lib/actions/admin-merchants";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function StoreStatusActions({ storeId, status }: { storeId: string; status: string }) {
+  const { t } = useLocale();
   const [showReject, setShowReject] = useState(false);
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +20,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
         await action();
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Action failed.");
+        setError(err instanceof Error ? err.message : t("store_status.action_failed"));
       }
     });
   }
@@ -29,7 +31,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
         <input
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="Reason (optional)"
+          placeholder={t("store_status.reason_optional")}
           className="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm"
         />
         <div className="flex gap-2">
@@ -38,13 +40,13 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
             disabled={pending}
             className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
           >
-            Confirm reject
+            {t("store_status.confirm_reject")}
           </button>
           <button
             onClick={() => setShowReject(false)}
             className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm text-neutral-600 hover:bg-neutral-50"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
         </div>
         {error && <p className="text-xs text-red-600">{error}</p>}
@@ -62,14 +64,14 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
               disabled={pending}
               className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
             >
-              Approve
+              {t("store_status.approve")}
             </button>
             <button
               onClick={() => setShowReject(true)}
               disabled={pending}
               className="rounded-full border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
             >
-              Reject
+              {t("store_status.reject")}
             </button>
           </>
         )}
@@ -79,7 +81,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
             disabled={pending}
             className="rounded-full border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
           >
-            Suspend
+            {t("store_status.suspend")}
           </button>
         )}
         {status === "suspended" && (
@@ -88,7 +90,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
             disabled={pending}
             className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
           >
-            Reinstate
+            {t("store_status.reinstate")}
           </button>
         )}
         {status === "rejected" && (
@@ -97,7 +99,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
             disabled={pending}
             className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
           >
-            Approve anyway
+            {t("store_status.approve_anyway")}
           </button>
         )}
       </div>

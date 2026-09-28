@@ -6,6 +6,7 @@ import { toggleMerchantProductActive, updateMerchantProductStock } from "@/lib/a
 import StockCell from "@/components/admin/StockCell";
 import MerchantProductForm from "@/components/merchant/MerchantProductForm";
 import { formatSAR } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 import type { Category } from "@/types/database";
 import type { MerchantProduct } from "@/lib/merchant";
 
@@ -16,6 +17,7 @@ export default function MerchantProductCard({
   product: MerchantProduct;
   categories: Category[];
 }) {
+  const { t } = useLocale();
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -59,12 +61,12 @@ export default function MerchantProductCard({
               product.is_active ? "bg-blue-50 text-blue-700" : "bg-neutral-100 text-neutral-500"
             }`}
           >
-            {product.is_active ? "Active" : "Inactive"}
+            {product.is_active ? t("product_card_admin.active") : t("product_card_admin.inactive")}
           </button>
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5">{product.category?.name ?? "Uncategorized"}</span>
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5">{product.category?.name ?? t("product_card_admin.uncategorized")}</span>
           <span>{variant?.label}</span>
         </div>
 
@@ -84,13 +86,13 @@ export default function MerchantProductCard({
               updateAction={updateMerchantProductStock}
             />
           ) : (
-            <span className="text-xs text-neutral-400">No stock row</span>
+            <span className="text-xs text-neutral-400">{t("product_card_admin.no_stock_row")}</span>
           )}
           <button
             onClick={() => setEditing(true)}
             className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium hover:bg-neutral-50"
           >
-            Edit
+            {t("addresses.edit")}
           </button>
         </div>
       </div>

@@ -14,6 +14,7 @@ import {
   searchPlaces,
   type PlaceResult,
 } from "@/lib/map-config";
+import { useLocale } from "@/components/LocaleProvider";
 
 const PRESETS = [1, 2, 3, 5, 8, 10, 15, 20];
 
@@ -30,6 +31,7 @@ export default function ZoneEditor({
   initialLng: number | null;
   initialRadiusKm: number | null;
 }) {
+  const { t } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
@@ -127,13 +129,13 @@ export default function ZoneEditor({
     try {
       const results = await searchPlaces(storeAddress);
       if (results.length === 0) {
-        setMessage({ ok: false, text: "Couldn't find that address on the map — search for a nearby area instead." });
+        setMessage({ ok: false, text: t("zone_editor.couldnt_find_address") });
       } else {
         moveRef.current(results[0].lat, results[0].lng);
-        setMessage({ ok: true, text: `Placed near "${results[0].label}". Drag the pin to fine-tune, then save.` });
+        setMessage({ ok: true, text: t("zone_editor.placed_near", { label: results[0].label }) });
       }
     } catch {
-      setMessage({ ok: false, text: "Address search is unavailable right now." });
+      setMessage({ ok: false, text: t("zone_editor.address_search_unavailable") });
     } finally {
       setBusy(false);
     }
@@ -148,7 +150,7 @@ export default function ZoneEditor({
         setBusy(false);
       },
       () => {
-        setMessage({ ok: false, text: "Couldn't read your location — allow location access or use the search." });
+        setMessage({ ok: false, text: t("zone_editor.couldnt_read_location") });
         setBusy(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -157,29 +159,29 @@ export default function ZoneEditor({
 
   function save() {
     if (!center) {
-      setMessage({ ok: false, text: "Set the store location first: search, or click the map." });
+      setMessage({ ok: false, text: t("zone_editor.set_location_first") });
       return;
     }
     startTransition(async () => {
       try {
         await updateWarehouseZone(warehouseId, { lat: center[0], lng: center[1], radiusKm: radius });
-        setMessage({ ok: true, text: "Delivery boundary saved. It applies to customers immediately." });
+        setMessage({ ok: true, text: t("zone_editor.boundary_saved") });
         router.refresh();
       } catch (err) {
-        setMessage({ ok: false, text: err instanceof Error ? err.message : "Could not save." });
+        setMessage({ ok: false, text: err instanceof Error ? err.message : t("zone_editor.could_not_save") });
       }
     });
   }
 
   function clear() {
-    if (!confirm("Remove this boundary? The store will deliver to every location.")) return;
+    if (!confirm(t("zone_editor.confirm_remove"))) return;
     startTransition(async () => {
       try {
         await updateWarehouseZone(warehouseId, null);
-        setMessage({ ok: true, text: "Boundary removed — this store now delivers everywhere." });
+        setMessage({ ok: true, text: t("zone_editor.boundary_removed") });
         router.refresh();
       } catch (err) {
-        setMessage({ ok: false, text: err instanceof Error ? err.message : "Could not remove." });
+        setMessage({ ok: false, text: err instanceof Error ? err.message : t("zone_editor.could_not_remove") });
       }
     });
   }
@@ -190,19 +192,19 @@ export default function ZoneEditor({
     <div className="flex flex-col gap-3">
       <ol className="grid gap-2 text-xs text-neutral-600 sm:grid-cols-3">
         <li className="rounded-lg bg-neutral-50 p-2">
-          <b>1. Locate the store</b>
+          <b>{t("zone_editor.step1_title")}</b>
           <br />
-          Search below, click the map, drag the pin, or tap 🎯 on the map for your current location.
+          {t("zone_editor.step1_body")}
         </li>
         <li className="rounded-lg bg-neutral-50 p-2">
-          <b>2. Set the radius</b>
+          <b>{t("zone_editor.step2_title")}</b>
           <br />
-          Pick a preset or use the slider.
+          {t("zone_editor.step2_body")}
         </li>
         <li className="rounded-lg bg-neutral-50 p-2">
-          <b>3. Save</b>
+          <b>{t("zone_editor.step3_title")}</b>
           <br />
-          Customers outside the circle can&apos;t order.
+          {t("zone_editor.step3_body")}
         </li>
       </ol>
 
@@ -216,9 +218,9 @@ export default function ZoneEditor({
             disabled={busy}
             className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium hover:bg-neutral-50 disabled:opacity-50"
           >
-            🏪 Use store address
+            {t("zone_editor.use_store_address")}
           </button>
-          <p className="text-xs text-neutral-400">On file: {storeAddress}</p>
+          <p className="text-xs text-neutral-400">{t("zone_editor.on_file", { address: storeAddress })}</p>
         </div>
       )}
 
@@ -228,9 +230,9 @@ export default function ZoneEditor({
           type="button"
           onClick={useMyLocation}
           disabled={busy}
-          title="Locate me"
-          aria-label="Use my current location"
-          className="absolute bottom-3 right-3 z-[1000] flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-300 bg-white text-base shadow-md transition hover:bg-neutral-50 disabled:opacity-50"
+          title={t("zone_editor.locate_me")}
+          aria-label={t("zone_editor.use_my_current_location")}
+          className="absolute bottom-3 end-3 z-[1000] flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-300 bg-white text-base shadow-md transition hover:bg-neutral-50 disabled:opacity-50"
         >
           {busy ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-blue-600" />
@@ -279,13 +281,8 @@ export default function ZoneEditor({
           </div>
         </div>
         <p className="mt-2 text-xs text-neutral-500">
-          Covers about <b>{areaKm2.toFixed(0)} km²</b> ({(radius * 2).toFixed(1)} km across)
-          {center && (
-            <>
-              {" "}
-              · centre {center[0].toFixed(4)}, {center[1].toFixed(4)}
-            </>
-          )}
+          {t("zone_editor.covers_about", { area: areaKm2.toFixed(0), diameter: (radius * 2).toFixed(1) })}
+          {center && t("zone_editor.centre", { lat: center[0].toFixed(4), lng: center[1].toFixed(4) })}
         </p>
       </div>
 
@@ -296,7 +293,7 @@ export default function ZoneEditor({
           disabled={pending}
           className="rounded-full bg-blue-700 px-5 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
         >
-          {pending ? "Saving..." : "Save boundary"}
+          {pending ? t("common.saving") : t("zone_editor.save_boundary")}
         </button>
         {initialRadiusKm != null && (
           <button
@@ -304,7 +301,7 @@ export default function ZoneEditor({
             disabled={pending}
             className="rounded-full border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100 disabled:opacity-50"
           >
-            Remove boundary
+            {t("zone_editor.remove_boundary")}
           </button>
         )}
       </div>

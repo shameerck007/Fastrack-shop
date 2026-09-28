@@ -4,10 +4,12 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { findUserByEmail, adminCreateMerchant, type FoundUser } from "@/lib/actions/admin-merchants";
+import { useLocale } from "@/components/LocaleProvider";
 
 const COUNTRIES = ["Saudi Arabia", "United Arab Emirates", "Kuwait", "Bahrain", "Qatar", "Oman", "India"];
 
 export default function AddMerchantForm() {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [found, setFound] = useState<FoundUser | null | undefined>(undefined); // undefined = not searched yet
@@ -48,10 +50,10 @@ export default function AddMerchantForm() {
       try {
         const user = await findUserByEmail(email);
         setFound(user);
-        if (!user) setError("No account with that email — ask them to register first, then try again.");
-        else if (user.hasStore) setError("This user already has a store.");
+        if (!user) setError(t("add_merchant.no_account"));
+        else if (user.hasStore) setError(t("add_merchant.already_has_store"));
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Lookup failed.");
+        setError(err instanceof Error ? err.message : t("add_merchant.lookup_failed"));
       }
     });
   }
@@ -59,7 +61,7 @@ export default function AddMerchantForm() {
   function submit() {
     if (!found) return;
     if (!name.trim() || !crNumber.trim()) {
-      setError("Store name and CR number are required.");
+      setError(t("add_merchant.name_cr_required"));
       return;
     }
     setError(null);
@@ -78,7 +80,7 @@ export default function AddMerchantForm() {
         close();
         router.push(`/admin/merchants/${storeId}`);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not create the merchant.");
+        setError(err instanceof Error ? err.message : t("add_merchant.could_not_create"));
       }
     });
   }
@@ -89,15 +91,12 @@ export default function AddMerchantForm() {
         onClick={() => setOpen(true)}
         className="flex items-center gap-2 rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800"
       >
-        <span aria-hidden>＋</span> Add Merchant
+        {t("add_merchant.add_merchant_btn")}
       </button>
 
-      <Modal open={open} onClose={close} title="Add merchant" size="md">
+      <Modal open={open} onClose={close} title={t("add_merchant.add_merchant_title")} size="md">
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-neutral-500">
-            The store owner must already have a registered account. Look them up by email, then fill in their
-            store details — it goes live approved immediately, no application review needed.
-          </p>
+          <p className="text-sm text-neutral-500">{t("add_merchant.intro")}</p>
 
           <div className="flex gap-2">
             <input
@@ -107,7 +106,7 @@ export default function AddMerchantForm() {
                 setFound(undefined);
                 setError(null);
               }}
-              placeholder="owner@example.com"
+              placeholder={t("add_merchant.owner_email_placeholder")}
               type="email"
               className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
             />
@@ -116,7 +115,7 @@ export default function AddMerchantForm() {
               disabled={!email.trim() || searching}
               className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50"
             >
-              {searching ? "Searching…" : "Find"}
+              {searching ? t("add_merchant.searching") : t("add_merchant.find")}
             </button>
           </div>
 
@@ -125,46 +124,46 @@ export default function AddMerchantForm() {
           {found && !found.hasStore && (
             <>
               <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-                ✓ Found: {found.fullName ?? "Unnamed account"} (currently {found.role})
+                {t("add_merchant.found_account", { name: found.fullName ?? t("add_merchant.unnamed_account"), role: found.role })}
               </p>
 
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Store name"
+                placeholder={t("add_merchant.store_name")}
                 className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               />
               <div className="grid grid-cols-2 gap-2">
                 <input
                   value={crNumber}
                   onChange={(e) => setCrNumber(e.target.value)}
-                  placeholder="CR number"
+                  placeholder={t("add_merchant.cr_number")}
                   className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
                 />
                 <input
                   value={vatNumber}
                   onChange={(e) => setVatNumber(e.target.value)}
-                  placeholder="VAT number (optional)"
+                  placeholder={t("add_merchant.vat_number_optional")}
                   className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
                 />
               </div>
               <input
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
-                placeholder="Contact phone (optional)"
+                placeholder={t("add_merchant.contact_phone_optional")}
                 className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               />
               <input
                 value={addressLine}
                 onChange={(e) => setAddressLine(e.target.value)}
-                placeholder="Address (optional)"
+                placeholder={t("add_merchant.address_optional")}
                 className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               />
               <div className="grid grid-cols-2 gap-2">
                 <input
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="City"
+                  placeholder={t("add_merchant.city")}
                   className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
                 />
                 <select
@@ -185,7 +184,7 @@ export default function AddMerchantForm() {
                 disabled={saving}
                 className="mt-1 rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
               >
-                {saving ? "Creating…" : "Create merchant"}
+                {saving ? t("add_merchant.creating") : t("add_merchant.create_merchant")}
               </button>
             </>
           )}

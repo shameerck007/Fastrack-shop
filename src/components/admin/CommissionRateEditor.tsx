@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { updateStoreCommissionRate } from "@/lib/actions/admin-settlements";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function CommissionRateEditor({ storeId, rate }: { storeId: string; rate: number }) {
+  const { t } = useLocale();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(String(rate));
   const [saving, setSaving] = useState(false);
@@ -12,7 +14,7 @@ export default function CommissionRateEditor({ storeId, rate }: { storeId: strin
   async function save() {
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
-      setError("Enter a number between 0 and 100.");
+      setError(t("commission_editor.invalid_rate"));
       return;
     }
     setSaving(true);
@@ -21,7 +23,7 @@ export default function CommissionRateEditor({ storeId, rate }: { storeId: strin
       await updateStoreCommissionRate(storeId, parsed);
       setEditing(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't save the commission rate.");
+      setError(e instanceof Error ? e.message : t("commission_editor.couldnt_save"));
     } finally {
       setSaving(false);
     }
@@ -36,7 +38,7 @@ export default function CommissionRateEditor({ storeId, rate }: { storeId: strin
         }}
         className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
       >
-        {rate}% commission <span aria-hidden className="text-xs">✏️</span>
+        {t("commission_editor.commission_label", { rate })} <span aria-hidden className="text-xs">✏️</span>
       </button>
     );
   }
@@ -60,10 +62,10 @@ export default function CommissionRateEditor({ storeId, rate }: { storeId: strin
           disabled={saving}
           className="rounded-lg bg-blue-700 px-3 py-1 text-xs font-medium text-white hover:bg-blue-800 disabled:opacity-50"
         >
-          {saving ? "Saving…" : "Save"}
+          {saving ? t("common.saving") : t("common.save")}
         </button>
         <button onClick={() => setEditing(false)} className="text-xs text-neutral-500 hover:underline">
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}

@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyStoreProducts } from "@/lib/merchant";
 import StoreStatusActions from "@/components/admin/StoreStatusActions";
 import { formatSAR } from "@/lib/utils";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -45,6 +47,8 @@ export default async function AdminMerchantDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const supabase = await createClient();
 
   const { data: store } = await supabase.from("stores").select("*").eq("id", id).maybeSingle();
@@ -72,7 +76,7 @@ export default async function AdminMerchantDetailPage({
   return (
     <div>
       <Link href="/admin/merchants" className="text-sm text-blue-600 hover:underline">
-        ← All merchants
+        {t("merchant_detail.all_merchants")}
       </Link>
 
       <div className="mb-4 mt-2 flex flex-wrap items-start justify-between gap-3">
@@ -80,11 +84,15 @@ export default async function AdminMerchantDetailPage({
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold">{store.name}</h1>
             <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[store.status]}`}>
-              {store.status}
+              {t(`merchants_list.status_${store.status}`)}
             </span>
           </div>
           <p className="text-sm text-neutral-500">
-            {store.city}, {store.country ?? "Saudi Arabia"} · Joined {new Date(store.created_at).toLocaleDateString()}
+            {t("merchant_detail.joined", {
+              city: store.city,
+              country: store.country ?? "Saudi Arabia",
+              date: new Date(store.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US"),
+            })}
           </p>
         </div>
         <StoreStatusActions storeId={store.id} status={store.status} />
@@ -92,32 +100,32 @@ export default async function AdminMerchantDetailPage({
 
       {store.rejection_reason && (
         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          <b>Rejection reason:</b> {store.rejection_reason}
+          <b>{t("merchant_detail.rejection_reason")}</b> {store.rejection_reason}
         </div>
       )}
 
       <div className="mb-5 grid grid-cols-3 gap-3">
         <div className="rounded-xl border border-neutral-200 bg-white p-4 text-center">
           <p className="text-2xl font-semibold">{products.length}</p>
-          <p className="text-xs text-neutral-500">Products ({activeCount} active)</p>
+          <p className="text-xs text-neutral-500">{t("merchant_detail.products_active", { count: activeCount })}</p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4 text-center">
           <p className="text-2xl font-semibold">{orderCount ?? 0}</p>
-          <p className="text-xs text-neutral-500">Orders fulfilled</p>
+          <p className="text-xs text-neutral-500">{t("merchant_detail.orders_fulfilled")}</p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4 text-center">
           <p className={`text-2xl font-semibold ${lowStock > 0 ? "text-amber-600" : ""}`}>{lowStock}</p>
-          <p className="text-xs text-neutral-500">Low stock items</p>
+          <p className="text-xs text-neutral-500">{t("merchant_detail.low_stock_items")}</p>
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-1">
-          <Card title="Owner">
-            <Row label="Name">{owner?.full_name ?? "—"}</Row>
-            <Row label="Email">{typeof ownerEmail === "string" ? ownerEmail : "—"}</Row>
+          <Card title={t("merchant_detail.owner")}>
+            <Row label={t("merchant_detail.name")}>{owner?.full_name ?? "—"}</Row>
+            <Row label={t("merchant_detail.email")}>{typeof ownerEmail === "string" ? ownerEmail : "—"}</Row>
             {owner?.phone && (
-              <Row label="Phone">
+              <Row label={t("merchant_detail.phone")}>
                 <a href={`tel:${owner.phone}`} className="text-blue-600 hover:underline">
                   {owner.phone}
                 </a>
@@ -125,15 +133,15 @@ export default async function AdminMerchantDetailPage({
             )}
           </Card>
 
-          <Card title="Business details">
-            <Row label="CR number">{store.cr_number}</Row>
-            {store.vat_number && <Row label="VAT number">{store.vat_number}</Row>}
-            {store.contact_phone && <Row label="Contact phone">{store.contact_phone}</Row>}
-            {store.bank_name && <Row label="Bank">{store.bank_name}</Row>}
-            {store.bank_iban && <Row label="IBAN">{store.bank_iban}</Row>}
+          <Card title={t("merchant_detail.business_details")}>
+            <Row label={t("merchant_detail.cr_number")}>{store.cr_number}</Row>
+            {store.vat_number && <Row label={t("merchant_detail.vat_number")}>{store.vat_number}</Row>}
+            {store.contact_phone && <Row label={t("merchant_detail.contact_phone")}>{store.contact_phone}</Row>}
+            {store.bank_name && <Row label={t("merchant_detail.bank")}>{store.bank_name}</Row>}
+            {store.bank_iban && <Row label={t("merchant_detail.iban")}>{store.bank_iban}</Row>}
             {store.address_line && (
               <div className="pt-1 text-sm">
-                <p className="text-neutral-500">Address</p>
+                <p className="text-neutral-500">{t("merchant_detail.address")}</p>
                 <p>
                   {store.address_line}, {store.city}, {store.country ?? "Saudi Arabia"}
                 </p>
@@ -141,30 +149,30 @@ export default async function AdminMerchantDetailPage({
             )}
           </Card>
 
-          <Card title="Documents">
+          <Card title={t("merchant_detail.documents")}>
             <div className="flex flex-col gap-2 text-sm">
               {crUrl ? (
                 <a href={crUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-                  📄 CR document
+                  {t("merchant_detail.cr_document")}
                 </a>
               ) : (
-                <span className="text-neutral-400">No CR document uploaded</span>
+                <span className="text-neutral-400">{t("merchant_detail.no_cr_document")}</span>
               )}
               {vatUrl ? (
                 <a href={vatUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-                  📄 VAT document
+                  {t("merchant_detail.vat_document")}
                 </a>
               ) : (
-                <span className="text-neutral-400">No VAT document uploaded</span>
+                <span className="text-neutral-400">{t("merchant_detail.no_vat_document")}</span>
               )}
             </div>
           </Card>
         </div>
 
         <div className="lg:col-span-2">
-          <Card title={`Products (${products.length})`}>
+          <Card title={t("merchant_detail.products_count", { count: products.length })}>
             {products.length === 0 ? (
-              <p className="text-sm text-neutral-400">No products listed yet.</p>
+              <p className="text-sm text-neutral-400">{t("merchant_detail.no_products_listed")}</p>
             ) : (
               <div className="divide-y divide-neutral-100">
                 {products.map((product) => {
@@ -186,14 +194,14 @@ export default async function AdminMerchantDetailPage({
                       </div>
                       <span className="shrink-0 text-sm font-medium">{variant ? formatSAR(variant.price) : "—"}</span>
                       <span className="w-16 shrink-0 text-right text-xs text-neutral-500">
-                        {inv ? `${inv.stock} in stock` : "no stock row"}
+                        {inv ? t("merchant_detail.in_stock", { count: inv.stock }) : t("product_card_admin.no_stock_row")}
                       </span>
                       <span
                         className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${
                           product.is_active ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"
                         }`}
                       >
-                        {product.is_active ? "Active" : "Inactive"}
+                        {product.is_active ? t("product_card_admin.active") : t("product_card_admin.inactive")}
                       </span>
                     </div>
                   );
