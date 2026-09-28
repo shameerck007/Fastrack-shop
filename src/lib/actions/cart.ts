@@ -7,9 +7,23 @@ import { checkProductsDeliverable, getCustomerLocation } from "@/lib/delivery-zo
 
 async function getOrCreateCartId(): Promise<string> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getUser() normally resolves { user: null } for a guest rather than
+  // throwing, but if the underlying auth fetch itself fails (seen from
+  // certain mobile webviews before any session cookie exists), it can
+  // throw a Supabase-specific error class instead of a plain Error —
+  // which doesn't survive the Server Action -> client serialization
+  // boundary cleanly and surfaces as an opaque RSC render error instead
+  // of "you must be logged in". Normalize any failure here to the same
+  // plain, expected error so the client's login-redirect handling always
+  // has something it can actually match against.
+  let user;
+  try {
+    ({
+      data: { user },
+    } = await supabase.auth.getUser());
+  } catch {
+    throw new Error("You must be logged in.");
+  }
 
   if (!user) throw new Error("You must be logged in.");
 

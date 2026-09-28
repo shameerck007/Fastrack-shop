@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { toggleWishlist } from "@/lib/actions/wishlist";
 import { useLocale } from "@/components/LocaleProvider";
+import { createClient } from "@/lib/supabase/client";
 
 export default function WishlistButton({
   productId,
@@ -22,8 +23,22 @@ export default function WishlistButton({
 
   function handleClick() {
     const prev = inList;
-    setInList(!prev); // optimistic
     startTransition(async () => {
+      // Same fix as QuickAddToCart: check login client-side first rather
+      // than calling the server action and reacting to its "must be
+      // logged in" error afterward — that round-trip's own auth check was
+      // the path that failed unpredictably on iOS/WebKit for a guest with
+      // no session yet, surfacing as an opaque RSC render error.
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+        return;
+      }
+
+      setInList(!prev); // optimistic
       try {
         const result = await toggleWishlist(productId);
         setInList(result.inList);

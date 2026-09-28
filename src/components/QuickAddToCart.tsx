@@ -6,6 +6,7 @@ import { addToCart } from "@/lib/actions/cart";
 import { notifyCartChanged } from "@/lib/cart-events";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
+import { createClient } from "@/lib/supabase/client";
 
 /** Amazon-style quick add: a floating "+" on the product card that adds one
  * unit of the default variant without leaving the listing — no trip to the
@@ -57,6 +58,25 @@ export default function QuickAddToCart({
     setError(null);
     startTransition(async () => {
       try {
+        // Check login client-side first, the same way the product-page Add
+        // to Cart form does (it gets isLoggedIn as a server-computed prop)
+        // — a guest is redirected immediately, without ever invoking the
+        // addToCart server action. Calling the action first and reacting to
+        // its "must be logged in" error afterward (the previous approach)
+        // meant every logged-out tap on every card's "+" made the server
+        // action perform its own auth check as its very first move — the
+        // one path that turned out to fail unpredictably on iOS/WebKit
+        // before any session exists, surfacing as an opaque RSC render
+        // error instead of the intended login redirect.
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+          return;
+        }
+
         await addToCart(variantId, 1, location ? { lat: location.lat, lng: location.lng } : undefined);
         notifyCartChanged();
         setJustAdded(true);
