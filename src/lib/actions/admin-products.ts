@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function createProduct(input: {
   categoryId: string;
   name: string;
+  nameAr?: string;
   brand?: string;
   sku?: string;
   description?: string;
@@ -25,6 +26,7 @@ export async function createProduct(input: {
     .insert({
       category_id: input.categoryId,
       name: input.name,
+      name_ar: input.nameAr?.trim() || null,
       brand: input.brand ?? null,
       sku: input.sku ?? null,
       description: input.description ?? null,
@@ -65,6 +67,7 @@ export async function updateProduct(
   input: {
     categoryId: string;
     name: string;
+    nameAr?: string;
     brand?: string;
     sku?: string;
     description?: string;
@@ -83,6 +86,7 @@ export async function updateProduct(
     .update({
       category_id: input.categoryId,
       name: input.name,
+      name_ar: input.nameAr?.trim() || null,
       brand: input.brand ?? null,
       sku: input.sku ?? null,
       description: input.description ?? null,

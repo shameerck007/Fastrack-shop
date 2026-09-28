@@ -21,6 +21,7 @@ export async function getMyStore(): Promise<Store | null> {
 export interface MerchantProduct {
   id: string;
   name: string;
+  name_ar: string | null;
   brand: string | null;
   sku: string | null;
   description: string | null;
@@ -44,7 +45,7 @@ export async function getMyStoreProducts(storeId: string): Promise<MerchantProdu
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, brand, sku, description, image_url, is_active, category_id, category:categories(name), product_variants(id, label, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock))"
+      "id, name, name_ar, brand, sku, description, image_url, is_active, category_id, category:categories(name), product_variants(id, label, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock))"
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createCategory, updateCategory } from "@/lib/actions/admin-categories";
+import { autoTranslateToArabic } from "@/lib/actions/translate";
 import Modal from "@/components/Modal";
 import ImageUploader from "@/components/ImageUploader";
 import { useLocale } from "@/components/LocaleProvider";
@@ -27,6 +28,8 @@ export default function CategoryForm({
   const [imageUrl, setImageUrl] = useState<string | null>(existing?.image_url ?? null);
   const [name, setName] = useState(existing?.name ?? "");
   const [nameAr, setNameAr] = useState(existing?.name_ar ?? "");
+  const [nameArEdited, setNameArEdited] = useState(Boolean(existing?.name_ar));
+  const [translating, setTranslating] = useState(false);
   const [slug, setSlug] = useState(existing?.slug ?? "");
   const [icon, setIcon] = useState(existing?.icon ?? "");
   const [sortOrder, setSortOrder] = useState(String(existing?.sort_order ?? 0));
@@ -36,6 +39,17 @@ export default function CategoryForm({
   const router = useRouter();
 
   const availableParents = parentOptions.filter((c) => c.id !== existing?.id);
+
+  async function autoTranslate(sourceName: string) {
+    if (!sourceName.trim() || nameArEdited) return;
+    setTranslating(true);
+    try {
+      const translated = await autoTranslateToArabic(sourceName);
+      if (translated) setNameAr(translated);
+    } finally {
+      setTranslating(false);
+    }
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,6 +80,7 @@ export default function CategoryForm({
           setImageUrl(null);
           setName("");
           setNameAr("");
+          setNameArEdited(false);
           setSlug("");
           setIcon("");
           setSortOrder("0");
@@ -91,15 +106,33 @@ export default function CategoryForm({
           placeholder={t("category_form.name_placeholder")}
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onBlur={(e) => autoTranslate(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
-        <input
-          placeholder={t("category_form.name_ar_placeholder")}
-          value={nameAr}
-          onChange={(e) => setNameAr(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          dir="rtl"
-        />
+        <div className="flex items-center gap-1.5">
+          <input
+            placeholder={translating ? t("category_form.translating") : t("category_form.name_ar_placeholder")}
+            value={nameAr}
+            onChange={(e) => {
+              setNameAr(e.target.value);
+              setNameArEdited(true);
+            }}
+            className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            dir="rtl"
+          />
+          <button
+            type="button"
+            title={t("category_form.auto_translate")}
+            disabled={translating || !name.trim()}
+            onClick={() => {
+              setNameArEdited(false);
+              autoTranslate(name);
+            }}
+            className="shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-xs hover:bg-neutral-50 disabled:opacity-50"
+          >
+            {translating ? "…" : "🌐"}
+          </button>
+        </div>
         <input
           placeholder={existing ? t("category_form.slug_placeholder") : t("category_form.slug_auto_placeholder")}
           value={slug}

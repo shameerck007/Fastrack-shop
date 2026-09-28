@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 export interface AdminProduct {
   id: string;
   name: string;
+  name_ar: string | null;
   brand: string | null;
   sku: string | null;
   description: string | null;
@@ -26,7 +27,7 @@ export async function getAdminProducts(): Promise<AdminProduct[]> {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, brand, sku, description, image_url, is_active, category_id, category:categories(name), product_variants(id, label, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock, warehouse_id))"
+      "id, name, name_ar, brand, sku, description, image_url, is_active, category_id, category:categories(name), product_variants(id, label, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock, warehouse_id))"
     )
     .order("created_at", { ascending: false });
 

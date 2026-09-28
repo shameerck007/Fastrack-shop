@@ -24,6 +24,7 @@ async function getOwnApprovedStore(supabase: Awaited<ReturnType<typeof createCli
 export async function createMerchantProduct(input: {
   categoryId: string;
   name: string;
+  nameAr?: string;
   brand?: string;
   sku?: string;
   description?: string;
@@ -48,6 +49,7 @@ export async function createMerchantProduct(input: {
       category_id: input.categoryId,
       store_id: store.id,
       name: input.name,
+      name_ar: input.nameAr?.trim() || null,
       brand: input.brand ?? null,
       sku: input.sku ?? null,
       description: input.description ?? null,
@@ -88,6 +90,7 @@ export async function updateMerchantProduct(
   input: {
     categoryId: string;
     name: string;
+    nameAr?: string;
     brand?: string;
     sku?: string;
     description?: string;
@@ -121,6 +124,7 @@ export async function updateMerchantProduct(
     .update({
       category_id: input.categoryId,
       name: input.name,
+      name_ar: input.nameAr?.trim() || null,
       brand: input.brand ?? null,
       sku: input.sku ?? null,
       description: input.description ?? null,

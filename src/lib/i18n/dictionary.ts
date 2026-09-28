@@ -430,6 +430,9 @@ const en = {
       order_label: "/{slug} · order {order}",
       confirm_delete: 'Delete "{name}"? This can\'t be undone.',
       could_not_delete: "Could not delete.",
+      auto_translate: "Auto-translate",
+      translating: "Translating…",
+      auto_translate_failed: "Couldn't auto-translate — enter it manually.",
     },
     stock_cell: {
       stock: "Stock",
@@ -458,6 +461,7 @@ const en = {
       add_a_new_product: "Add a new product",
       description_merchant_placeholder: "Description (optional) — ingredients, details, what makes it worth buying",
       compare_at_price_discount: "Compare-at price (optional, for showing a discount)",
+      name_ar_placeholder: "Name in Arabic (optional)",
     },
     zones_list: {
       stores: "Stores",
@@ -1045,6 +1049,9 @@ const ar: LocaleShape = {
       order_label: "/{slug} · الترتيب {order}",
       confirm_delete: 'حذف "{name}"؟ لا يمكن التراجع عن هذا.',
       could_not_delete: "تعذّر الحذف.",
+      auto_translate: "ترجمة تلقائية",
+      translating: "جارٍ الترجمة…",
+      auto_translate_failed: "تعذّرت الترجمة التلقائية — أدخلها يدويًا.",
     },
     stock_cell: {
       stock: "المخزون",
@@ -1073,6 +1080,7 @@ const ar: LocaleShape = {
       add_a_new_product: "إضافة منتج جديد",
       description_merchant_placeholder: "الوصف (اختياري) — المكونات، التفاصيل، ما يجعله يستحق الشراء",
       compare_at_price_discount: "السعر قبل الخصم (اختياري، لعرض خصم)",
+      name_ar_placeholder: "الاسم بالعربية (اختياري)",
     },
     zones_list: {
       stores: "المتاجر",

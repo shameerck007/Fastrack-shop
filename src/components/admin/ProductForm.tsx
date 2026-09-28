@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createProduct, updateProduct } from "@/lib/actions/admin-products";
+import { autoTranslateToArabic } from "@/lib/actions/translate";
 import ImageUploader from "@/components/ImageUploader";
 import Modal from "@/components/Modal";
 import type { Category, Warehouse } from "@/types/database";
@@ -30,6 +31,9 @@ export default function ProductForm({
 
   const [imageUrl, setImageUrl] = useState<string | null>(existing?.image_url ?? null);
   const [name, setName] = useState(existing?.name ?? "");
+  const [nameAr, setNameAr] = useState(existing?.name_ar ?? "");
+  const [nameArEdited, setNameArEdited] = useState(Boolean(existing?.name_ar));
+  const [translating, setTranslating] = useState(false);
   const [brand, setBrand] = useState(existing?.brand ?? "");
   const [sku, setSku] = useState(existing?.sku ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
@@ -46,9 +50,22 @@ export default function ProductForm({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  async function autoTranslate(sourceName: string) {
+    if (!sourceName.trim() || nameArEdited) return;
+    setTranslating(true);
+    try {
+      const translated = await autoTranslateToArabic(sourceName);
+      if (translated) setNameAr(translated);
+    } finally {
+      setTranslating(false);
+    }
+  }
+
   function resetForm() {
     setImageUrl(null);
     setName("");
+    setNameAr("");
+    setNameArEdited(false);
     setBrand("");
     setSku("");
     setDescription("");
@@ -70,6 +87,7 @@ export default function ProductForm({
           await updateProduct(existing.id, existingVariant.id, {
             categoryId,
             name,
+            nameAr: nameAr || undefined,
             brand: brand || undefined,
             sku: sku || undefined,
             description: description || undefined,
@@ -85,6 +103,7 @@ export default function ProductForm({
           await createProduct({
             categoryId,
             name,
+            nameAr: nameAr || undefined,
             brand: brand || undefined,
             sku: sku || undefined,
             description: description || undefined,
@@ -116,8 +135,33 @@ export default function ProductForm({
           placeholder={t("product_form.product_name")}
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onBlur={(e) => autoTranslate(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
+        <div className="flex items-center gap-1.5">
+          <input
+            placeholder={translating ? t("category_form.translating") : t("product_form.name_ar_placeholder")}
+            value={nameAr}
+            onChange={(e) => {
+              setNameAr(e.target.value);
+              setNameArEdited(true);
+            }}
+            className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            dir="rtl"
+          />
+          <button
+            type="button"
+            title={t("category_form.auto_translate")}
+            disabled={translating || !name.trim()}
+            onClick={() => {
+              setNameArEdited(false);
+              autoTranslate(name);
+            }}
+            className="shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-xs hover:bg-neutral-50 disabled:opacity-50"
+          >
+            {translating ? "…" : "🌐"}
+          </button>
+        </div>
         <input
           placeholder={t("product_form.brand")}
           value={brand}
