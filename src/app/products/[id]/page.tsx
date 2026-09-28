@@ -14,7 +14,7 @@ import { getCategoryTheme } from "@/lib/categoryTheme";
 import { createClient } from "@/lib/supabase/server";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
-import { localizedName } from "@/lib/i18n/localized";
+import { localizedName, localizedField } from "@/lib/i18n/localized";
 
 export default async function ProductPage({
   params,
@@ -85,7 +85,7 @@ export default async function ProductPage({
         <div className="flex flex-col gap-4 lg:col-span-4">
           <div>
             <div className="mb-1 flex items-center gap-2">
-              <p className="text-sm text-neutral-500">{product.brand}</p>
+              <p className="text-sm text-neutral-500">{localizedField(product.brand, product.brand_ar, locale)}</p>
               {product.is_fresh && (
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
                   {locale === "ar" ? "طازج" : "Fresh"}
@@ -107,7 +107,7 @@ export default async function ProductPage({
             {product.origin && (
               <>
                 <dt className="font-medium">{t("product.origin")}</dt>
-                <dd>{product.origin}</dd>
+                <dd>{localizedField(product.origin, product.origin_ar, locale)}</dd>
               </>
             )}
             {product.category && (
@@ -121,7 +121,9 @@ export default async function ProductPage({
           {product.description && (
             <div>
               <h2 className="mb-1 font-medium">{t("product.about_item")}</h2>
-              <p className="text-sm text-neutral-600">{product.description}</p>
+              <p className="text-sm text-neutral-600">
+                {localizedField(product.description, product.description_ar, locale)}
+              </p>
             </div>
           )}
         </div>

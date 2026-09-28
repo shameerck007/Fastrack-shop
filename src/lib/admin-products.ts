@@ -5,8 +5,10 @@ export interface AdminProduct {
   name: string;
   name_ar: string | null;
   brand: string | null;
+  brand_ar: string | null;
   sku: string | null;
   description: string | null;
+  description_ar: string | null;
   image_url: string | null;
   is_active: boolean;
   category_id: string | null;
@@ -14,6 +16,7 @@ export interface AdminProduct {
   product_variants: {
     id: string;
     label: string;
+    label_ar: string | null;
     unit: string;
     quantity: number;
     price: number;
@@ -27,7 +30,7 @@ export async function getAdminProducts(): Promise<AdminProduct[]> {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, name_ar, brand, sku, description, image_url, is_active, category_id, category:categories(name), product_variants(id, label, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock, warehouse_id))"
+      "id, name, name_ar, brand, brand_ar, sku, description, description_ar, image_url, is_active, category_id, category:categories(name), product_variants(id, label, label_ar, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock, warehouse_id))"
     )
     .order("created_at", { ascending: false });
 

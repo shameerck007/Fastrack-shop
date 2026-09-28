@@ -26,12 +26,15 @@ export async function createMerchantProduct(input: {
   name: string;
   nameAr?: string;
   brand?: string;
+  brandAr?: string;
   sku?: string;
   description?: string;
+  descriptionAr?: string;
   imageUrl?: string;
   price: number;
   compareAtPrice?: number;
   variantLabel: string;
+  variantLabelAr?: string;
   unit?: string;
   quantity?: number;
   stock: number;
@@ -51,8 +54,10 @@ export async function createMerchantProduct(input: {
       name: input.name,
       name_ar: input.nameAr?.trim() || null,
       brand: input.brand ?? null,
+      brand_ar: input.brandAr?.trim() || null,
       sku: input.sku ?? null,
       description: input.description ?? null,
+      description_ar: input.descriptionAr?.trim() || null,
       image_url: input.imageUrl ?? null,
     })
     .select("id")
@@ -64,6 +69,7 @@ export async function createMerchantProduct(input: {
     .insert({
       product_id: product.id,
       label: input.variantLabel,
+      label_ar: input.variantLabelAr?.trim() || null,
       unit: input.unit ?? "unit",
       quantity: input.quantity ?? 1,
       price: input.price,
@@ -92,12 +98,15 @@ export async function updateMerchantProduct(
     name: string;
     nameAr?: string;
     brand?: string;
+    brandAr?: string;
     sku?: string;
     description?: string;
+    descriptionAr?: string;
     imageUrl?: string;
     price: number;
     compareAtPrice?: number;
     variantLabel: string;
+    variantLabelAr?: string;
     unit?: string;
     quantity?: number;
   }
@@ -126,8 +135,10 @@ export async function updateMerchantProduct(
       name: input.name,
       name_ar: input.nameAr?.trim() || null,
       brand: input.brand ?? null,
+      brand_ar: input.brandAr?.trim() || null,
       sku: input.sku ?? null,
       description: input.description ?? null,
+      description_ar: input.descriptionAr?.trim() || null,
       image_url: input.imageUrl ?? null,
     })
     .eq("id", productId);
@@ -137,6 +148,7 @@ export async function updateMerchantProduct(
     .from("product_variants")
     .update({
       label: input.variantLabel,
+      label_ar: input.variantLabelAr?.trim() || null,
       unit: input.unit ?? "unit",
       quantity: input.quantity ?? 1,
       price: input.price,

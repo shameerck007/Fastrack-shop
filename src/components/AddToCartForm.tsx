@@ -6,6 +6,7 @@ import { addToCart } from "@/lib/actions/cart";
 import { notifyCartChanged } from "@/lib/cart-events";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
+import { localizedField } from "@/lib/i18n/localized";
 import type { ProductVariant } from "@/types/database";
 
 export default function AddToCartForm({
@@ -27,7 +28,7 @@ export default function AddToCartForm({
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { location, statusForStore, openPicker } = useDeliveryLocation();
   // "outside" is handled by ProductBuyBox before this form ever renders —
   // this only needs to cover "we don't know your location yet" for stores
@@ -76,7 +77,7 @@ export default function AddToCartForm({
                     : "border-neutral-300 text-neutral-600"
                 }`}
               >
-                {v.label}
+                {localizedField(v.label, v.label_ar, locale)}
               </button>
             );
           })}

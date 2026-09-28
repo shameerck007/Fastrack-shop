@@ -104,8 +104,11 @@ export interface Product {
   name: string;
   name_ar: string | null;
   brand: string | null;
+  brand_ar: string | null;
   description: string | null;
+  description_ar: string | null;
   origin: string | null;
+  origin_ar: string | null;
   image_url: string | null;
   is_fresh: boolean;
   is_variable_weight: boolean;
@@ -120,6 +123,7 @@ export interface ProductVariant {
   id: string;
   product_id: string;
   label: string;
+  label_ar: string | null;
   unit: string;
   quantity: number;
   price: number;

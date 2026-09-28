@@ -462,6 +462,9 @@ const en = {
       description_merchant_placeholder: "Description (optional) — ingredients, details, what makes it worth buying",
       compare_at_price_discount: "Compare-at price (optional, for showing a discount)",
       name_ar_placeholder: "Name in Arabic (optional)",
+      brand_ar_placeholder: "Brand in Arabic (optional)",
+      description_ar_placeholder: "Description in Arabic (optional)",
+      variant_label_ar_placeholder: "Variant label in Arabic (optional)",
     },
     zones_list: {
       stores: "Stores",
@@ -1081,6 +1084,9 @@ const ar: LocaleShape = {
       description_merchant_placeholder: "الوصف (اختياري) — المكونات، التفاصيل، ما يجعله يستحق الشراء",
       compare_at_price_discount: "السعر قبل الخصم (اختياري، لعرض خصم)",
       name_ar_placeholder: "الاسم بالعربية (اختياري)",
+      brand_ar_placeholder: "العلامة التجارية بالعربية (اختياري)",
+      description_ar_placeholder: "الوصف بالعربية (اختياري)",
+      variant_label_ar_placeholder: "وصف الوحدة بالعربية (اختياري)",
     },
     zones_list: {
       stores: "المتاجر",

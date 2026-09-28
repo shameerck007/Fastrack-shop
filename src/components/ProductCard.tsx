@@ -7,7 +7,7 @@ import { getCategoryTheme } from "@/lib/categoryTheme";
 import StarRating from "@/components/StarRating";
 import type { ProductRating } from "@/lib/reviews";
 import { useLocale } from "@/components/LocaleProvider";
-import { localizedName } from "@/lib/i18n/localized";
+import { localizedName, localizedField } from "@/lib/i18n/localized";
 
 export default function ProductCard({
   product,
@@ -67,12 +67,14 @@ export default function ProductCard({
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3">
-        <span className="text-xs text-neutral-500">{product.brand}</span>
+        <span className="text-xs text-neutral-500">{localizedField(product.brand, product.brand_ar, locale)}</span>
         <span className="line-clamp-2 text-sm font-medium text-neutral-900">{name}</span>
         {rating && rating.review_count > 0 && (
           <StarRating rating={rating.avg_rating} count={rating.review_count} />
         )}
-        {variant && <span className="text-xs text-neutral-500">{variant.label}</span>}
+        {variant && (
+          <span className="text-xs text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</span>
+        )}
         <div className="mt-auto flex items-center justify-between pt-2">
           <div className="flex items-baseline gap-2">
             <span className="font-semibold text-blue-700">

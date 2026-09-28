@@ -7,7 +7,7 @@ import { notifyCartChanged } from "@/lib/cart-events";
 import { formatSAR } from "@/lib/utils";
 import type { CartItemWithVariant } from "@/types/database";
 import { useLocale } from "@/components/LocaleProvider";
-import { localizedName } from "@/lib/i18n/localized";
+import { localizedName, localizedField } from "@/lib/i18n/localized";
 
 export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
   const [pending, startTransition] = useTransition();
@@ -42,7 +42,7 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
     <div className="flex items-center justify-between gap-4 border-b border-neutral-200 py-3">
       <div>
         <p className="font-medium">{localizedName(product, locale)}</p>
-        <p className="text-sm text-neutral-500">{variant.label}</p>
+        <p className="text-sm text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</p>
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
 
