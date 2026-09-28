@@ -5,6 +5,7 @@ import { formatSAR } from "@/lib/utils";
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import MerchantOrderStatusAction from "@/components/merchant/MerchantOrderStatusAction";
 import type { OrderStatus } from "@/types/database";
 
 const STATUS_BADGE: Record<OrderStatus, string> = {
@@ -118,9 +119,10 @@ export default async function MerchantOrdersPage() {
                   </div>
                 </div>
 
-                <p className="border-t border-neutral-100 px-4 py-2 text-xs text-neutral-400">
-                  {t("merchant.other_seller_note")}
-                </p>
+                <div className="flex items-center justify-between gap-3 border-t border-neutral-100 px-4 py-3">
+                  <p className="text-xs text-neutral-400">{t("merchant.other_seller_note")}</p>
+                  <MerchantOrderStatusAction orderId={order.id} status={order.status} />
+                </div>
               </div>
             );
           })}
