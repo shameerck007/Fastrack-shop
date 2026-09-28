@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { ProductWithVariants } from "@/types/database";
 import { formatSAR } from "@/lib/utils";
 import { getCategoryTheme } from "@/lib/categoryTheme";
@@ -9,12 +8,6 @@ import StarRating from "@/components/StarRating";
 import type { ProductRating } from "@/lib/reviews";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName } from "@/lib/i18n/localized";
-
-// This card is also reused inside the admin/merchant product lists, which
-// stay English-only by design (see Header/BackBar's HIDE_PREFIXES) — so it
-// ignores the site-wide locale there rather than translating an internal
-// ops screen just because an admin's browser happens to be set to Arabic.
-const INTERNAL_PREFIXES = ["/admin", "/merchant", "/rider"];
 
 export default function ProductCard({
   product,
@@ -25,9 +18,7 @@ export default function ProductCard({
   rating?: ProductRating;
   stock?: number;
 }) {
-  const pathname = usePathname();
-  const { t, locale: siteLocale } = useLocale();
-  const locale = INTERNAL_PREFIXES.some((p) => pathname.startsWith(p)) ? "en" : siteLocale;
+  const { t, locale } = useLocale();
 
   const variant =
     product.product_variants.find((v) => v.is_default) ?? product.product_variants[0];

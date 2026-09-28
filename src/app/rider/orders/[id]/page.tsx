@@ -5,6 +5,8 @@ import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
 import OrderChat from "@/components/OrderChat";
 import { getOrderMessages } from "@/lib/order-messages";
 import { formatSAR } from "@/lib/utils";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 function mapsUrl(query: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
@@ -16,6 +18,8 @@ export default async function RiderOrderPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const supabase = await createClient();
 
   const { data: order } = await supabase
@@ -41,7 +45,7 @@ export default async function RiderOrderPage({
       {isTrackable && <RiderLocationTracker />}
 
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Order #{order.order_number}</h1>
+        <h1 className="text-xl font-semibold">{t("orders.order_hash", { number: order.order_number })}</h1>
         <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
           {formatSAR(order.delivery_fee)}
         </span>
@@ -53,7 +57,7 @@ export default async function RiderOrderPage({
             isPickupStage ? "border-blue-300 bg-blue-50" : "border-neutral-200 bg-white"
           }`}
         >
-          <p className="text-xs font-medium uppercase text-neutral-500">Pickup</p>
+          <p className="text-xs font-medium uppercase text-neutral-500">{t("rider.pickup_label")}</p>
           <p className="font-medium">{order.warehouses.name}</p>
           {order.warehouses.address_line && (
             <p className="text-sm text-neutral-600">{order.warehouses.address_line}</p>
@@ -64,7 +68,7 @@ export default async function RiderOrderPage({
             rel="noopener noreferrer"
             className="mt-2 inline-block text-sm font-medium text-blue-700 hover:underline"
           >
-            Navigate to store →
+            {t("rider.navigate_to_store")}
           </a>
         </div>
       )}
@@ -75,10 +79,10 @@ export default async function RiderOrderPage({
             !isPickupStage ? "border-blue-300 bg-blue-50" : "border-neutral-200 bg-white"
           }`}
         >
-          <p className="text-xs font-medium uppercase text-neutral-500">Drop-off</p>
+          <p className="text-xs font-medium uppercase text-neutral-500">{t("rider.drop_off_label")}</p>
           <p className="font-medium capitalize">{order.addresses.label}</p>
           {order.addresses.receiver_name && (
-            <p className="text-sm font-medium">Receiver: {order.addresses.receiver_name}</p>
+            <p className="text-sm font-medium">{t("rider.receiver_name", { name: order.addresses.receiver_name })}</p>
           )}
           <p className="text-sm text-neutral-600">{order.addresses.address_line}</p>
           <div className="mt-2 flex gap-4">
@@ -88,14 +92,14 @@ export default async function RiderOrderPage({
               rel="noopener noreferrer"
               className="text-sm font-medium text-blue-700 hover:underline"
             >
-              Navigate to customer →
+              {t("rider.navigate_to_customer")}
             </a>
             {(order.addresses.receiver_phone || order.profiles?.phone) && (
               <a
                 href={`tel:${order.addresses.receiver_phone || order.profiles?.phone}`}
                 className="text-sm font-medium text-blue-700 hover:underline"
               >
-                Call receiver
+                {t("rider.call_receiver")}
               </a>
             )}
           </div>
@@ -113,7 +117,7 @@ export default async function RiderOrderPage({
         ))}
       </div>
 
-      <p className="mb-4 text-right font-semibold">Order total: {formatSAR(order.total)}</p>
+      <p className="mb-4 text-end font-semibold">{t("rider.order_total_label", { amount: formatSAR(order.total) })}</p>
 
       {user && (
         <div className="mb-4">

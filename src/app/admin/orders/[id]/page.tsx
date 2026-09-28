@@ -4,13 +4,15 @@ import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
 import { getAdminOrderDetail } from "@/lib/admin-orders";
-import {
-  formatSAR,
-  ORDER_STATUS_FLOW,
-  ORDER_STATUS_LABELS,
-  PAYMENT_METHOD_LABELS,
-  DELIVERY_TYPE_LABELS,
-} from "@/lib/utils";
+import { formatSAR, ORDER_STATUS_FLOW, PAYMENT_METHOD_LABELS } from "@/lib/utils";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
+
+const DELIVERY_TYPE_KEY: Record<string, string> = {
+  express: "admin.delivery_express",
+  standard: "admin.delivery_standard",
+  scheduled: "admin.delivery_scheduled",
+};
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -36,6 +38,8 @@ export default async function AdminOrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const order = await getAdminOrderDetail(id);
   if (!order) notFound();
 
@@ -53,18 +57,22 @@ export default async function AdminOrderDetailPage({
   return (
     <div>
       <Link href="/admin/orders" className="text-sm text-blue-600 hover:underline">
-        ← All orders
+        {t("admin.all_orders")}
       </Link>
 
       <div className="mb-4 mt-2 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Order #{order.order_number}</h1>
+          <h1 className="text-xl font-semibold">{t("orders.order_hash", { number: order.order_number })}</h1>
           <p className="text-sm text-neutral-500">
-            Placed {new Date(order.created_at).toLocaleString()} · {order.items.length} item
-            {order.items.length === 1 ? "" : "s"} ({totalUnits} units)
+            {t("admin.placed", {
+              date: new Date(order.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US"),
+              count: order.items.length,
+              plural: order.items.length === 1 ? "" : "s",
+              units: totalUnits,
+            })}
           </p>
           <div className="mt-1.5 flex items-center gap-1.5">
-            <span className="text-xs text-neutral-400">Fulfilled by:</span>
+            <span className="text-xs text-neutral-400">{t("admin.fulfilled_by")}</span>
             <FulfillmentBadge fulfillment={fulfillment} />
           </div>
         </div>
@@ -78,9 +86,11 @@ export default async function AdminOrderDetailPage({
       <div className="mb-4 rounded-xl border border-neutral-200 bg-white p-4">
         {cancelled ? (
           <p className="text-sm font-medium text-rose-600">
-            ✕ Order cancelled
+            {t("admin.order_cancelled")}
             {historyByStatus.get("cancelled") &&
-              ` on ${new Date(historyByStatus.get("cancelled")!.created_at).toLocaleString()}`}
+              t("admin.on_date", {
+                date: new Date(historyByStatus.get("cancelled")!.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US"),
+              })}
           </p>
         ) : (
           <ol className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
@@ -98,12 +108,12 @@ export default async function AdminOrderDetailPage({
                       {done ? "✓" : index + 1}
                     </span>
                     <span className={`text-xs font-medium ${done ? "text-neutral-900" : "text-neutral-400"}`}>
-                      {ORDER_STATUS_LABELS[step]}
+                      {t(`order_status.${step}`)}
                     </span>
                   </div>
                   {at && (
-                    <span className="pl-7 text-[11px] text-neutral-400">
-                      {new Date(at).toLocaleString()}
+                    <span className="ps-7 text-[11px] text-neutral-400">
+                      {new Date(at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}
                     </span>
                   )}
                 </li>
@@ -115,7 +125,7 @@ export default async function AdminOrderDetailPage({
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
-          <Card title={`Items (${order.items.length})`}>
+          <Card title={t("admin.items_count", { count: order.items.length })}>
             <div className="divide-y divide-neutral-100">
               {order.items.map((item) => (
                 <div key={item.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
@@ -142,7 +152,7 @@ export default async function AdminOrderDetailPage({
                       </span>
                       {item.is_substituted && (
                         <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-600">
-                          Substituted
+                          {t("product.substituted")}
                         </span>
                       )}
                     </div>
@@ -158,38 +168,38 @@ export default async function AdminOrderDetailPage({
             </div>
           </Card>
 
-          <Card title="Payment summary">
-            <Row label="Subtotal (incl. VAT)">{formatSAR(order.subtotal)}</Row>
-            <Row label="of which VAT (15%)">
+          <Card title={t("admin.payment_summary")}>
+            <Row label={t("checkout.subtotal_incl_vat")}>{formatSAR(order.subtotal)}</Row>
+            <Row label={t("checkout.of_which_vat")}>
               <span className="text-neutral-400">{formatSAR(order.vat)}</span>
             </Row>
-            <Row label="Delivery fee">
-              {order.delivery_fee === 0 ? "Free" : formatSAR(order.delivery_fee)}
+            <Row label={t("checkout.delivery_fee")}>
+              {order.delivery_fee === 0 ? t("checkout.free") : formatSAR(order.delivery_fee)}
             </Row>
             {order.discount > 0 && (
-              <Row label={`Discount${order.coupon_code ? ` (${order.coupon_code})` : ""}`}>
+              <Row label={`${t("orders.discount")}${order.coupon_code ? ` (${order.coupon_code})` : ""}`}>
                 <span className="text-blue-600">-{formatSAR(order.discount)}</span>
               </Row>
             )}
             <div className="mt-2 flex justify-between border-t border-neutral-200 pt-2 font-semibold">
-              <span>Order total</span>
+              <span>{t("admin.order_total")}</span>
               <span>{formatSAR(order.total)}</span>
             </div>
           </Card>
 
-          <Card title="Status history">
+          <Card title={t("admin.status_history")}>
             {order.order_status_history.length === 0 ? (
-              <p className="text-sm text-neutral-400">No history recorded.</p>
+              <p className="text-sm text-neutral-400">{t("admin.no_history")}</p>
             ) : (
               <ul className="flex flex-col gap-2">
                 {[...order.order_status_history].reverse().map((h) => (
                   <li key={h.id} className="flex justify-between gap-4 text-sm">
                     <span>
-                      {ORDER_STATUS_LABELS[h.status] ?? h.status}
-                      {h.note && <span className="ml-2 text-neutral-400">— {h.note}</span>}
+                      {t(`order_status.${h.status}`)}
+                      {h.note && <span className="ms-2 text-neutral-400">— {h.note}</span>}
                     </span>
                     <span className="shrink-0 text-xs text-neutral-400">
-                      {new Date(h.created_at).toLocaleString()}
+                      {new Date(h.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}
                     </span>
                   </li>
                 ))}
@@ -199,26 +209,26 @@ export default async function AdminOrderDetailPage({
         </div>
 
         <div className="flex flex-col gap-4">
-          <Card title="Customer">
+          <Card title={t("admin.customer")}>
             <p className="font-medium">{order.profiles?.full_name ?? "—"}</p>
             {order.profiles?.phone ? (
               <a href={`tel:${order.profiles.phone}`} className="text-sm text-blue-600 hover:underline">
                 📞 {order.profiles.phone}
               </a>
             ) : (
-              <p className="text-sm text-neutral-400">No phone on file</p>
+              <p className="text-sm text-neutral-400">{t("admin.no_phone")}</p>
             )}
           </Card>
 
-          <Card title="Delivery address">
+          <Card title={t("admin.delivery_address")}>
             {addr ? (
               <div className="text-sm">
                 <p className="mb-0.5 text-xs font-medium uppercase text-neutral-400">{addr.label}</p>
                 {addr.receiver_name && (
                   <p className="font-medium">
-                    Receiver: {addr.receiver_name}
+                    {t("admin.receiver", { name: addr.receiver_name })}
                     {addr.receiver_phone && (
-                      <a href={`tel:${addr.receiver_phone}`} className="ml-2 font-normal text-blue-600 hover:underline">
+                      <a href={`tel:${addr.receiver_phone}`} className="ms-2 font-normal text-blue-600 hover:underline">
                         📞 {addr.receiver_phone}
                       </a>
                     )}
@@ -226,7 +236,10 @@ export default async function AdminOrderDetailPage({
                 )}
                 <p>{addr.address_line}</p>
                 <p className="text-neutral-500">
-                  {[addr.building_number && `Bldg ${addr.building_number}`, addr.unit_number && `Unit ${addr.unit_number}`]
+                  {[
+                    addr.building_number && `${t("addresses.bldg_short")} ${addr.building_number}`,
+                    addr.unit_number && `${t("addresses.unit_short")} ${addr.unit_number}`,
+                  ]
                     .filter(Boolean)
                     .join(", ")}
                 </p>
@@ -234,7 +247,7 @@ export default async function AdminOrderDetailPage({
                   {[addr.district, addr.city, addr.postal_code].filter(Boolean).join(", ")}
                 </p>
                 {addr.short_address && (
-                  <p className="text-neutral-500">Short address: {addr.short_address}</p>
+                  <p className="text-neutral-500">{t("admin.short_address", { code: addr.short_address })}</p>
                 )}
                 {addr.lat != null && addr.lng != null && (
                   <a
@@ -243,21 +256,21 @@ export default async function AdminOrderDetailPage({
                     rel="noreferrer"
                     className="mt-1 inline-block text-blue-600 hover:underline"
                   >
-                    📍 View on map
+                    {t("admin.view_on_map")}
                   </a>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-neutral-400">No address recorded.</p>
+              <p className="text-sm text-neutral-400">{t("admin.no_address_recorded")}</p>
             )}
           </Card>
 
-          <Card title="Delivery">
-            <Row label="Type">{DELIVERY_TYPE_LABELS[order.delivery_type] ?? order.delivery_type}</Row>
+          <Card title={t("admin.delivery")}>
+            <Row label={t("admin.type_label")}>{t(DELIVERY_TYPE_KEY[order.delivery_type] ?? "admin.delivery_standard")}</Row>
             {order.scheduled_for && (
-              <Row label="Scheduled for">{new Date(order.scheduled_for).toLocaleString()}</Row>
+              <Row label={t("admin.scheduled_for")}>{new Date(order.scheduled_for).toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}</Row>
             )}
-            <Row label="Rider">
+            <Row label={t("orders.rider")}>
               {rider ? (
                 <>
                   {rider.full_name ?? "—"}
@@ -268,27 +281,29 @@ export default async function AdminOrderDetailPage({
                   )}
                 </>
               ) : (
-                <span className="text-neutral-400">Not assigned</span>
+                <span className="text-neutral-400">{t("admin.not_assigned")}</span>
               )}
             </Row>
             {order.notes && (
               <p className="mt-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-800">
-                <b>Customer note:</b> {order.notes}
+                <b>{t("admin.customer_note")}</b> {order.notes}
               </p>
             )}
           </Card>
 
-          <Card title="Payment">
+          <Card title={t("admin.payment")}>
             {payment ? (
               <>
-                <Row label="Method">{PAYMENT_METHOD_LABELS[payment.method] ?? payment.method}</Row>
-                <Row label="Status">
+                <Row label={t("admin.method_label")}>
+                  {payment.method === "cash_on_delivery" ? t("admin.cash_on_delivery") : (PAYMENT_METHOD_LABELS[payment.method] ?? payment.method)}
+                </Row>
+                <Row label={t("admin.status_label")}>
                   <span className="capitalize">{payment.status}</span>
                 </Row>
-                <Row label="Amount">{formatSAR(payment.amount)}</Row>
+                <Row label={t("admin.amount_label")}>{formatSAR(payment.amount)}</Row>
               </>
             ) : (
-              <p className="text-sm text-neutral-400">No payment record.</p>
+              <p className="text-sm text-neutral-400">{t("admin.no_payment_record")}</p>
             )}
           </Card>
         </div>

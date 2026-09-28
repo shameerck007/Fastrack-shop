@@ -2,19 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLocale } from "@/components/LocaleProvider";
 
 const NAV = [
-  { href: "/admin", label: "Dashboard", icon: "📊" },
-  { href: "/admin/products", label: "Products", icon: "📦" },
-  { href: "/admin/categories", label: "Categories", icon: "🗂️" },
-  { href: "/admin/orders", label: "Orders", icon: "🧾" },
-  { href: "/admin/merchants", label: "Merchants", icon: "🏪" },
-  { href: "/admin/settlements", label: "Settlement ledger", icon: "📒" },
-  { href: "/admin/zones", label: "Delivery zones", icon: "📍" },
+  { href: "/admin", labelKey: "portal.dashboard", icon: "📊" },
+  { href: "/admin/products", labelKey: "admin.products", icon: "📦" },
+  { href: "/admin/categories", labelKey: "admin.categories", icon: "🗂️" },
+  { href: "/admin/orders", labelKey: "admin.orders", icon: "🧾" },
+  { href: "/admin/merchants", labelKey: "admin.merchants", icon: "🏪" },
+  { href: "/admin/settlements", labelKey: "admin.settlement_ledger", icon: "📒" },
+  { href: "/admin/zones", labelKey: "admin.delivery_zones", icon: "📍" },
 ];
 
 export default function AdminNav() {
   const pathname = usePathname();
+  const { t } = useLocale();
 
   return (
     <nav className="flex flex-col gap-1">
@@ -29,7 +31,7 @@ export default function AdminNav() {
             }`}
           >
             <span>{item.icon}</span>
-            {item.label}
+            {t(item.labelKey)}
           </Link>
         );
       })}
@@ -38,8 +40,8 @@ export default function AdminNav() {
         href="/"
         className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
       >
-        <span>←</span>
-        Back to shop
+        <span className="rtl:-scale-x-100">←</span>
+        {t("portal.back_to_shop")}
       </Link>
     </nav>
   );

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { formatSAR } from "@/lib/utils";
 import type { AdminSettlementOverviewRow } from "@/lib/settlements";
+import { useLocale } from "@/components/LocaleProvider";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -14,36 +15,37 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function SettlementsList({ rows }: { rows: AdminSettlementOverviewRow[] }) {
   const [q, setQ] = useState("");
+  const { t } = useLocale();
 
   const filtered = rows.filter((r) => r.storeName.toLowerCase().includes(q.trim().toLowerCase()));
 
   return (
     <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-5 py-3">
-        <h2 className="text-sm font-semibold text-neutral-700">Suppliers</h2>
+        <h2 className="text-sm font-semibold text-neutral-700">{t("settlements_list.suppliers")}</h2>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search supplier…"
+          placeholder={t("settlements_list.search_supplier")}
           className="w-48 rounded-full border border-neutral-300 px-3 py-1 text-xs"
         />
       </div>
 
       {filtered.length === 0 ? (
         <p className="p-6 text-sm text-neutral-500">
-          {rows.length === 0 ? "No suppliers yet." : "No suppliers match your search."}
+          {rows.length === 0 ? t("settlements_list.no_suppliers_yet") : t("settlements_list.no_suppliers_match")}
         </p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
             <thead>
               <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
-                <th className="px-5 py-2.5">Supplier</th>
-                <th className="px-3 py-2.5 text-right">Gross sales</th>
-                <th className="px-3 py-2.5 text-right">Commission</th>
-                <th className="px-3 py-2.5 text-right">Net earned</th>
-                <th className="px-3 py-2.5 text-right">Paid out</th>
-                <th className="px-3 py-2.5 text-right">Balance due</th>
+                <th className="px-5 py-2.5">{t("settlements_list.supplier_th")}</th>
+                <th className="px-3 py-2.5 text-right">{t("settlements_list.gross_sales_th")}</th>
+                <th className="px-3 py-2.5 text-right">{t("settlements_list.commission_th")}</th>
+                <th className="px-3 py-2.5 text-right">{t("settlements_list.net_earned_th")}</th>
+                <th className="px-3 py-2.5 text-right">{t("settlements_list.paid_out_th")}</th>
+                <th className="px-3 py-2.5 text-right">{t("settlements_list.balance_due_th")}</th>
                 <th className="px-5 py-2.5" />
               </tr>
             </thead>
@@ -58,7 +60,9 @@ export default function SettlementsList({ rows }: { rows: AdminSettlementOvervie
                       <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[r.storeStatus] ?? "bg-neutral-100"}`}>
                         {r.storeStatus}
                       </span>
-                      <span className="text-[11px] text-neutral-400">{r.deliveredOrderCount} delivered orders</span>
+                      <span className="text-[11px] text-neutral-400">
+                        {t("settlements_list.delivered_orders_count", { count: r.deliveredOrderCount })}
+                      </span>
                     </div>
                   </td>
                   <td className="px-3 py-3 text-right text-neutral-700">{formatSAR(r.grossSales)}</td>
@@ -72,7 +76,7 @@ export default function SettlementsList({ rows }: { rows: AdminSettlementOvervie
                   </td>
                   <td className="px-5 py-3 text-right">
                     <Link href={`/admin/settlements/${r.storeId}`} className="text-xs font-medium text-blue-600 hover:underline">
-                      Ledger →
+                      {t("settlements_list.ledger")}
                     </Link>
                   </td>
                 </tr>

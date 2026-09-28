@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import AddMerchantForm from "@/components/admin/AddMerchantForm";
 import MerchantsList, { type MerchantRow } from "@/components/admin/MerchantsList";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
   return (
@@ -20,6 +22,8 @@ function Stat({ icon, label, value, accent }: { icon: string; label: string; val
 }
 
 export default async function AdminMerchantsPage() {
+  const locale = await getServerLocale();
+  const t = (key: string) => translate(locale, key);
   const supabase = await createClient();
   const [{ data: stores }, { data: products }] = await Promise.all([
     supabase.from("stores").select("*").order("created_at", { ascending: false }),
@@ -55,20 +59,18 @@ export default async function AdminMerchantsPage() {
             🏪
           </span>
           <div>
-            <h1 className="text-xl font-semibold text-neutral-900">Merchants</h1>
-            <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">
-              Review applications, or add a merchant directly for an already-registered account.
-            </p>
+            <h1 className="text-xl font-semibold text-neutral-900">{t("admin.merchants_title")}</h1>
+            <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">{t("admin.merchants_subtitle")}</p>
           </div>
         </div>
         <AddMerchantForm />
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat icon="🏪" label="Total merchants" value={merchants.length} accent="#2563eb" />
-        <Stat icon="⏳" label="Pending review" value={pending} accent="#d97706" />
-        <Stat icon="✅" label="Approved" value={approved} accent="#059669" />
-        <Stat icon="🌍" label="Countries" value={countryCount} accent="#7c3aed" />
+        <Stat icon="🏪" label={t("admin.total_merchants")} value={merchants.length} accent="#2563eb" />
+        <Stat icon="⏳" label={t("admin.pending_review")} value={pending} accent="#d97706" />
+        <Stat icon="✅" label={t("admin.approved")} value={approved} accent="#059669" />
+        <Stat icon="🌍" label={t("admin.countries")} value={countryCount} accent="#7c3aed" />
       </div>
 
       <MerchantsList merchants={merchants} />

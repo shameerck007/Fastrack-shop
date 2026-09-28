@@ -22,20 +22,20 @@ function Kpi({ icon, label, value, accent, urgent }: { icon: string; label: stri
   );
 }
 
-export default function OrdersKPIBar({ kpis }: { kpis: AdminOrderKPIs }) {
+export default function OrdersKPIBar({ kpis, t }: { kpis: AdminOrderKPIs; t: (key: string) => string }) {
   return (
     <div className="mb-5 flex flex-col gap-2.5">
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Kpi icon="🆕" label="New orders" value={kpis.queue.pending} accent="#dc2626" urgent={kpis.queue.pending > 0} />
-        <Kpi icon="👨‍🍳" label="Preparing" value={kpis.queue.confirmedPreparing} accent="#d97706" />
-        <Kpi icon="📦" label="Ready for pickup" value={kpis.queue.readyForPickup} accent="#2563eb" />
-        <Kpi icon="🛵" label="Out for delivery" value={kpis.queue.outForDelivery} accent="#7c3aed" />
+        <Kpi icon="🆕" label={t("admin.new_orders")} value={kpis.queue.pending} accent="#dc2626" urgent={kpis.queue.pending > 0} />
+        <Kpi icon="👨‍🍳" label={t("admin.preparing")} value={kpis.queue.confirmedPreparing} accent="#d97706" />
+        <Kpi icon="📦" label={t("admin.ready_for_pickup")} value={kpis.queue.readyForPickup} accent="#2563eb" />
+        <Kpi icon="🛵" label={t("admin.out_for_delivery")} value={kpis.queue.outForDelivery} accent="#7c3aed" />
       </div>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Kpi icon="🧾" label="Orders today" value={kpis.today.totalOrders} accent="#0891b2" />
-        <Kpi icon="✅" label="Delivered today" value={kpis.today.delivered} accent="#059669" />
-        <Kpi icon="✕" label="Cancelled today" value={kpis.today.cancelled} accent="#64748b" />
-        <Kpi icon="💰" label="Revenue today" value={formatSAR(kpis.today.revenue)} accent="#2563eb" />
+        <Kpi icon="🧾" label={t("admin.orders_today")} value={kpis.today.totalOrders} accent="#0891b2" />
+        <Kpi icon="✅" label={t("admin.delivered_today")} value={kpis.today.delivered} accent="#059669" />
+        <Kpi icon="✕" label={t("admin.cancelled_today")} value={kpis.today.cancelled} accent="#64748b" />
+        <Kpi icon="💰" label={t("admin.revenue_today")} value={formatSAR(kpis.today.revenue)} accent="#2563eb" />
       </div>
     </div>
   );

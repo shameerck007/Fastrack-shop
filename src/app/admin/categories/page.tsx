@@ -2,8 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import CategoryForm from "@/components/admin/CategoryForm";
 import CategoryRow from "@/components/admin/CategoryRow";
 import type { Category } from "@/types/database";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 export default async function AdminCategoriesPage() {
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const supabase = await createClient();
   const { data: categories } = await supabase.from("categories").select("*").order("sort_order");
   const all = (categories as Category[]) ?? [];
@@ -18,11 +22,9 @@ export default async function AdminCategoriesPage() {
     <div>
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Categories</h1>
+          <h1 className="text-xl font-semibold">{t("admin.categories_title")}</h1>
           <p className="text-sm text-neutral-500">
-            {all.length} categor{all.length === 1 ? "y" : "ies"} — controls what shows in &quot;Shop by category&quot;
-            and category pages. Add subcategories (e.g. Grocery → Rice &amp; Grains) to organize a busy category, like
-            Amazon or Noon.
+            {t("admin.categories_subtitle", { count: all.length, plural: all.length === 1 ? "y" : "ies" })}
           </p>
         </div>
         <CategoryForm parentOptions={topLevel} />

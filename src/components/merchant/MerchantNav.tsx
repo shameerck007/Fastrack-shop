@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLocale } from "@/components/LocaleProvider";
 
 const NAV = [
-  { href: "/merchant", label: "Dashboard", icon: "📊" },
-  { href: "/merchant/products", label: "Products & Stock", icon: "📦" },
-  { href: "/merchant/settlements", label: "Settlement ledger", icon: "📒" },
+  { href: "/merchant", labelKey: "portal.dashboard", icon: "📊" },
+  { href: "/merchant/products", labelKey: "merchant.products_stock", icon: "📦" },
+  { href: "/merchant/settlements", labelKey: "merchant.settlement_ledger", icon: "📒" },
 ];
 
 export default function MerchantNav() {
   const pathname = usePathname();
+  const { t } = useLocale();
 
   return (
     <nav className="flex flex-col gap-1">
@@ -25,7 +27,7 @@ export default function MerchantNav() {
             }`}
           >
             <span>{item.icon}</span>
-            {item.label}
+            {t(item.labelKey)}
           </Link>
         );
       })}
@@ -34,8 +36,8 @@ export default function MerchantNav() {
         href="/"
         className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
       >
-        <span>←</span>
-        Back to shop
+        <span className="rtl:-scale-x-100">←</span>
+        {t("portal.back_to_shop")}
       </Link>
     </nav>
   );

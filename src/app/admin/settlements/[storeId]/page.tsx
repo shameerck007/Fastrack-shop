@@ -5,6 +5,8 @@ import { getStoreSettlementSummary, getStoreSettlementOrders, getStorePayouts } 
 import { SettlementSummaryCards, SettlementOrdersTable, SettlementPayoutsList } from "@/components/SettlementLedger";
 import CommissionRateEditor from "@/components/admin/CommissionRateEditor";
 import RecordPayoutForm from "@/components/admin/RecordPayoutForm";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -19,6 +21,8 @@ export default async function AdminSettlementDetailPage({
   params: Promise<{ storeId: string }>;
 }) {
   const { storeId } = await params;
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const supabase = await createClient();
 
   const { data: store } = await supabase.from("stores").select("id, name, status, commission_rate").eq("id", storeId).maybeSingle();
@@ -33,7 +37,7 @@ export default async function AdminSettlementDetailPage({
   return (
     <div>
       <Link href="/admin/settlements" className="text-sm text-blue-600 hover:underline">
-        ← Settlement ledger
+        ← {t("admin.settlement_ledger")}
       </Link>
 
       <div className="mb-5 mt-2 flex flex-wrap items-start justify-between gap-3">
@@ -53,7 +57,7 @@ export default async function AdminSettlementDetailPage({
 
       {summary && (
         <div className="mb-5">
-          <SettlementSummaryCards summary={summary} />
+          <SettlementSummaryCards summary={summary} t={t} />
         </div>
       )}
 
@@ -61,18 +65,18 @@ export default async function AdminSettlementDetailPage({
         <div className="lg:col-span-2">
           <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-700">
-              Delivered orders ({orders.length})
+              {t("merchant.delivered_orders_count", { count: orders.length })}
             </h2>
-            <SettlementOrdersTable orders={orders} />
+            <SettlementOrdersTable orders={orders} t={t} locale={locale} />
           </section>
         </div>
 
         <div>
           <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-700">
-              Payout history ({payouts.length})
+              {t("merchant.payout_history_count", { count: payouts.length })}
             </h2>
-            <SettlementPayoutsList payouts={payouts} />
+            <SettlementPayoutsList payouts={payouts} t={t} locale={locale} />
           </section>
         </div>
       </div>

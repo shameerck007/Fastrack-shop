@@ -3,6 +3,8 @@ import ZonesList, { type ZoneCard } from "@/components/admin/ZonesList";
 import ZonesCoverageButton from "@/components/admin/ZonesCoverageButton";
 import type { OverviewZone } from "@/components/admin/ZonesOverviewMap";
 import { distanceKm } from "@/lib/delivery-geo";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 const COLORS = ["#1d4ed8", "#059669", "#d97706", "#7c3aed", "#db2777", "#0891b2", "#65a30d", "#dc2626"];
 
@@ -46,6 +48,8 @@ function Stat({
 }
 
 export default async function AdminZonesPage() {
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const supabase = await createClient();
   const [{ data: warehouses }, { data: stores }, { data: products }, { data: orders }, { data: addresses }] =
     await Promise.all([
@@ -88,7 +92,7 @@ export default async function AdminZonesPage() {
       color: COLORS[index % COLORS.length],
       productCount: store ? (productsByStore.get(store.id) ?? 0) : (productsByStore.get(null) ?? 0),
       orderCount: ordersByWarehouse.get(w.id) ?? 0,
-      displayName: store?.name ?? "FasTrack (own products)",
+      displayName: store?.name ?? t("admin.fastrack_own_products"),
     };
   });
 
@@ -135,11 +139,8 @@ export default async function AdminZonesPage() {
             📍
           </span>
           <div>
-            <h1 className="text-xl font-semibold text-neutral-900">Delivery zones</h1>
-            <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">
-              Draw a delivery circle for each store. Customers outside a store&apos;s circle can&apos;t add its
-              products to the cart or order them. A store with no boundary delivers everywhere.
-            </p>
+            <h1 className="text-xl font-semibold text-neutral-900">{t("admin.delivery_zones_title")}</h1>
+            <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">{t("admin.zones_subtitle")}</p>
           </div>
         </div>
         <ZonesCoverageButton
@@ -149,31 +150,35 @@ export default async function AdminZonesPage() {
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat icon="🏪" label="Stores / warehouses" value={cards.length} accent="#2563eb" />
+        <Stat icon="🏪" label={t("admin.stores_warehouses")} value={cards.length} accent="#2563eb" />
         <Stat
           icon="🎯"
-          label="With a boundary"
-          value={`${zonedCount} of ${cards.length}`}
-          hint={zonedCount === cards.length ? "All configured" : `${cards.length - zonedCount} still unrestricted`}
+          label={t("admin.with_a_boundary")}
+          value={t("admin.of_count", { count: zonedCount, total: cards.length })}
+          hint={
+            zonedCount === cards.length
+              ? t("admin.all_configured")
+              : t("admin.still_unrestricted", { count: cards.length - zonedCount })
+          }
           accent={zonedCount === cards.length ? "#059669" : "#d97706"}
         />
         <Stat
           icon="📌"
-          label="Customer addresses pinned"
+          label={t("admin.customer_addresses_pinned")}
           value={pins.length}
-          hint="Saved with a map location"
+          hint={t("admin.saved_with_map_location")}
           accent="#7c3aed"
         />
         <Stat
           icon="⚠️"
-          label="Outside every zone"
+          label={t("admin.outside_every_zone")}
           value={overviewZones.length === 0 ? "—" : anyUnrestricted ? `${uncovered}*` : uncovered}
           hint={
             overviewZones.length === 0
-              ? "Set a boundary to see this"
+              ? t("admin.set_boundary_to_see")
               : anyUnrestricted
-                ? "*Unrestricted stores still reach them"
-                : "Can't order from any store"
+                ? t("admin.unrestricted_still_reach")
+                : t("admin.cant_order_any_store")
           }
           accent={uncovered > 0 ? "#dc2626" : "#404040"}
         />

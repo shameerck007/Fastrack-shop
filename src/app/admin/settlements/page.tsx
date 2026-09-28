@@ -1,6 +1,8 @@
 import { getAdminSettlementOverview } from "@/lib/settlements";
 import { formatSAR } from "@/lib/utils";
 import SettlementsList from "@/components/admin/SettlementsList";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
   return (
@@ -20,6 +22,8 @@ function Stat({ icon, label, value, accent }: { icon: string; label: string; val
 }
 
 export default async function AdminSettlementsPage() {
+  const locale = await getServerLocale();
+  const t = (key: string) => translate(locale, key);
   const rows = await getAdminSettlementOverview();
 
   const totalNetEarned = rows.reduce((sum, r) => sum + r.netEarned, 0);
@@ -35,20 +39,17 @@ export default async function AdminSettlementsPage() {
             📒
           </span>
           <div>
-            <h1 className="text-xl font-semibold text-neutral-900">Supplier Settlement Ledger</h1>
-            <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">
-              What FasTrack owes each supplier for delivered orders, after commission — and what&apos;s already been paid
-              out. Open a supplier to record a payout or adjust their commission rate.
-            </p>
+            <h1 className="text-xl font-semibold text-neutral-900">{t("admin.supplier_settlement_ledger")}</h1>
+            <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">{t("admin.settlement_subtitle")}</p>
           </div>
         </div>
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat icon="🏪" label="Suppliers with a balance" value={suppliersOwed} accent="#d97706" />
-        <Stat icon="💰" label="Net earned (all time)" value={formatSAR(totalNetEarned)} accent="#2563eb" />
-        <Stat icon="✅" label="Paid out (all time)" value={formatSAR(totalPaidOut)} accent="#059669" />
-        <Stat icon="⏳" label="Outstanding balance" value={formatSAR(totalBalanceDue)} accent="#dc2626" />
+        <Stat icon="🏪" label={t("admin.suppliers_with_balance")} value={suppliersOwed} accent="#d97706" />
+        <Stat icon="💰" label={t("admin.net_earned_all_time")} value={formatSAR(totalNetEarned)} accent="#2563eb" />
+        <Stat icon="✅" label={t("admin.paid_out_all_time")} value={formatSAR(totalPaidOut)} accent="#059669" />
+        <Stat icon="⏳" label={t("admin.outstanding_balance")} value={formatSAR(totalBalanceDue)} accent="#dc2626" />
       </div>
 
       <SettlementsList rows={rows} />

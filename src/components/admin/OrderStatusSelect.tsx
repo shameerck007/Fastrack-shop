@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateOrderStatus } from "@/lib/actions/admin-orders";
-import { ORDER_STATUS_LABELS } from "@/lib/utils";
+import { useLocale } from "@/components/LocaleProvider";
 import type { OrderStatus } from "@/types/database";
 
 const STATUSES: OrderStatus[] = [
@@ -20,6 +20,7 @@ const STATUSES: OrderStatus[] = [
 export default function OrderStatusSelect({ orderId, status }: { orderId: string; status: OrderStatus }) {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const { t } = useLocale();
 
   function handleChange(next: OrderStatus) {
     startTransition(async () => {
@@ -37,7 +38,7 @@ export default function OrderStatusSelect({ orderId, status }: { orderId: string
     >
       {STATUSES.map((s) => (
         <option key={s} value={s}>
-          {ORDER_STATUS_LABELS[s]}
+          {t(`order_status.${s}`)}
         </option>
       ))}
     </select>

@@ -3,9 +3,14 @@ import { requireRole } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
 import Wordmark from "@/components/Wordmark";
 import AdminNav from "@/components/admin/AdminNav";
+import LanguageToggle from "@/components/LanguageToggle";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireRole("admin");
+  const locale = await getServerLocale();
+  const t = (key: string) => translate(locale, key);
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -14,15 +19,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin" className="flex items-center gap-2">
             <Wordmark height={24} />
             <span className="rounded-md bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
-              Admin · Control Center
+              {t("admin.control_center")}
             </span>
           </Link>
           <div className="flex items-center gap-4 text-sm">
+            <LanguageToggle />
             <span className="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 sm:inline">
               ● {profile.full_name ?? "Admin"}
             </span>
             <form action={signOut}>
-              <button className="text-neutral-500 hover:text-neutral-900">Log out</button>
+              <button className="text-neutral-500 hover:text-neutral-900">{t("portal.log_out")}</button>
             </form>
           </div>
         </div>
