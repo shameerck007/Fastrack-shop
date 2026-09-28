@@ -22,6 +22,12 @@ export async function placeOrder(input: {
   paymentMethod: PaymentMethod;
   notes?: string;
 }) {
+  // No payment gateway is wired up yet — the checkout UI only offers Cash
+  // on Delivery, but enforce it here too rather than trusting the client.
+  if (input.paymentMethod !== "cash_on_delivery") {
+    throw new Error("Only Cash on Delivery is available right now.");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

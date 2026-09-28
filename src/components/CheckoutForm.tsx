@@ -13,11 +13,12 @@ const DELIVERY_OPTIONS: { value: DeliveryType; labelKey: string; hintKey: string
   { value: "scheduled", labelKey: "checkout.scheduled", hintKey: "checkout.choose_datetime", fee: 7 },
 ];
 
+// Card/Apple Pay are modeled in the schema (see PaymentMethod) but there is
+// no payment gateway wired up yet — selecting them would place an order
+// marked "authorized" without ever actually charging anyone. Until a real
+// gateway (Moyasar/HyperPay/Tap/PayTabs) is integrated, checkout only
+// offers Cash on Delivery; placeOrder() also enforces this server-side.
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string }[] = [
-  { value: "mada", label: "Mada" },
-  { value: "visa", label: "Visa" },
-  { value: "mastercard", label: "Mastercard" },
-  { value: "apple_pay", label: "Apple Pay" },
   { value: "cash_on_delivery", label: "Cash on Delivery" },
 ];
 
