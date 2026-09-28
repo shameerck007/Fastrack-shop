@@ -2,6 +2,7 @@ import CategoryGrid from "@/components/CategoryGrid";
 import ProductSection from "@/components/ProductSection";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import BuyAgainSection from "@/components/BuyAgainSection";
+import DeliveryGate from "@/components/DeliveryGate";
 import {
   getCategoriesWithChildren,
   getFeaturedProducts,
@@ -38,24 +39,26 @@ export default async function HomePage() {
   const stock = Object.fromEntries(stockMap);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
-      <section className="mb-8">
-        <h2 className="mb-3 text-lg font-semibold">{t("home.shop_by_category")}</h2>
-        <CategoryGrid categories={categories} />
-      </section>
+    <DeliveryGate>
+      <div className="mx-auto max-w-6xl px-4 py-6">
+        <section className="mb-8">
+          <h2 className="mb-3 text-lg font-semibold">{t("home.shop_by_category")}</h2>
+          <CategoryGrid categories={categories} />
+        </section>
 
-      <BuyAgainSection />
-      <ProductSection title={t("home.offers")} products={offers} ratings={ratings} stock={stock} />
-      <ProductSection title={t("home.fresh_today")} products={freshToday} ratings={ratings} stock={stock} />
-      <ProductSection
-        title={t("home.best_sellers")}
-        products={featured}
-        ratings={ratings}
-        stock={stock}
-        emptyMessage={t("home.no_products_yet")}
-      />
+        <BuyAgainSection />
+        <ProductSection title={t("home.offers")} products={offers} ratings={ratings} stock={stock} />
+        <ProductSection title={t("home.fresh_today")} products={freshToday} ratings={ratings} stock={stock} />
+        <ProductSection
+          title={t("home.best_sellers")}
+          products={featured}
+          ratings={ratings}
+          stock={stock}
+          emptyMessage={t("home.no_products_yet")}
+        />
 
-      <RecentlyViewed />
-    </div>
+        <RecentlyViewed />
+      </div>
+    </DeliveryGate>
   );
 }

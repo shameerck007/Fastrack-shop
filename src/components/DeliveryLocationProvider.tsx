@@ -196,21 +196,34 @@ export default function DeliveryLocationProvider({ children }: { children: React
     [zones, location]
   );
 
-  const serviceableAt = useCallback(
-    (lat: number, lng: number): boolean | null => {
-      if (!zones) return null;
-      if (zones.length === 0) return true;
-      return zones.some((z) => checkZone(z, { lat, lng }).ok);
-    },
+  // A zone row with no lat/lng/radius configured (e.g. a store whose
+  // warehouse was never set up) makes checkZone() return "ok" unconditionally
+  // — correct for that one store's own product visibility (nothing to
+  // restrict against), but useless as evidence that a given location is
+  // actually covered by anyone. Only zones with a real boundary count
+  // toward "is this location serviceable at all"; an unconfigured zone is
+  // silently ignored here rather than making every location look servicable.
+  const configuredZones = useMemo(
+    () => zones?.filter((z) => z.lat != null && z.lng != null && z.radiusKm != null) ?? null,
     [zones]
   );
 
-  // Serviceable if at least one seller (incl. FasTrack's own stock) reaches here.
+  const serviceableAt = useCallback(
+    (lat: number, lng: number): boolean | null => {
+      if (!configuredZones) return null;
+      if (configuredZones.length === 0) return true;
+      return configuredZones.some((z) => checkZone(z, { lat, lng }).ok);
+    },
+    [configuredZones]
+  );
+
+  // Serviceable if at least one seller with an actual delivery boundary
+  // (incl. FasTrack's own stock) reaches here.
   const serviceable = useMemo(() => {
-    if (!zones || !location) return null;
-    if (zones.length === 0) return true;
-    return zones.some((z) => checkZone(z, location).ok);
-  }, [zones, location]);
+    if (!configuredZones || !location) return null;
+    if (configuredZones.length === 0) return true;
+    return configuredZones.some((z) => checkZone(z, location).ok);
+  }, [configuredZones, location]);
 
   const value = useMemo<Ctx>(
     () => ({

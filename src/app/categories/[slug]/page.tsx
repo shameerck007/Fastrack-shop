@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import DeliverableProductList from "@/components/DeliverableProductList";
+import DeliveryGate from "@/components/DeliveryGate";
 import { getProductsByCategory } from "@/lib/catalog";
 import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
@@ -72,12 +73,14 @@ export default async function CategoryPage({
         </div>
       )}
 
-      <DeliverableProductList
-        products={products}
-        ratings={Object.fromEntries(ratingsMap)}
-        stock={Object.fromEntries(stockMap)}
-        emptyMessage={t("category.no_products")}
-      />
+      <DeliveryGate>
+        <DeliverableProductList
+          products={products}
+          ratings={Object.fromEntries(ratingsMap)}
+          stock={Object.fromEntries(stockMap)}
+          emptyMessage={t("category.no_products")}
+        />
+      </DeliveryGate>
     </div>
   );
 }

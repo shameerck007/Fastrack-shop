@@ -1,4 +1,5 @@
 import DeliverableProductList from "@/components/DeliverableProductList";
+import DeliveryGate from "@/components/DeliveryGate";
 import { searchProducts } from "@/lib/catalog";
 import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
@@ -21,12 +22,14 @@ export default async function SearchPage({
         {q ? `Results for "${q}"` : "Search"}
       </h1>
       {q && (
-        <DeliverableProductList
-          products={products}
-          ratings={Object.fromEntries(ratingsMap)}
-          stock={Object.fromEntries(stockMap)}
-          emptyMessage="No products found. Try a different search term."
-        />
+        <DeliveryGate>
+          <DeliverableProductList
+            products={products}
+            ratings={Object.fromEntries(ratingsMap)}
+            stock={Object.fromEntries(stockMap)}
+            emptyMessage="No products found. Try a different search term."
+          />
+        </DeliveryGate>
       )}
     </div>
   );
