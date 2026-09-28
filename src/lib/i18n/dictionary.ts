@@ -115,6 +115,7 @@ const en = {
       minutes_15_30: "15–30 minutes",
       minutes_30_60: "30–60 minutes",
       choose_datetime: "Choose date/time",
+      items_in_order: "Items in your order ({count})",
     },
     orders: {
       title: "My Orders",
@@ -802,6 +803,7 @@ const ar: LocaleShape = {
       minutes_15_30: "15-30 دقيقة",
       minutes_30_60: "30-60 دقيقة",
       choose_datetime: "اختر التاريخ/الوقت",
+      items_in_order: "المنتجات في طلبك ({count})",
     },
     orders: {
       title: "طلباتي",
