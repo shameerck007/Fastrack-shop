@@ -115,6 +115,15 @@ export default async function AccountPage() {
             description={t("account.sell_tile_desc")}
           />
         )}
+
+        {profile?.role === "customer" && (
+          <AccountTile
+            href="/deliver"
+            icon="🛵"
+            title={t("account.deliver_tile_title")}
+            description={t("account.deliver_tile_desc")}
+          />
+        )}
       </div>
 
       <form action={signOut} className="mt-6">

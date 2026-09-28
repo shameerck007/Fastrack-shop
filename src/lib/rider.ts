@@ -22,6 +22,39 @@ export async function getRiderProfile(): Promise<RiderProfile | null> {
   return { profile, deliveryPartner };
 }
 
+/** For the /deliver apply page: the applicant's own delivery_partners row at
+ * any status (pending/approved/rejected/suspended), unlike getRiderProfile()
+ * above which only ever returns an approved one. */
+export async function getMyRiderApplication(): Promise<DeliveryPartner | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase.from("delivery_partners").select("*").eq("id", user.id).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export interface AdminRiderRow extends DeliveryPartner {
+  full_name: string | null;
+  phone: string | null;
+}
+
+export async function getAllRiders(): Promise<AdminRiderRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("delivery_partners")
+    .select("*, profiles!inner(full_name, phone)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  return ((data ?? []) as unknown as (DeliveryPartner & { profiles: { full_name: string | null; phone: string | null } })[]).map(
+    (row) => ({ ...row, full_name: row.profiles.full_name, phone: row.profiles.phone })
+  );
+}
+
 export interface AvailableOrder {
   id: string;
   order_number: string;

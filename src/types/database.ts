@@ -4,6 +4,7 @@
 
 export type UserRole = "customer" | "admin" | "rider" | "merchant";
 export type StoreStatus = "pending" | "approved" | "rejected" | "suspended";
+export type RiderStatus = "pending" | "approved" | "rejected" | "suspended";
 export type AddressLabel = "home" | "office" | "other";
 export type OrderStatus =
   | "pending"
@@ -217,6 +218,10 @@ export interface DeliveryPartner {
   current_lat: number | null;
   current_lng: number | null;
   rating: number | null;
+  status: RiderStatus;
+  rejection_reason: string | null;
+  license_number: string | null;
+  license_document_path: string | null;
   created_at: string;
 }
 

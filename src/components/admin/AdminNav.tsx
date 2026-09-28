@@ -10,6 +10,7 @@ const NAV = [
   { href: "/admin/categories", labelKey: "admin.categories", icon: "🗂️" },
   { href: "/admin/orders", labelKey: "admin.orders", icon: "🧾" },
   { href: "/admin/merchants", labelKey: "admin.merchants", icon: "🏪" },
+  { href: "/admin/riders", labelKey: "admin.riders", icon: "🛵" },
   { href: "/admin/settlements", labelKey: "admin.settlement_ledger", icon: "📒" },
   { href: "/admin/zones", labelKey: "admin.delivery_zones", icon: "📍" },
 ];
