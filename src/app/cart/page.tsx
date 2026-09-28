@@ -1,14 +1,17 @@
 import Link from "next/link";
 import CartItemRow from "@/components/CartItemRow";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
+import { getAddresses } from "@/lib/addresses";
+import { checkProductsDeliverable } from "@/lib/delivery-zones";
 import { formatSAR } from "@/lib/utils";
+import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
 export default async function CartPage() {
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
-  const items = await getCartItems();
+  const [items, addresses] = await Promise.all([getCartItems(), getAddresses()]);
   const subtotal = cartSubtotal(items);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -23,6 +26,30 @@ export default async function CartPage() {
     );
   }
 
+  // A cart item can pass the deliverability check when it's added (against
+  // whatever the shopper's browsing location was at that moment) and still
+  // turn out undeliverable at checkout time, if that location doesn't match
+  // any of their saved addresses. Rather than let that surface for the
+  // first time as a checkout error, flag it here: an item is only a real
+  // problem if it can't reach *any* saved address, not just the default one
+  // — checkout already lets the shopper pick a different address for that.
+  const pinnedAddresses = addresses.filter((a) => a.lat != null && a.lng != null);
+  const undeliverableProductIds = new Set<string>();
+  if (pinnedAddresses.length > 0) {
+    const products = items.map((i) => ({
+      id: i.product_variants.products.id,
+      store_id: i.product_variants.products.store_id,
+      name: localizedName(i.product_variants.products, locale),
+    }));
+    const perAddressResults = await Promise.all(
+      pinnedAddresses.map((a) => checkProductsDeliverable(products, { lat: a.lat as number, lng: a.lng as number }))
+    );
+    for (const p of products) {
+      const deliverableToAny = perAddressResults.some((result) => !result.get(p.id)?.message);
+      if (!deliverableToAny) undeliverableProductIds.add(p.id);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -33,7 +60,11 @@ export default async function CartPage() {
           </div>
           <div className="rounded-xl border border-neutral-200 bg-white px-4">
             {items.map((item) => (
-              <CartItemRow key={item.id} item={item} />
+              <CartItemRow
+                key={item.id}
+                item={item}
+                undeliverable={undeliverableProductIds.has(item.product_variants.products.id)}
+              />
             ))}
           </div>
           <p className="mt-3 text-end text-lg">

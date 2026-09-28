@@ -10,7 +10,17 @@ import type { CartItemWithVariant } from "@/types/database";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
 
-export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
+export default function CartItemRow({
+  item,
+  undeliverable = false,
+}: {
+  item: CartItemWithVariant;
+  /** True when none of the shopper's saved, pinned addresses can receive
+   * this item — flagged here so it's never a surprise first seen at
+   * checkout (e.g. it was added while browsing from a location that
+   * doesn't match any saved address). */
+  undeliverable?: boolean;
+}) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -60,6 +70,9 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
           </Link>
           {product.brand && <p className="text-xs text-neutral-400">{localizedField(product.brand, product.brand_ar, locale)}</p>}
           <p className="text-sm text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</p>
+          {undeliverable && (
+            <p className="mt-1 text-xs font-medium text-red-600">{t("cart.item_not_deliverable")}</p>
+          )}
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -84,7 +97,9 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
           <button
             onClick={remove}
             disabled={pending}
-            className="text-sm text-blue-600 hover:text-blue-800 hover:underline disabled:opacity-40"
+            className={`text-sm hover:underline disabled:opacity-40 ${
+              undeliverable ? "font-medium text-red-600 hover:text-red-800" : "text-blue-600 hover:text-blue-800"
+            }`}
           >
             {t("cart.remove")}
           </button>

@@ -10,6 +10,10 @@ import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
 import type { Address, AddressLabel } from "@/types/database";
 
+function labelText(l: AddressLabel): string {
+  return l.charAt(0).toUpperCase() + l.slice(1);
+}
+
 export default function AddressForm({
   existing,
   onDone,
@@ -39,7 +43,7 @@ export default function AddressForm({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { location: deliveryLocation } = useDeliveryLocation();
+  const { location: deliveryLocation, serviceableAt, setLocation } = useDeliveryLocation();
 
   // A brand-new address starts pinned at the shopper's chosen delivery location.
   useEffect(() => {
@@ -104,10 +108,24 @@ export default function AddressForm({
       try {
         if (existing) {
           await updateAddress(existing.id, input);
+          // If the pin moved, make sure the shopper's active shopping
+          // location follows it immediately — otherwise the product grid
+          // keeps filtering against the old coordinates until they happen
+          // to reopen the location picker separately.
+          if (lat != null && lng != null) {
+            setLocation({ lat, lng, label: labelText(label), addressId: existing.id });
+          }
           onDone?.();
         } else {
           const newId = await addAddress(input);
           onAdded?.(newId);
+          // A freshly added, verified address becomes the active shopping
+          // location right away — the whole point of adding it here is to
+          // shop against this address's zone, not to save it and then need
+          // a separate step to actually switch to it.
+          if (lat != null && lng != null) {
+            setLocation({ lat, lng, label: labelText(label), addressId: newId });
+          }
           setAddressLine("");
           setDistrict("");
           setBuildingNumber("");
@@ -153,6 +171,13 @@ export default function AddressForm({
           setLng(newLng);
         }}
       />
+      {lat != null && lng != null && (
+        serviceableAt(lat, lng) === true ? (
+          <p className="text-sm font-medium text-emerald-600">{t("common.we_deliver_here")}</p>
+        ) : serviceableAt(lat, lng) === false ? (
+          <p className="text-sm font-medium text-red-600">{t("common.dont_deliver_here")}</p>
+        ) : null
+      )}
 
       <p className="text-xs font-medium text-neutral-500">{t("addresses.who_receives")}</p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
