@@ -91,6 +91,12 @@ export default async function AccountPage() {
           title={t("account.payments_tile_title")}
           description={t("account.payments_tile_desc")}
         />
+        <AccountTile
+          href="/account/lists"
+          icon="🤍"
+          title={t("account.lists_tile_title")}
+          description={t("account.lists_tile_desc")}
+        />
 
         {(profile?.role === "admin" || profile?.role === "rider" || profile?.role === "merchant") && (
           <AccountTile

@@ -12,6 +12,8 @@ import { getVariantStockMap, getDefaultVariantStockMap } from "@/lib/inventory";
 import { formatSAR } from "@/lib/utils";
 import { getCategoryTheme } from "@/lib/categoryTheme";
 import { createClient } from "@/lib/supabase/server";
+import { isProductWishlisted } from "@/lib/wishlist";
+import WishlistButton from "@/components/WishlistButton";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
@@ -29,11 +31,12 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const supabase = await createClient();
-  const [rating, reviews, stockMap, { data: { user } }] = await Promise.all([
+  const [rating, reviews, stockMap, { data: { user } }, wishlisted] = await Promise.all([
     getProductRating(id),
     getProductReviews(id),
     getVariantStockMap(product.product_variants.map((v) => v.id)),
     supabase.auth.getUser(),
+    isProductWishlisted(id),
   ]);
   const stock = Object.fromEntries(stockMap);
   const isLoggedIn = !!user;
@@ -71,7 +74,7 @@ export default async function ProductPage({
       <div className="grid gap-8 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <div
-            className={`flex h-72 items-center justify-center rounded-2xl bg-gradient-to-br text-8xl lg:sticky lg:top-20 ${theme.gradient}`}
+            className={`relative flex h-72 items-center justify-center rounded-2xl bg-gradient-to-br text-8xl lg:sticky lg:top-20 ${theme.gradient}`}
           >
             {product.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -79,6 +82,9 @@ export default async function ProductPage({
             ) : (
               <span className="drop-shadow-sm">{theme.emoji}</span>
             )}
+            <div className="absolute end-3 top-3">
+              <WishlistButton productId={product.id} initialInList={wishlisted} />
+            </div>
           </div>
         </div>
 

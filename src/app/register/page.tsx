@@ -4,8 +4,11 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Wordmark from "@/components/Wordmark";
+import { useLocale } from "@/components/LocaleProvider";
 
 function RegisterForm() {
+  const { t } = useLocale();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -40,62 +43,86 @@ function RegisterForm() {
       router.push(redirectTo);
       router.refresh();
     } else {
-      setNotice("Check your email to confirm your account before logging in.");
+      setNotice(t("auth.check_email_notice"));
     }
   }
 
   return (
-    <div className="mx-auto max-w-sm px-4 py-16">
-      <h1 className="mb-6 text-xl font-semibold">Create your account</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input
-          required
-          placeholder="Full name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-        />
-        <input
-          type="email"
-          required
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-        />
-        <input
-          type="tel"
-          placeholder="Phone (+966...)"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-        />
-        <input
-          type="password"
-          required
-          minLength={6}
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {notice && <p className="text-sm text-blue-600">{notice}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-full bg-blue-700 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
-        >
-          {loading ? "Creating account..." : "Register"}
-        </button>
-      </form>
-      <p className="mt-4 text-sm text-neutral-500">
-        Already have an account?{" "}
+    <div className="mx-auto flex max-w-sm flex-col items-center px-4 py-10">
+      <Link href="/" className="mb-6">
+        <Wordmark height={32} />
+      </Link>
+
+      <div className="w-full rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <h1 className="mb-4 text-xl font-semibold">{t("auth.create_account_title")}</h1>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-neutral-800">{t("auth.full_name")}</span>
+            <input
+              required
+              placeholder={t("auth.full_name_placeholder")}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-neutral-800">{t("auth.email")}</span>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-neutral-800">
+              {t("auth.mobile_number")} <span className="font-normal text-neutral-400">{t("auth.mobile_optional")}</span>
+            </span>
+            <input
+              type="tel"
+              placeholder={t("auth.mobile_number_placeholder")}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-neutral-800">{t("auth.password")}</span>
+            <input
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            <span className="text-xs text-neutral-400">{t("auth.password_hint")}</span>
+          </label>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {notice && <p className="text-sm text-blue-600">{notice}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+          >
+            {loading ? t("auth.creating_account") : t("auth.create_account_button")}
+          </button>
+
+          <p className="text-xs text-neutral-500">{t("auth.terms_notice")}</p>
+        </form>
+      </div>
+
+      <p className="mt-5 text-sm text-neutral-600">
+        {t("auth.already_have_account")}{" "}
         <Link
           href={`/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
           className="text-blue-600 hover:underline"
         >
-          Log in
+          {t("auth.sign_in_link")}
         </Link>
       </p>
     </div>
