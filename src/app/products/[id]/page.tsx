@@ -93,7 +93,6 @@ export default async function ProductPage({
               )}
             </div>
             <h1 className="text-2xl font-semibold">{productName}</h1>
-            {locale !== "ar" && product.name_ar && <p className="text-neutral-500" dir="rtl">{product.name_ar}</p>}
             {rating ? (
               <a href="#reviews" className="mt-1 inline-block">
                 <StarRating rating={rating.avg_rating} count={rating.review_count} />
