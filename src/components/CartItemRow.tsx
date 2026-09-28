@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { updateCartItemQuantity, removeCartItem } from "@/lib/actions/cart";
 import { notifyCartChanged } from "@/lib/cart-events";
 import { formatSAR } from "@/lib/utils";
@@ -16,6 +17,7 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
   const { t, locale } = useLocale();
   const variant = item.product_variants;
   const product = variant.products;
+  const name = localizedName(product, locale);
 
   function updateQuantity(quantity: number) {
     setError(null);
@@ -39,43 +41,59 @@ export default function CartItemRow({ item }: { item: CartItemWithVariant }) {
   }
 
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-neutral-200 py-3">
-      <div>
-        <p className="font-medium">{localizedName(product, locale)}</p>
-        <p className="text-sm text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</p>
-        {error && <p className="text-xs text-red-600">{error}</p>}
-      </div>
+    <div className="flex gap-4 border-b border-neutral-200 py-4 last:border-none">
+      <Link href={`/products/${product.id}`} className="shrink-0">
+        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-lg bg-neutral-100 sm:h-28 sm:w-28">
+          {product.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={product.image_url} alt={name} className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-3xl">📦</span>
+          )}
+        </div>
+      </Link>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center rounded-full border border-neutral-300">
-          <button
-            className="px-2 py-1"
-            disabled={pending}
-            onClick={() => updateQuantity(item.quantity - 1)}
-          >
-            −
-          </button>
-          <span className="w-6 text-center text-sm">{item.quantity}</span>
-          <button
-            className="px-2 py-1"
-            disabled={pending}
-            onClick={() => updateQuantity(item.quantity + 1)}
-          >
-            +
-          </button>
+      <div className="flex min-w-0 flex-1 flex-col justify-between">
+        <div>
+          <Link href={`/products/${product.id}`} className="font-medium text-neutral-900 hover:text-blue-700 hover:underline">
+            {name}
+          </Link>
+          {product.brand && <p className="text-xs text-neutral-400">{localizedField(product.brand, product.brand_ar, locale)}</p>}
+          <p className="text-sm text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</p>
         </div>
 
-        <span className="w-20 text-end font-medium">
-          {formatSAR(item.quantity * variant.price)}
-        </span>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <div className="flex items-center rounded-full border border-neutral-300">
+            <button
+              className="px-3 py-1 text-base disabled:opacity-40"
+              disabled={pending}
+              onClick={() => updateQuantity(item.quantity - 1)}
+            >
+              −
+            </button>
+            <span className="w-8 text-center text-sm">{item.quantity}</span>
+            <button
+              className="px-3 py-1 text-base disabled:opacity-40"
+              disabled={pending}
+              onClick={() => updateQuantity(item.quantity + 1)}
+            >
+              +
+            </button>
+          </div>
+          <span className="h-4 w-px bg-neutral-200" />
+          <button
+            onClick={remove}
+            disabled={pending}
+            className="text-sm text-blue-600 hover:text-blue-800 hover:underline disabled:opacity-40"
+          >
+            {t("cart.remove")}
+          </button>
+        </div>
+        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      </div>
 
-        <button
-          onClick={remove}
-          disabled={pending}
-          className="text-sm text-red-500 hover:text-red-700"
-        >
-          {t("cart.remove")}
-        </button>
+      <div className="shrink-0 text-end font-semibold text-neutral-900">
+        {formatSAR(item.quantity * variant.price)}
       </div>
     </div>
   );

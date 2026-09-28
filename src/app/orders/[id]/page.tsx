@@ -34,41 +34,84 @@ export default async function OrderDetailPage({
   const messages = rider && user ? await getOrderMessages(order.id) : [];
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">{t("orders.order_hash", { number: order.order_number })}</h1>
-          <p className="text-sm text-neutral-500">
-            {new Date(order.created_at).toLocaleString()}
-          </p>
-        </div>
+    <div className="mx-auto max-w-4xl px-4 py-6">
+      <div className="mb-1 flex flex-wrap items-start justify-between gap-3">
+        <h1 className="text-2xl font-semibold">{t("orders.order_details_title")}</h1>
         <DownloadInvoiceButton orderId={order.id} orderNumber={order.order_number} />
+      </div>
+      <p className="mb-4 flex flex-wrap items-center gap-x-2 text-sm text-neutral-500">
+        <span>
+          {t("orders.placed_on")}{" "}
+          {new Date(order.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
+        </span>
+        <span className="text-neutral-300">|</span>
+        <span>{t("orders.order_hash", { number: order.order_number })}</span>
+      </p>
+
+      <div className="mb-6 grid gap-4 rounded-xl border border-neutral-200 bg-white p-4 sm:grid-cols-3 sm:divide-x sm:divide-neutral-100 rtl:sm:divide-x-reverse">
+        <div className="sm:pe-4">
+          <p className="mb-1 font-medium text-neutral-900">{t("orders.ship_to")}</p>
+          {order.addresses ? (
+            <div className="text-sm text-neutral-600">
+              {order.addresses.receiver_name && <p className="text-neutral-900">{order.addresses.receiver_name}</p>}
+              <p>{order.addresses.address_line}</p>
+              {(order.addresses.building_number || order.addresses.unit_number) && (
+                <p>
+                  {[
+                    order.addresses.building_number && `${t("addresses.bldg_short")} ${order.addresses.building_number}`,
+                    order.addresses.unit_number && `${t("addresses.unit_short")} ${order.addresses.unit_number}`,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                </p>
+              )}
+              <p>{[order.addresses.district, order.addresses.city].filter(Boolean).join(", ")}</p>
+              {order.addresses.receiver_phone && (
+                <a href={`tel:${order.addresses.receiver_phone}`} className="text-blue-600 hover:underline">
+                  📞 {order.addresses.receiver_phone}
+                </a>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-neutral-400">—</p>
+          )}
+        </div>
+
+        <div className="sm:px-4">
+          <p className="mb-1 font-medium text-neutral-900">{t("orders.payment_label")}</p>
+          <p className="text-sm text-neutral-600">💵 {t("account.cash_on_delivery")}</p>
+        </div>
+
+        <div className="sm:ps-4">
+          <p className="mb-1 font-medium text-neutral-900">{t("orders.order_summary")}</p>
+          <div className="space-y-0.5 text-sm">
+            <div className="flex justify-between">
+              <span className="text-neutral-500">{t("orders.item_subtotal")}</span>
+              <span>{formatSAR(order.subtotal)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
+              <span>{order.delivery_fee === 0 ? t("checkout.free") : formatSAR(order.delivery_fee)}</span>
+            </div>
+            <div className="flex justify-between ps-2 text-xs text-neutral-400">
+              <span>{t("checkout.of_which_vat")}</span>
+              <span>{formatSAR(order.vat)}</span>
+            </div>
+            {order.discount > 0 && (
+              <div className="flex justify-between text-blue-600">
+                <span>{t("orders.discount")}</span>
+                <span>-{formatSAR(order.discount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between border-t border-neutral-200 pt-1 font-semibold">
+              <span>{t("checkout.total")}</span>
+              <span>{formatSAR(order.total)}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <LiveOrderStatus orderId={order.id} initialStatus={order.status} deliveryOtp={order.delivery_otp} />
-
-      {order.addresses && (
-        <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
-          <p className="mb-1 font-medium text-neutral-900">{t("orders.ship_to")}</p>
-          {order.addresses.receiver_name && <p>{order.addresses.receiver_name}</p>}
-          <p className="text-neutral-600">
-            {[
-              order.addresses.address_line,
-              order.addresses.building_number && `${t("addresses.bldg_short")} ${order.addresses.building_number}`,
-              order.addresses.unit_number && `${t("addresses.unit_short")} ${order.addresses.unit_number}`,
-              order.addresses.district,
-              order.addresses.city,
-            ]
-              .filter(Boolean)
-              .join(", ")}
-          </p>
-          {order.addresses.receiver_phone && (
-            <a href={`tel:${order.addresses.receiver_phone}`} className="text-blue-600 hover:underline">
-              📞 {order.addresses.receiver_phone}
-            </a>
-          )}
-        </div>
-      )}
 
       {rider && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
@@ -138,37 +181,6 @@ export default async function OrderDetailPage({
         {order.status !== "cancelled" && (
           <div className="p-4">
             <BuyItAgainButton orderId={order.id} itemCount={order.order_items.length} />
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-1 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
-        <div className="flex justify-between">
-          <span className="text-neutral-500">{t("checkout.subtotal_incl_vat")}</span>
-          <span>{formatSAR(order.subtotal)}</span>
-        </div>
-        <div className="flex justify-between ps-3 text-xs">
-          <span className="text-neutral-400">{t("checkout.of_which_vat")}</span>
-          <span className="text-neutral-400">{formatSAR(order.vat)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
-          <span>{order.delivery_fee === 0 ? t("checkout.free") : formatSAR(order.delivery_fee)}</span>
-        </div>
-        {order.discount > 0 && (
-          <div className="flex justify-between text-blue-600">
-            <span>{t("orders.discount")}</span>
-            <span>-{formatSAR(order.discount)}</span>
-          </div>
-        )}
-        <div className="flex justify-between border-t border-neutral-200 pt-1 font-semibold">
-          <span>{t("checkout.total")}</span>
-          <span>{formatSAR(order.total)}</span>
-        </div>
-        {order.payments[0]?.method && (
-          <div className="flex justify-between border-t border-neutral-200 pt-1">
-            <span className="text-neutral-500">{t("orders.payment_label")}</span>
-            <span>{t("account.cash_on_delivery")}</span>
           </div>
         )}
       </div>
