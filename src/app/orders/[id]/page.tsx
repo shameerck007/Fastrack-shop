@@ -7,6 +7,8 @@ import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import LiveOrderStatus from "@/components/LiveOrderStatus";
 import RiderLocationMap from "@/components/RiderLocationMap";
 import OrderChat from "@/components/OrderChat";
+import BuyItAgainButton from "@/components/BuyItAgainButton";
+import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -45,6 +47,29 @@ export default async function OrderDetailPage({
 
       <LiveOrderStatus orderId={order.id} initialStatus={order.status} deliveryOtp={order.delivery_otp} />
 
+      {order.addresses && (
+        <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
+          <p className="mb-1 font-medium text-neutral-900">{t("orders.ship_to")}</p>
+          {order.addresses.receiver_name && <p>{order.addresses.receiver_name}</p>}
+          <p className="text-neutral-600">
+            {[
+              order.addresses.address_line,
+              order.addresses.building_number && `${t("addresses.bldg_short")} ${order.addresses.building_number}`,
+              order.addresses.unit_number && `${t("addresses.unit_short")} ${order.addresses.unit_number}`,
+              order.addresses.district,
+              order.addresses.city,
+            ]
+              .filter(Boolean)
+              .join(", ")}
+          </p>
+          {order.addresses.receiver_phone && (
+            <a href={`tel:${order.addresses.receiver_phone}`} className="text-blue-600 hover:underline">
+              📞 {order.addresses.receiver_phone}
+            </a>
+          )}
+        </div>
+      )}
+
       {rider && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
           <p className="text-sm text-neutral-500">{t("orders.rider")}</p>
@@ -79,25 +104,42 @@ export default async function OrderDetailPage({
       )}
 
       <div className="mb-6 rounded-xl border border-neutral-200 bg-white">
-        {order.order_items.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between border-b border-neutral-100 p-4 last:border-none"
-          >
-            <div>
-              <p className="font-medium">{item.product_name}</p>
-              <p className="text-sm text-neutral-500">
-                {item.variant_label} × {item.ordered_quantity}
-                {item.is_substituted && (
-                  <span className="ms-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs text-amber-700">
-                    {t("product.substituted")}
-                  </span>
+        {order.order_items.map((item) => {
+          const product = item.product_variants?.products;
+          const name = product ? localizedName(product, locale) : item.product_name;
+          return (
+            <div
+              key={item.id}
+              className="flex items-center gap-3 border-b border-neutral-100 p-4 last:border-none"
+            >
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-100">
+                {product?.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={product.image_url} alt={name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-xl">📦</span>
                 )}
-              </p>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">{name}</p>
+                <p className="text-sm text-neutral-500">
+                  {item.variant_label} × {item.ordered_quantity}
+                  {item.is_substituted && (
+                    <span className="ms-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs text-amber-700">
+                      {t("product.substituted")}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <span className="font-medium">{formatSAR(item.line_total)}</span>
             </div>
-            <span className="font-medium">{formatSAR(item.line_total)}</span>
+          );
+        })}
+        {order.status !== "cancelled" && (
+          <div className="p-4">
+            <BuyItAgainButton orderId={order.id} itemCount={order.order_items.length} />
           </div>
-        ))}
+        )}
       </div>
 
       <div className="space-y-1 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
@@ -123,6 +165,12 @@ export default async function OrderDetailPage({
           <span>{t("checkout.total")}</span>
           <span>{formatSAR(order.total)}</span>
         </div>
+        {order.payments[0]?.method && (
+          <div className="flex justify-between border-t border-neutral-200 pt-1">
+            <span className="text-neutral-500">{t("orders.payment_label")}</span>
+            <span>{t("account.cash_on_delivery")}</span>
+          </div>
+        )}
       </div>
     </div>
   );
