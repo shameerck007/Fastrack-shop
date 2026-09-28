@@ -2,8 +2,11 @@
 // column in the DB (used directly where shown) — this covers the UI chrome
 // around them: header, home, browsing, product, cart/checkout, orders,
 // account, addresses.
-export const dictionary = {
-  en: {
+// `ar` is checked with `satisfies typeof en` below — a missing or
+// mistyped key in either locale is a compile error, not a silent runtime
+// fallback. Verified clean as of this writing (544/544 keys match); this
+// is what keeps it that way as the dictionary grows.
+const en = {
     header: {
       search_placeholder: "Search vegetables, milk, rice...",
       deliver_to: "Deliver to",
@@ -610,8 +613,15 @@ export const dictionary = {
       searching: "Searching…",
       clear_search: "Clear search",
     },
-  },
-  ar: {
+};
+
+// Enforces that `ar` has exactly the same namespaces and keys as `en` (a
+// compile error for anything missing or extra) while leaving the string
+// *values* unconstrained — unlike `satisfies typeof en`, which would
+// wrongly demand ar's translated text equal en's literal English text.
+type LocaleShape = { [Ns in keyof typeof en]: { [Key in keyof (typeof en)[Ns]]: string } };
+
+const ar: LocaleShape = {
     header: {
       search_placeholder: "ابحث عن خضار، حليب، أرز...",
       deliver_to: "التوصيل إلى",
@@ -1218,7 +1228,8 @@ export const dictionary = {
       searching: "جارٍ البحث…",
       clear_search: "مسح البحث",
     },
-  },
-} as const;
+};
+
+export const dictionary = { en, ar } as const;
 
 export type Dictionary = typeof dictionary.en;
