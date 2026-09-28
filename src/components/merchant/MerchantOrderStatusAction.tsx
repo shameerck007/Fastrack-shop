@@ -7,6 +7,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import type { OrderStatus } from "@/types/database";
 
 const LABEL_KEY: Partial<Record<OrderStatus, string>> = {
+  pending: "merchant.confirm_order",
   confirmed: "merchant.mark_preparing",
   preparing: "merchant.mark_ready_for_pickup",
 };
