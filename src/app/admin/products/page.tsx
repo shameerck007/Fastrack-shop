@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAdminProducts } from "@/lib/admin-products";
 import ProductForm from "@/components/admin/ProductForm";
-import AdminProductCard from "@/components/admin/AdminProductCard";
+import AdminProductSearch from "@/components/admin/AdminProductSearch";
 import type { Category, Warehouse } from "@/types/database";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -35,16 +35,7 @@ export default async function AdminProductsPage() {
           <p className="text-sm text-neutral-500">{t("admin.no_products_yet")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <AdminProductCard
-              key={product.id}
-              product={product}
-              categories={categoryList}
-              warehouses={warehouseList}
-            />
-          ))}
-        </div>
+        <AdminProductSearch products={products} categories={categoryList} warehouses={warehouseList} />
       )}
     </div>
   );

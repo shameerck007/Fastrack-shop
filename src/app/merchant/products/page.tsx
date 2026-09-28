@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getMyStore, getMyStoreProducts } from "@/lib/merchant";
 import { createClient } from "@/lib/supabase/server";
 import MerchantProductForm from "@/components/merchant/MerchantProductForm";
-import MerchantProductCard from "@/components/merchant/MerchantProductCard";
+import MerchantProductSearch from "@/components/merchant/MerchantProductSearch";
 import type { Category } from "@/types/database";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -36,11 +36,7 @@ export default async function MerchantProductsPage() {
           <p className="text-sm text-neutral-500">{t("merchant.no_products_added")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <MerchantProductCard key={product.id} product={product} categories={categoryList} />
-          ))}
-        </div>
+        <MerchantProductSearch products={products} categories={categoryList} />
       )}
     </div>
   );
