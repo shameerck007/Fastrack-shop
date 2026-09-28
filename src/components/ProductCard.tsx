@@ -8,6 +8,7 @@ import StarRating from "@/components/StarRating";
 import type { ProductRating } from "@/lib/reviews";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
+import QuickAddToCart from "@/components/QuickAddToCart";
 
 export default function ProductCard({
   product,
@@ -64,6 +65,9 @@ export default function ProductCard({
               -{discountPct}%
             </span>
           )
+        )}
+        {variant && !outOfStock && (
+          <QuickAddToCart variantId={variant.id} storeId={product.store_id} stock={stock ?? Infinity} />
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3">
