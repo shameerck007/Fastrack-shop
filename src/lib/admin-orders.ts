@@ -54,7 +54,12 @@ async function resolveFulfillment(
 export interface AdminOrderListRow extends Order {
   profiles: { full_name: string | null; phone: string | null } | null;
   payments: { method: PaymentMethod; status: PaymentStatus }[];
-  order_items: { id: string; ordered_quantity: number }[];
+  order_items: {
+    id: string;
+    ordered_quantity: number;
+    product_name: string;
+    product_variants: { products: { image_url: string | null; name: string; name_ar: string | null } | null } | null;
+  }[];
   addresses: { city: string; district: string | null } | null;
   fulfillment: FulfillmentSummary;
 }
@@ -64,7 +69,7 @@ export async function getAdminOrders(limit = 100): Promise<AdminOrderListRow[]> 
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "*, profiles(full_name, phone), payments(method, status), order_items(id, ordered_quantity, variant_id), addresses(city, district)"
+      "*, profiles(full_name, phone), payments(method, status), order_items(id, ordered_quantity, variant_id, product_name, product_variants!variant_id(products(image_url, name, name_ar))), addresses(city, district)"
     )
     .order("created_at", { ascending: false })
     .limit(limit);
