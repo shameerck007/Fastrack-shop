@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { distanceKm } from "@/lib/delivery-geo";
 import type { DeliveryPartner, Profile } from "@/types/database";
 
 export interface RiderProfile {
@@ -61,18 +62,27 @@ export interface AvailableOrder {
   delivery_type: string;
   delivery_fee: number;
   created_at: string;
-  warehouses: { name: string; address_line: string | null } | null;
+  warehouses: { name: string; address_line: string | null; lat: number | null; lng: number | null } | null;
   item_count: number;
+  distanceKm: number | null;
 }
 
 export async function getAvailableOrders(): Promise<AvailableOrder[]> {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const { data: orders, error } = await supabase
-    .from("orders")
-    .select("id, order_number, delivery_type, delivery_fee, created_at, warehouses(name, address_line)")
-    .in("status", ["preparing", "ready_for_pickup"])
-    .order("created_at", { ascending: true });
+  const [{ data: orders, error }, { data: me }] = await Promise.all([
+    supabase
+      .from("orders")
+      .select("id, order_number, delivery_type, delivery_fee, created_at, warehouses(name, address_line, lat, lng)")
+      .in("status", ["preparing", "ready_for_pickup"])
+      .order("created_at", { ascending: true }),
+    user
+      ? supabase.from("delivery_partners").select("current_lat, current_lng").eq("id", user.id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
 
   if (error) throw error;
   if (!orders || orders.length === 0) return [];
@@ -90,9 +100,16 @@ export async function getAvailableOrders(): Promise<AvailableOrder[]> {
     countByOrder.set(row.order_id, (countByOrder.get(row.order_id) ?? 0) + 1);
   }
 
-  return (orders as unknown as Omit<AvailableOrder, "item_count">[]).map((o) => ({
+  const myLat = me?.current_lat ?? null;
+  const myLng = me?.current_lng ?? null;
+
+  return (orders as unknown as Omit<AvailableOrder, "item_count" | "distanceKm">[]).map((o) => ({
     ...o,
     item_count: countByOrder.get(o.id) ?? 0,
+    distanceKm:
+      myLat != null && myLng != null && o.warehouses?.lat != null && o.warehouses?.lng != null
+        ? distanceKm(myLat, myLng, o.warehouses.lat, o.warehouses.lng)
+        : null,
   }));
 }
 
@@ -103,8 +120,9 @@ export interface ActiveDelivery {
   delivery_fee: number;
   total: number;
   delivery_otp: string | null;
-  warehouses: { name: string; address_line: string | null } | null;
-  addresses: { address_line: string; label: string } | null;
+  warehouses: { name: string; address_line: string | null; lat: number | null; lng: number | null } | null;
+  addresses: { address_line: string; label: string; lat: number | null; lng: number | null } | null;
+  item_count: number;
 }
 
 export async function getActiveDelivery(): Promise<ActiveDelivery | null> {
@@ -117,7 +135,7 @@ export async function getActiveDelivery(): Promise<ActiveDelivery | null> {
   const { data, error } = await supabase
     .from("delivery_assignments")
     .select(
-      "orders!inner(id, order_number, status, delivery_fee, total, delivery_otp, warehouses(name, address_line), addresses(address_line, label))"
+      "orders!inner(id, order_number, status, delivery_fee, total, delivery_otp, warehouses(name, address_line, lat, lng), addresses(address_line, label, lat, lng), order_items(id))"
     )
     .eq("rider_id", user.id)
     .not("orders.status", "in", "(delivered,cancelled)")
@@ -126,7 +144,9 @@ export async function getActiveDelivery(): Promise<ActiveDelivery | null> {
     .maybeSingle();
 
   if (error) throw error;
-  return (data?.orders as unknown as ActiveDelivery) ?? null;
+  if (!data?.orders) return null;
+  const order = data.orders as unknown as ActiveDelivery & { order_items: { id: string }[] };
+  return { ...order, item_count: order.order_items?.length ?? 0 };
 }
 
 export interface RiderTodayStats {
@@ -158,4 +178,90 @@ export async function getRiderTodayStats(): Promise<RiderTodayStats> {
     deliveries: rows.length,
     earnings: rows.reduce((sum, r) => sum + Number(r.orders.delivery_fee), 0),
   };
+}
+
+export interface RiderLifetimeStats {
+  totalDeliveries: number;
+  totalEarnings: number;
+  rating: number | null;
+  memberSince: string;
+}
+
+export async function getRiderLifetimeStats(): Promise<RiderLifetimeStats | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const [{ data: deliveries, error }, { data: rider }] = await Promise.all([
+    supabase
+      .from("delivery_assignments")
+      .select("orders!inner(delivery_fee, status)")
+      .eq("rider_id", user.id)
+      .eq("orders.status", "delivered"),
+    supabase.from("delivery_partners").select("rating, created_at").eq("id", user.id).maybeSingle(),
+  ]);
+  if (error) throw error;
+  if (!rider) return null;
+
+  const rows = (deliveries ?? []) as unknown as { orders: { delivery_fee: number } }[];
+  return {
+    totalDeliveries: rows.length,
+    totalEarnings: rows.reduce((sum, r) => sum + Number(r.orders.delivery_fee), 0),
+    rating: rider.rating,
+    memberSince: rider.created_at,
+  };
+}
+
+export interface DayEarnings {
+  date: string;
+  label: string;
+  deliveries: number;
+  earnings: number;
+}
+
+/** Last 7 days (oldest first, today last) — powers the earnings bar chart. */
+export async function getWeeklyEarnings(): Promise<DayEarnings[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - 6);
+
+  const { data, error } = await supabase
+    .from("delivery_assignments")
+    .select("delivered_at, orders!inner(delivery_fee, status)")
+    .eq("rider_id", user.id)
+    .eq("orders.status", "delivered")
+    .gte("delivered_at", start.toISOString());
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as { delivered_at: string; orders: { delivery_fee: number } }[];
+  const byDay = new Map<string, { deliveries: number; earnings: number }>();
+  for (const row of rows) {
+    const key = row.delivered_at.slice(0, 10);
+    const existing = byDay.get(key) ?? { deliveries: 0, earnings: 0 };
+    existing.deliveries += 1;
+    existing.earnings += Number(row.orders.delivery_fee);
+    byDay.set(key, existing);
+  }
+
+  const days: DayEarnings[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + (6 - i));
+    const key = d.toISOString().slice(0, 10);
+    const entry = byDay.get(key) ?? { deliveries: 0, earnings: 0 };
+    days.push({
+      date: key,
+      label: d.toLocaleDateString("en-US", { weekday: "short" }),
+      ...entry,
+    });
+  }
+  return days;
 }

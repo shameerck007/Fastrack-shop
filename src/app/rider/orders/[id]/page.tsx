@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DeliveryActions from "@/components/rider/DeliveryActions";
+import DeliveryProgressStepper from "@/components/rider/DeliveryProgressStepper";
 import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
 import OrderChat from "@/components/OrderChat";
 import { getOrderMessages } from "@/lib/order-messages";
@@ -49,6 +50,10 @@ export default async function RiderOrderPage({
         <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
           {formatSAR(order.delivery_fee)}
         </span>
+      </div>
+
+      <div className="mb-4 rounded-2xl border border-neutral-200 bg-white p-4">
+        <DeliveryProgressStepper status={order.status} t={t} />
       </div>
 
       {order.warehouses && (

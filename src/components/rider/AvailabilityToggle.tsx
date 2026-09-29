@@ -3,8 +3,16 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toggleAvailability } from "@/lib/actions/rider";
+import { useLocale } from "@/components/LocaleProvider";
 
-export default function AvailabilityToggle({ isAvailable }: { isAvailable: boolean }) {
+export default function AvailabilityToggle({
+  isAvailable,
+  size = "sm",
+}: {
+  isAvailable: boolean;
+  size?: "sm" | "lg";
+}) {
+  const { t } = useLocale();
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -15,11 +23,13 @@ export default function AvailabilityToggle({ isAvailable }: { isAvailable: boole
     });
   }
 
+  const sizeClasses = size === "lg" ? "px-4 py-2 text-sm" : "px-3 py-1.5 text-sm";
+
   return (
     <button
       onClick={handleToggle}
       disabled={pending}
-      className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition disabled:opacity-60 ${
+      className={`flex items-center gap-2 rounded-full font-medium transition disabled:opacity-60 ${sizeClasses} ${
         isAvailable ? "bg-blue-500 text-white" : "bg-neutral-200 text-neutral-600"
       }`}
     >
@@ -28,7 +38,7 @@ export default function AvailabilityToggle({ isAvailable }: { isAvailable: boole
           isAvailable ? "animate-pulse" : ""
         }`}
       />
-      {isAvailable ? "Online" : "Offline"}
+      {isAvailable ? t("rider.online_status") : t("rider.offline_status")}
     </button>
   );
 }
