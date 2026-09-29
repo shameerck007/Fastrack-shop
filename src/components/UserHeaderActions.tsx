@@ -24,9 +24,15 @@ export default function UserHeaderActions() {
           </span>
         )}
       </Link>
+      {/* Same reasoning as the Orders link above — Account/Login already has
+          its own tab in the mobile bottom nav, always on screen, so this
+          only needs to exist for desktop where there's no bottom nav. The
+          "Hello, {name}" line was also the actual cause of the reported
+          overflow: an unbounded-width greeting with no truncation could
+          push past the viewport edge on a narrow phone. */}
       {signedIn ? (
-        <Link href="/account" className="leading-tight hover:text-blue-600">
-          <span className="block text-[11px] text-neutral-500">
+        <Link href="/account" className="hidden max-w-[140px] leading-tight hover:text-blue-600 md:block">
+          <span className="block truncate text-[11px] text-neutral-500">
             {t("header.hello")}, {firstName ?? "—"}
           </span>
           <span className="font-medium">{t("header.account")}</span>
@@ -34,7 +40,7 @@ export default function UserHeaderActions() {
       ) : (
         <Link
           href="/login"
-          className="rounded-full bg-blue-700 px-4 py-1.5 text-white hover:bg-blue-800"
+          className="hidden rounded-full bg-blue-700 px-4 py-1.5 text-white hover:bg-blue-800 md:inline-block"
         >
           {t("header.login")}
         </Link>
