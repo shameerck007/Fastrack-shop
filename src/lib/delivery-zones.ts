@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { checkZone, type Coords, type ZoneVerdict } from "@/lib/delivery-geo";
+import { checkZone, distanceKm, type Coords, type ZoneVerdict } from "@/lib/delivery-geo";
 
 // A delivery boundary is a circle around a warehouse (each merchant store
 // has its own warehouse; FasTrack's own dark store is the default one).
@@ -43,9 +43,58 @@ export async function loadZones(): Promise<Map<string, WarehouseZone>> {
   );
 }
 
-/** productId -> the warehouse that fulfils it (merchant's own, else the default one). */
+/** Which FasTrack-owned warehouse (products.store_id is null) should fulfil
+ * an order at this location — nearest-covering-location routing, the same
+ * shape Amazon/Noon use for their own dark-store network: among FasTrack's
+ * own active locations, prefer the nearest one whose delivery boundary
+ * actually covers these coordinates. If none cover, still return the
+ * nearest one (with real lat/lng) so the caller's checkZone() reports a
+ * specific "X km away, we deliver within Y km" for that closest location
+ * instead of a generic "unavailable". Falls back to the legacy "oldest
+ * unowned warehouse" pick when there's no location yet, or no warehouse has
+ * coordinates at all. */
+async function resolveFastrackWarehouse(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  coords: Coords | null
+): Promise<string | null> {
+  const [{ data: stores }, { data: warehouses }] = await Promise.all([
+    supabase.from("stores").select("warehouse_id"),
+    supabase.from("warehouses").select("id, lat, lng, delivery_radius_km").eq("is_active", true),
+  ]);
+
+  const merchantWarehouseIds = new Set((stores ?? []).map((s) => s.warehouse_id).filter(Boolean));
+  const own = (warehouses ?? []).filter((w) => !merchantWarehouseIds.has(w.id));
+  if (own.length === 0) return null;
+  if (own.length === 1) return own[0].id;
+
+  const legacyDefault = async () => {
+    const { data } = await supabase.rpc("default_warehouse_id");
+    return (data as string | null) ?? own[0].id;
+  };
+
+  if (!coords || coords.lat == null || coords.lng == null) return legacyDefault();
+
+  const withDistance = own
+    .filter((w) => w.lat != null && w.lng != null)
+    .map((w) => {
+      const distance = distanceKm(coords.lat as number, coords.lng as number, w.lat as number, w.lng as number);
+      const radius = w.delivery_radius_km == null ? null : Number(w.delivery_radius_km);
+      return { id: w.id, distance, covers: radius == null || distance <= radius };
+    })
+    .sort((a, b) => a.distance - b.distance);
+
+  const nearestCovering = withDistance.find((w) => w.covers);
+  if (nearestCovering) return nearestCovering.id;
+  if (withDistance.length > 0) return withDistance[0].id;
+
+  return legacyDefault();
+}
+
+/** productId -> the warehouse that fulfils it (merchant's own, else whichever
+ * FasTrack-owned location is resolved for these coordinates). */
 export async function resolveProductWarehouses(
-  products: { id: string; store_id: string | null }[]
+  products: { id: string; store_id: string | null }[],
+  coords: Coords | null = null
 ): Promise<Map<string, string | null>> {
   const supabase = await createClient();
   const storeIds = [...new Set(products.map((p) => p.store_id).filter((id): id is string => !!id))];
@@ -58,15 +107,12 @@ export async function resolveProductWarehouses(
     }
   }
 
-  let defaultId: string | null = null;
+  let ownId: string | null = null;
   if (products.some((p) => !p.store_id)) {
-    const { data } = await supabase.rpc("default_warehouse_id");
-    defaultId = (data as string | null) ?? null;
+    ownId = await resolveFastrackWarehouse(supabase, coords);
   }
 
-  return new Map(
-    products.map((p) => [p.id, p.store_id ? (storeWarehouse.get(p.store_id) ?? null) : defaultId])
-  );
+  return new Map(products.map((p) => [p.id, p.store_id ? (storeWarehouse.get(p.store_id) ?? null) : ownId]));
 }
 
 export interface Deliverability {
@@ -80,7 +126,7 @@ export async function checkProductsDeliverable(
   coords: Coords | null
 ): Promise<Map<string, Deliverability>> {
   if (products.length === 0) return new Map();
-  const [zones, warehouseByProduct] = await Promise.all([loadZones(), resolveProductWarehouses(products)]);
+  const [zones, warehouseByProduct] = await Promise.all([loadZones(), resolveProductWarehouses(products, coords)]);
   return new Map(
     products.map((p) => {
       const wid = warehouseByProduct.get(p.id);

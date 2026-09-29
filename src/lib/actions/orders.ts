@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
-import { checkProductsDeliverable } from "@/lib/delivery-zones";
+import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
 import { addToCart } from "@/lib/actions/cart";
 import { generateOrderNumber, generateOtp, extractVat } from "@/lib/utils";
 import type { DeliveryType, PaymentMethod } from "@/types/database";
@@ -58,53 +58,41 @@ export async function placeOrder(input: {
   const vat = extractVat(subtotal);
   const total = Math.round((subtotal + deliveryFee) * 100) / 100;
 
-  // Resolve which warehouse actually stocks each item. Merchant products
-  // live in that merchant's own warehouse (created on store approval); a
-  // single hardcoded/first-active warehouse doesn't work once more than one
-  // warehouse exists — that previously caused mixed admin+merchant carts to
-  // decrement stock against the wrong warehouse (spurious "sold out"
-  // errors, or worse, silently decrementing the wrong inventory row).
-  const storeIds = [...new Set(items.map((i) => i.product_variants.products.store_id).filter((id): id is string => !!id))];
-  // stores' own RLS only lets the owner (or admin) read a row — a customer
-  // checking out has no access — so this goes through a SECURITY DEFINER
-  // function that exposes just the store->warehouse mapping checkout needs.
-  const { data: stores } = storeIds.length
-    ? await supabase.rpc("get_store_warehouses", { target_store_ids: storeIds })
-    : { data: [] as { store_id: string; warehouse_id: string | null }[] };
-  const storeWarehouseMap = new Map(
-    ((stores ?? []) as { store_id: string; warehouse_id: string | null }[]).map((s) => [s.store_id, s.warehouse_id])
-  );
-
-  const { data: warehouses } = await supabase.from("warehouses").select("id").eq("is_active", true);
-  const { data: defaultWarehouse } = await supabase.rpc("default_warehouse_id");
-  const defaultWarehouseId = (defaultWarehouse as string | null) ?? warehouses?.[0]?.id ?? null;
-
-  const itemWarehouseIds = items.map((item) => {
-    const storeId = item.product_variants.products.store_id;
-    if (storeId) {
-      const warehouseId = storeWarehouseMap.get(storeId);
-      if (!warehouseId) {
-        throw new Error(`${item.product_variants.products.name} isn't available from its seller right now.`);
-      }
-      return warehouseId;
-    }
-    return defaultWarehouseId;
-  });
-
-  // Delivery boundary: every item's seller must deliver to the chosen address.
+  // Fetched before warehouse resolution — for FasTrack's own items (no
+  // store_id), which of FasTrack's own locations fulfils the order now
+  // depends on the customer's coordinates (nearest location whose delivery
+  // boundary covers them), not a single fixed "default" warehouse.
   const { data: chosenAddress } = await supabase
     .from("addresses")
     .select("lat, lng")
     .eq("id", input.addressId)
     .maybeSingle();
-  const deliverability = await checkProductsDeliverable(
-    items.map((i) => ({
-      id: i.product_variants.products.id,
-      store_id: i.product_variants.products.store_id,
-      name: i.product_variants.products.name,
-    })),
-    chosenAddress ? { lat: chosenAddress.lat, lng: chosenAddress.lng } : null
-  );
+  const coords = chosenAddress ? { lat: chosenAddress.lat, lng: chosenAddress.lng } : null;
+
+  // Resolve which warehouse actually stocks each item. Merchant products
+  // live in that merchant's own warehouse (created on store approval);
+  // FasTrack's own products resolve to whichever FasTrack location covers
+  // this address (resolveProductWarehouses — same function
+  // checkProductsDeliverable below uses, so the warehouse stock gets
+  // decremented from is guaranteed to be the same one the zone check ran
+  // against, not two independently-resolved warehouses drifting apart.
+  const productRefs = items.map((i) => ({
+    id: i.product_variants.products.id,
+    store_id: i.product_variants.products.store_id,
+    name: i.product_variants.products.name,
+  }));
+  const warehouseByProduct = await resolveProductWarehouses(productRefs, coords);
+
+  const itemWarehouseIds = items.map((item) => {
+    const warehouseId = warehouseByProduct.get(item.product_variants.products.id) ?? null;
+    if (!warehouseId) {
+      throw new Error(`${item.product_variants.products.name} isn't available from its seller right now.`);
+    }
+    return warehouseId;
+  });
+
+  // Delivery boundary: every item's seller must deliver to the chosen address.
+  const deliverability = await checkProductsDeliverable(productRefs, coords);
   const blocked = [...deliverability.values()].filter((d) => d.message);
   if (blocked.length > 0) {
     throw new Error(
