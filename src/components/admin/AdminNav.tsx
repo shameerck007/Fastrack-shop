@@ -6,6 +6,7 @@ import { useLocale } from "@/components/LocaleProvider";
 
 const NAV = [
   { href: "/admin", labelKey: "portal.dashboard", icon: "📊" },
+  { href: "/admin/store", labelKey: "admin.fastrack_stores", icon: "🏬" },
   { href: "/admin/products", labelKey: "admin.products", icon: "📦" },
   { href: "/admin/categories", labelKey: "admin.categories", icon: "🗂️" },
   { href: "/admin/orders", labelKey: "admin.orders", icon: "🧾" },
