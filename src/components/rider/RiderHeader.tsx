@@ -17,14 +17,14 @@ export default async function RiderHeader() {
   return (
     <header className="sticky top-0 z-30 bg-white shadow-sm">
       <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
-        <Link href="/rider" className="flex items-center gap-2">
+        <Link href="/rider" className="flex min-w-0 shrink items-center gap-2">
           <Wordmark height={24} />
           <span className="hidden rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700 sm:inline">
             {t("rider.rider")}
           </span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <span className="hidden text-xs text-neutral-500 sm:inline">
             {t("rider.today_stat", { count: stats.deliveries, earnings: formatSAR(stats.earnings) })}
           </span>
