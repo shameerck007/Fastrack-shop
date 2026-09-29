@@ -44,7 +44,11 @@ export interface WarehouseOrderRow
 // warehouse_id filter needed client-side, same shape as merchant orders.
 export async function getWarehouseOrders(limit = 100): Promise<WarehouseOrderRow[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let query = supabase
     .from("orders")
     .select(
       "id, order_number, status, created_at, total, order_items(id, product_name, variant_label, ordered_quantity, line_total, variant_id, product_variants!variant_id(products(image_url, name, name_ar)))"
@@ -52,6 +56,13 @@ export async function getWarehouseOrders(limit = 100): Promise<WarehouseOrderRow
     .order("created_at", { ascending: false })
     .limit(limit);
 
+  // RLS (0032) already excludes a staff member's own orders from their
+  // warehouse queue — a staff account can also be a shopper at their own
+  // location, and shouldn't see or process their own personal order. This
+  // client-side filter is a second, explicit layer for the same rule.
+  if (user) query = query.neq("user_id", user.id);
+
+  const { data, error } = await query;
   if (error) throw error;
   return (data as unknown as WarehouseOrderRow[]) ?? [];
 }
