@@ -109,7 +109,12 @@ export default async function OrderDetailPage({
         </div>
       </div>
 
-      <LiveOrderStatus orderId={order.id} initialStatus={order.status} deliveryOtp={order.delivery_otp} />
+      <LiveOrderStatus
+        orderId={order.id}
+        initialStatus={order.status}
+        deliveryOtp={order.delivery_otp}
+        statusHistory={order.order_status_history}
+      />
 
       {order.status === "delivered" && (
         <div className="mb-6">
