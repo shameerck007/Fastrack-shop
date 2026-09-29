@@ -85,7 +85,14 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 border-b border-neutral-100 px-4 py-2 last:border-none hover:bg-neutral-50"
             >
-              <span className="text-lg">🛒</span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-100">
+                {s.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={s.image_url} alt={s.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-lg">📦</span>
+                )}
+              </span>
               <span className="flex-1 truncate text-sm">
                 <span className="font-medium text-neutral-900">{s.name}</span>
                 {s.brand && <span className="ms-1 text-neutral-500">· {s.brand}</span>}
