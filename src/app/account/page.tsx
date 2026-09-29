@@ -49,7 +49,13 @@ export default async function AccountPage() {
     .maybeSingle();
 
   const dashboardHref =
-    profile?.role === "admin" ? "/admin" : profile?.role === "rider" ? "/rider" : "/merchant";
+    profile?.role === "admin"
+      ? "/admin"
+      : profile?.role === "rider"
+        ? "/rider"
+        : profile?.role === "store_staff"
+          ? "/warehouse"
+          : "/merchant";
   const roleLabel =
     profile?.role === "admin"
       ? t("account.role_admin")
@@ -57,7 +63,9 @@ export default async function AccountPage() {
         ? t("account.role_rider")
         : profile?.role === "merchant"
           ? t("account.role_merchant")
-          : "";
+          : profile?.role === "store_staff"
+            ? t("account.role_store_staff")
+            : "";
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -98,7 +106,10 @@ export default async function AccountPage() {
           description={t("account.lists_tile_desc")}
         />
 
-        {(profile?.role === "admin" || profile?.role === "rider" || profile?.role === "merchant") && (
+        {(profile?.role === "admin" ||
+          profile?.role === "rider" ||
+          profile?.role === "merchant" ||
+          profile?.role === "store_staff") && (
           <AccountTile
             href={dashboardHref}
             icon="🧭"

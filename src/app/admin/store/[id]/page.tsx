@@ -5,6 +5,9 @@ import { formatSAR } from "@/lib/utils";
 import RevenueTrendChart from "@/components/admin/charts/RevenueTrendChart";
 import BarList from "@/components/admin/charts/BarList";
 import FastrackStoreStatusToggle from "@/components/admin/FastrackStoreStatusToggle";
+import AddWarehouseStaffForm from "@/components/admin/AddWarehouseStaffForm";
+import RemoveWarehouseStaffButton from "@/components/admin/RemoveWarehouseStaffButton";
+import { getWarehouseStaffList } from "@/lib/actions/admin-warehouse-staff";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -60,6 +63,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
 
   if (!analytics.warehouse) notFound();
   const w = analytics.warehouse;
+  const staff = await getWarehouseStaffList(w.id);
 
   const orderedStatusCounts = STATUS_ORDER.map((status) => ({
     status,
@@ -139,6 +143,28 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
           <p className="mb-3 text-sm font-medium">{t("admin.revenue_by_category_30d")}</p>
           <BarList items={analytics.topCategories} formatValue={formatSAR} emptyLabel={t("admin.no_sales_30d")} />
         </div>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium">{t("warehouse_staff.section_title")}</p>
+            <p className="text-xs text-neutral-400">{t("warehouse_staff.section_intro")}</p>
+          </div>
+          <AddWarehouseStaffForm warehouseId={w.id} />
+        </div>
+        {staff.length === 0 ? (
+          <p className="text-sm text-neutral-400">{t("warehouse_staff.no_staff_yet")}</p>
+        ) : (
+          <div className="flex flex-col divide-y divide-neutral-100">
+            {staff.map((s) => (
+              <div key={s.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                <span className="text-neutral-700">{s.fullName ?? t("add_rider.unnamed_account")}</span>
+                <RemoveWarehouseStaffButton staffId={s.id} userId={s.userId} warehouseId={w.id} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-neutral-200 bg-white p-4">
