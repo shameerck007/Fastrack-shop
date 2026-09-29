@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { getRiderProfile, getRiderTodayStats } from "@/lib/rider";
+import { getRiderTodayStats } from "@/lib/rider";
 import { signOut } from "@/lib/actions/auth";
 import { formatSAR } from "@/lib/utils";
-import AvailabilityToggle from "@/components/rider/AvailabilityToggle";
 import Wordmark from "@/components/Wordmark";
 import LanguageToggle from "@/components/LanguageToggle";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
+// The online/offline toggle lives on RiderProfileCard now, not here — having
+// it in both places (as it briefly was) showed two "Online" pills at once.
 export default async function RiderHeader() {
-  const [rider, stats] = await Promise.all([getRiderProfile(), getRiderTodayStats()]);
+  const stats = await getRiderTodayStats();
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
 
@@ -28,7 +29,6 @@ export default async function RiderHeader() {
             {t("rider.today_stat", { count: stats.deliveries, earnings: formatSAR(stats.earnings) })}
           </span>
           <LanguageToggle />
-          {rider && <AvailabilityToggle isAvailable={rider.deliveryPartner.is_available} />}
           <form action={signOut}>
             <button className="text-sm text-neutral-500 hover:text-neutral-900">{t("portal.log_out")}</button>
           </form>
