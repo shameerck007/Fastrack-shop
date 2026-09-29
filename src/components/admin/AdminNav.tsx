@@ -37,14 +37,6 @@ export default function AdminNav() {
           </Link>
         );
       })}
-      <div className="my-2 border-t border-neutral-200" />
-      <Link
-        href="/"
-        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
-      >
-        <span className="rtl:-scale-x-100">←</span>
-        {t("portal.back_to_shop")}
-      </Link>
     </nav>
   );
 }
