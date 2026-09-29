@@ -1,47 +1,13 @@
 import Link from "next/link";
-import { getFastrackStoreAnalytics } from "@/lib/fastrack-store";
+import { getFastrackWarehouses } from "@/lib/fastrack-store";
 import { formatSAR } from "@/lib/utils";
-import RevenueTrendChart from "@/components/admin/charts/RevenueTrendChart";
-import BarList from "@/components/admin/charts/BarList";
+import AddFastrackStoreForm from "@/components/admin/AddFastrackStoreForm";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
-const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-neutral-100 text-neutral-600",
-  confirmed: "bg-blue-50 text-blue-700",
-  preparing: "bg-blue-50 text-blue-700",
-  ready_for_pickup: "bg-amber-50 text-amber-700",
-  rider_assigned: "bg-amber-50 text-amber-700",
-  out_for_delivery: "bg-amber-50 text-amber-700",
-  delivered: "bg-emerald-50 text-emerald-700",
-  cancelled: "bg-red-50 text-red-700",
-};
-
-const STATUS_BAR_COLORS: Record<string, string> = {
-  pending: "#bfdbfe",
-  confirmed: "#93c5fd",
-  preparing: "#60a5fa",
-  ready_for_pickup: "#3b82f6",
-  rider_assigned: "#2563eb",
-  out_for_delivery: "#1d4ed8",
-  delivered: "#059669",
-  cancelled: "#dc2626",
-};
-
-const STATUS_ORDER = [
-  "pending",
-  "confirmed",
-  "preparing",
-  "ready_for_pickup",
-  "rider_assigned",
-  "out_for_delivery",
-  "delivered",
-  "cancelled",
-];
-
-function Stat({ icon, label, value, accent, href }: { icon: string; label: string; value: string | number; accent: string; href?: string }) {
-  const content = (
-    <div className="flex items-center gap-3">
+function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
       <span
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
         style={{ background: `${accent}1a`, color: accent }}
@@ -50,28 +16,25 @@ function Stat({ icon, label, value, accent, href }: { icon: string; label: strin
       </span>
       <div className="min-w-0">
         <p className="text-xs font-medium text-neutral-500">{label}</p>
-        <p className="truncate text-2xl font-semibold leading-tight text-neutral-900">{value}</p>
+        <p className="text-2xl font-semibold leading-tight text-neutral-900">{value}</p>
       </div>
     </div>
   );
-  return href ? (
-    <Link href={href} className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow-md">
-      {content}
-    </Link>
-  ) : (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">{content}</div>
-  );
 }
 
-export default async function AdminFastrackStorePage() {
+function initials(name: string): string {
+  const words = name.replace(/[—-].*/, "").trim().split(/\s+/);
+  return ((words[0]?.[0] ?? "") + (words[1]?.[0] ?? "")).toUpperCase() || "?";
+}
+
+export default async function AdminFastrackStoresPage() {
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
-  const analytics = await getFastrackStoreAnalytics();
+  const warehouses = await getFastrackWarehouses();
 
-  const orderedStatusCounts = STATUS_ORDER.map((status) => ({
-    status,
-    count: analytics.statusCounts.find((s) => s.status === status)?.count ?? 0,
-  })).filter((s) => s.count > 0);
+  const activeCount = warehouses.filter((w) => w.is_active).length;
+  const totalRevenue30d = warehouses.reduce((sum, w) => sum + w.revenue30d, 0);
+  const totalOrders30d = warehouses.reduce((sum, w) => sum + w.orders30d, 0);
 
   return (
     <div>
@@ -85,88 +48,63 @@ export default async function AdminFastrackStorePage() {
             <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">{t("admin.fastrack_stores_subtitle")}</p>
           </div>
         </div>
+        <AddFastrackStoreForm />
       </div>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <Stat icon="📈" label={t("admin.revenue_30d")} value={formatSAR(analytics.revenue30d)} accent="#059669" />
-        <Stat icon="🧾" label={t("admin.orders_30d")} value={analytics.orders30d} accent="#2563eb" />
-        <Stat icon="🧮" label={t("admin.avg_order_value")} value={formatSAR(analytics.avgOrderValue30d)} accent="#7c3aed" />
-        <Stat icon="📦" label={t("admin.products")} value={analytics.totalProducts} accent="#2563eb" href="/admin/products" />
-        <Stat
-          icon="⚠️"
-          label={t("admin.low_stock_items")}
-          value={analytics.lowStockCount}
-          accent={analytics.lowStockCount > 0 ? "#dc2626" : "#a3a3a3"}
-          href="/admin/products"
-        />
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat icon="🏬" label={t("fastrack_stores.total_locations")} value={warehouses.length} accent="#2563eb" />
+        <Stat icon="✅" label={t("admin.approved")} value={activeCount} accent="#059669" />
+        <Stat icon="🧾" label={t("admin.orders_30d")} value={totalOrders30d} accent="#7c3aed" />
+        <Stat icon="📈" label={t("admin.revenue_30d")} value={formatSAR(totalRevenue30d)} accent="#d97706" />
       </div>
 
-      <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
-        <div className="mb-1 flex items-center justify-between">
-          <p className="text-sm font-medium">{t("admin.revenue_trend")}</p>
-          <span className="text-xs text-neutral-400">{t("admin.last_14_days")}</span>
-        </div>
-        <RevenueTrendChart data={analytics.dailyRevenue} />
-      </div>
-
-      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="mb-3 text-sm font-medium">{t("admin.orders_by_status_30d")}</p>
-          <BarList
-            items={orderedStatusCounts.map((s) => ({
-              label: t(`order_status.${s.status}`) ?? s.status,
-              value: s.count,
-              color: STATUS_BAR_COLORS[s.status],
-            }))}
-            formatValue={(v) => String(v)}
-          />
+      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <div className="border-b border-neutral-100 px-5 py-3">
+          <h2 className="text-sm font-semibold text-neutral-700">{t("fastrack_stores.locations")}</h2>
         </div>
 
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="mb-3 text-sm font-medium">{t("admin.top_products_30d")}</p>
-          <BarList items={analytics.topProducts} formatValue={formatSAR} emptyLabel={t("admin.no_sales_30d")} />
-        </div>
-
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="mb-3 text-sm font-medium">{t("admin.revenue_by_category_30d")}</p>
-          <BarList items={analytics.topCategories} formatValue={formatSAR} emptyLabel={t("admin.no_sales_30d")} />
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-neutral-200 bg-white p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm font-medium">{t("admin.recent_orders")}</p>
-          <Link href="/admin/orders" className="text-xs text-blue-600 hover:underline">
-            {t("admin.view_all")}
-          </Link>
-        </div>
-        {analytics.recentOrders.length === 0 ? (
-          <p className="text-sm text-neutral-400">{t("admin.no_orders_yet")}</p>
+        {warehouses.length === 0 ? (
+          <p className="p-6 text-sm text-neutral-500">{t("fastrack_stores.no_stores_yet")}</p>
         ) : (
-          <div className="flex flex-col divide-y divide-neutral-100">
-            {analytics.recentOrders.map((order) => (
-              <Link
-                key={order.id}
-                href={`/admin/orders/${order.id}`}
-                className="flex items-center justify-between gap-3 py-2 text-sm hover:bg-neutral-50"
-              >
-                <div>
-                  <p className="font-medium">#{order.order_number}</p>
-                  <p className="text-xs text-neutral-400">
-                    {new Date(order.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-neutral-700">{formatSAR(order.ownSubtotal)}</span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[order.status] ?? "bg-neutral-100 text-neutral-600"}`}
-                  >
-                    {t(`order_status.${order.status}`)}
+          <ul className="divide-y divide-neutral-100">
+            {warehouses.map((w) => (
+              <li key={w.id}>
+                <Link
+                  href={`/admin/store/${w.id}`}
+                  className="flex flex-wrap items-center gap-4 px-5 py-4 transition hover:bg-neutral-50"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                    {initials(w.name)}
                   </span>
-                </div>
-              </Link>
+                  <div className="min-w-[10rem] flex-1">
+                    <p className="flex items-center gap-2 truncate font-medium text-neutral-900">
+                      {w.name}
+                      {w.is_default && (
+                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                          {t("fastrack_stores.default_badge")}
+                        </span>
+                      )}
+                    </p>
+                    <p className="truncate text-xs text-neutral-500">{w.address_line ?? "—"}</p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      w.is_active ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-500"
+                    }`}
+                  >
+                    {w.is_active ? t("fastrack_stores.active") : t("fastrack_stores.inactive")}
+                  </span>
+                  <span className="hidden shrink-0 text-xs text-neutral-500 sm:block">
+                    {t("fastrack_stores.orders_count", { count: w.orders30d })}
+                  </span>
+                  <span className="hidden shrink-0 text-xs font-medium text-neutral-700 sm:block">
+                    {formatSAR(w.revenue30d)}
+                  </span>
+                  <span className="ms-auto shrink-0 text-xs font-medium text-blue-600">{t("fastrack_stores.view_details")}</span>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
     </div>
