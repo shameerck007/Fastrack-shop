@@ -37,10 +37,7 @@ export default async function OrderDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <div className="mb-1 flex flex-wrap items-start justify-between gap-3">
-        <h1 className="text-2xl font-semibold">{t("orders.order_details_title")}</h1>
-        <DownloadInvoiceButton orderId={order.id} orderNumber={order.order_number} />
-      </div>
+      <h1 className="mb-1 text-2xl font-semibold">{t("orders.order_details_title")}</h1>
       <p className="mb-4 flex flex-wrap items-center gap-x-2 text-sm text-neutral-500">
         <span>
           {t("orders.placed_on")}{" "}
@@ -48,6 +45,8 @@ export default async function OrderDetailPage({
         </span>
         <span className="text-neutral-300">|</span>
         <span>{t("orders.order_hash", { number: order.order_number })}</span>
+        <span className="text-neutral-300">|</span>
+        <DownloadInvoiceButton orderId={order.id} orderNumber={order.order_number} variant="link" />
       </p>
 
       <div className="mb-6 grid gap-4 rounded-xl border border-neutral-200 bg-white p-4 sm:grid-cols-3 sm:divide-x sm:divide-neutral-100 rtl:sm:divide-x-reverse">

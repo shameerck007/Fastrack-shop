@@ -74,28 +74,32 @@ export default function LiveOrderStatus({
       </div>
 
       {!isCancelled && (
-        <ol className="mb-6">
+        <ol className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
           {ORDER_STATUS_FLOW.map((s, i) => {
             const done = i <= currentStepIndex;
             const isLast = i === ORDER_STATUS_FLOW.length - 1;
             const at = historyByStatus.get(s);
             return (
-              <li key={s} className="relative flex gap-3 pb-6 last:pb-0">
+              <li key={s} className="relative flex items-start gap-3 pb-4 last:pb-0">
+                {/* Label + timestamp share one line (wrapping only on very
+                    narrow screens) instead of stacking, so each step takes
+                    one compact row rather than the tall two-line block this
+                    used to be. */}
                 {!isLast && (
                   <span
-                    className={`absolute top-6 h-full w-0.5 ${
+                    className={`absolute top-5 h-full w-0.5 ${
                       i < currentStepIndex ? "bg-blue-700" : "bg-neutral-200"
-                    } start-[11px]`}
+                    } start-[9px]`}
                   />
                 )}
                 <span
-                  className={`z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                  className={`z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
                     done ? "bg-blue-700 text-white" : "border-2 border-neutral-300 bg-white"
                   }`}
                 >
                   {done && "✓"}
                 </span>
-                <div className="flex-1 pt-0.5">
+                <div className="flex flex-wrap items-baseline gap-x-2">
                   <p className={`text-sm font-medium ${done ? "text-neutral-900" : "text-neutral-400"}`}>
                     {t(`order_status.${s}`)}
                   </p>

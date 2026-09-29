@@ -5,6 +5,7 @@ import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import BuyItAgainButton from "@/components/BuyItAgainButton";
+import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import type { OrderStatus } from "@/types/database";
 
 const ACTIVE_STATUSES: OrderStatus[] = [
@@ -16,16 +17,20 @@ const ACTIVE_STATUSES: OrderStatus[] = [
   "out_for_delivery",
 ];
 
-const STATUS_BADGE: Record<OrderStatus, string> = {
-  pending: "bg-amber-50 text-amber-700",
-  confirmed: "bg-blue-50 text-blue-700",
-  preparing: "bg-blue-50 text-blue-700",
-  ready_for_pickup: "bg-blue-50 text-blue-700",
-  rider_assigned: "bg-blue-50 text-blue-700",
-  out_for_delivery: "bg-blue-50 text-blue-700",
-  delivered: "bg-emerald-50 text-emerald-700",
-  cancelled: "bg-red-50 text-red-600",
-};
+function headline(
+  order: OrderListItem,
+  locale: string,
+  t: (key: string, vars?: Record<string, string | number>) => string
+): { text: string; color: string } {
+  const date = new Date(order.updated_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+  if (order.status === "delivered") return { text: t("orders.delivered_on", { date }), color: "text-emerald-700" };
+  if (order.status === "cancelled") return { text: t("orders.cancelled_on"), color: "text-red-600" };
+  return { text: t(`order_status.${order.status}`), color: "text-blue-700" };
+}
 
 const FILTERS = [
   { key: "all", labelKey: "orders.filter_all" },
@@ -87,14 +92,17 @@ export default async function OrdersPage({
                 const thumbnails = order.order_items.slice(0, 4);
                 const extraCount = order.order_items.length - thumbnails.length;
                 const shipTo = order.addresses?.short_address || order.addresses?.city;
-                const payment = order.payments[0]?.method;
+                const head = headline(order, locale, t);
 
                 return (
                   <div key={order.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-500 sm:text-sm">
+                    {/* Amazon-style header strip: placed/total/deliver-to on one
+                        side, order # + compact "View order details | Invoice"
+                        text links on the other — no boxed invoice button here. */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-500 sm:text-sm">
                       <div className="flex flex-wrap gap-x-6 gap-y-1">
                         <span>
-                          <span className="block text-neutral-400">{t("orders.placed_on")}</span>
+                          <span className="block text-neutral-400">{t("orders.order_placed_label")}</span>
                           <span className="text-neutral-700">
                             {new Date(order.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
                           </span>
@@ -105,72 +113,73 @@ export default async function OrdersPage({
                         </span>
                         {shipTo && (
                           <span className="hidden sm:inline">
-                            <span className="block text-neutral-400">{t("orders.ship_to")}</span>
+                            <span className="block text-neutral-400">{t("orders.deliver_to_label")}</span>
                             <span className="text-neutral-700">{shipTo}</span>
-                          </span>
-                        )}
-                        {payment && (
-                          <span className="hidden sm:inline">
-                            <span className="block text-neutral-400">{t("orders.payment_label")}</span>
-                            <span className="text-neutral-700">{t("account.cash_on_delivery")}</span>
                           </span>
                         )}
                       </div>
                       <div className="text-end">
                         <span className="block text-neutral-400">{t("orders.order_hash", { number: order.order_number })}</span>
-                        <span className={`inline-block rounded-full px-2 py-0.5 font-medium ${STATUS_BADGE[order.status]}`}>
-                          {t(`order_status.${order.status}`)}
+                        <span className="flex items-center gap-1.5 whitespace-nowrap">
+                          <Link href={`/orders/${order.id}`} className="font-medium text-blue-700 hover:underline">
+                            {t("orders.view_order_details")}
+                          </Link>
+                          <span className="text-neutral-300">|</span>
+                          <DownloadInvoiceButton orderId={order.id} orderNumber={order.order_number} variant="link" />
                         </span>
                       </div>
                     </div>
 
-                    <Link href={`/orders/${order.id}`} className="flex items-center gap-3 p-4 hover:bg-neutral-50">
-                      <div className="flex shrink-0 -space-x-2 rtl:space-x-reverse">
-                        {thumbnails.map((item) => {
-                          const product = item.product_variants?.products;
-                          const name = product ? localizedName(product, locale) : item.product_name;
-                          return (
-                            <div
-                              key={item.id}
-                              className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border-2 border-white bg-neutral-100 shadow-sm"
-                            >
-                              {product?.image_url ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={product.image_url} alt={name} className="h-full w-full object-cover" />
-                              ) : (
-                                <span className="text-xl">📦</span>
-                              )}
+                    <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+                      <Link href={`/orders/${order.id}`} className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-90">
+                        <div className="flex shrink-0 -space-x-2 rtl:space-x-reverse">
+                          {thumbnails.map((item) => {
+                            const product = item.product_variants?.products;
+                            const name = product ? localizedName(product, locale) : item.product_name;
+                            return (
+                              <div
+                                key={item.id}
+                                className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border-2 border-white bg-neutral-100 shadow-sm"
+                              >
+                                {product?.image_url ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={product.image_url} alt={name} className="h-full w-full object-cover" />
+                                ) : (
+                                  <span className="text-xl">📦</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                          {extraCount > 0 && (
+                            <div className="flex h-14 w-14 items-center justify-center rounded-lg border-2 border-white bg-neutral-800 text-xs font-medium text-white shadow-sm">
+                              {t("orders.more_items", { count: extraCount })}
                             </div>
-                          );
-                        })}
-                        {extraCount > 0 && (
-                          <div className="flex h-14 w-14 items-center justify-center rounded-lg border-2 border-white bg-neutral-800 text-xs font-medium text-white shadow-sm">
-                            {t("orders.more_items", { count: extraCount })}
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm text-neutral-700">
-                          {order.order_items
-                            .map((i) => (i.product_variants?.products ? localizedName(i.product_variants.products, locale) : i.product_name))
-                            .join(locale === "ar" ? "، " : ", ")}
-                        </p>
-                        <p className="text-xs text-neutral-400">
-                          {t("orders.items_count", { count: itemCount, plural: itemCount === 1 ? "" : "s" })}
-                        </p>
-                      </div>
-                    </Link>
-
-                    <div className="flex flex-wrap items-center gap-2 border-t border-neutral-100 px-4 py-3">
-                      <Link
-                        href={`/orders/${order.id}`}
-                        className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-medium hover:bg-neutral-100"
-                      >
-                        {t("orders.view_order_details")}
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className={`font-semibold ${head.color}`}>{head.text}</p>
+                          <p className="truncate text-sm text-neutral-500">
+                            {order.order_items
+                              .map((i) => (i.product_variants?.products ? localizedName(i.product_variants.products, locale) : i.product_name))
+                              .join(locale === "ar" ? "، " : ", ")}
+                          </p>
+                          <p className="text-xs text-neutral-400">
+                            {t("orders.items_count", { count: itemCount, plural: itemCount === 1 ? "" : "s" })}
+                          </p>
+                        </div>
                       </Link>
-                      {order.status !== "cancelled" && (
-                        <BuyItAgainButton orderId={order.id} itemCount={order.order_items.length} />
-                      )}
+
+                      <div className="flex shrink-0 flex-col items-stretch gap-2">
+                        {order.status !== "cancelled" && (
+                          <BuyItAgainButton orderId={order.id} itemCount={order.order_items.length} />
+                        )}
+                        <Link
+                          href={`/orders/${order.id}`}
+                          className="rounded-full border border-neutral-300 px-4 py-1.5 text-center text-sm font-medium hover:bg-neutral-100"
+                        >
+                          {t("orders.view_order_details")}
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 );
