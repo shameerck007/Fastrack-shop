@@ -95,10 +95,6 @@ export default async function OrderDetailPage({
               <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
               <span>{order.delivery_fee === 0 ? t("checkout.free") : formatSAR(order.delivery_fee)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-neutral-500">{t("checkout.of_which_vat")}</span>
-              <span className="text-neutral-500">{formatSAR(order.vat)}</span>
-            </div>
             {order.discount > 0 && (
               <div className="flex justify-between text-blue-600">
                 <span>{t("orders.discount")}</span>

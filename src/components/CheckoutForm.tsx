@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import AddressForm from "@/components/AddressForm";
 import { placeOrder } from "@/lib/actions/orders";
-import { formatSAR, extractVat } from "@/lib/utils";
+import { formatSAR } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
 import type { Address, CartItemWithVariant, DeliveryType, PaymentMethod } from "@/types/database";
@@ -52,9 +52,6 @@ export default function CheckoutForm({
 
   const deliveryFee =
     subtotal >= 50 ? 0 : DELIVERY_OPTIONS.find((d) => d.value === deliveryType)!.fee;
-  // Item prices already include VAT — this is the included tax portion for
-  // the breakdown, not an amount added on top of subtotal.
-  const vat = extractVat(subtotal);
   const total = Math.round((subtotal + deliveryFee) * 100) / 100;
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
@@ -275,10 +272,6 @@ export default function CheckoutForm({
             <div className="flex justify-between">
               <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
               <span>{deliveryFee === 0 ? t("checkout.free") : formatSAR(deliveryFee)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-neutral-500">{t("checkout.of_which_vat")}</span>
-              <span className="text-neutral-500">{formatSAR(vat)}</span>
             </div>
             <div className="flex justify-between border-t border-neutral-200 pt-1 text-base font-semibold">
               <span>{t("checkout.total")}</span>

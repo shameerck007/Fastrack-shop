@@ -175,7 +175,6 @@ export default async function AdminOrderDetailPage({
             <Row label={t("checkout.delivery_fee")}>
               {order.delivery_fee === 0 ? t("checkout.free") : formatSAR(order.delivery_fee)}
             </Row>
-            <Row label={t("checkout.of_which_vat")}>{formatSAR(order.vat)}</Row>
             {order.discount > 0 && (
               <Row label={`${t("orders.discount")}${order.coupon_code ? ` (${order.coupon_code})` : ""}`}>
                 <span className="text-blue-600">-{formatSAR(order.discount)}</span>
