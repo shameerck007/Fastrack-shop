@@ -18,6 +18,26 @@ export async function adminCreateFastrackWarehouse(input: { name: string; addres
     .single();
   if (error) throw error;
 
+  // A brand-new FasTrack location otherwise starts with zero inventory rows
+  // for the shared catalog — not just an empty-looking staff stock page,
+  // but a real checkout failure: decrement_stock() raises "insufficient
+  // stock" for any item with no row at all, not only a genuinely out-of-
+  // stock one. Seed one row per shared-catalog variant at 0 stock so the
+  // location exists in the system as "everything out of stock until staff
+  // set real numbers" (the honest starting state) rather than "nothing
+  // exists here at all".
+  const { data: variantRows } = await supabase
+    .from("product_variants")
+    .select("id, products!inner(store_id)");
+  const ownVariantIds = ((variantRows ?? []) as unknown as { id: string; products: { store_id: string | null } }[])
+    .filter((v) => v.products.store_id === null)
+    .map((v) => v.id);
+  if (ownVariantIds.length > 0) {
+    await supabase
+      .from("inventory")
+      .insert(ownVariantIds.map((variantId) => ({ variant_id: variantId, warehouse_id: data.id, stock: 0 })));
+  }
+
   revalidatePath("/admin/store");
   revalidatePath("/admin/zones");
   return data.id as string;
