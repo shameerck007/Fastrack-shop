@@ -92,7 +92,11 @@ export default async function AdminZonesPage() {
       color: COLORS[index % COLORS.length],
       productCount: store ? (productsByStore.get(store.id) ?? 0) : (productsByStore.get(null) ?? 0),
       orderCount: ordersByWarehouse.get(w.id) ?? 0,
-      displayName: store?.name ?? t("admin.fastrack_own_products"),
+      // A merchant's own store name, or the warehouse's own name for a
+      // FasTrack-owned location — FasTrack can have several locations now
+      // (0030), so a shared generic label here would make every one of
+      // them indistinguishable on this page.
+      displayName: store?.name ?? w.name,
     };
   });
 

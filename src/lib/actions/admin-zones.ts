@@ -17,19 +17,32 @@ export async function updateWarehouseZone(
   }
 
   const supabase = await createClient();
-  // RLS only lets admins update warehouses; a non-admin update matches no
-  // rows, which is surfaced as an error below rather than silently ignored.
-  const { data, error } = await supabase
-    .from("warehouses")
-    .update(
-      zone
-        ? { lat: zone.lat, lng: zone.lng, delivery_radius_km: zone.radiusKm }
-        : { delivery_radius_km: null }
-    )
-    .eq("id", warehouseId)
-    .select("id");
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Your session has expired — please sign in again and retry.");
+
+  const payload = zone
+    ? { lat: zone.lat, lng: zone.lng, delivery_radius_km: zone.radiusKm }
+    : { delivery_radius_km: null };
+
+  // RLS only lets admins update warehouses, so a non-admin update matches no
+  // rows — but we've also seen a genuinely transient 0-row result here (a
+  // momentary 502 from the Supabase gateway on this exact endpoint), so a
+  // single retry before giving up saves the admin a confusing false
+  // failure on an otherwise-valid save.
+  async function attempt() {
+    return supabase.from("warehouses").update(payload).eq("id", warehouseId).select("id");
+  }
+
+  let { data, error } = await attempt();
+  if (!error && (!data || data.length === 0)) {
+    ({ data, error } = await attempt());
+  }
   if (error) throw error;
-  if (!data || data.length === 0) throw new Error("Could not update this delivery zone.");
+  if (!data || data.length === 0) {
+    throw new Error("Could not update this delivery zone — this warehouse may have been removed. Refresh the page and try again.");
+  }
 
   revalidatePath("/admin/zones");
 }
