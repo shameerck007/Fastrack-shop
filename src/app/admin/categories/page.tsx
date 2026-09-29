@@ -34,12 +34,12 @@ export default async function AdminCategoriesPage() {
         {topLevel.map((category) => {
           const children = childrenByParent.get(category.id) ?? [];
           return (
-            <div key={category.id} className="flex flex-col gap-2">
+            <div key={category.id} className="flex flex-col gap-1.5">
               <CategoryRow category={category} parentOptions={topLevel} />
               {children.map((child) => (
                 <CategoryRow key={child.id} category={child} parentOptions={topLevel} indent />
               ))}
-              <div className="ml-8">
+              <div className="ms-8 mb-1">
                 <CategoryForm parentOptions={topLevel} defaultParentId={category.id} />
               </div>
             </div>

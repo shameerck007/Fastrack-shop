@@ -192,13 +192,25 @@ export default function CategoryForm({
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md"
-      >
-        <span className="text-base leading-none">+</span>{" "}
-        {defaultParentId ? t("category_form.add_subcategory") : t("category_form.add_category")}
-      </button>
+      {defaultParentId ? (
+        // Repeated once per top-level category on the admin page — a small
+        // inline link (Amazon/Noon seller-console style), not a full-size
+        // button, so a page with many categories doesn't turn into a wall
+        // of identical blue pills.
+        <button
+          onClick={() => setOpen(true)}
+          className="ms-1 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+        >
+          <span className="text-sm leading-none">+</span> {t("category_form.add_subcategory")}
+        </button>
+      ) : (
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md"
+        >
+          <span className="text-base leading-none">+</span> {t("category_form.add_category")}
+        </button>
+      )}
       <Modal
         open={open}
         onClose={() => setOpen(false)}
