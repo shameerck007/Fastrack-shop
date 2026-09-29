@@ -10,7 +10,9 @@ export default function UserHeaderActions() {
 
   return (
     <div className="flex items-center gap-4 text-sm">
-      <Link href="/orders" className="leading-tight hover:text-blue-600">
+      {/* Already in the mobile bottom nav (Orders tab) — showing it here too
+          just crowds the header on a phone screen with no extra value. */}
+      <Link href="/orders" className="hidden leading-tight hover:text-blue-600 md:block">
         <span className="block text-[11px] text-neutral-500">{t("header.returns")}</span>
         <span className="font-medium">{t("header.my_orders")}</span>
       </Link>
