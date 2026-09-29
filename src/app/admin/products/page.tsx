@@ -25,6 +25,7 @@ export default async function AdminProductsPage() {
         <div>
           <h1 className="text-xl font-semibold">{t("admin.products")}</h1>
           <p className="text-sm text-neutral-500">{t("admin.products_count", { count: products.length, plural: products.length === 1 ? "" : "s" })}</p>
+          <p className="text-xs text-neutral-400">{t("admin.products_catalog_hint")}</p>
         </div>
         <ProductForm categories={categoryList} warehouses={warehouseList} />
       </div>

@@ -103,7 +103,7 @@ export default async function AdminDashboardPage() {
     { label: t("admin.avg_order_value"), value: formatSAR(analytics.avgOrderValue30d), icon: "🧮", color: "bg-violet-50 text-violet-700" },
     { label: t("admin.total_customers"), value: analytics.totalCustomers, icon: "👥", color: "bg-cyan-50 text-cyan-700" },
     { label: t("admin.new_customers_30d"), value: analytics.newCustomers30d, icon: "✨", color: "bg-blue-50 text-blue-700" },
-    { label: t("admin.products"), value: totalProducts ?? 0, icon: "📦", color: "bg-blue-50 text-blue-700", href: "/admin/products" },
+    { label: t("admin.all_products_label"), value: totalProducts ?? 0, icon: "📦", color: "bg-blue-50 text-blue-700", href: "/admin/products" },
     {
       label: t("admin.pending_merchants"),
       value: pendingMerchants ?? 0,
