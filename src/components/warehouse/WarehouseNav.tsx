@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
 
 const NAV = [
+  { href: "/warehouse", labelKey: "portal.dashboard", icon: "📊" },
   { href: "/warehouse/orders", labelKey: "warehouse.orders_nav", icon: "🧾" },
   { href: "/warehouse/stock", labelKey: "warehouse.stock_nav", icon: "📦" },
 ];
@@ -16,7 +17,7 @@ export default function WarehouseNav() {
   return (
     <nav className="flex flex-col gap-1">
       {NAV.map((item) => {
-        const active = pathname.startsWith(item.href);
+        const active = item.href === "/warehouse" ? pathname === item.href : pathname.startsWith(item.href);
         return (
           <Link
             key={item.href}

@@ -20,7 +20,7 @@ export default async function WarehouseLayout({ children }: { children: React.Re
     <div className="min-h-screen bg-neutral-50">
       <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link href="/warehouse/orders" className="flex items-center gap-2">
+          <Link href="/warehouse" className="flex items-center gap-2">
             <Wordmark height={24} />
             <div>
               <span className="block font-semibold leading-tight text-neutral-900">{warehouse.name}</span>
