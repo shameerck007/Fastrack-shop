@@ -17,7 +17,7 @@ import {
 const STORAGE_KEY = "fastrack:delivery-location";
 const SKIPPED_KEY = "fastrack:delivery-location-skipped";
 // Pages where prompting a shopper for a delivery location makes no sense.
-const NO_PROMPT_PREFIXES = ["/admin", "/rider", "/merchant", "/login", "/register", "/sell"];
+const NO_PROMPT_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse", "/login", "/register", "/sell"];
 
 function readStored(): DeliveryLocation | null {
   try {

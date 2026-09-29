@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-const HIDE_PREFIXES = ["/admin", "/rider", "/merchant", "/store"];
+const HIDE_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse"];
 
 export default function MobileNavGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

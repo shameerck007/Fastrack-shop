@@ -11,7 +11,7 @@ const NON_PAGE_PATHS = new Set(["/categories", "/products", "/store", "/rider/or
 // Portal sections (merchant/admin/rider) have their own chrome — a header
 // with a single explicit "Back to shop" exit and a sidebar nav — so this
 // generic bar would just be a second, redundant "back" control there.
-const HIDE_PREFIXES = ["/admin", "/rider", "/merchant", "/store"];
+const HIDE_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse"];
 
 function parentPath(pathname: string): string {
   const segments = pathname.split("/").filter(Boolean);
