@@ -204,3 +204,23 @@ export async function getLabelData(orderId: string): Promise<LabelData | null> {
   if (error) throw error;
   return data as unknown as LabelData | null;
 }
+
+export interface OrderRating {
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}
+
+// "customers read own order ratings" RLS scopes this to the caller's own
+// rating — no separate ownership check needed.
+export async function getMyOrderRating(orderId: string): Promise<OrderRating | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("order_ratings")
+    .select("rating, comment, created_at")
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getOrderDetail } from "@/lib/orders";
+import { getOrderDetail, getMyOrderRating } from "@/lib/orders";
 import { getOrderMessages } from "@/lib/order-messages";
 import { createClient } from "@/lib/supabase/server";
 import { formatSAR } from "@/lib/utils";
@@ -8,6 +8,7 @@ import LiveOrderStatus from "@/components/LiveOrderStatus";
 import RiderLocationMap from "@/components/RiderLocationMap";
 import OrderChat from "@/components/OrderChat";
 import BuyItAgainButton from "@/components/BuyItAgainButton";
+import OrderRatingForm from "@/components/OrderRatingForm";
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -32,6 +33,7 @@ export default async function OrderDetailPage({
   const rider = order.delivery_assignments?.delivery_partners ?? null;
   const showTrackingExtras = ["rider_assigned", "out_for_delivery"].includes(order.status);
   const messages = rider && user ? await getOrderMessages(order.id) : [];
+  const myRating = order.status === "delivered" ? await getMyOrderRating(order.id) : null;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
@@ -112,6 +114,12 @@ export default async function OrderDetailPage({
       </div>
 
       <LiveOrderStatus orderId={order.id} initialStatus={order.status} deliveryOtp={order.delivery_otp} />
+
+      {order.status === "delivered" && (
+        <div className="mb-6">
+          <OrderRatingForm orderId={order.id} existingRating={myRating} />
+        </div>
+      )}
 
       {rider && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
