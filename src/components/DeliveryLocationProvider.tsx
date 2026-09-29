@@ -186,12 +186,34 @@ export default function DeliveryLocationProvider({ children }: { children: React
   const statusForStore = useCallback(
     (storeId: string | null): DeliveryStatus => {
       if (!zones) return { state: "loading" };
-      const zone = zones.find((z) => z.storeId === storeId);
-      // A store with no zone row (e.g. not yet approved) or no boundary is unrestricted.
-      const verdict: ZoneVerdict = checkZone(zone, location);
-      if (verdict.ok) return { state: "ok" };
-      if (verdict.reason === "no_location") return { state: "no_location" };
-      return { state: "outside", distanceKm: verdict.distanceKm, radiusKm: verdict.radiusKm };
+      const candidates = zones.filter((z) => z.storeId === storeId);
+
+      // A store/warehouse with no zone row at all (e.g. not yet approved) is
+      // unrestricted — same single checkZone(undefined, ...) call as before.
+      if (candidates.length === 0) {
+        const verdict = checkZone(undefined, location);
+        return verdict.ok ? { state: "ok" } : { state: "no_location" };
+      }
+
+      // storeId === null can now match more than one row — FasTrack can have
+      // several of its own warehouse locations. Deliverable if ANY of them
+      // covers this location; a real merchant store still only ever has one
+      // row here, so this is a no-op for that case. When none cover, report
+      // the nearest one's actual distance (same fallback checkout's own
+      // resolveFastrackWarehouse routing uses) instead of a generic block.
+      let nearestOutside: { distanceKm: number; radiusKm: number } | null = null;
+      for (const zone of candidates) {
+        const verdict: ZoneVerdict = checkZone(zone, location);
+        if (verdict.ok) return { state: "ok" };
+        if (verdict.reason === "no_location") continue;
+        if (!nearestOutside || verdict.distanceKm < nearestOutside.distanceKm) {
+          nearestOutside = { distanceKm: verdict.distanceKm, radiusKm: verdict.radiusKm };
+        }
+      }
+      // Either every candidate reported "outside" (nearestOutside is set) or
+      // every candidate reported "no_location" (location itself is unset,
+      // since a configured zone only ever says no_location for that reason).
+      return nearestOutside ? { state: "outside", ...nearestOutside } : { state: "no_location" };
     },
     [zones, location]
   );
