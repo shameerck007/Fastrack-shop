@@ -180,9 +180,9 @@ export async function buildInvoicePdf({
     text(page, value, tr, y, { font: f, size, right: true });
     y -= 14;
   };
-  totalRow("Subtotal (incl. VAT)", formatSAR(order.subtotal));
-  totalRow("  of which VAT (15%)", formatSAR(order.vat));
+  totalRow("Item(s) Subtotal", formatSAR(order.subtotal));
   totalRow("Delivery fee", order.delivery_fee === 0 ? "Free" : formatSAR(order.delivery_fee));
+  totalRow("VAT (15%)", formatSAR(order.vat));
   if (order.discount > 0) totalRow("Discount", `-${formatSAR(order.discount)}`);
   page.drawLine({
     start: { x: tl, y: y + 8 },

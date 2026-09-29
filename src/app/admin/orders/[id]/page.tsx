@@ -171,13 +171,11 @@ export default async function AdminOrderDetailPage({
           </Card>
 
           <Card title={t("admin.payment_summary")}>
-            <Row label={t("checkout.subtotal_incl_vat")}>{formatSAR(order.subtotal)}</Row>
-            <Row label={t("checkout.of_which_vat")}>
-              <span className="text-neutral-400">{formatSAR(order.vat)}</span>
-            </Row>
+            <Row label={t("orders.item_subtotal")}>{formatSAR(order.subtotal)}</Row>
             <Row label={t("checkout.delivery_fee")}>
               {order.delivery_fee === 0 ? t("checkout.free") : formatSAR(order.delivery_fee)}
             </Row>
+            <Row label={t("checkout.of_which_vat")}>{formatSAR(order.vat)}</Row>
             {order.discount > 0 && (
               <Row label={`${t("orders.discount")}${order.coupon_code ? ` (${order.coupon_code})` : ""}`}>
                 <span className="text-blue-600">-{formatSAR(order.discount)}</span>

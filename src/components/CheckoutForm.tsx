@@ -269,16 +269,16 @@ export default function CheckoutForm({
           <h2 className="mb-3 font-medium">{t("checkout.order_summary")}</h2>
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
-              <span className="text-neutral-500">{t("checkout.subtotal_incl_vat")}</span>
+              <span className="text-neutral-500">{t("orders.item_subtotal")}</span>
               <span>{formatSAR(subtotal)}</span>
-            </div>
-            <div className="flex justify-between ps-3 text-xs">
-              <span className="text-neutral-400">{t("checkout.of_which_vat")}</span>
-              <span className="text-neutral-400">{formatSAR(vat)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
               <span>{deliveryFee === 0 ? t("checkout.free") : formatSAR(deliveryFee)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-neutral-500">{t("checkout.of_which_vat")}</span>
+              <span className="text-neutral-500">{formatSAR(vat)}</span>
             </div>
             <div className="flex justify-between border-t border-neutral-200 pt-1 text-base font-semibold">
               <span>{t("checkout.total")}</span>
