@@ -6,7 +6,18 @@ import { reorderItems } from "@/lib/actions/orders";
 import { notifyCartChanged } from "@/lib/cart-events";
 import { useLocale } from "@/components/LocaleProvider";
 
-export default function BuyItAgainButton({ orderId, itemCount }: { orderId: string; itemCount: number }) {
+export default function BuyItAgainButton({
+  orderId,
+  itemCount,
+  fullWidth = false,
+}: {
+  orderId: string;
+  itemCount: number;
+  // The orders list stacks this next to "View order details" in a
+  // fixed-width column and needs both to match widths exactly; the order
+  // detail page uses it standalone and should stay content-sized there.
+  fullWidth?: boolean;
+}) {
   const { t } = useLocale();
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -37,12 +48,14 @@ export default function BuyItAgainButton({ orderId, itemCount }: { orderId: stri
   }
 
   return (
-    <div className="flex flex-col items-start gap-1">
+    <div className={`flex flex-col gap-1 ${fullWidth ? "items-stretch" : "items-start"}`}>
       <button
         type="button"
         onClick={handleClick}
         disabled={pending}
-        className="rounded-full border border-blue-600 px-4 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+        className={`rounded-full border border-blue-600 px-4 py-1.5 text-center text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50 ${
+          fullWidth ? "w-full" : ""
+        }`}
       >
         {pending ? t("orders.buying_again") : t("orders.buy_it_again")}
       </button>

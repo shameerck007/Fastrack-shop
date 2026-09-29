@@ -169,13 +169,13 @@ export default async function OrdersPage({
                         </div>
                       </Link>
 
-                      <div className="flex shrink-0 flex-col items-stretch gap-2">
+                      <div className="flex w-full shrink-0 flex-col items-stretch gap-2 sm:w-48">
                         {order.status !== "cancelled" && (
-                          <BuyItAgainButton orderId={order.id} itemCount={order.order_items.length} />
+                          <BuyItAgainButton orderId={order.id} itemCount={order.order_items.length} fullWidth />
                         )}
                         <Link
                           href={`/orders/${order.id}`}
-                          className="rounded-full border border-neutral-300 px-4 py-1.5 text-center text-sm font-medium hover:bg-neutral-100"
+                          className="w-full rounded-full border border-neutral-300 px-4 py-1.5 text-center text-sm font-medium hover:bg-neutral-100"
                         >
                           {t("orders.view_order_details")}
                         </Link>
