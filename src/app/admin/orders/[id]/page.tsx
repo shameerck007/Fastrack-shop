@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
+import DownloadLabelButton from "@/components/DownloadLabelButton";
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
 import { getAdminOrderDetail } from "@/lib/admin-orders";
 import { formatSAR, ORDER_STATUS_FLOW, PAYMENT_METHOD_LABELS } from "@/lib/utils";
@@ -78,6 +79,7 @@ export default async function AdminOrderDetailPage({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <OrderStatusSelect orderId={order.id} status={order.status} />
+          <DownloadLabelButton orderId={order.id} orderNumber={order.order_number} />
           <DownloadInvoiceButton orderId={order.id} orderNumber={order.order_number} />
         </div>
       </div>

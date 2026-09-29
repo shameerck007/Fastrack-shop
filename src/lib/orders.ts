@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Order, OrderItem, OrderStatusHistory, ProductWithVariants } from "@/types/database";
+import type { DeliveryType, Order, OrderItem, OrderStatus, OrderStatusHistory, ProductWithVariants } from "@/types/database";
 
 export interface OrderDetail extends Order {
   order_items: (OrderItem & {
@@ -147,4 +147,60 @@ export async function getInvoiceData(orderId: string): Promise<InvoiceData | nul
 
   if (error) throw error;
   return data as InvoiceData | null;
+}
+
+// Explicit fields, not `extends Order` — deliberately has no delivery_otp
+// property at all (see the note below), rather than one the type claims
+// exists but the query never fetches.
+export interface LabelData {
+  id: string;
+  order_number: string;
+  status: OrderStatus;
+  delivery_type: DeliveryType;
+  subtotal: number;
+  delivery_fee: number;
+  discount: number;
+  vat: number;
+  total: number;
+  notes: string | null;
+  created_at: string;
+  order_items: { id: string }[];
+  addresses: {
+    address_line: string;
+    label: string;
+    city: string;
+    district: string | null;
+    building_number: string | null;
+    unit_number: string | null;
+    postal_code: string | null;
+    short_address: string | null;
+    receiver_name: string | null;
+    receiver_phone: string | null;
+  } | null;
+  profiles: { full_name: string | null; phone: string | null } | null;
+  warehouses: { name: string; address_line: string | null } | null;
+  payments: { method: string }[];
+}
+
+// Same RLS scoping as getInvoiceData (owner, admin, or assigned rider) —
+// the delivery label is an internal handling document, not shown to the
+// customer, so it's only ever generated from the admin order detail page.
+// Deliberately does NOT select delivery_otp: that code is the customer's
+// own doorstep-handover proof and must never appear on a document that
+// travels with the physical package.
+const LABEL_ORDER_COLUMNS =
+  "id, order_number, status, delivery_type, subtotal, delivery_fee, discount, vat, total, notes, created_at";
+
+export async function getLabelData(orderId: string): Promise<LabelData | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      `${LABEL_ORDER_COLUMNS}, order_items(id), addresses(address_line, label, city, district, building_number, unit_number, postal_code, short_address, receiver_name, receiver_phone), profiles(full_name, phone), warehouses(name, address_line), payments(method)`
+    )
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as unknown as LabelData | null;
 }

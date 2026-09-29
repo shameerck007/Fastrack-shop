@@ -169,6 +169,10 @@ const en = {
       order_details_title: "Order Details",
       order_summary: "Order Summary",
       item_subtotal: "Item(s) Subtotal",
+      print_label: "🏷️ Print Label",
+      preparing_label: "Preparing label…",
+      could_not_generate_label: "Could not generate the delivery label.",
+      could_not_download_label: "Could not download the delivery label.",
     },
     order_status: {
       pending: "Order placed",
@@ -1016,6 +1020,10 @@ const ar: LocaleShape = {
       order_details_title: "تفاصيل الطلب",
       order_summary: "ملخص الطلب",
       item_subtotal: "إجمالي المنتجات",
+      print_label: "🏷️ طباعة ملصق الشحن",
+      preparing_label: "جارٍ تجهيز الملصق…",
+      could_not_generate_label: "تعذّر إنشاء ملصق الشحن.",
+      could_not_download_label: "تعذّر تحميل ملصق الشحن.",
     },
     order_status: {
       pending: "تم تقديم الطلب",
