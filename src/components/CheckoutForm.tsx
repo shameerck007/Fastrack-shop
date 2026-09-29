@@ -85,11 +85,13 @@ export default function CheckoutForm({
   const listSep = locale === "ar" ? "، " : ", ";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-      <div className="flex flex-col gap-6">
-        <section>
-          <h2 className="mb-2 font-medium">
-            <span className="text-neutral-400">1. </span>
+    <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+      <div className="flex flex-col gap-4">
+        <section className="rounded-xl border border-neutral-200 bg-white p-4">
+          <h2 className="mb-3 flex items-center gap-2 font-medium">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+              1
+            </span>
             {t("checkout.delivery_address")}
           </h2>
           <div className="flex flex-col gap-2">
@@ -161,9 +163,11 @@ export default function CheckoutForm({
           </div>
         </section>
 
-        <section>
-          <h2 className="mb-2 font-medium">
-            <span className="text-neutral-400">2. </span>
+        <section className="rounded-xl border border-neutral-200 bg-white p-4">
+          <h2 className="mb-3 flex items-center gap-2 font-medium">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+              2
+            </span>
             {t("checkout.delivery_time")}
           </h2>
           <div className="flex flex-col gap-2">
@@ -200,9 +204,11 @@ export default function CheckoutForm({
           </div>
         </section>
 
-        <section>
-          <h2 className="mb-2 font-medium">
-            <span className="text-neutral-400">3. </span>
+        <section className="rounded-xl border border-neutral-200 bg-white p-4">
+          <h2 className="mb-3 flex items-center gap-2 font-medium">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+              3
+            </span>
             {t("checkout.payment")}
           </h2>
           <div className="grid grid-cols-2 gap-2">
@@ -225,18 +231,20 @@ export default function CheckoutForm({
           </div>
         </section>
 
-        <section>
-          <h2 className="mb-2 font-medium">
-            <span className="text-neutral-400">4. </span>
+        <section className="rounded-xl border border-neutral-200 bg-white p-4">
+          <h2 className="mb-3 flex items-center gap-2 font-medium">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+              4
+            </span>
             {t("checkout.items_in_order", { count: itemCount })}
           </h2>
-          <div className="rounded-xl border border-neutral-200 bg-white px-4">
+          <div className="-mx-4 divide-y divide-neutral-100 border-t border-neutral-100 px-4">
             {items.map((item) => {
               const variant = item.product_variants;
               const product = variant.products;
               const name = localizedName(product, locale);
               return (
-                <div key={item.id} className="flex items-center gap-3 border-b border-neutral-100 py-3 last:border-none">
+                <div key={item.id} className="flex items-center gap-3 py-3">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-100">
                     {product.image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
