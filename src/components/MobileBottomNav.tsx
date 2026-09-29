@@ -13,7 +13,6 @@ interface NavItem {
 
 const ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: "🏠", exact: true },
-  { href: "/search", label: "Categories", icon: "🔍" },
   { href: "/cart", label: "Cart", icon: "🛒" },
   { href: "/orders", label: "Orders", icon: "📦" },
 ];
@@ -33,7 +32,7 @@ export default function MobileBottomNav() {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="grid grid-cols-5">
+      <div className="grid grid-cols-4">
         {items.map((item) => {
           const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
           return (
