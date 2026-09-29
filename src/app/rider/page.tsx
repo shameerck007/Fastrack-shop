@@ -5,6 +5,7 @@ import {
   getRiderTodayStats,
   getRiderLifetimeStats,
   getWeeklyEarnings,
+  type AvailableOrder,
 } from "@/lib/rider";
 import { formatSAR } from "@/lib/utils";
 import AcceptOrderButton from "@/components/rider/AcceptOrderButton";
@@ -12,6 +13,7 @@ import RiderProfileCard from "@/components/rider/RiderProfileCard";
 import RiderStatsGrid from "@/components/rider/RiderStatsGrid";
 import RiderEarningsChart from "@/components/rider/RiderEarningsChart";
 import ActiveDeliveryCard from "@/components/rider/ActiveDeliveryCard";
+import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -26,12 +28,14 @@ export default async function RiderHomePage() {
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const rider = await getRiderProfile();
   const activeDelivery = await getActiveDelivery();
-  const [todayStats, lifetimeStats, weeklyEarnings, availableOrders] = await Promise.all([
+  const isMatching = rider?.deliveryPartner.is_available && !activeDelivery;
+  const [todayStats, lifetimeStats, weeklyEarnings, availableOrdersResult] = await Promise.all([
     getRiderTodayStats(),
     getRiderLifetimeStats(),
     getWeeklyEarnings(),
-    rider?.deliveryPartner.is_available && !activeDelivery ? getAvailableOrders() : Promise.resolve([]),
+    isMatching ? getAvailableOrders() : Promise.resolve({ orders: [], hasLocation: false }),
   ]);
+  const { orders: availableOrders, hasLocation } = availableOrdersResult;
 
   if (!rider) {
     return (
@@ -66,10 +70,17 @@ export default async function RiderHomePage() {
 
       {activeDelivery && <ActiveDeliveryCard delivery={activeDelivery} t={t} />}
 
-      {rider.deliveryPartner.is_available && !activeDelivery && (
+      {isMatching && (
         <div>
+          <RiderLocationTracker />
           <h2 className="mb-3 text-sm font-semibold text-neutral-700">{t("rider.nearby_orders")}</h2>
-          {availableOrders.length === 0 ? (
+          {!hasLocation ? (
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-amber-300 bg-amber-50 p-6 text-center">
+              <span className="text-2xl">📍</span>
+              <p className="text-sm font-medium text-amber-800">{t("rider.share_location_title")}</p>
+              <p className="text-xs text-amber-700">{t("rider.share_location_hint")}</p>
+            </div>
+          ) : availableOrders.length === 0 ? (
             <p className="rounded-xl border border-neutral-200 bg-white p-6 text-center text-sm text-neutral-500">
               {t("rider.no_orders_available")}
             </p>
@@ -90,7 +101,7 @@ function AvailableOrderCard({
   order,
   t,
 }: {
-  order: Awaited<ReturnType<typeof getAvailableOrders>>[number];
+  order: AvailableOrder;
   t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
   return (

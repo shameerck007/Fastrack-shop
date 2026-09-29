@@ -67,25 +67,48 @@ export interface AvailableOrder {
   distanceKm: number | null;
 }
 
-export async function getAvailableOrders(): Promise<AvailableOrder[]> {
+// How far a rider is offered orders from, centred on their last live GPS
+// ping (delivery_partners.current_lat/lng — streamed while online by
+// RiderLocationTracker), not the warehouse's city. Independent of a
+// warehouse's own customer delivery radius (delivery_radius_km) — that
+// governs whether FasTrack will deliver TO a shopper; this governs how far
+// a rider is asked to travel TO a pickup. Swiggy/Instamart-style: a rider
+// standing in Jeddah should never be offered a Riyadh pickup just because
+// it's the oldest order in the system.
+const RIDER_MATCH_RADIUS_KM = 20;
+
+export interface AvailableOrdersResult {
+  orders: AvailableOrder[];
+  hasLocation: boolean;
+}
+
+export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: orders, error }, { data: me }] = await Promise.all([
-    supabase
-      .from("orders")
-      .select("id, order_number, delivery_type, delivery_fee, created_at, warehouses(name, address_line, lat, lng)")
-      .in("status", ["preparing", "ready_for_pickup"])
-      .order("created_at", { ascending: true }),
-    user
-      ? supabase.from("delivery_partners").select("current_lat, current_lng").eq("id", user.id).maybeSingle()
-      : Promise.resolve({ data: null }),
-  ]);
+  const { data: me } = user
+    ? await supabase.from("delivery_partners").select("current_lat, current_lng").eq("id", user.id).maybeSingle()
+    : { data: null };
+
+  const myLat = me?.current_lat ?? null;
+  const myLng = me?.current_lng ?? null;
+
+  // No live location yet (rider just went online and the browser hasn't
+  // reported a GPS fix) — show nothing rather than every order nationwide.
+  // The UI prompts the rider to enable location instead.
+  if (myLat == null || myLng == null) {
+    return { orders: [], hasLocation: false };
+  }
+
+  const { data: orders, error } = await supabase
+    .from("orders")
+    .select("id, order_number, delivery_type, delivery_fee, created_at, warehouses(name, address_line, lat, lng)")
+    .in("status", ["preparing", "ready_for_pickup"]);
 
   if (error) throw error;
-  if (!orders || orders.length === 0) return [];
+  if (!orders || orders.length === 0) return { orders: [], hasLocation: true };
 
   const { data: counts } = await supabase
     .from("order_items")
@@ -100,17 +123,20 @@ export async function getAvailableOrders(): Promise<AvailableOrder[]> {
     countByOrder.set(row.order_id, (countByOrder.get(row.order_id) ?? 0) + 1);
   }
 
-  const myLat = me?.current_lat ?? null;
-  const myLng = me?.current_lng ?? null;
-
-  return (orders as unknown as Omit<AvailableOrder, "item_count" | "distanceKm">[]).map((o) => ({
+  const withDistance = (orders as unknown as Omit<AvailableOrder, "item_count" | "distanceKm">[]).map((o) => ({
     ...o,
     item_count: countByOrder.get(o.id) ?? 0,
     distanceKm:
-      myLat != null && myLng != null && o.warehouses?.lat != null && o.warehouses?.lng != null
+      o.warehouses?.lat != null && o.warehouses?.lng != null
         ? distanceKm(myLat, myLng, o.warehouses.lat, o.warehouses.lng)
         : null,
   }));
+
+  const nearby = withDistance
+    .filter((o) => o.distanceKm != null && o.distanceKm <= RIDER_MATCH_RADIUS_KM)
+    .sort((a, b) => (a.distanceKm as number) - (b.distanceKm as number));
+
+  return { orders: nearby, hasLocation: true };
 }
 
 export interface ActiveDelivery {
