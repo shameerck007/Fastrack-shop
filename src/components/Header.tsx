@@ -21,7 +21,7 @@ export default async function Header() {
         <div className="flex items-center justify-between gap-3">
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <Wordmark height={24} />
-            <span className="hidden rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700 sm:inline">Shop</span>
+            <span className="inline-block rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700">Shop</span>
           </Link>
 
           <DeliverToChip className="hidden sm:flex" />
