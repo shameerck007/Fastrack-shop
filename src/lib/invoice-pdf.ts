@@ -202,15 +202,10 @@ export async function buildInvoicePdf({
   y -= 4;
   totalRow("Total", formatSAR(order.total), bold, 11);
 
-  // Footer: QR + note
+  // Footer: QR
   const qr = await pdf.embedPng(qrPng);
   const qrY = Math.max(Math.min(y - 20, M + 90) - 90, M);
   page.drawImage(qr, { x: M, y: qrY, width: 90, height: 90 });
-  const note =
-    "Scan to verify this simplified tax invoice per ZATCA e-invoicing regulations. Thank you for shopping with FasTrack Shop - everything you need, delivered.";
-  wrap(note, 320, font, 8).forEach((l, i) =>
-    text(page, l, M + 105, qrY + 50 - i * 10, { size: 8, color: GRAY })
-  );
 
   return pdf.save();
 }
