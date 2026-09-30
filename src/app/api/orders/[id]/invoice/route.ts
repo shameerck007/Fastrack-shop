@@ -3,7 +3,7 @@ import QRCode from "qrcode";
 import { getInvoiceData } from "@/lib/orders";
 import { buildInvoicePdf } from "@/lib/invoice-pdf";
 import { buildZatcaQrPayload } from "@/lib/zatca";
-import { getCompanySettings } from "@/lib/company-settings";
+import { getOrderSeller } from "@/lib/order-seller";
 import { INVOICE_LOGO_DATA_URL } from "@/lib/invoice-logo";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -13,10 +13,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   // rider only) — a null result here means either the order doesn't exist
   // or the requester isn't allowed to see it, which look identical to the
   // client by design.
-  const [order, company] = await Promise.all([getInvoiceData(id), getCompanySettings()]);
+  const order = await getInvoiceData(id);
   if (!order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
+  // Marketplace seller-of-record: whichever store owns the warehouse this
+  // order was fulfilled from (or FasTrack's own company_settings if it was
+  // fulfilled from a FasTrack-owned warehouse).
+  const company = await getOrderSeller(order.warehouse_id);
 
   const qrPayload = buildZatcaQrPayload({
     sellerName: company.trading_name,
