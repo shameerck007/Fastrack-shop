@@ -7,13 +7,12 @@
  * 8601), 4) invoice total including VAT, 5) VAT total. This is what lets a
  * customer (or ZATCA's own app) scan the invoice and verify it.
  *
- * NOTE: FASTRACK_VAT_NUMBER below is a placeholder. Replace it with your
- * real 15-digit KSA VAT registration number before this goes to production
- * — an invoice with a fake VAT number is not a valid tax document.
+ * Seller name and VAT number now come from company_settings (configured
+ * at /admin/settings) rather than being hardcoded here. Until VAT number
+ * is actually set, the QR carries an empty VAT field — an honest signal
+ * that this isn't a complete tax document yet, rather than a fake-looking
+ * one.
  */
-
-const FASTRACK_SELLER_NAME = "FasTrack Shop";
-const FASTRACK_VAT_NUMBER = "300000000000003"; // placeholder — replace with real VAT registration number
 
 function tlv(tag: number, value: string): Buffer {
   const valueBuffer = Buffer.from(value, "utf8");
@@ -21,13 +20,15 @@ function tlv(tag: number, value: string): Buffer {
 }
 
 export function buildZatcaQrPayload(input: {
+  sellerName: string;
+  vatNumber: string;
   timestamp: string; // ISO 8601
   totalWithVat: number;
   vatTotal: number;
 }): string {
   const fields = Buffer.concat([
-    tlv(1, FASTRACK_SELLER_NAME),
-    tlv(2, FASTRACK_VAT_NUMBER),
+    tlv(1, input.sellerName),
+    tlv(2, input.vatNumber),
     tlv(3, input.timestamp),
     tlv(4, input.totalWithVat.toFixed(2)),
     tlv(5, input.vatTotal.toFixed(2)),

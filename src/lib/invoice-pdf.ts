@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import type { InvoiceData } from "@/lib/orders";
+import type { CompanySettings } from "@/lib/company-settings";
 import { formatSAR, ORDER_STATUS_LABELS } from "@/lib/utils";
 
 // pdf-lib (unlike @react-pdf/renderer) is pure JS with no filesystem/URL
@@ -18,10 +19,12 @@ export async function buildInvoicePdf({
   order,
   qrPng,
   logoPng,
+  company,
 }: {
   order: InvoiceData;
   qrPng: Uint8Array;
   logoPng: Uint8Array;
+  company: CompanySettings;
 }): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Invoice ${order.order_number}`);
@@ -86,7 +89,13 @@ export async function buildInvoicePdf({
   text(page, "SOLD BY", M, y, { size: 8, font: bold, color: GRAY });
   text(page, "BILL TO", colX2, y, { size: 8, font: bold, color: GRAY });
   let yl = y - 13;
-  for (const l of ["FasTrack Shop", "Riyadh, Saudi Arabia", "VAT Registration No: 300000000000003"]) {
+  const soldByLines = [
+    company.trading_name,
+    [company.address_line, company.city].filter(Boolean).join(", ") || null,
+    company.cr_number ? `CR No: ${company.cr_number}` : null,
+    `VAT Registration No: ${company.vat_number ?? "Not yet configured"}`,
+  ].filter((l): l is string => !!l);
+  for (const l of soldByLines) {
     text(page, l, M, yl);
     yl -= 12;
   }

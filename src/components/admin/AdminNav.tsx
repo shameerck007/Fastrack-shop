@@ -14,6 +14,7 @@ const NAV = [
   { href: "/admin/riders", labelKey: "admin.riders", icon: "🛵" },
   { href: "/admin/settlements", labelKey: "admin.settlement_ledger", icon: "📒" },
   { href: "/admin/zones", labelKey: "admin.delivery_zones", icon: "📍" },
+  { href: "/admin/settings", labelKey: "admin.business_settings", icon: "⚙️" },
 ];
 
 export default function AdminNav() {
