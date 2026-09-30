@@ -129,27 +129,12 @@ export async function sendOrderConfirmationEmail(orderId: string) {
   });
 }
 
+// Only the two closing milestones get an email — every in-between step
+// (confirmed, preparing, ready for pickup, rider assigned, out for
+// delivery) still fires push + the in-app bell, just not an inbox
+// message. Quick-commerce orders move through those in minutes; emailing
+// each one is the kind of over-notification real Amazon/Noon avoid too.
 const STATUS_EMAIL: Partial<Record<OrderStatus, { subject: string; heading: string; body: string }>> = {
-  preparing: {
-    subject: "Your order is being prepared — #{n}",
-    heading: "Preparing your order",
-    body: "Order #{n} is being packed.",
-  },
-  ready_for_pickup: {
-    subject: "Your order is ready — #{n}",
-    heading: "Ready for pickup",
-    body: "Order #{n} is packed and waiting for a rider.",
-  },
-  rider_assigned: {
-    subject: "A rider is on the way — #{n}",
-    heading: "Rider on the way",
-    body: "A rider has been assigned to order #{n}.",
-  },
-  out_for_delivery: {
-    subject: "Your order is out for delivery — #{n}",
-    heading: "Out for delivery",
-    body: "Order #{n} is on its way to you.",
-  },
   delivered: {
     subject: "Your order has been delivered — #{n}",
     heading: "Delivered",
@@ -164,8 +149,8 @@ const STATUS_EMAIL: Partial<Record<OrderStatus, { subject: string; heading: stri
 
 /** A lighter, non-itemized status-change email — mirrors the push/bell
  * copy but as a branded email, plus an order-info recap so it still reads
- * as complete on its own. Skips "confirmed"/"pending", which the
- * order-confirmation email already covers. */
+ * as complete on its own. Only fires for delivered/cancelled — see
+ * STATUS_EMAIL above. */
 export async function sendOrderStatusEmail(orderId: string, status: OrderStatus) {
   const template = STATUS_EMAIL[status];
   if (!template) return;
