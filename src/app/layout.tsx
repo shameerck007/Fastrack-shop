@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Tajawal } from "next/font/google";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import HeaderGate from "@/components/HeaderGate";
 import MobileNavGate from "@/components/MobileNavGate";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -71,10 +72,15 @@ export default async function RootLayout({
           <Header />
         </HeaderGate>
         <DeliveryBanner />
-        <main className="min-h-screen pb-16 md:pb-0">
+        <main className="min-h-screen">
           <BackBar />
           {children}
         </main>
+        <HeaderGate>
+          <div className="pb-16 md:pb-0">
+            <Footer />
+          </div>
+        </HeaderGate>
         <MobileNavGate>
           <MobileBottomNav />
         </MobileNavGate>
