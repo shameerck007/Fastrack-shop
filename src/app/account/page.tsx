@@ -1,0 +1,153 @@
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { signOut } from "@/lib/actions/auth";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
+
+function AccountTile({
+  href,
+  icon,
+  title,
+  description,
+}: {
+  href: string;
+  icon: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-4 transition hover:border-blue-300 hover:shadow-sm"
+    >
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xl">
+        {icon}
+      </span>
+      <span className="flex flex-col">
+        <span className="font-medium text-neutral-900">{title}</span>
+        <span className="text-sm text-neutral-500">{description}</span>
+      </span>
+    </Link>
+  );
+}
+
+export default async function AccountPage() {
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const dashboardHref =
+    profile?.role === "admin"
+      ? "/admin"
+      : profile?.role === "rider"
+        ? "/rider"
+        : profile?.role === "store_staff"
+          ? "/warehouse"
+          : "/merchant";
+  const roleLabel =
+    profile?.role === "admin"
+      ? t("account.role_admin")
+      : profile?.role === "rider"
+        ? t("account.role_rider")
+        : profile?.role === "merchant"
+          ? t("account.role_merchant")
+          : profile?.role === "store_staff"
+            ? t("account.role_store_staff")
+            : "";
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      <h1 className="mb-1 text-2xl font-semibold">{t("account.title")}</h1>
+      <p className="mb-6 text-sm text-neutral-500">
+        {profile?.full_name ?? user.email} · {user.email}
+      </p>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <AccountTile
+          href="/orders"
+          icon="📦"
+          title={t("account.orders_tile_title")}
+          description={t("account.orders_tile_desc")}
+        />
+        <AccountTile
+          href="/account/security"
+          icon="🔒"
+          title={t("account.security_tile_title")}
+          description={t("account.security_tile_desc")}
+        />
+        <AccountTile
+          href="/addresses"
+          icon="📍"
+          title={t("account.addresses_tile_title")}
+          description={t("account.addresses_tile_desc")}
+        />
+        <AccountTile
+          href="/account/payments"
+          icon="💳"
+          title={t("account.payments_tile_title")}
+          description={t("account.payments_tile_desc")}
+        />
+        <AccountTile
+          href="/account/lists"
+          icon="🤍"
+          title={t("account.lists_tile_title")}
+          description={t("account.lists_tile_desc")}
+        />
+
+        {(profile?.role === "admin" ||
+          profile?.role === "rider" ||
+          profile?.role === "merchant" ||
+          profile?.role === "store_staff") && (
+          <AccountTile
+            href={dashboardHref}
+            icon="🧭"
+            title={t("account.dashboard_tile_title", { role: roleLabel })}
+            description={t("account.dashboard_tile_desc")}
+          />
+        )}
+
+        {profile?.role === "customer" && (
+          <AccountTile
+            href="/sell"
+            icon="🏪"
+            title={t("account.sell_tile_title")}
+            description={t("account.sell_tile_desc")}
+          />
+        )}
+
+        {profile?.role === "customer" && (
+          <AccountTile
+            href="/deliver"
+            icon="🛵"
+            title={t("account.deliver_tile_title")}
+            description={t("account.deliver_tile_desc")}
+          />
+        )}
+      </div>
+
+      <form action={signOut} className="mt-6">
+        <button className="flex w-full items-start gap-3 rounded-xl border border-neutral-200 bg-white p-4 text-start transition hover:border-red-300 hover:shadow-sm sm:w-auto">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-xl">
+            🚪
+          </span>
+          <span className="flex flex-col">
+            <span className="font-medium text-neutral-900">{t("account.logout_tile_title")}</span>
+            <span className="text-sm text-neutral-500">{t("account.logout_tile_desc")}</span>
+          </span>
+        </button>
+      </form>
+    </div>
+  );
+}

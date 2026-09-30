@@ -1,0 +1,11 @@
+-- product_ratings was created without security_invoker, so it ran with the
+-- view creator's (postgres superuser) privileges rather than the querying
+-- user's — flagged by the Supabase security advisor as SECURITY DEFINER
+-- View. The view only reads from the publicly-readable `reviews` table so
+-- there was no actual data exposure, but this closes the gap properly.
+--
+-- Note: 0001_init.sql and 0006 have already been updated in place with
+-- security_invoker on the CREATE VIEW statement for anyone applying the
+-- schema fresh. This migration exists to bring an already-migrated
+-- database (this project) up to date the same way.
+alter view product_ratings set (security_invoker = true);

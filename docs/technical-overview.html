@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FasTrack Shop — Technical Overview</title>
+<style>
+  @page { size: A4; margin: 22mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    color: #1a1a1a;
+    line-height: 1.55;
+    font-size: 11.5pt;
+  }
+  h1 { font-size: 24pt; margin: 0 0 4px; color: #0b3d91; }
+  .subtitle { color: #555; font-size: 12pt; margin-bottom: 2px; }
+  .meta { color: #888; font-size: 9.5pt; margin-bottom: 20px; }
+  h2 {
+    font-size: 15pt; color: #0b3d91; margin-top: 28px; margin-bottom: 8px;
+    border-bottom: 2px solid #0b3d91; padding-bottom: 4px;
+    page-break-after: avoid;
+  }
+  h3 { font-size: 12.5pt; color: #16418c; margin-top: 16px; margin-bottom: 6px; page-break-after: avoid; }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  code {
+    background: #f0f2f5; padding: 1px 5px; border-radius: 3px;
+    font-family: "Consolas", "SFMono-Regular", monospace; font-size: 10pt;
+  }
+  pre {
+    background: #f5f6f8; border: 1px solid #dde1e6; border-radius: 5px;
+    padding: 10px 12px; font-size: 9.5pt; overflow-x: auto;
+    font-family: "Consolas", monospace; page-break-inside: avoid;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 10.5pt; }
+  th, td { border: 1px solid #d8dbe0; padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: #eef2fb; color: #0b3d91; }
+  .box {
+    background: #f5f8ff; border-left: 4px solid #0b3d91; padding: 10px 14px;
+    margin: 12px 0; border-radius: 0 4px 4px 0; page-break-inside: avoid;
+  }
+  .warn {
+    background: #fff8ec; border-left: 4px solid #c98a1e; padding: 10px 14px;
+    margin: 12px 0; border-radius: 0 4px 4px 0; page-break-inside: avoid;
+  }
+  .diagram {
+    font-family: "Consolas", monospace; font-size: 9.5pt; background: #f5f6f8;
+    border: 1px solid #dde1e6; border-radius: 5px; padding: 14px; white-space: pre;
+    page-break-inside: avoid;
+  }
+  .section { page-break-inside: avoid; }
+  a { color: #0b3d91; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 24px 0; }
+  .footer { margin-top: 30px; color: #999; font-size: 9pt; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>FasTrack Shop — Technical Overview</h1>
+<div class="subtitle">Quick-commerce grocery delivery platform for Riyadh, Saudi Arabia</div>
+<div class="meta">Live at shop.fastrack.cloud &nbsp;|&nbsp; Source: github.com/shameerck007/Fastrack-shop &nbsp;|&nbsp; Document generated 2026-09-25</div>
+
+<div class="box">
+This document is written for a developer who has never touched this codebase before.
+It covers what the app does, how it's built, where it runs, and what to know before
+changing anything. Read this fully before making changes to hosting, auth, or the
+database schema.
+</div>
+
+<h2>1. What this application is</h2>
+<p>
+FasTrack Shop is a Phase 1 MVP quick-commerce grocery delivery app with four user roles:
+</p>
+<ul>
+  <li><b>Customer</b> — browse categories, search products, cart, checkout, track orders, delivery OTP.</li>
+  <li><b>Admin</b> — catalog/inventory management, order oversight, merchant approval, BI-style dashboard.</li>
+  <li><b>Merchant</b> — sell products under the marketplace, manage own product listings.</li>
+  <li><b>Rider</b> — view assigned deliveries, update status, OTP-verified drop-off, live location sharing.</li>
+</ul>
+<p>The original business requirements live in <code>BRD_shop.pdf</code> in the repo root.</p>
+
+<h2>2. Tech stack</h2>
+<table>
+  <tr><th>Layer</th><th>Technology</th></tr>
+  <tr><td>Framework</td><td>Next.js 16 (App Router, React Server Components), React 19, TypeScript</td></tr>
+  <tr><td>Styling</td><td>Tailwind CSS v4</td></tr>
+  <tr><td>Database / Auth</td><td>Supabase (Postgres, Auth, Row Level Security, Realtime)</td></tr>
+  <tr><td>Hosting / Compute</td><td>Cloudflare Workers, via the <code>vinext</code> adapter (beta)</td></tr>
+  <tr><td>Maps</td><td>Leaflet + OpenStreetMap tiles</td></tr>
+  <tr><td>PDF invoices</td><td><code>@react-pdf/renderer</code> + <code>qrcode</code> (ZATCA-style QR for Saudi e-invoicing)</td></tr>
+  <tr><td>Source control</td><td>GitHub — github.com/shameerck007/Fastrack-shop (public)</td></tr>
+</table>
+
+<h2>3. How a request actually flows (architecture)</h2>
+<div class="diagram">
+                          ┌─────────────────────────┐
+  Customer's browser ───▶ │   Cloudflare DNS + Edge   │
+  (web or mobile)         │  shop.fastrack.cloud      │
+                          │  (Custom Domain binding)  │
+                          └────────────┬──────────────┘
+                                       │
+                 ┌─────────────────────┼─────────────────────┐
+                 │                     │                     │
+         Static asset match     Cached response match   No cache hit
+         (JS/CSS/images)        (Workers Cache API /         │
+                 │              KV data cache)                │
+                 ▼                     ▼                     ▼
+         Served directly        Served directly      ┌───────────────┐
+         from Cloudflare        from Cloudflare       │ Worker script  │
+         Assets storage         edge cache            │ "fastrack-shop"│
+         (no compute cost)      (no compute cost)      │ (Next.js SSR   │
+                                                        │  via vinext)   │
+                                                        └───────┬────────┘
+                                                                │
+                                                                ▼
+                                                        ┌───────────────┐
+                                                        │   Supabase     │
+                                                        │ Postgres + Auth│
+                                                        │  + Realtime    │
+                                                        └───────────────┘
+</div>
+<p>
+Key point: most page requests never actually run the Worker's JavaScript — they're
+served as static assets or from the edge cache. Only requests that need fresh,
+personalized, or write data (login, cart mutation, checkout, admin edits) invoke
+the Worker and talk to Supabase.
+</p>
+
+<h2>4. Hosting &amp; deployment details</h2>
+<table>
+  <tr><th>Item</th><th>Value</th></tr>
+  <tr><td>Cloudflare account</td><td>shameerck007@gmail.com</td></tr>
+  <tr><td>Worker name</td><td><code>fastrack-shop</code></td></tr>
+  <tr><td>Custom domain</td><td><code>shop.fastrack.cloud</code> — bound as a Cloudflare Workers Custom Domain (not a CNAME to another host)</td></tr>
+  <tr><td>Plan</td><td>Workers Free — 10&nbsp;ms CPU time per request limit (see §7)</td></tr>
+  <tr><td>KV namespace</td><td><code>fastrack-shop-vinext-kv-cache</code> — used for the data cache layer</td></tr>
+  <tr><td>Static assets</td><td>Served via the Workers Assets binding, built into <code>dist/client</code></td></tr>
+</table>
+
+<h3>Deploying a change</h3>
+<pre>git pull
+npm install                  # only if dependencies changed
+npm run build:vinext         # builds the Cloudflare/Workers bundle
+npm run deploy:vinext        # uploads + activates the new Worker version</pre>
+<div class="box">
+There is <b>no CI/CD pipeline</b>. Deploys are manual, run from a developer's
+machine with Wrangler already authenticated to the Cloudflare account
+(<code>npx wrangler whoami</code> to check). Pushing to GitHub does <b>not</b>
+update the live site by itself.
+</div>
+
+<h3>Local development</h3>
+<pre>npm install
+npm run dev          # plain Next.js dev server — fastest for UI work, no Workers runtime
+npm run dev:vinext   # vinext dev server — closer to production behaviour
+npm run start:vinext # runs the actual built Worker locally via `wrangler dev`
+                      #   — use this to test anything Workers-specific
+                      #   (KV, edge cache, cold-start behaviour) before deploying</pre>
+
+<h2>5. Data layer (Supabase)</h2>
+<ul>
+  <li>Schema + Row Level Security policies: <code>supabase/migrations/0001_init.sql</code></li>
+  <li>Sample data: <code>supabase/seed.sql</code></li>
+  <li>Roles are stored on the <code>profiles</code> table (<code>customer</code>, <code>admin</code>, <code>merchant</code>, <code>rider</code>), set by a <code>handle_new_user</code> trigger on signup, then promoted manually via SQL — see README for the exact commands.</li>
+  <li>Auth cookies are handled by <code>@supabase/ssr</code>. Server-side code reads the session via <code>src/lib/supabase/server.ts</code>; client-side/browser code uses <code>src/lib/supabase/client.ts</code>.</li>
+</ul>
+<div class="warn">
+<b>Auth URL configuration lives only in the Supabase dashboard</b>
+(Authentication → URL Configuration), not in code. If the domain ever changes,
+that setting must be updated manually — Site URL and Redirect URLs both need
+<code>https://shop.fastrack.cloud</code>.
+</div>
+
+<h2>6. Project structure</h2>
+<pre>src/
+  app/                    Routes (Next.js App Router)
+    (storefront)          /, /categories/[slug], /products/[id], /search,
+                           /cart, /checkout, /orders, /orders/[id], /addresses,
+                           /account, /login, /register
+    admin/                 /admin, /admin/products, /admin/categories,
+                           /admin/orders, /admin/merchants
+    merchant/              /merchant, /merchant/products, /sell (apply to sell)
+    rider/                 /rider, /rider/orders/[id]
+    api/                   Route handlers: invoice PDF, search suggestions,
+                           buy-again feed
+  components/              UI components (admin/, rider/, shared)
+  lib/
+    supabase/              Browser + server Supabase clients
+    actions/                Server Actions — the only place that performs writes
+                           (cart, checkout, admin CRUD, rider updates, etc.)
+    catalog.ts, cart.ts,
+    orders.ts, reviews.ts,
+    inventory.ts, ...       Data-fetching helper functions (reads)
+  types/database.ts         Hand-written TypeScript types matching the SQL schema
+supabase/
+  migrations/0001_init.sql  Full schema + RLS
+  seed.sql                  Sample catalog data
+vite.config.ts               vinext / Cloudflare Workers build configuration
+wrangler.jsonc                Cloudflare Worker + bindings configuration
+</pre>
+
+<h2>7. Known constraints — read before touching performance-sensitive code</h2>
+<h3>Workers Free plan: 10 ms CPU budget per request</h3>
+<p>
+Cloudflare Workers Free gives each request 10&nbsp;milliseconds of <i>active</i> CPU
+time (network/database wait time doesn't count, only JS execution). A cold-started
+isolate has to parse and evaluate the app's JS before serving anything, which eats
+into that budget. This previously caused intermittent <b>"Error 1102 — Worker
+exceeded resource limits"</b> failures, especially on mobile after the app had been
+idle (a fresh isolate).
+</p>
+<p><b>Mitigations already in place</b> (as of this document):</p>
+<ul>
+  <li>Per-user data (cart count, login state, "Buy Again") was moved out of every
+    page's server render into small client-side components
+    (<code>UserHeaderActions.tsx</code>, <code>BuyAgainSection.tsx</code>) so most
+    pages no longer call Supabase auth on every server request.</li>
+  <li>Cloudflare's Workers Cache API and a KV data cache are enabled
+    (<code>vite.config.ts</code>), so repeat requests to the same page can be
+    served from the edge without invoking the Worker at all.</li>
+  <li>Build-time route prerendering is enabled where the adapter's static
+    analysis allows it.</li>
+</ul>
+<div class="warn">
+<b>If CPU-limit errors reappear</b>, do not add more server-side Supabase calls
+to components rendered on every page (headers, layouts, nav). Push
+personalization into client components that fetch after the initial render, and
+verify locally with <code>npm run start:vinext</code> (real Workers runtime,
+not plain <code>next dev</code>) before deploying. Live production behaviour can
+be watched with <code>npx wrangler tail fastrack-shop --format pretty</code>.
+The permanent fix, if this keeps being a problem, is upgrading to Workers Paid
+($5/mo, 30s+ CPU budget) — this was explicitly deferred by the project owner,
+not ruled out permanently.
+</div>
+
+<h3>vinext is a beta adapter</h3>
+<p>
+<code>vinext</code> (Cloudflare's Next.js-on-Workers adapter) is pre-1.0 at the
+time of writing. Its static-analysis-based route classification (which routes
+get prerendered vs. run as SSR) is imperfect — don't assume a route is static
+just because it looks static; check the build output
+(<code>npm run build:vinext</code> prints a route classification table).
+</p>
+
+<h2>8. Environment variables / secrets</h2>
+<table>
+  <tr><th>Variable</th><th>Purpose</th></tr>
+  <tr><td><code>NEXT_PUBLIC_SUPABASE_URL</code></td><td>Supabase project URL (public)</td></tr>
+  <tr><td><code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code></td><td>Supabase anonymous/public API key (safe to expose client-side; access is enforced by RLS)</td></tr>
+</table>
+<p>
+Set in <code>.env.local</code> for local dev (copy from <code>.env.example</code>).
+No server-only secrets are currently required — all Supabase access relies on
+Row Level Security rather than a service-role key.
+</p>
+
+<h2>9. What's not built yet</h2>
+<p>
+Per the BRD roadmap (§§26–30, 33–34): multi-vendor marketplace polish,
+promotions/coupons UI, loyalty/wallet, AI search and shopping assistant, delivery
+route optimization, subscriptions. The database schema already has room for
+promotions, reviews, and payments/refunds tables to build on — check
+<code>supabase/migrations/0001_init.sql</code> before adding new tables for
+these features, they may already partially exist.
+</p>
+
+<h2>10. Quick reference — common tasks</h2>
+<table>
+  <tr><th>Task</th><th>How</th></tr>
+  <tr><td>Run app locally</td><td><code>npm run dev</code></td></tr>
+  <tr><td>Test real Workers behaviour locally</td><td><code>npm run start:vinext</code></td></tr>
+  <tr><td>Deploy to production</td><td><code>npm run build:vinext &amp;&amp; npm run deploy:vinext</code></td></tr>
+  <tr><td>Watch live production logs</td><td><code>npx wrangler tail fastrack-shop --format pretty</code></td></tr>
+  <tr><td>Promote a user to admin/rider</td><td>SQL in Supabase dashboard — see README.md</td></tr>
+  <tr><td>Check Cloudflare auth</td><td><code>npx wrangler whoami</code></td></tr>
+  <tr><td>Change Supabase Auth redirect URLs</td><td>Supabase dashboard → Authentication → URL Configuration (not in code)</td></tr>
+</table>
+
+<div class="footer">FasTrack Shop — Technical Overview — generated for internal engineering handoff</div>
+
+</body>
+</html>

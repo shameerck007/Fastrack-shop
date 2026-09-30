@@ -1,0 +1,22 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import type { Profile } from "@/types/database";
+
+export async function requireRole(role: Profile["role"]): Promise<Profile> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profile || profile.role !== role) redirect("/");
+
+  return profile;
+}

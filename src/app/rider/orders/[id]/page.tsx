@@ -1,0 +1,136 @@
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import DeliveryActions from "@/components/rider/DeliveryActions";
+import DeliveryProgressStepper from "@/components/rider/DeliveryProgressStepper";
+import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
+import OrderChat from "@/components/OrderChat";
+import { getOrderMessages } from "@/lib/order-messages";
+import { formatSAR } from "@/lib/utils";
+import { getServerLocale } from "@/lib/i18n/get-locale";
+import { translate } from "@/lib/i18n/t";
+
+function mapsUrl(query: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
+export default async function RiderOrderPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const locale = await getServerLocale();
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
+  const supabase = await createClient();
+
+  const { data: order } = await supabase
+    .from("orders")
+    .select(
+      "*, order_items(*), addresses(address_line, receiver_name, receiver_phone), warehouses(name, address_line), profiles(full_name, phone)"
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!order) notFound();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const isPickupStage = ["rider_assigned", "ready_for_pickup", "preparing"].includes(order.status);
+  const isTrackable = ["rider_assigned", "out_for_delivery"].includes(order.status);
+  const messages = user ? await getOrderMessages(order.id) : [];
+
+  return (
+    <div>
+      {isTrackable && <RiderLocationTracker />}
+
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-xl font-semibold">{t("orders.order_hash", { number: order.order_number })}</h1>
+        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
+          {formatSAR(order.delivery_fee)}
+        </span>
+      </div>
+
+      <div className="mb-4 rounded-2xl border border-neutral-200 bg-white p-4">
+        <DeliveryProgressStepper status={order.status} t={t} />
+      </div>
+
+      {order.warehouses && (
+        <div
+          className={`mb-3 rounded-xl border p-4 ${
+            isPickupStage ? "border-blue-300 bg-blue-50" : "border-neutral-200 bg-white"
+          }`}
+        >
+          <p className="text-xs font-medium uppercase text-neutral-500">{t("rider.pickup_label")}</p>
+          <p className="font-medium">{order.warehouses.name}</p>
+          {order.warehouses.address_line && (
+            <p className="text-sm text-neutral-600">{order.warehouses.address_line}</p>
+          )}
+          <a
+            href={mapsUrl(order.warehouses.address_line ?? order.warehouses.name)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-block text-sm font-medium text-blue-700 hover:underline"
+          >
+            {t("rider.navigate_to_store")}
+          </a>
+        </div>
+      )}
+
+      {order.addresses && (
+        <div
+          className={`mb-4 rounded-xl border p-4 ${
+            !isPickupStage ? "border-blue-300 bg-blue-50" : "border-neutral-200 bg-white"
+          }`}
+        >
+          <p className="text-xs font-medium uppercase text-neutral-500">{t("rider.drop_off_label")}</p>
+          <p className="font-medium capitalize">{order.addresses.label}</p>
+          {order.addresses.receiver_name && (
+            <p className="text-sm font-medium">{t("rider.receiver_name", { name: order.addresses.receiver_name })}</p>
+          )}
+          <p className="text-sm text-neutral-600">{order.addresses.address_line}</p>
+          <div className="mt-2 flex gap-4">
+            <a
+              href={mapsUrl(order.addresses.address_line)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-blue-700 hover:underline"
+            >
+              {t("rider.navigate_to_customer")}
+            </a>
+            {(order.addresses.receiver_phone || order.profiles?.phone) && (
+              <a
+                href={`tel:${order.addresses.receiver_phone || order.profiles?.phone}`}
+                className="text-sm font-medium text-blue-700 hover:underline"
+              >
+                {t("rider.call_receiver")}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="mb-4 rounded-xl border border-neutral-200 bg-white">
+        {order.order_items.map((item: { id: string; product_name: string; variant_label: string; ordered_quantity: number; line_total: number }) => (
+          <div key={item.id} className="flex items-center justify-between border-b border-neutral-100 p-3 last:border-none text-sm">
+            <span>
+              {item.product_name} — {item.variant_label} × {item.ordered_quantity}
+            </span>
+            <span>{formatSAR(item.line_total)}</span>
+          </div>
+        ))}
+      </div>
+
+      <p className="mb-4 text-end font-semibold">{t("rider.order_total_label", { amount: formatSAR(order.total) })}</p>
+
+      {user && (
+        <div className="mb-4">
+          <OrderChat orderId={order.id} currentUserId={user.id} otherPartyLabel="customer" initialMessages={messages} />
+        </div>
+      )}
+
+      <DeliveryActions orderId={order.id} status={order.status} />
+    </div>
+  );
+}
