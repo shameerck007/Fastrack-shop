@@ -37,6 +37,15 @@ yarn-error.log*
 # vercel
 .vercel
 
+# android signing key — never commit; losing it means losing the ability to
+# publish updates to the same Play Store listing, but a leak lets anyone
+# sign a malicious update impersonating this app
+android/googleplay-package/signing.keystore
+android/googleplay-package/signing-key-info.txt
+android/*.zip
+android/googleplay-package/*.aab
+android/googleplay-package/*.apk
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

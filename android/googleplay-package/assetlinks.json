@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "cloud.fastrack.shop.twa",
+        "sha256_cert_fingerprints": ["F8:FF:83:F9:5B:3E:2D:18:46:B0:B8:CD:5B:38:F7:D1:17:B3:04:17:7D:AA:CC:94:5F:45:21:A4:8C:94:9E:63"]
+      }
+    }]
