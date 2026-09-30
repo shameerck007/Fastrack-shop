@@ -32,16 +32,16 @@ export default async function Footer() {
   ];
 
   return (
-    <footer className="mt-16 border-t border-neutral-200 bg-neutral-900 text-neutral-300">
+    <footer className="mt-16 border-t border-blue-100 bg-blue-50/60">
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
           {columns.map((col) => (
             <div key={col.heading}>
-              <h3 className="mb-3 text-sm font-semibold text-white">{col.heading}</h3>
+              <h3 className="mb-3 text-sm font-semibold text-neutral-900">{col.heading}</h3>
               <ul className="space-y-2">
                 {col.links.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-sm text-neutral-400 hover:text-white hover:underline">
+                    <Link href={l.href} className="text-sm text-neutral-600 hover:text-blue-700 hover:underline">
                       {l.label}
                     </Link>
                   </li>
@@ -51,7 +51,7 @@ export default async function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col items-center gap-3 border-t border-neutral-800 pt-6 text-center">
+        <div className="mt-10 flex flex-col items-center gap-3 border-t border-blue-100 pt-6 text-center">
           <Wordmark height={22} />
           <p className="max-w-md text-xs text-neutral-500">
             {company.trading_name}
@@ -59,7 +59,7 @@ export default async function Footer() {
             {company.vat_number ? ` · VAT ${company.vat_number}` : ""}
             {company.city ? ` · ${company.city}, Saudi Arabia` : ""}
           </p>
-          <p className="text-xs text-neutral-600">&copy; {year} {company.trading_name}. All rights reserved.</p>
+          <p className="text-xs text-neutral-400">&copy; {year} {company.trading_name}. All rights reserved.</p>
         </div>
       </div>
     </footer>
