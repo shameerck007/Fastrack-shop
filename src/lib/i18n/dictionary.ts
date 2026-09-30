@@ -445,6 +445,10 @@ const en = {
       status_label: "Status",
       amount_label: "Amount",
       no_payment_record: "No payment record.",
+      mark_refunded: "Mark as refunded",
+      refund_reason_placeholder: "Reason (optional)",
+      confirm_refund: "Confirm refund",
+      could_not_refund: "Could not process this refund.",
     },
     merchant: {
       seller_center: "Seller Center",
@@ -1408,6 +1412,10 @@ const ar: LocaleShape = {
       status_label: "الحالة",
       amount_label: "المبلغ",
       no_payment_record: "لا يوجد سجل دفع.",
+      mark_refunded: "تحديد كمسترد",
+      refund_reason_placeholder: "السبب (اختياري)",
+      confirm_refund: "تأكيد الاسترداد",
+      could_not_refund: "تعذّر معالجة الاسترداد.",
     },
     merchant: {
       seller_center: "مركز البائع",

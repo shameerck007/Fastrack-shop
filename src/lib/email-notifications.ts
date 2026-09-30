@@ -6,6 +6,7 @@ import {
   renderOrderItemsTable,
   renderSummaryTable,
   renderBoxSection,
+  esc,
   type EmailLineItem,
 } from "@/lib/email-template";
 import { formatSAR } from "@/lib/utils";
@@ -187,6 +188,49 @@ export async function sendOrderStatusEmail(orderId: string, status: OrderStatus)
     html: renderEmailShell({
       preheader: template.body.replace("{n}", n),
       heading: template.heading,
+      bodyHtml,
+      ctaLabel: "View order details",
+      ctaUrl: `${SITE_URL}/orders/${order.id}`,
+    }),
+  });
+}
+
+/** Sent when admin marks an order's payment as refunded. */
+export async function sendRefundEmail(orderId: string, reason: string) {
+  const supabase = await createClient();
+  const { data: order } = await supabase
+    .from("orders")
+    .select("id, user_id, order_number, total, profiles(full_name), payments(amount)")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (!order) return;
+
+  const emails = await emailsFor([order.user_id]);
+  const to = emails.get(order.user_id);
+  if (!to) return;
+
+  const profile = order.profiles as unknown as { full_name: string | null } | null;
+  const payments = order.payments as unknown as { amount: number }[] | null;
+  const firstName = profile?.full_name?.split(" ")[0] ?? "there";
+  const amount = formatSAR(payments?.[0]?.amount ?? order.total);
+  const n = order.order_number;
+
+  const bodyHtml = `
+    <p>Hi ${firstName},</p>
+    <p>We've processed a refund of <strong>${amount}</strong> for order #${n}.</p>
+    ${reason ? `<p style="color:#666666;">Reason: ${esc(reason)}</p>` : ""}
+    ${renderInfoGrid([
+      { label: "Order #", value: n },
+      { label: "Refund amount", value: amount },
+    ])}
+  `;
+
+  await sendEmail({
+    to,
+    subject: `Refund processed — #${n}`,
+    html: renderEmailShell({
+      preheader: `A refund of ${amount} has been processed for order #${n}.`,
+      heading: "Refund processed",
       bodyHtml,
       ctaLabel: "View order details",
       ctaUrl: `${SITE_URL}/orders/${order.id}`,

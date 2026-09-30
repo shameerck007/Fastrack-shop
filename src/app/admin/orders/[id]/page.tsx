@@ -4,6 +4,7 @@ import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import DownloadLabelButton from "@/components/DownloadLabelButton";
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
+import RefundOrderButton from "@/components/admin/RefundOrderButton";
 import { getAdminOrderDetail } from "@/lib/admin-orders";
 import { formatSAR, ORDER_STATUS_FLOW, PAYMENT_METHOD_LABELS } from "@/lib/utils";
 import { getServerLocale } from "@/lib/i18n/get-locale";
@@ -300,6 +301,7 @@ export default async function AdminOrderDetailPage({
                   <span className="capitalize">{payment.status}</span>
                 </Row>
                 <Row label={t("admin.amount_label")}>{formatSAR(payment.amount)}</Row>
+                {payment.status !== "refunded" && <RefundOrderButton orderId={id} />}
               </>
             ) : (
               <p className="text-sm text-neutral-400">{t("admin.no_payment_record")}</p>

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyOrderStatusChange, notifyUsers, notifyNearbyRidersOfNewOrder } from "@/lib/push";
-import { sendOrderStatusEmail, sendOrderCancelledSellerEmails } from "@/lib/email-notifications";
+import { sendOrderStatusEmail, sendOrderCancelledSellerEmails, sendRefundEmail } from "@/lib/email-notifications";
 import type { OrderStatus } from "@/types/database";
 
 // Covers every admin-driven status change AND every rider action
@@ -66,6 +66,37 @@ async function notifySellersOfCancellation(orderId: string) {
     });
     await sendOrderCancelledSellerEmails(staffIds, order.order_number, "/warehouse/orders");
   }
+}
+
+// No payment gateway exists yet (only Cash on Delivery is supported — see
+// placeOrder), so this is a manual record, not an automated money-back
+// transaction: admin marks the order as refunded (cash returned or waived
+// outside the app) and the customer gets notified on all three channels.
+export async function markOrderRefunded(orderId: string, reason: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("payments")
+    .update({ status: "refunded" })
+    .eq("order_id", orderId)
+    .neq("status", "refunded")
+    .select("id")
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error("This order has no payment record, or was already refunded.");
+
+  revalidatePath("/admin/orders");
+  revalidatePath(`/orders/${orderId}`);
+
+  const { data: order } = await supabase.from("orders").select("user_id, order_number").eq("id", orderId).maybeSingle();
+  if (order) {
+    await notifyUsers([order.user_id], {
+      title: "Refund processed",
+      body: reason ? `A refund has been processed for order #${order.order_number}: ${reason}` : `A refund has been processed for order #${order.order_number}.`,
+      url: `/orders/${orderId}`,
+    });
+  }
+  await sendRefundEmail(orderId, reason);
 }
 
 export async function assignRider(orderId: string, riderId: string) {
