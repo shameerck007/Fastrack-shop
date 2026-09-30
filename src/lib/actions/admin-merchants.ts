@@ -93,16 +93,54 @@ export async function rejectStore(storeId: string, reason: string) {
 
 export async function suspendStore(storeId: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("stores").update({ status: "suspended" }).eq("id", storeId);
+  const { data: store, error } = await supabase
+    .from("stores")
+    .update({ status: "suspended" })
+    .eq("id", storeId)
+    .select("owner_id, name")
+    .maybeSingle();
   if (error) throw error;
   revalidatePath("/admin/merchants");
+
+  if (store) {
+    await notifyUsers([store.owner_id], {
+      title: "Your store has been suspended",
+      body: `${store.name} has been suspended. Contact support for details.`,
+      url: "/merchant",
+    });
+    await sendApplicationDecisionEmail(
+      store.owner_id,
+      `Your FasTrack store has been suspended — ${store.name}`,
+      "Contact support for details.",
+      "/merchant"
+    );
+  }
 }
 
 export async function reinstateStore(storeId: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("stores").update({ status: "approved" }).eq("id", storeId);
+  const { data: store, error } = await supabase
+    .from("stores")
+    .update({ status: "approved" })
+    .eq("id", storeId)
+    .select("owner_id, name")
+    .maybeSingle();
   if (error) throw error;
   revalidatePath("/admin/merchants");
+
+  if (store) {
+    await notifyUsers([store.owner_id], {
+      title: "Your store is active again",
+      body: `${store.name} has been reinstated. You can resume selling on FasTrack.`,
+      url: "/merchant",
+    });
+    await sendApplicationDecisionEmail(
+      store.owner_id,
+      `Your FasTrack store is active again — ${store.name}`,
+      "Your suspension has been lifted. You can resume selling on FasTrack.",
+      "/merchant"
+    );
+  }
 }
 
 export interface FoundUser {

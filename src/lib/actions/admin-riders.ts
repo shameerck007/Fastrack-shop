@@ -62,6 +62,18 @@ export async function suspendRider(riderId: string) {
     .eq("id", riderId);
   if (error) throw error;
   revalidatePath("/admin/riders");
+
+  await notifyUsers([riderId], {
+    title: "Your rider account has been suspended",
+    body: "Contact support for details.",
+    url: "/rider",
+  });
+  await sendApplicationDecisionEmail(
+    riderId,
+    "Your FasTrack rider account has been suspended",
+    "Contact support for details.",
+    "/rider"
+  );
 }
 
 export async function reinstateRider(riderId: string) {
@@ -69,6 +81,18 @@ export async function reinstateRider(riderId: string) {
   const { error } = await supabase.from("delivery_partners").update({ status: "approved" }).eq("id", riderId);
   if (error) throw error;
   revalidatePath("/admin/riders");
+
+  await notifyUsers([riderId], {
+    title: "Your rider account is active again",
+    body: "Your suspension has been lifted — you can go online and start receiving deliveries.",
+    url: "/rider",
+  });
+  await sendApplicationDecisionEmail(
+    riderId,
+    "Your FasTrack rider account is active again",
+    "Your suspension has been lifted — you can go online and start receiving deliveries.",
+    "/rider"
+  );
 }
 
 export interface FoundUser {
