@@ -13,13 +13,18 @@ import type { OrderStatus } from "@/types/database";
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   const supabase = await createClient();
 
+  const { data: previous } = await supabase.from("orders").select("status").eq("id", orderId).maybeSingle();
+
   const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
   if (error) throw error;
 
   await supabase.from("order_status_history").insert({ order_id: orderId, status });
   await notifyOrderStatusChange(orderId, status);
   await sendOrderStatusEmail(orderId, status);
-  if (status === "cancelled") await notifySellersOfCancellation(orderId);
+  if (status === "cancelled" && previous?.status !== "cancelled") {
+    await notifySellersOfCancellation(orderId);
+    await restockCancelledOrder(orderId);
+  }
   if (status === "ready_for_pickup") await notifyNearbyRidersOfNewOrder(orderId);
 
   revalidatePath("/admin/orders");
@@ -65,6 +70,26 @@ async function notifySellersOfCancellation(orderId: string) {
       url: "/warehouse/orders",
     });
     await sendOrderCancelledSellerEmails(staffIds, order.order_number, "/warehouse/orders");
+  }
+}
+
+// placeOrder (orders.ts) decrements stock per line item via decrement_stock;
+// cancelling must give it back. Same "one order, one own-warehouse"
+// simplification as notifySellersOfCancellation above: every item is
+// restocked against order.warehouse_id, the warehouse it was decremented
+// from at placement.
+async function restockCancelledOrder(orderId: string) {
+  const supabase = await createClient();
+  const { data: order } = await supabase.from("orders").select("warehouse_id").eq("id", orderId).maybeSingle();
+  if (!order?.warehouse_id) return;
+
+  const { data: itemRows } = await supabase.from("order_items").select("variant_id, ordered_quantity").eq("order_id", orderId);
+  for (const item of itemRows ?? []) {
+    await supabase.rpc("increment_stock", {
+      p_variant_id: item.variant_id,
+      p_warehouse_id: order.warehouse_id,
+      p_qty: item.ordered_quantity,
+    });
   }
 }
 
