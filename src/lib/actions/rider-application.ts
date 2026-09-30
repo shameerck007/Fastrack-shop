@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { notifyAdmins } from "@/lib/push";
 
 export async function applyAsRider(input: {
   fullName: string;
@@ -50,4 +51,10 @@ export async function applyAsRider(input: {
   }
 
   revalidatePath("/deliver");
+
+  await notifyAdmins({
+    title: "New rider application",
+    body: `${input.fullName.trim()} applied to ride for FasTrack.`,
+    url: "/admin/riders",
+  });
 }

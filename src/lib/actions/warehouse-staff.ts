@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { notifyOrderStatusChange } from "@/lib/push";
 import type { OrderStatus } from "@/types/database";
 
 // Same shape as advanceMerchantOrderStatus — the "warehouse staff advance
@@ -37,6 +38,7 @@ export async function advanceWarehouseOrderStatus(orderId: string, currentStatus
   }
 
   await supabase.from("order_status_history").insert({ order_id: orderId, status: next });
+  await notifyOrderStatusChange(orderId, next);
 
   revalidatePath("/warehouse/orders");
   revalidatePath(`/orders/${orderId}`);

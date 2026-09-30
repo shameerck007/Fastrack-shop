@@ -6,6 +6,14 @@
     "nodejs_compat"
   ],
   "main": "vinext/server/fetch-handler",
+  // VAPID_PRIVATE_KEY is NOT here — it's a real secret, set via
+  // `wrangler secret put VAPID_PRIVATE_KEY`, never committed to the repo.
+  // These two aren't sensitive (the public key is meant to be public; it's
+  // sent to every browser as the Push subscription's applicationServerKey).
+  "vars": {
+    "VAPID_PUBLIC_KEY": "BM07rjoestxvxP0VKuvfHkvTSwp9X3FAhr0uBWzqGSG05L-uI_Lv09xcgBCNUIyHVGvF8vpHVd4qChZe-3kqV04",
+    "VAPID_SUBJECT": "mailto:support@fastrack.cloud"
+  },
   "routes": [
     { "pattern": "shop.fastrack.cloud", "custom_domain": true }
   ],

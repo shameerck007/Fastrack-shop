@@ -7,6 +7,7 @@ import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
 import { addToCart } from "@/lib/actions/cart";
+import { notifyUsers } from "@/lib/push";
 import { generateOrderNumber, generateOtp, extractVat } from "@/lib/utils";
 import type { DeliveryType, PaymentMethod } from "@/types/database";
 
@@ -100,10 +101,11 @@ export async function placeOrder(input: {
     );
   }
 
+  const orderNumber = generateOrderNumber();
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
-      order_number: generateOrderNumber(),
+      order_number: orderNumber,
       user_id: user.id,
       address_id: input.addressId,
       // orders currently support a single pickup warehouse; for a cart
@@ -157,6 +159,28 @@ export async function placeOrder(input: {
   }
 
   await supabase.from("order_status_history").insert({ order_id: order.id, status: "pending" });
+
+  // Tell whoever needs to prep this order that it exists — the merchant(s)
+  // whose products are in it, and the FasTrack warehouse staff if any item
+  // is FasTrack's own (same single-warehouse simplification as
+  // itemWarehouseIds[0] above: one order, one own-warehouse notified).
+  const distinctStoreIds = [...new Set(productRefs.filter((p) => p.store_id).map((p) => p.store_id as string))];
+  if (distinctStoreIds.length > 0) {
+    const { data: storeOwners } = await supabase.from("stores").select("owner_id").in("id", distinctStoreIds);
+    await notifyUsers(
+      (storeOwners ?? []).map((s) => s.owner_id),
+      { title: "New order received", body: `Order #${orderNumber} needs confirmation.`, url: "/merchant/orders" }
+    );
+  }
+  const ownWarehouseIndex = productRefs.findIndex((p) => !p.store_id);
+  const ownWarehouseId = ownWarehouseIndex >= 0 ? itemWarehouseIds[ownWarehouseIndex] : null;
+  if (ownWarehouseId) {
+    const { data: staffRows } = await supabase.from("warehouse_staff").select("user_id").eq("warehouse_id", ownWarehouseId);
+    await notifyUsers(
+      (staffRows ?? []).map((s) => s.user_id),
+      { title: "New order received", body: `Order #${orderNumber} needs confirmation.`, url: "/warehouse/orders" }
+    );
+  }
 
   await supabase.from("payments").insert({
     order_id: order.id,

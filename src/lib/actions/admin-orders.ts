@@ -2,8 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { notifyOrderStatusChange } from "@/lib/push";
 import type { OrderStatus } from "@/types/database";
 
+// Covers every admin-driven status change AND every rider action
+// (acceptOrder/markPickedUp/completeDelivery all call this) — the one
+// place to notify the customer without duplicating the push call at each
+// call site.
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   const supabase = await createClient();
 
@@ -11,6 +16,7 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   if (error) throw error;
 
   await supabase.from("order_status_history").insert({ order_id: orderId, status });
+  await notifyOrderStatusChange(orderId, status);
 
   revalidatePath("/admin/orders");
   revalidatePath(`/orders/${orderId}`);

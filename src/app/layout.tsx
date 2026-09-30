@@ -8,6 +8,7 @@ import BackBar from "@/components/BackBar";
 import DeliveryLocationProvider from "@/components/DeliveryLocationProvider";
 import DeliveryBanner from "@/components/DeliveryBanner";
 import ChunkErrorReload from "@/components/ChunkErrorReload";
+import PushOptIn from "@/components/PushOptIn";
 import LocaleProvider from "@/components/LocaleProvider";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { dirFor } from "@/lib/i18n/config";
@@ -77,6 +78,7 @@ export default async function RootLayout({
         <MobileNavGate>
           <MobileBottomNav />
         </MobileNavGate>
+        <PushOptIn />
         </DeliveryLocationProvider>
         </LocaleProvider>
       </body>

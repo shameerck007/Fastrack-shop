@@ -905,6 +905,13 @@ const en = {
       suspended_title: "Account suspended",
       suspended_body: "Your rider account has been suspended. Contact support for details.",
     },
+    push: {
+      enable_title: "Turn on notifications",
+      enable_hint: "Get notified about order updates as they happen.",
+      enable: "Enable",
+      not_now: "Not now",
+      could_not_enable: "Could not enable notifications.",
+    },
     common: {
       skip_for_now: "Skip for now — I'm just browsing",
       current_location: "Current Location",
@@ -1852,6 +1859,13 @@ const ar: LocaleShape = {
       contact_support: "أسئلة؟ تواصل مع الدعم.",
       suspended_title: "الحساب موقوف",
       suspended_body: "تم إيقاف حساب المندوب الخاص بك. تواصل مع الدعم لمزيد من التفاصيل.",
+    },
+    push: {
+      enable_title: "تفعيل الإشعارات",
+      enable_hint: "تلقَّ إشعاراً فور تحديث حالة طلبك.",
+      enable: "تفعيل",
+      not_now: "ليس الآن",
+      could_not_enable: "تعذّر تفعيل الإشعارات.",
     },
     common: {
       skip_for_now: "تخطي الآن — أنا أتصفح فقط",

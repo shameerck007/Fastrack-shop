@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { notifyOrderStatusChange } from "@/lib/push";
 import type { OrderStatus } from "@/types/database";
 
 // The "merchants advance their orders to ready for pickup" RLS policy
@@ -42,6 +43,7 @@ export async function advanceMerchantOrderStatus(orderId: string, currentStatus:
   }
 
   await supabase.from("order_status_history").insert({ order_id: orderId, status: next });
+  await notifyOrderStatusChange(orderId, next);
 
   revalidatePath("/merchant/orders");
   revalidatePath(`/orders/${orderId}`);

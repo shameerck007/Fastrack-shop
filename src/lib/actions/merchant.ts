@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { notifyAdmins } from "@/lib/push";
 
 export async function applyForStore(input: {
   name: string;
@@ -50,4 +51,10 @@ export async function applyForStore(input: {
   }
 
   revalidatePath("/sell");
+
+  await notifyAdmins({
+    title: "New supplier application",
+    body: `${input.name.trim()} applied to sell on FasTrack.`,
+    url: "/admin/merchants",
+  });
 }
