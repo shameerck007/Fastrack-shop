@@ -911,6 +911,9 @@ const en = {
       enable: "Enable",
       not_now: "Not now",
       could_not_enable: "Could not enable notifications.",
+      ios_install_title: "Add FasTrack to your Home Screen",
+      ios_install_hint: "On iPhone, notifications only work once the app is installed — tap Share, then \"Add to Home Screen\", then open it from there.",
+      got_it: "Got it",
     },
     common: {
       skip_for_now: "Skip for now — I'm just browsing",
@@ -1866,6 +1869,9 @@ const ar: LocaleShape = {
       enable: "تفعيل",
       not_now: "ليس الآن",
       could_not_enable: "تعذّر تفعيل الإشعارات.",
+      ios_install_title: "أضف فاس تراك إلى الشاشة الرئيسية",
+      ios_install_hint: "على آيفون، تعمل الإشعارات فقط بعد تثبيت التطبيق — اضغط على مشاركة، ثم \"إضافة إلى الشاشة الرئيسية\"، ثم افتحه من هناك.",
+      got_it: "حسناً",
     },
     common: {
       skip_for_now: "تخطي الآن — أنا أتصفح فقط",

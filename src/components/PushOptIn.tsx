@@ -34,8 +34,28 @@ async function ensureSubscribed(vapidPublicKey: string) {
   }
 }
 
+// iPadOS 13+ reports as a Mac in the UA string — the reliable tell is
+// touch support, which no real Mac has.
+function isIOSDevice(): boolean {
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
+}
+
+// Apple only supports Web Push for a site added to the Home Screen — a
+// plain Safari tab (even on iOS 16.4+) can't subscribe at all, silently.
+// This is the standard way to detect "running as the installed PWA".
+function isStandalone(): boolean {
+  if (window.matchMedia("(display-mode: standalone)").matches) return true;
+  return (navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
+
+type Mode = "default" | "ios_install";
+
 export default function PushOptIn() {
   const { t } = useLocale();
+  const [mode, setMode] = useState<Mode>("default");
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,15 +65,30 @@ export default function PushOptIn() {
 
     (async () => {
       if (typeof window === "undefined") return;
-      if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
 
-      const vapidPublicKey = await getVapidPublicKey();
-      if (!vapidPublicKey || cancelled) return;
+      try {
+        if (localStorage.getItem(DISMISSED_KEY)) return;
+      } catch {
+        /* ignore */
+      }
 
       const {
         data: { user },
       } = await createClient().auth.getUser();
       if (!user || cancelled) return;
+
+      if (isIOSDevice() && !isStandalone()) {
+        if (!cancelled) {
+          setMode("ios_install");
+          setVisible(true);
+        }
+        return;
+      }
+
+      if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
+
+      const vapidPublicKey = await getVapidPublicKey();
+      if (!vapidPublicKey || cancelled) return;
 
       if (Notification.permission === "granted") {
         ensureSubscribed(vapidPublicKey).catch(() => {
@@ -64,13 +99,10 @@ export default function PushOptIn() {
 
       if (Notification.permission === "denied") return;
 
-      try {
-        if (localStorage.getItem(DISMISSED_KEY)) return;
-      } catch {
-        /* ignore */
+      if (!cancelled) {
+        setMode("default");
+        setVisible(true);
       }
-
-      if (!cancelled) setVisible(true);
     })();
 
     return () => {
@@ -108,6 +140,27 @@ export default function PushOptIn() {
   }
 
   if (!visible) return null;
+
+  if (mode === "ios_install") {
+    return (
+      <div className="fixed inset-x-0 bottom-16 z-40 mx-auto max-w-sm px-4 md:bottom-4">
+        <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3 shadow-lg">
+          <span className="text-2xl">📲</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-neutral-900">{t("push.ios_install_title")}</p>
+            <p className="text-xs text-neutral-500">{t("push.ios_install_hint")}</p>
+          </div>
+          <button
+            type="button"
+            onClick={dismiss}
+            className="shrink-0 rounded-full bg-blue-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-800"
+          >
+            {t("push.got_it")}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-x-0 bottom-16 z-40 mx-auto max-w-sm px-4 md:bottom-4">
