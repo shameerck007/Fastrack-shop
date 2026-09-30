@@ -41,20 +41,42 @@ async function sendToSubscriptions(subs: SubRow[], payload: PushPayload) {
   );
 }
 
-/** Pushes to every subscribed device of the given users. */
+async function writeNotifications(userIds: string[], payload: PushPayload) {
+  if (userIds.length === 0) return;
+  const supabase = await createClient();
+  await supabase.rpc("create_notifications", {
+    target_user_ids: userIds,
+    p_title: payload.title,
+    p_body: payload.body,
+    p_url: payload.url ?? null,
+  });
+}
+
+/** Notifies the given users — an in-app notification (bell icon) that
+ * always gets written, plus a push to every subscribed device. The bell
+ * is the fallback for push not being enabled, denied, or (iOS Safari)
+ * simply unsupported until the app is installed. */
 export async function notifyUsers(userIds: string[], payload: PushPayload) {
   const ids = [...new Set(userIds)].filter(Boolean);
   if (ids.length === 0) return;
   const supabase = await createClient();
-  const { data } = await supabase.rpc("push_subscriptions_for_users", { target_user_ids: ids });
-  await sendToSubscriptions((data ?? []) as SubRow[], payload);
+  const [{ data: subs }] = await Promise.all([
+    supabase.rpc("push_subscriptions_for_users", { target_user_ids: ids }),
+    writeNotifications(ids, payload),
+  ]);
+  await sendToSubscriptions((subs ?? []) as SubRow[], payload);
 }
 
-/** Pushes to every admin's subscribed devices. */
+/** Notifies every admin — in-app bell + push, same as notifyUsers. */
 export async function notifyAdmins(payload: PushPayload) {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("push_subscriptions_for_admins");
-  await sendToSubscriptions((data ?? []) as SubRow[], payload);
+  const { data: adminIds } = await supabase.rpc("admin_user_ids");
+  const ids = ((adminIds ?? []) as { user_id: string }[]).map((r) => r.user_id);
+  const [{ data: subs }] = await Promise.all([
+    supabase.rpc("push_subscriptions_for_admins"),
+    writeNotifications(ids, payload),
+  ]);
+  await sendToSubscriptions((subs ?? []) as SubRow[], payload);
 }
 
 const STATUS_MESSAGE: Partial<Record<OrderStatus, { title: string; body: string }>> = {

@@ -4,6 +4,7 @@ import { signOut } from "@/lib/actions/auth";
 import { formatSAR } from "@/lib/utils";
 import Wordmark from "@/components/Wordmark";
 import LanguageToggle from "@/components/LanguageToggle";
+import NotificationBell from "@/components/NotificationBell";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -32,6 +33,7 @@ export default async function RiderHeader() {
             <span className="rtl:-scale-x-100">←</span> <span className="hidden sm:inline">{t("portal.back_to_shop")}</span>
           </Link>
           <LanguageToggle />
+          <NotificationBell />
           <form action={signOut}>
             <button className="text-sm text-neutral-500 hover:text-neutral-900">{t("portal.log_out")}</button>
           </form>

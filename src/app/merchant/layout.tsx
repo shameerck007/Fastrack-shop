@@ -5,6 +5,7 @@ import { getMyStore } from "@/lib/merchant";
 import Wordmark from "@/components/Wordmark";
 import MerchantNav from "@/components/merchant/MerchantNav";
 import LanguageToggle from "@/components/LanguageToggle";
+import NotificationBell from "@/components/NotificationBell";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -27,6 +28,7 @@ export default async function MerchantLayout({ children }: { children: React.Rea
                 <span className="rtl:-scale-x-100">←</span> <span className="hidden sm:inline">{t("portal.back_to_shop")}</span>
               </Link>
               <LanguageToggle />
+              <NotificationBell />
               <span className="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 sm:inline">
                 ● {t("merchant.approved_seller")}
               </span>

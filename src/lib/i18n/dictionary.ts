@@ -915,6 +915,11 @@ const en = {
       ios_install_hint: "On iPhone, notifications only work once the app is installed — tap Share, then \"Add to Home Screen\", then open it from there.",
       got_it: "Got it",
     },
+    notifications: {
+      title: "Notifications",
+      empty: "No notifications yet.",
+      loading: "Loading…",
+    },
     common: {
       skip_for_now: "Skip for now — I'm just browsing",
       current_location: "Current Location",
@@ -1872,6 +1877,11 @@ const ar: LocaleShape = {
       ios_install_title: "أضف فاس تراك إلى الشاشة الرئيسية",
       ios_install_hint: "على آيفون، تعمل الإشعارات فقط بعد تثبيت التطبيق — اضغط على مشاركة، ثم \"إضافة إلى الشاشة الرئيسية\"، ثم افتحه من هناك.",
       got_it: "حسناً",
+    },
+    notifications: {
+      title: "الإشعارات",
+      empty: "لا توجد إشعارات بعد.",
+      loading: "جارٍ التحميل…",
     },
     common: {
       skip_for_now: "تخطي الآن — أنا أتصفح فقط",

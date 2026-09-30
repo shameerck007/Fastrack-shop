@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { useLocale } from "@/components/LocaleProvider";
+import NotificationBell from "@/components/NotificationBell";
 
 export default function UserHeaderActions() {
   const { loaded, signedIn, firstName, cartCount } = useCustomerHeaderState();
@@ -10,6 +11,9 @@ export default function UserHeaderActions() {
 
   return (
     <div className="flex items-center gap-4 text-sm">
+      {/* Not in the mobile bottom nav (unlike Orders/Cart/Account above),
+          so unlike those this stays visible at every width. */}
+      {loaded && signedIn && <NotificationBell />}
       {/* Already in the mobile bottom nav (Orders tab) — showing it here too
           just crowds the header on a phone screen with no extra value. */}
       <Link href="/orders" className="hidden leading-tight hover:text-blue-600 md:block">
