@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { notifyOrderStatusChange } from "@/lib/push";
-import { sendOrderStatusEmail } from "@/lib/email-notifications";
+import { notifyOrderStatusChange, notifyUsers, notifyNearbyRidersOfNewOrder } from "@/lib/push";
+import { sendOrderStatusEmail, sendOrderCancelledSellerEmails } from "@/lib/email-notifications";
 import type { OrderStatus } from "@/types/database";
 
 // Covers every admin-driven status change AND every rider action
@@ -19,9 +19,53 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   await supabase.from("order_status_history").insert({ order_id: orderId, status });
   await notifyOrderStatusChange(orderId, status);
   await sendOrderStatusEmail(orderId, status);
+  if (status === "cancelled") await notifySellersOfCancellation(orderId);
+  if (status === "ready_for_pickup") await notifyNearbyRidersOfNewOrder(orderId);
 
   revalidatePath("/admin/orders");
   revalidatePath(`/orders/${orderId}`);
+}
+
+// A merchant or FasTrack warehouse's staff were already told a new order
+// needed their confirmation (orders.ts, placeOrder) — if it's cancelled
+// afterward, without this they'd keep prepping something that no longer
+// exists. Same "one order, one own-warehouse" simplification the rest of
+// this codebase uses (order.warehouse_id is set once, at placement).
+async function notifySellersOfCancellation(orderId: string) {
+  const supabase = await createClient();
+  const { data: order } = await supabase.from("orders").select("order_number, warehouse_id").eq("id", orderId).maybeSingle();
+  if (!order) return;
+
+  const { data: itemRows } = await supabase
+    .from("order_items")
+    .select("variant_id, product_variants!variant_id(products(store_id))")
+    .eq("order_id", orderId);
+
+  type ItemRow = { product_variants: { products: { store_id: string | null } | null } | null };
+  const rows = (itemRows ?? []) as unknown as ItemRow[];
+  const storeIds = [...new Set(rows.map((r) => r.product_variants?.products?.store_id).filter((id): id is string => !!id))];
+  const hasOwnItem = rows.some((r) => r.product_variants?.products && r.product_variants.products.store_id === null);
+
+  if (storeIds.length > 0) {
+    const { data: storeOwners } = await supabase.from("stores").select("owner_id").in("id", storeIds);
+    const ownerIds = (storeOwners ?? []).map((s) => s.owner_id);
+    await notifyUsers(ownerIds, {
+      title: "Order cancelled",
+      body: `Order #${order.order_number} has been cancelled.`,
+      url: "/merchant/orders",
+    });
+    await sendOrderCancelledSellerEmails(ownerIds, order.order_number, "/merchant/orders");
+  }
+  if (hasOwnItem && order.warehouse_id) {
+    const { data: staffRows } = await supabase.from("warehouse_staff").select("user_id").eq("warehouse_id", order.warehouse_id);
+    const staffIds = (staffRows ?? []).map((s) => s.user_id);
+    await notifyUsers(staffIds, {
+      title: "Order cancelled",
+      body: `Order #${order.order_number} has been cancelled.`,
+      url: "/warehouse/orders",
+    });
+    await sendOrderCancelledSellerEmails(staffIds, order.order_number, "/warehouse/orders");
+  }
 }
 
 export async function assignRider(orderId: string, riderId: string) {

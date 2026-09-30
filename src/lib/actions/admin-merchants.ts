@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { notifyUsers } from "@/lib/push";
+import { sendApplicationDecisionEmail } from "@/lib/email-notifications";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -47,17 +49,46 @@ export async function approveStore(storeId: string) {
 
   await finalizeApproval(supabase, store);
   revalidatePath("/admin/merchants");
+
+  await notifyUsers([store.owner_id], {
+    title: "You're approved to sell on FasTrack!",
+    body: `${store.name} has been approved. You can now add products and start selling.`,
+    url: "/merchant",
+  });
+  await sendApplicationDecisionEmail(
+    store.owner_id,
+    "You're approved to sell on FasTrack",
+    `${store.name} has been approved. You can now add products and start selling.`,
+    "/merchant"
+  );
 }
 
 export async function rejectStore(storeId: string, reason: string) {
   const supabase = await createClient();
-  const { error } = await supabase
+  const rejectionReason = reason || "Application did not meet requirements.";
+  const { data: store, error } = await supabase
     .from("stores")
-    .update({ status: "rejected", rejection_reason: reason || "Application did not meet requirements." })
-    .eq("id", storeId);
+    .update({ status: "rejected", rejection_reason: rejectionReason })
+    .eq("id", storeId)
+    .select("owner_id, name")
+    .maybeSingle();
   if (error) throw error;
 
   revalidatePath("/admin/merchants");
+
+  if (store) {
+    await notifyUsers([store.owner_id], {
+      title: "Update on your supplier application",
+      body: rejectionReason,
+      url: "/sell",
+    });
+    await sendApplicationDecisionEmail(
+      store.owner_id,
+      `Update on your FasTrack application — ${store.name}`,
+      rejectionReason,
+      "/sell"
+    );
+  }
 }
 
 export async function suspendStore(storeId: string) {

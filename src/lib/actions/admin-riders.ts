@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { notifyUsers } from "@/lib/push";
+import { sendApplicationDecisionEmail } from "@/lib/email-notifications";
 
 export async function approveRider(riderId: string) {
   const supabase = await createClient();
@@ -16,17 +18,37 @@ export async function approveRider(riderId: string) {
   if (profileError) throw profileError;
 
   revalidatePath("/admin/riders");
+
+  await notifyUsers([riderId], {
+    title: "You're approved to ride!",
+    body: "Your FasTrack rider application has been approved. Go online to start receiving deliveries.",
+    url: "/rider",
+  });
+  await sendApplicationDecisionEmail(
+    riderId,
+    "You're approved to ride with FasTrack",
+    "Your rider application has been approved. Go online to start receiving deliveries.",
+    "/rider"
+  );
 }
 
 export async function rejectRider(riderId: string, reason: string) {
   const supabase = await createClient();
+  const rejectionReason = reason || "Application did not meet requirements.";
   const { error } = await supabase
     .from("delivery_partners")
-    .update({ status: "rejected", rejection_reason: reason || "Application did not meet requirements." })
+    .update({ status: "rejected", rejection_reason: rejectionReason })
     .eq("id", riderId);
   if (error) throw error;
 
   revalidatePath("/admin/riders");
+
+  await notifyUsers([riderId], {
+    title: "Update on your rider application",
+    body: rejectionReason,
+    url: "/deliver",
+  });
+  await sendApplicationDecisionEmail(riderId, "Update on your FasTrack rider application", rejectionReason, "/deliver");
 }
 
 export async function suspendRider(riderId: string) {

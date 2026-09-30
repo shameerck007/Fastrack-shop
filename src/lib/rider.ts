@@ -75,7 +75,7 @@ export interface AvailableOrder {
 // a rider is asked to travel TO a pickup. Swiggy/Instamart-style: a rider
 // standing in Jeddah should never be offered a Riyadh pickup just because
 // it's the oldest order in the system.
-const RIDER_MATCH_RADIUS_KM = 20;
+export const RIDER_MATCH_RADIUS_KM = 20;
 
 export interface AvailableOrdersResult {
   orders: AvailableOrder[];

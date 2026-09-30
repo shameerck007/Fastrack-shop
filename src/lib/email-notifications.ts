@@ -215,6 +215,45 @@ export async function sendNewOrderEmails(userIds: string[], orderNumber: string,
   );
 }
 
+/** Tells a merchant/staff a order they were already alerted about (and may
+ * have started preparing) has since been cancelled. */
+export async function sendOrderCancelledSellerEmails(userIds: string[], orderNumber: string, portalUrl: string) {
+  const emails = await emailsFor(userIds);
+  await Promise.all(
+    [...emails.values()].map((to) =>
+      sendEmail({
+        to,
+        subject: `Order cancelled — #${orderNumber}`,
+        html: renderEmailShell({
+          preheader: `Order #${orderNumber} has been cancelled. No need to prepare it.`,
+          heading: "Order cancelled",
+          bodyHtml: `<p>Order #${orderNumber} has been cancelled. No need to prepare it.</p>`,
+          ctaLabel: "View orders",
+          ctaUrl: `${SITE_URL}${portalUrl}`,
+        }),
+      })
+    )
+  );
+}
+
+/** Approve/reject outcome for a single applicant (rider or supplier). */
+export async function sendApplicationDecisionEmail(userId: string, title: string, body: string, portalUrl: string) {
+  const emails = await emailsFor([userId]);
+  const to = emails.get(userId);
+  if (!to) return;
+  await sendEmail({
+    to,
+    subject: title,
+    html: renderEmailShell({
+      preheader: body,
+      heading: title,
+      bodyHtml: `<p>${body}</p>`,
+      ctaLabel: "View status",
+      ctaUrl: `${SITE_URL}${portalUrl}`,
+    }),
+  });
+}
+
 /** New rider/supplier application alert for every admin. */
 export async function sendNewApplicationEmails(title: string, body: string, portalUrl: string) {
   const supabase = await createClient();

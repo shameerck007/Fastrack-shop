@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { sendWebPush, type PushSubscriptionKeys, type VapidConfig } from "@/lib/web-push";
+import { distanceKm } from "@/lib/delivery-geo";
+import { RIDER_MATCH_RADIUS_KM } from "@/lib/rider";
 import type { OrderStatus } from "@/types/database";
 
 export interface PushPayload {
@@ -105,5 +107,47 @@ export async function notifyOrderStatusChange(orderId: string, status: OrderStat
     title: template.title,
     body: template.body.replace("{n}", order.order_number),
     url: `/orders/${orderId}`,
+  });
+}
+
+/** Pushes "new order nearby" to every currently-online rider (no active
+ * delivery) within RIDER_MATCH_RADIUS_KM of the pickup warehouse — the
+ * same radius/matching rules getAvailableOrders() uses for the rider's
+ * own queue, so this alert always corresponds to an order they'd actually
+ * see there. Push/bell only — by the time an email would land, the order
+ * may already be taken. Call this once, when an order first becomes
+ * available to riders (transitions to "ready_for_pickup"). */
+export async function notifyNearbyRidersOfNewOrder(orderId: string) {
+  const supabase = await createClient();
+  const { data: order } = await supabase
+    .from("orders")
+    .select("order_number, warehouses(lat, lng)")
+    .eq("id", orderId)
+    .maybeSingle();
+  const warehouse = order?.warehouses as unknown as { lat: number | null; lng: number | null } | null;
+  if (!order || !warehouse?.lat || !warehouse?.lng) return;
+
+  const { data: riders } = await supabase
+    .from("delivery_partners")
+    .select("id, current_lat, current_lng")
+    .eq("status", "approved")
+    .eq("is_available", true);
+  if (!riders || riders.length === 0) return;
+
+  const { data: activeAssignments } = await supabase
+    .from("delivery_assignments")
+    .select("rider_id, orders!inner(status)")
+    .not("orders.status", "in", "(delivered,cancelled)");
+  const busyRiderIds = new Set(((activeAssignments ?? []) as { rider_id: string | null }[]).map((a) => a.rider_id));
+
+  const nearbyRiderIds = riders
+    .filter((r) => !busyRiderIds.has(r.id) && r.current_lat != null && r.current_lng != null)
+    .filter((r) => distanceKm(r.current_lat as number, r.current_lng as number, warehouse.lat as number, warehouse.lng as number) <= RIDER_MATCH_RADIUS_KM)
+    .map((r) => r.id);
+
+  await notifyUsers(nearbyRiderIds, {
+    title: "New order nearby",
+    body: `Order #${order.order_number} is ready for pickup near you.`,
+    url: "/rider",
   });
 }
