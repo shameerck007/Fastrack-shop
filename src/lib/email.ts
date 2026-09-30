@@ -1,7 +1,7 @@
 // Resend's REST API over plain fetch — no SDK dependency (same reasoning
 // as web-push.ts: keeps this free of packages that may not play nicely
 // with the Cloudflare Workers runtime, and fetch is all Resend needs).
-const FROM_ADDRESS = "FasTrack <orders@fastrack.cloud>";
+const FROM_ADDRESS = "FasTrack Shop <orders@fastrack.cloud>";
 
 export interface SendEmailInput {
   to: string;

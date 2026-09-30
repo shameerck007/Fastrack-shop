@@ -1,8 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
-import { renderEmailShell, renderOrderItemsTable, renderSummaryTable, type EmailLineItem } from "@/lib/email-template";
+import {
+  renderEmailShell,
+  renderInfoGrid,
+  renderOrderItemsTable,
+  renderSummaryTable,
+  renderBoxSection,
+  type EmailLineItem,
+} from "@/lib/email-template";
 import { formatSAR } from "@/lib/utils";
-import type { OrderStatus } from "@/types/database";
+import type { DeliveryType, OrderStatus } from "@/types/database";
 
 const SITE_URL = "https://shop.fastrack.cloud";
 
@@ -14,6 +21,25 @@ async function emailsFor(userIds: string[]): Promise<Map<string, string>> {
   return new Map(((data ?? []) as { user_id: string; email: string }[]).map((r) => [r.user_id, r.email]));
 }
 
+function formatOrderDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function estimateArrival(deliveryType: DeliveryType, scheduledFor: string | null): string {
+  if (deliveryType === "scheduled" && scheduledFor) {
+    return new Date(scheduledFor).toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit" });
+  }
+  return deliveryType === "express" ? "Today, 15–30 min" : "Today, 30–60 min";
+}
+
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  cash_on_delivery: "Cash on Delivery",
+  mada: "mada card",
+  visa: "Visa card",
+  mastercard: "Mastercard",
+  apple_pay: "Apple Pay",
+};
+
 type OrderItemRow = {
   product_name: string;
   variant_label: string;
@@ -22,6 +48,14 @@ type OrderItemRow = {
   product_variants: { products: { image_url: string | null } | null } | null;
 };
 
+type AddressRow = {
+  address_line: string;
+  city: string;
+  district: string | null;
+  receiver_name: string | null;
+  receiver_phone: string | null;
+} | null;
+
 /** The rich, itemized Amazon/Noon-style confirmation — sent once, right
  * after placeOrder() creates the order. */
 export async function sendOrderConfirmationEmail(orderId: string) {
@@ -29,7 +63,7 @@ export async function sendOrderConfirmationEmail(orderId: string) {
   const { data: order } = await supabase
     .from("orders")
     .select(
-      "id, order_number, user_id, subtotal, delivery_fee, total, addresses(address_line, city), order_items(product_name, variant_label, ordered_quantity, line_total, product_variants!variant_id(products(image_url)))"
+      "id, order_number, user_id, subtotal, delivery_fee, total, created_at, delivery_type, scheduled_for, addresses(address_line, city, district, receiver_name, receiver_phone), order_items(product_name, variant_label, ordered_quantity, line_total, product_variants!variant_id(products(image_url))), payments(method), profiles(full_name)"
     )
     .eq("id", orderId)
     .maybeSingle();
@@ -47,30 +81,49 @@ export async function sendOrderConfirmationEmail(orderId: string) {
     imageUrl: i.product_variants?.products?.image_url ?? null,
   }));
 
-  const address = order.addresses as unknown as { address_line: string; city: string } | null;
+  const address = order.addresses as unknown as AddressRow;
+  const profile = order.profiles as unknown as { full_name: string | null } | null;
+  const payments = order.payments as unknown as { method: string }[] | null;
+  const paymentMethod = PAYMENT_METHOD_LABEL[payments?.[0]?.method ?? "cash_on_delivery"] ?? "Cash on Delivery";
+  const firstName = profile?.full_name?.split(" ")[0] ?? "there";
 
   const bodyHtml = `
+    <p>Hi ${firstName},</p>
     <p>Thanks for your order! We'll email you again as soon as it's on its way.</p>
-    <p style="margin:20px 0 8px;font-weight:700;color:#111111;">Order #${order.order_number}</p>
+    ${renderInfoGrid([
+      { label: "Order #", value: order.order_number },
+      { label: "Order date", value: formatOrderDate(order.created_at) },
+      { label: "Order total", value: formatSAR(order.total) },
+      { label: "Arriving", value: estimateArrival(order.delivery_type, order.scheduled_for) },
+    ])}
+    <p style="margin:24px 0 8px;font-weight:700;color:#111111;font-size:15px;">Items in this order</p>
     ${renderOrderItemsTable(items)}
-    <div style="margin-top:16px;">
+    <div style="margin-top:16px;max-width:260px;margin-inline-start:auto;">
       ${renderSummaryTable([
-        { label: "Subtotal", value: formatSAR(order.subtotal) },
+        { label: "Item(s) subtotal", value: formatSAR(order.subtotal) },
         { label: "Delivery", value: order.delivery_fee > 0 ? formatSAR(order.delivery_fee) : "Free" },
-        { label: "Total", value: formatSAR(order.total), bold: true },
+        { label: "Order total", value: formatSAR(order.total), bold: true },
       ])}
     </div>
-    ${address ? `<p style="margin-top:20px;"><strong>Deliver to:</strong><br/>${address.address_line}, ${address.city}</p>` : ""}
+    ${
+      address
+        ? renderBoxSection(
+            "Shipping address",
+            `${address.receiver_name ?? ""}<br/>${address.address_line}${address.district ? `, ${address.district}` : ""}<br/>${address.city}${address.receiver_phone ? `<br/>${address.receiver_phone}` : ""}`
+          )
+        : ""
+    }
+    ${renderBoxSection("Payment method", paymentMethod)}
   `;
 
   await sendEmail({
     to,
-    subject: `Your FasTrack order #${order.order_number} is confirmed`,
+    subject: `Ordered: your FasTrack order #${order.order_number}`,
     html: renderEmailShell({
       preheader: `Order #${order.order_number} confirmed — ${formatSAR(order.total)}`,
       heading: "Order confirmed",
       bodyHtml,
-      ctaLabel: "View your order",
+      ctaLabel: "View order details",
       ctaUrl: `${SITE_URL}/orders/${order.id}`,
     }),
   });
@@ -110,29 +163,47 @@ const STATUS_EMAIL: Partial<Record<OrderStatus, { subject: string; heading: stri
 };
 
 /** A lighter, non-itemized status-change email — mirrors the push/bell
- * copy but as a branded email. Skips "confirmed" and "pending", which the
+ * copy but as a branded email, plus an order-info recap so it still reads
+ * as complete on its own. Skips "confirmed"/"pending", which the
  * order-confirmation email already covers. */
 export async function sendOrderStatusEmail(orderId: string, status: OrderStatus) {
   const template = STATUS_EMAIL[status];
   if (!template) return;
 
   const supabase = await createClient();
-  const { data: order } = await supabase.from("orders").select("id, user_id, order_number").eq("id", orderId).maybeSingle();
+  const { data: order } = await supabase
+    .from("orders")
+    .select("id, user_id, order_number, total, created_at, profiles(full_name)")
+    .eq("id", orderId)
+    .maybeSingle();
   if (!order) return;
 
   const emails = await emailsFor([order.user_id]);
   const to = emails.get(order.user_id);
   if (!to) return;
 
+  const profile = order.profiles as unknown as { full_name: string | null } | null;
+  const firstName = profile?.full_name?.split(" ")[0] ?? "there";
   const n = order.order_number;
+
+  const bodyHtml = `
+    <p>Hi ${firstName},</p>
+    <p>${template.body.replace("{n}", n)}</p>
+    ${renderInfoGrid([
+      { label: "Order #", value: n },
+      { label: "Order date", value: formatOrderDate(order.created_at) },
+      { label: "Order total", value: formatSAR(order.total) },
+    ])}
+  `;
+
   await sendEmail({
     to,
     subject: template.subject.replace("{n}", n),
     html: renderEmailShell({
       preheader: template.body.replace("{n}", n),
       heading: template.heading,
-      bodyHtml: `<p>${template.body.replace("{n}", n)}</p>`,
-      ctaLabel: "View your order",
+      bodyHtml,
+      ctaLabel: "View order details",
       ctaUrl: `${SITE_URL}/orders/${order.id}`,
     }),
   });
