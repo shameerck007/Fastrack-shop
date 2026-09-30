@@ -57,22 +57,30 @@ type AddressRow = {
   receiver_phone: string | null;
 } | null;
 
-/** The rich, itemized Amazon/Noon-style confirmation — sent once, right
- * after placeOrder() creates the order. */
-export async function sendOrderConfirmationEmail(orderId: string) {
+const FULL_ORDER_SELECT =
+  "id, order_number, user_id, subtotal, delivery_fee, total, created_at, delivery_type, scheduled_for, addresses(address_line, city, district, receiver_name, receiver_phone), order_items(product_name, variant_label, ordered_quantity, line_total, product_variants!variant_id(products(image_url))), payments(method), profiles(full_name)";
+
+interface FullOrderEmailData {
+  to: string;
+  orderId: string;
+  orderNumber: string;
+  firstName: string;
+  detailsHtml: string;
+}
+
+/** Fetches everything an Amazon-style order email needs — items, shipping
+ * address, payment method, totals — and renders the shared detail blocks
+ * (info grid, itemized table, summary, address/payment boxes) once, so
+ * every email about a specific order (confirmed, delivered, cancelled)
+ * shows the exact same full picture instead of some being a thin recap. */
+async function loadFullOrderEmailData(orderId: string): Promise<FullOrderEmailData | null> {
   const supabase = await createClient();
-  const { data: order } = await supabase
-    .from("orders")
-    .select(
-      "id, order_number, user_id, subtotal, delivery_fee, total, created_at, delivery_type, scheduled_for, addresses(address_line, city, district, receiver_name, receiver_phone), order_items(product_name, variant_label, ordered_quantity, line_total, product_variants!variant_id(products(image_url))), payments(method), profiles(full_name)"
-    )
-    .eq("id", orderId)
-    .maybeSingle();
-  if (!order) return;
+  const { data: order } = await supabase.from("orders").select(FULL_ORDER_SELECT).eq("id", orderId).maybeSingle();
+  if (!order) return null;
 
   const emails = await emailsFor([order.user_id]);
   const to = emails.get(order.user_id);
-  if (!to) return;
+  if (!to) return null;
 
   const items: EmailLineItem[] = ((order.order_items ?? []) as unknown as OrderItemRow[]).map((i) => ({
     name: i.product_name,
@@ -88,14 +96,12 @@ export async function sendOrderConfirmationEmail(orderId: string) {
   const paymentMethod = PAYMENT_METHOD_LABEL[payments?.[0]?.method ?? "cash_on_delivery"] ?? "Cash on Delivery";
   const firstName = profile?.full_name?.split(" ")[0] ?? "there";
 
-  const bodyHtml = `
-    <p>Hi ${firstName},</p>
-    <p>Thanks for your order! We'll email you again as soon as it's on its way.</p>
+  const detailsHtml = `
     ${renderInfoGrid([
       { label: "Order #", value: order.order_number },
       { label: "Order date", value: formatOrderDate(order.created_at) },
       { label: "Order total", value: formatSAR(order.total) },
-      { label: "Arriving", value: estimateArrival(order.delivery_type, order.scheduled_for) },
+      { label: "Delivery", value: estimateArrival(order.delivery_type, order.scheduled_for) },
     ])}
     <p style="margin:24px 0 8px;font-weight:700;color:#111111;font-size:15px;">Items in this order</p>
     ${renderOrderItemsTable(items)}
@@ -117,15 +123,30 @@ export async function sendOrderConfirmationEmail(orderId: string) {
     ${renderBoxSection("Payment method", paymentMethod)}
   `;
 
+  return { to, orderId: order.id, orderNumber: order.order_number, firstName, detailsHtml };
+}
+
+/** The rich, itemized Amazon/Noon-style confirmation — sent once, right
+ * after placeOrder() creates the order. */
+export async function sendOrderConfirmationEmail(orderId: string) {
+  const data = await loadFullOrderEmailData(orderId);
+  if (!data) return;
+
+  const bodyHtml = `
+    <p>Hi ${data.firstName},</p>
+    <p>Thanks for your order! We'll email you again as soon as it's on its way.</p>
+    ${data.detailsHtml}
+  `;
+
   await sendEmail({
-    to,
-    subject: `Ordered: your FasTrack order #${order.order_number}`,
+    to: data.to,
+    subject: `Ordered: your FasTrack order #${data.orderNumber}`,
     html: renderEmailShell({
-      preheader: `Order #${order.order_number} confirmed — ${formatSAR(order.total)}`,
+      preheader: `Order #${data.orderNumber} confirmed.`,
       heading: "Order confirmed",
       bodyHtml,
       ctaLabel: "View order details",
-      ctaUrl: `${SITE_URL}/orders/${order.id}`,
+      ctaUrl: `${SITE_URL}/orders/${data.orderId}`,
     }),
   });
 }
@@ -148,49 +169,34 @@ const STATUS_EMAIL: Partial<Record<OrderStatus, { subject: string; heading: stri
   },
 };
 
-/** A lighter, non-itemized status-change email — mirrors the push/bell
- * copy but as a branded email, plus an order-info recap so it still reads
- * as complete on its own. Only fires for delivered/cancelled — see
+/** Same full order picture as the confirmation email (items, address,
+ * payment method) — not just a status recap — so delivered/cancelled
+ * reads as a complete record on its own, same transparency as the
+ * order-placed email. Only fires for delivered/cancelled — see
  * STATUS_EMAIL above. */
 export async function sendOrderStatusEmail(orderId: string, status: OrderStatus) {
   const template = STATUS_EMAIL[status];
   if (!template) return;
 
-  const supabase = await createClient();
-  const { data: order } = await supabase
-    .from("orders")
-    .select("id, user_id, order_number, total, created_at, profiles(full_name)")
-    .eq("id", orderId)
-    .maybeSingle();
-  if (!order) return;
+  const data = await loadFullOrderEmailData(orderId);
+  if (!data) return;
 
-  const emails = await emailsFor([order.user_id]);
-  const to = emails.get(order.user_id);
-  if (!to) return;
-
-  const profile = order.profiles as unknown as { full_name: string | null } | null;
-  const firstName = profile?.full_name?.split(" ")[0] ?? "there";
-  const n = order.order_number;
-
+  const n = data.orderNumber;
   const bodyHtml = `
-    <p>Hi ${firstName},</p>
+    <p>Hi ${data.firstName},</p>
     <p>${template.body.replace("{n}", n)}</p>
-    ${renderInfoGrid([
-      { label: "Order #", value: n },
-      { label: "Order date", value: formatOrderDate(order.created_at) },
-      { label: "Order total", value: formatSAR(order.total) },
-    ])}
+    ${data.detailsHtml}
   `;
 
   await sendEmail({
-    to,
+    to: data.to,
     subject: template.subject.replace("{n}", n),
     html: renderEmailShell({
       preheader: template.body.replace("{n}", n),
       heading: template.heading,
       bodyHtml,
       ctaLabel: "View order details",
-      ctaUrl: `${SITE_URL}/orders/${order.id}`,
+      ctaUrl: `${SITE_URL}/orders/${data.orderId}`,
     }),
   });
 }
