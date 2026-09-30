@@ -8,6 +8,7 @@ import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
 import { addToCart } from "@/lib/actions/cart";
 import { notifyUsers } from "@/lib/push";
+import { sendOrderConfirmationEmail, sendNewOrderEmails } from "@/lib/email-notifications";
 import { generateOrderNumber, generateOtp, extractVat } from "@/lib/utils";
 import type { DeliveryType, PaymentMethod } from "@/types/database";
 
@@ -167,20 +168,27 @@ export async function placeOrder(input: {
   const distinctStoreIds = [...new Set(productRefs.filter((p) => p.store_id).map((p) => p.store_id as string))];
   if (distinctStoreIds.length > 0) {
     const { data: storeOwners } = await supabase.from("stores").select("owner_id").in("id", distinctStoreIds);
-    await notifyUsers(
-      (storeOwners ?? []).map((s) => s.owner_id),
-      { title: "New order received", body: `Order #${orderNumber} needs confirmation.`, url: "/merchant/orders" }
-    );
+    const ownerIds = (storeOwners ?? []).map((s) => s.owner_id);
+    await notifyUsers(ownerIds, {
+      title: "New order received",
+      body: `Order #${orderNumber} needs confirmation.`,
+      url: "/merchant/orders",
+    });
+    await sendNewOrderEmails(ownerIds, orderNumber, "/merchant/orders");
   }
   const ownWarehouseIndex = productRefs.findIndex((p) => !p.store_id);
   const ownWarehouseId = ownWarehouseIndex >= 0 ? itemWarehouseIds[ownWarehouseIndex] : null;
   if (ownWarehouseId) {
     const { data: staffRows } = await supabase.from("warehouse_staff").select("user_id").eq("warehouse_id", ownWarehouseId);
-    await notifyUsers(
-      (staffRows ?? []).map((s) => s.user_id),
-      { title: "New order received", body: `Order #${orderNumber} needs confirmation.`, url: "/warehouse/orders" }
-    );
+    const staffIds = (staffRows ?? []).map((s) => s.user_id);
+    await notifyUsers(staffIds, {
+      title: "New order received",
+      body: `Order #${orderNumber} needs confirmation.`,
+      url: "/warehouse/orders",
+    });
+    await sendNewOrderEmails(staffIds, orderNumber, "/warehouse/orders");
   }
+  await sendOrderConfirmationEmail(order.id);
 
   await supabase.from("payments").insert({
     order_id: order.id,

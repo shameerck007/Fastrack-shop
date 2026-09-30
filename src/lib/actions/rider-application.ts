@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyAdmins } from "@/lib/push";
+import { sendNewApplicationEmails } from "@/lib/email-notifications";
 
 export async function applyAsRider(input: {
   fullName: string;
@@ -57,4 +58,9 @@ export async function applyAsRider(input: {
     body: `${input.fullName.trim()} applied to ride for FasTrack.`,
     url: "/admin/riders",
   });
+  await sendNewApplicationEmails(
+    "New rider application",
+    `${input.fullName.trim()} applied to ride for FasTrack.`,
+    "/admin/riders"
+  );
 }

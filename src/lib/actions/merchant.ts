@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyAdmins } from "@/lib/push";
+import { sendNewApplicationEmails } from "@/lib/email-notifications";
 
 export async function applyForStore(input: {
   name: string;
@@ -57,4 +58,9 @@ export async function applyForStore(input: {
     body: `${input.name.trim()} applied to sell on FasTrack.`,
     url: "/admin/merchants",
   });
+  await sendNewApplicationEmails(
+    "New supplier application",
+    `${input.name.trim()} applied to sell on FasTrack.`,
+    "/admin/merchants"
+  );
 }
