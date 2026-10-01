@@ -6,11 +6,23 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { resolveLoginEmail } from "@/lib/actions/auth";
 import Wordmark from "@/components/Wordmark";
-import PhoneNumberInput from "@/components/PhoneNumberInput";
+import { findCountry } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
 
 type Mode = "password" | "otp";
-type IdentifierType = "email" | "phone";
+
+/** Normalizes a free-typed "email or mobile number" into what
+ * resolveLoginEmail expects: an email as-is, or a bare phone number into
+ * E.164 using the visitor's detected country — same leading-zero-stripping
+ * PhoneNumberInput uses, just without a separate country dropdown, to
+ * match the single-field Amazon-style identifier input. */
+function normalizeIdentifier(raw: string, defaultCountryCode: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.includes("@")) return trimmed;
+  if (trimmed.startsWith("+")) return `+${trimmed.slice(1).replace(/\D/g, "")}`;
+  const digits = trimmed.replace(/\D/g, "").replace(/^0+/, "");
+  return `${findCountry(defaultCountryCode).dial}${digits}`;
+}
 
 function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) {
   const { t } = useLocale();
@@ -19,11 +31,10 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
   const redirectTo = searchParams.get("redirect") || "/";
 
   const [mode, setMode] = useState<Mode>("password");
-  const [identifierType, setIdentifierType] = useState<IdentifierType>("email");
 
   // password mode
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [step, setStep] = useState<"identifier" | "password">("identifier");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -35,13 +46,18 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
   const [otpError, setOtpError] = useState<string | null>(null);
   const [otpLoading, setOtpLoading] = useState(false);
 
+  function handleContinue(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setStep("password");
+  }
+
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    const identifier = identifierType === "email" ? email : phone;
-    const resolvedEmail = await resolveLoginEmail(identifier);
+    const resolvedEmail = await resolveLoginEmail(normalizeIdentifier(identifier, defaultCountryCode));
     if (!resolvedEmail) {
       setLoading(false);
       setError(t("auth.invalid_credentials"));
@@ -119,74 +135,67 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
         </div>
 
         {mode === "password" ? (
-          <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
-            <div className="flex rounded-lg bg-neutral-100 p-1 text-sm">
-              <button
-                type="button"
-                onClick={() => setIdentifierType("email")}
-                className={`flex-1 rounded-md py-1.5 font-medium transition ${
-                  identifierType === "email" ? "bg-white shadow-sm" : "text-neutral-500"
-                }`}
-              >
-                {t("auth.email")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIdentifierType("phone")}
-                className={`flex-1 rounded-md py-1.5 font-medium transition ${
-                  identifierType === "phone" ? "bg-white shadow-sm" : "text-neutral-500"
-                }`}
-              >
-                {t("auth.mobile_number")}
-              </button>
-            </div>
-
-            {identifierType === "email" ? (
+          step === "identifier" ? (
+            <form onSubmit={handleContinue} className="flex flex-col gap-4">
               <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium text-neutral-800">{t("auth.email")}</span>
+                <span className="font-medium text-neutral-800">{t("auth.email_or_mobile")}</span>
                 <input
-                  type="email"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder={t("auth.email_or_mobile_placeholder")}
                   className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </label>
-            ) : (
+
+              <button
+                type="submit"
+                className="rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800"
+              >
+                {t("auth.continue")}
+              </button>
+
+              <p className="text-xs text-neutral-500">{t("auth.terms_notice")}</p>
+            </form>
+          ) : (
+            <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+              <p className="text-sm text-neutral-600">
+                {t("auth.signing_in_as", { identifier })}{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("identifier");
+                    setPassword("");
+                    setError(null);
+                  }}
+                  className="font-medium text-blue-600 hover:underline"
+                >
+                  {t("auth.change")}
+                </button>
+              </p>
               <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium text-neutral-800">{t("auth.mobile_number")}</span>
-                <PhoneNumberInput
-                  value={phone}
-                  onChange={setPhone}
-                  defaultCountryCode={defaultCountryCode}
-                  placeholder={t("auth.mobile_number_national_placeholder")}
+                <span className="font-medium text-neutral-800">{t("auth.password")}</span>
+                <input
+                  type="password"
+                  required
+                  autoFocus
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </label>
-            )}
 
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-neutral-800">{t("auth.password")}</span>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </label>
+              {error && <p className="text-sm text-red-600">{error}</p>}
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
-            >
-              {loading ? t("auth.signing_in") : t("auth.sign_in_button")}
-            </button>
-
-            <p className="text-xs text-neutral-500">{t("auth.terms_notice")}</p>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+              >
+                {loading ? t("auth.signing_in") : t("auth.sign_in_button")}
+              </button>
+            </form>
+          )
         ) : otpStage === "enter-email" ? (
           <form onSubmit={handleSendCode} className="flex flex-col gap-4">
             <label className="flex flex-col gap-1 text-sm">
