@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getRequestCountryCode } from "@/lib/get-request-country";
 import AccountSecurityForm from "@/components/AccountSecurityForm";
 
 export default async function AccountSecurityPage() {
@@ -20,6 +21,7 @@ export default async function AccountSecurityPage() {
     .select("full_name, phone")
     .eq("id", user.id)
     .maybeSingle();
+  const defaultCountryCode = await getRequestCountryCode();
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
@@ -31,6 +33,7 @@ export default async function AccountSecurityPage() {
         initialName={profile?.full_name ?? ""}
         initialPhone={profile?.phone ?? ""}
         email={user.email ?? ""}
+        defaultCountryCode={defaultCountryCode}
       />
     </div>
   );

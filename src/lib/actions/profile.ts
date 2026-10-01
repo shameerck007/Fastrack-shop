@@ -18,9 +18,18 @@ export async function updateProfile(input: { fullName: string; phone?: string })
   const fullName = input.fullName.trim();
   if (!fullName) throw new Error("Name is required.");
 
+  const phone = input.phone?.trim() || null;
+  if (phone) {
+    const { data: taken } = await supabase.rpc("is_phone_registered", {
+      target_phone: phone,
+      exclude_user_id: user.id,
+    });
+    if (taken) throw new Error("This mobile number is already registered to another account.");
+  }
+
   const { error } = await supabase
     .from("profiles")
-    .update({ full_name: fullName, phone: input.phone?.trim() || null })
+    .update({ full_name: fullName, phone })
     .eq("id", user.id);
   if (error) throw error;
 

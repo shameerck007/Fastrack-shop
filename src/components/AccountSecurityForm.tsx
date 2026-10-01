@@ -3,15 +3,18 @@
 import { useState, useTransition } from "react";
 import { updateProfile, updatePassword } from "@/lib/actions/profile";
 import { useLocale } from "@/components/LocaleProvider";
+import PhoneNumberInput from "@/components/PhoneNumberInput";
 
 export default function AccountSecurityForm({
   initialName,
   initialPhone,
   email,
+  defaultCountryCode,
 }: {
   initialName: string;
   initialPhone: string;
   email: string;
+  defaultCountryCode: string;
 }) {
   const { t } = useLocale();
 
@@ -86,11 +89,11 @@ export default function AccountSecurityForm({
           </label>
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-neutral-500">{t("account_security.phone")}</span>
-            <input
+            <PhoneNumberInput
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={setPhone}
+              defaultCountryCode={defaultCountryCode}
               placeholder={t("account_security.phone_placeholder")}
-              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
