@@ -57,13 +57,42 @@ function buildLabel(data: { name?: string; category?: string; address?: Record<s
 // 60 m counts, so a GPS fix doesn't get labelled with a place down the road.
 const STADIA_KEY = process.env.NEXT_PUBLIC_STADIAMAPS_KEY;
 
+// HERE (free plan, ~250k requests/month, strong Saudi place data): preferred when
+// HERE_API_KEY is set. Nearby places come from the Browse endpoint, nearest first;
+// the district comes from the matching address. Server-side only — the key is a
+// secret and never reaches the browser.
+async function hereLabel(lat: string, lng: string, radiusM: number): Promise<string | null> {
+  const key = process.env.HERE_API_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetch(
+      `https://browse.search.hereapi.com/v1/browse?at=${encodeURIComponent(lat)},${encodeURIComponent(lng)}&in=circle:${encodeURIComponent(lat)},${encodeURIComponent(lng)};r=${Math.round(radiusM)}&limit=10&lang=en&apiKey=${key}`,
+      { signal: AbortSignal.timeout(4000) }
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      items?: { title?: string; distance?: number; resultType?: string; address?: { district?: string; city?: string } }[];
+    };
+    const best = (data.items ?? [])
+      .filter((i) => i.title && typeof i.distance === "number" && i.distance <= radiusM)
+      .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0))[0];
+    if (!best?.title) return null;
+    const area = best.address?.district || best.address?.city;
+    return area && area !== best.title ? `${best.title}, ${area}` : best.title;
+  } catch {
+    return null;
+  }
+}
+
 async function venueLabel(lat: string, lng: string, accuracyM: number | null): Promise<string | null> {
-  if (!STADIA_KEY) return null;
   // Look as far as the device says it might be off (60 m for a precise GPS fix,
   // up to 250 m for a rough one). A fix worse than ~1 km is IP-based: any
   // venue near it would be a guess, so don't name one.
   if (accuracyM !== null && accuracyM > 1000) return null;
   const radiusKm = Math.min(Math.max(accuracyM ?? 0, 60), 250) / 1000;
+  const here = await hereLabel(lat, lng, radiusKm * 1000);
+  if (here) return here;
+  if (!STADIA_KEY) return null;
   try {
     const res = await fetch(
       `https://api.stadiamaps.com/geocoding/v1/reverse?point.lat=${encodeURIComponent(lat)}&point.lon=${encodeURIComponent(lng)}&layers=venue&size=10&boundary.circle.radius=1&api_key=${STADIA_KEY}`,
