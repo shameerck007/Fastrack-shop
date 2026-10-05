@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { checkSaudiIban, formatIban } from "@/lib/iban";
+import { checkBankDetails } from "@/lib/saudi-banks";
 import RiderStatusActions from "@/components/admin/RiderStatusActions";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -49,10 +51,30 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
       .eq("orders.status", "delivered"),
   ]);
 
-  const licenseUrl = rider.license_document_path
-    ? (await supabase.storage.from("rider-documents").createSignedUrl(rider.license_document_path, 60 * 10)).data
-        ?.signedUrl ?? null
-    : null;
+  async function signed(path: string | null | undefined) {
+    if (!path) return null;
+    return (await supabase.storage.from("rider-documents").createSignedUrl(path, 60 * 10)).data?.signedUrl ?? null;
+  }
+  const [licenseUrl, idFrontUrl, idBackUrl, selfieUrl, registrationUrl, insuranceUrl] = await Promise.all([
+    signed(rider.license_document_path),
+    signed(rider.id_front_path),
+    signed(rider.id_back_path),
+    signed(rider.selfie_path),
+    signed(rider.registration_path),
+    signed(rider.insurance_path),
+  ]);
+  const docs: [string, string | null][] = [
+    [t("rider_detail.license_document"), licenseUrl],
+    ["ID — front", idFrontUrl],
+    ["ID — back", idBackUrl],
+    ["Selfie", selfieUrl],
+    ["Vehicle registration (Istimara)", registrationUrl],
+    ["Insurance", insuranceUrl],
+  ];
+  const today = new Date().toISOString().slice(0, 10);
+  const expiry = (d: string | null) =>
+    d ? <span className={d < today ? "font-medium text-red-600" : ""}>{d}{d < today ? " (expired)" : ""}</span> : "—";
+  const ibanOk = rider.bank_iban ? checkSaudiIban(rider.bank_iban).ok && checkBankDetails(rider.bank_name ?? "", rider.bank_iban).ok : false;
 
   return (
     <div>
@@ -110,16 +132,59 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
         <Card title={t("rider_detail.vehicle_details")}>
           <Row label={t("rider_detail.vehicle_type")}>{rider.vehicle_type ?? "—"}</Row>
           <Row label={t("rider_detail.license_number")}>{rider.license_number ?? "—"}</Row>
+          <Row label="Licence expiry">{expiry(rider.license_expiry)}</Row>
+          {rider.vehicle_plate && <Row label="Plate">{rider.vehicle_plate}</Row>}
+          {rider.vehicle_make_model && <Row label="Make & model">{rider.vehicle_make_model}{rider.vehicle_year ? ` (${rider.vehicle_year})` : ""}</Row>}
+          {rider.registration_path && <Row label="Registration expiry">{expiry(rider.registration_expiry)}</Row>}
+        </Card>
+
+        <Card title="Identity">
+          <Row label="ID type">{rider.id_type === "iqama" ? "Iqama" : rider.id_type === "national_id" ? "National ID" : "—"}</Row>
+          <Row label="ID number"><span className="font-mono">{rider.id_number ?? "—"}</span></Row>
+          <Row label="Nationality">{rider.nationality ?? "—"}</Row>
+          <Row label="Date of birth">{rider.date_of_birth ?? "—"}</Row>
+          <Row label="City">{rider.city ?? "—"}</Row>
+          <Row label="Emergency contact">
+            {rider.emergency_contact_name ? `${rider.emergency_contact_name} · ${rider.emergency_contact_phone ?? ""}` : "—"}
+          </Row>
+        </Card>
+
+        <Card title="Payout">
+          <Row label="Method">{rider.payout_method === "bank" ? "Bank transfer" : "Cash"}</Row>
+          {rider.payout_method === "bank" && (
+            <>
+              <Row label="Bank">{rider.bank_name ?? "—"}</Row>
+              <Row label="Account holder">{rider.bank_account_holder ?? "—"}</Row>
+              {rider.bank_iban && (
+                <Row label="IBAN">
+                  <span className="font-mono">{formatIban(rider.bank_iban)}</span>{" "}
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${ibanOk ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+                    {ibanOk ? "Valid" : "Check IBAN"}
+                  </span>
+                </Row>
+              )}
+            </>
+          )}
+          <Link href={`/admin/rider-settlements/${rider.id}`} className="mt-2 inline-block text-sm text-blue-600 hover:underline">
+            View settlement →
+          </Link>
         </Card>
 
         <Card title={t("rider_detail.documents")}>
-          {licenseUrl ? (
-            <a href={licenseUrl} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:underline">
-              {t("rider_detail.license_document")}
-            </a>
-          ) : (
-            <span className="text-sm text-neutral-400">{t("rider_detail.no_license_document")}</span>
-          )}
+          <ul className="flex flex-col gap-1.5">
+            {docs.map(([label, url]) => (
+              <li key={label} className="flex justify-between gap-3 text-sm">
+                <span className="text-neutral-500">{label}</span>
+                {url ? (
+                  <a href={url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                    View
+                  </a>
+                ) : (
+                  <span className="text-neutral-400">—</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </Card>
       </div>
     </div>

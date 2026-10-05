@@ -234,6 +234,29 @@ export interface DeliveryPartner {
   rejection_reason: string | null;
   license_number: string | null;
   license_document_path: string | null;
+  // Added by migration 0041 (rider onboarding).
+  id_type: "national_id" | "iqama" | null;
+  id_number: string | null;
+  nationality: string | null;
+  date_of_birth: string | null;
+  city: string | null;
+  id_front_path: string | null;
+  id_back_path: string | null;
+  selfie_path: string | null;
+  license_expiry: string | null;
+  vehicle_plate: string | null;
+  vehicle_make_model: string | null;
+  vehicle_year: number | null;
+  registration_path: string | null;
+  registration_expiry: string | null;
+  insurance_path: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  payout_method: "bank" | "cash";
+  bank_name: string | null;
+  bank_iban: string | null;
+  bank_account_holder: string | null;
+  terms_accepted_at: string | null;
   created_at: string;
 }
 

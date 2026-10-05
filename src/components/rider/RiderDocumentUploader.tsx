@@ -8,7 +8,11 @@ export default function RiderDocumentUploader({
   label,
   value,
   onChange,
+  prefix = "license",
+  hint,
 }: {
+  prefix?: string;
+  hint?: string;
   label: string;
   value: string | null;
   onChange: (path: string | null) => void;
@@ -39,7 +43,7 @@ export default function RiderDocumentUploader({
       if (!user) throw new Error("You must be logged in.");
 
       const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `${user.id}/license-${crypto.randomUUID()}.${ext}`;
+      const path = `${user.id}/${prefix}-${crypto.randomUUID()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("rider-documents")
         .upload(path, file, { cacheControl: "3600", upsert: false });
@@ -81,7 +85,7 @@ export default function RiderDocumentUploader({
           <span className="truncate text-xs text-neutral-500">✓ {fileName ?? "Uploaded"}</span>
         )}
       </div>
-      {!error && <p className="mt-1 text-[11px] text-neutral-400">{t("become_rider.license_hint")}</p>}
+      {!error && <p className="mt-1 text-[11px] text-neutral-400">{hint ?? t("become_rider.license_hint")}</p>}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
   );

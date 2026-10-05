@@ -13,6 +13,7 @@ const NAV = [
   { href: "/admin/merchants", labelKey: "admin.merchants", icon: "🏪" },
   { href: "/admin/riders", labelKey: "admin.riders", icon: "🛵" },
   { href: "/admin/settlements", labelKey: "admin.settlement_ledger", icon: "📒" },
+  { href: "/admin/rider-settlements", labelKey: "admin.rider_settlements", icon: "🛵" },
   { href: "/admin/zones", labelKey: "admin.delivery_zones", icon: "📍" },
   { href: "/admin/settings", labelKey: "admin.business_settings", icon: "⚙️" },
 ];
