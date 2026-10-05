@@ -1,3 +1,4 @@
+import LandingPreferenceCard from "@/components/LandingPreferenceCard";
 import {
   getRiderProfile,
   getAvailableOrders,
@@ -93,6 +94,7 @@ export default async function RiderHomePage() {
           )}
         </div>
       )}
+      <LandingPreferenceCard />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import LandingPreferenceCard from "@/components/LandingPreferenceCard";
 import Link from "next/link";
 import { getMyStore, getMyStoreProducts } from "@/lib/merchant";
 import { updateMerchantProductStock } from "@/lib/actions/merchant-products";
@@ -173,6 +174,9 @@ export default async function MerchantDashboardPage() {
             </div>
           )}
         </dl>
+      </div>
+      <div className="mt-6">
+        <LandingPreferenceCard />
       </div>
     </div>
   );
