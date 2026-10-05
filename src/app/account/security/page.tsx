@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -25,9 +24,6 @@ export default async function AccountSecurityPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
-      <Link href="/account" className="mb-4 inline-block text-sm text-blue-600 hover:underline">
-        ← {t("account_security.back_to_account")}
-      </Link>
       <h1 className="mb-6 text-xl font-semibold">{t("account_security.title")}</h1>
       <AccountSecurityForm
         initialName={profile?.full_name ?? ""}

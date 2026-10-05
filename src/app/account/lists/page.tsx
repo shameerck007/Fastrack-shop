@@ -25,9 +25,6 @@ export default async function ListsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
-      <Link href="/account" className="mb-4 inline-block text-sm text-blue-600 hover:underline">
-        ← {t("account_security.back_to_account")}
-      </Link>
       <h1 className="mb-4 text-2xl font-semibold">{t("lists.title")}</h1>
 
       {products.length === 0 ? (
