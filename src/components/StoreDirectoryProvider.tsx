@@ -45,6 +45,12 @@ export default function StoreDirectoryProvider({ children }: { children: React.R
   return <StoreDirectoryCtx.Provider value={value}>{children}</StoreDirectoryCtx.Provider>;
 }
 
+/** Every approved shop (empty until the directory has loaded). */
+export function useAllStores(): { stores: StoreInfo[]; tick: number } {
+  const { stores, tick } = useContext(StoreDirectoryCtx);
+  return { stores: useMemo(() => [...stores.values()], [stores]), tick };
+}
+
 /** The supplier behind a product (null for FasTrack's own stock or while the
  * directory is still loading) and whether it can take orders right now. */
 export function useStoreInfo(storeId: string | null | undefined): { store: StoreInfo | null; status: OpenStatus | null } {

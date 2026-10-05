@@ -3,12 +3,16 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateStoreProfile } from "@/lib/actions/merchant";
+import { adminUpdateStoreProfile } from "@/lib/actions/admin-merchants";
 import StoreProfileFields, { type StoreProfileValue } from "@/components/merchant/StoreProfileFields";
 import type { OpeningHours } from "@/lib/store-hours";
 
 export default function StoreProfileForm({
   initial,
+  storeId,
 }: {
+  /** Set when an admin is editing a shop on its behalf. */
+  storeId?: string;
   initial: {
     logoUrl: string | null;
     coverUrl: string | null;
@@ -33,13 +37,15 @@ export default function StoreProfileForm({
     setMessage(null);
     startTransition(async () => {
       try {
-        await updateStoreProfile({
+        const payload = {
           logoUrl: profile.logoUrl,
           coverUrl: profile.coverUrl,
           tagline: profile.tagline,
           openingHours: profile.hours,
           acceptingOrders: accepting,
-        });
+        };
+        if (storeId) await adminUpdateStoreProfile({ storeId, ...payload });
+        else await updateStoreProfile(payload);
         setMessage({ ok: true, text: "Saved." });
         router.refresh();
       } catch (err) {
@@ -49,11 +55,13 @@ export default function StoreProfileForm({
   }
 
   return (
-    <form onSubmit={save} className="mt-6 flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-4">
-      <div>
-        <p className="text-sm font-medium">Shop page &amp; opening hours</p>
-        <p className="text-xs text-neutral-500">Your logo and hours appear on your shop page and next to your products.</p>
-      </div>
+    <form onSubmit={save} className={`flex flex-col gap-4 ${storeId ? "" : "mt-6 rounded-xl border border-neutral-200 bg-white p-4"}`}>
+      {!storeId && (
+        <div>
+          <p className="text-sm font-medium">Shop page &amp; opening hours</p>
+          <p className="text-xs text-neutral-500">Your logo and hours appear on your shop page and next to your products.</p>
+        </div>
+      )}
 
       <label className="flex items-start gap-2 rounded-lg bg-neutral-50 p-3 text-sm">
         <input type="checkbox" className="mt-0.5" checked={accepting} onChange={(e) => setAccepting(e.target.checked)} />

@@ -14,6 +14,10 @@ export interface MerchantRow {
   status: string;
   productCount: number;
   createdAt: string;
+  logoUrl: string | null;
+  /** Pre-rendered open/closed text for approved shops, null otherwise. */
+  openText: string | null;
+  isOpen: boolean | null;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -89,8 +93,13 @@ export default function MerchantsList({ merchants }: { merchants: MerchantRow[] 
                 href={`/admin/merchants/${m.id}`}
                 className="flex flex-wrap items-center gap-4 px-5 py-4 transition hover:bg-neutral-50"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
-                  {initials(m.name)}
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-600 text-xs font-bold text-white">
+                  {m.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.logoUrl} alt={m.name} className="h-full w-full object-cover" />
+                  ) : (
+                    initials(m.name)
+                  )}
                 </span>
                 <div className="min-w-[10rem] flex-1">
                   <p className="truncate font-medium text-neutral-900">{m.name}</p>
@@ -105,6 +114,15 @@ export default function MerchantsList({ merchants }: { merchants: MerchantRow[] 
                 <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[m.status] ?? "bg-neutral-100"}`}>
                   {t(STATUS_KEY[m.status] ?? "merchants_list.status_pending")}
                 </span>
+                {m.openText && (
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      m.isOpen ? "bg-emerald-50 text-emerald-700" : "bg-neutral-200 text-neutral-700"
+                    }`}
+                  >
+                    {m.openText}
+                  </span>
+                )}
                 <span className="hidden shrink-0 text-xs text-neutral-500 sm:block">
                   {t("merchants_list.products_count", { count: m.productCount })}
                 </span>

@@ -3,6 +3,7 @@ import AddMerchantForm from "@/components/admin/AddMerchantForm";
 import MerchantsList, { type MerchantRow } from "@/components/admin/MerchantsList";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { describeStatus, getOpenStatus } from "@/lib/store-hours";
 
 function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
   return (
@@ -23,7 +24,7 @@ function Stat({ icon, label, value, accent }: { icon: string; label: string; val
 
 export default async function AdminMerchantsPage() {
   const locale = await getServerLocale();
-  const t = (key: string) => translate(locale, key);
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const supabase = await createClient();
   const [{ data: stores }, { data: products }] = await Promise.all([
     supabase.from("stores").select("*").order("created_at", { ascending: false }),
@@ -35,7 +36,12 @@ export default async function AdminMerchantsPage() {
     if (p.store_id) productsByStore.set(p.store_id, (productsByStore.get(p.store_id) ?? 0) + 1);
   }
 
-  const merchants: MerchantRow[] = (stores ?? []).map((s) => ({
+  const merchants: MerchantRow[] = (stores ?? []).map((s) => {
+    const open =
+      s.status === "approved"
+        ? describeStatus(getOpenStatus(s.opening_hours ?? null, s.accepting_orders ?? true), locale, t)
+        : null;
+    return {
     id: s.id,
     name: s.name,
     crNumber: s.cr_number,
@@ -45,7 +51,11 @@ export default async function AdminMerchantsPage() {
     status: s.status,
     productCount: productsByStore.get(s.id) ?? 0,
     createdAt: s.created_at,
-  }));
+    logoUrl: s.logo_url ?? null,
+    openText: open?.text ?? null,
+    isOpen: open?.open ?? null,
+    };
+  });
 
   const pending = merchants.filter((m) => m.status === "pending").length;
   const approved = merchants.filter((m) => m.status === "approved").length;

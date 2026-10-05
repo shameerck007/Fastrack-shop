@@ -86,6 +86,8 @@ const en = {
       about_store: "About this shop",
       opening_hours: "Opening hours",
       closed_day: "Closed",
+      browse_only: "You can still browse — ordering opens when the shop does.",
+      shops_title: "Shops",
     },
     home: {
       hero_eyebrow: "FasTrack Shop",
@@ -1127,6 +1129,8 @@ const ar: LocaleShape = {
       about_store: "عن هذا المتجر",
       opening_hours: "ساعات العمل",
       closed_day: "مغلق",
+      browse_only: "يمكنك التصفح — يفتح الطلب عند فتح المتجر.",
+      shops_title: "المتاجر",
     },
     home: {
       hero_eyebrow: "فاس تراك شوب",

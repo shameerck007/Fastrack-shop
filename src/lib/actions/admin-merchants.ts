@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyUsers } from "@/lib/push";
 import { sendApplicationDecisionEmail } from "@/lib/email-notifications";
+import { sanitizeOpeningHours } from "@/lib/store-hours";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -202,4 +203,35 @@ export async function adminCreateMerchant(input: AdminCreateMerchantInput) {
   await finalizeApproval(supabase, store);
   revalidatePath("/admin/merchants");
   return store.id as string;
+}
+
+/** Admin editing a shop's page on its behalf: logo, cover, tagline, opening
+ * hours and the pause-orders switch. RLS ("admins manage stores") is what
+ * actually restricts this to admins. */
+export async function adminUpdateStoreProfile(input: {
+  storeId: string;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  tagline: string;
+  openingHours: unknown;
+  acceptingOrders: boolean;
+}) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("stores")
+    .update({
+      logo_url: input.logoUrl,
+      cover_url: input.coverUrl,
+      tagline: input.tagline.trim().slice(0, 80) || null,
+      opening_hours: sanitizeOpeningHours(input.openingHours),
+      accepting_orders: input.acceptingOrders,
+    })
+    .eq("id", input.storeId)
+    .select("id");
+  if (error) throw error;
+  if (!data || data.length === 0) throw new Error("Only admins can edit a shop's page.");
+
+  revalidatePath(`/admin/merchants/${input.storeId}`);
+  revalidatePath("/admin/merchants");
+  revalidatePath(`/store/${input.storeId}`);
 }

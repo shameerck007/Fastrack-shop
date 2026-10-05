@@ -9,7 +9,7 @@ import type { ProductRating } from "@/lib/reviews";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
 import QuickAddToCart from "@/components/QuickAddToCart";
-import { SoldBy } from "@/components/StoreBadge";
+import { SoldBy, ClosedOverlay } from "@/components/StoreBadge";
 import { useStoreInfo } from "@/components/StoreDirectoryProvider";
 
 export default function ProductCard({
@@ -45,7 +45,7 @@ export default function ProductCard({
       <div className={`relative flex h-36 items-center justify-center bg-gradient-to-br ${theme.gradient}`}>
         {product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.image_url} alt={name} className="h-full w-full object-cover" />
+          <img src={product.image_url} alt={name} className={`h-full w-full object-cover ${storeClosed ? "grayscale" : ""}`} />
         ) : (
           <span className="text-5xl drop-shadow-sm transition group-hover:scale-110">
             {theme.emoji}
@@ -70,11 +70,7 @@ export default function ProductCard({
             </span>
           )
         )}
-        {storeClosed && !outOfStock && (
-          <span className="absolute inset-x-0 bottom-0 bg-neutral-900/70 py-1 text-center text-[11px] font-bold text-white">
-            {t("store.closed")}
-          </span>
-        )}
+        {storeClosed && !outOfStock && <ClosedOverlay status={storeStatus} />}
         {variant && !outOfStock && !storeClosed && (
           <QuickAddToCart variantId={variant.id} storeId={product.store_id} stock={stock ?? Infinity} />
         )}

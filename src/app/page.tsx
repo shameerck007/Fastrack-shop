@@ -1,5 +1,6 @@
 import CategoryGrid from "@/components/CategoryGrid";
 import HomeHero from "@/components/HomeHero";
+import ShopsRow from "@/components/ShopsRow";
 import ProductSection from "@/components/ProductSection";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import BuyAgainSection from "@/components/BuyAgainSection";
@@ -54,6 +55,8 @@ export default async function HomePage() {
           <h2 className="mb-3 text-xl font-extrabold tracking-tight">{t("home.shop_by_category")}</h2>
           <CategoryGrid categories={categories} />
         </section>
+
+        <ShopsRow />
 
         <BuyAgainSection />
         <ProductSection id="offers" promo title={t("home.offers")} products={offers} ratings={ratings} stock={stock} />

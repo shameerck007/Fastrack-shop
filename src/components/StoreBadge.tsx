@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
 import { useStoreInfo, type StoreInfo } from "@/components/StoreDirectoryProvider";
-import { formatClock, formatNextOpening, type OpenStatus } from "@/lib/store-hours";
+import { describeStatus, type OpenStatus } from "@/lib/store-hours";
 
 /** Round supplier logo, falling back to the shop's first letter. */
 export function StoreLogo({ store, size = 24, className = "" }: { store: Pick<StoreInfo, "name" | "logo_url">; size?: number; className?: string }) {
@@ -26,12 +26,7 @@ export function StoreLogo({ store, size = 24, className = "" }: { store: Pick<St
 export function useStatusText(status: OpenStatus | null): { text: string; open: boolean } | null {
   const { t, locale } = useLocale();
   if (!status) return null;
-  if (status.open) {
-    return { open: true, text: status.closesAt ? `${t("store.open")} · ${t("store.closes", { time: formatClock(status.closesAt, locale) })}` : t("store.open") };
-  }
-  if (status.reason === "paused") return { open: false, text: t("store.paused") };
-  const when = status.next ? formatNextOpening(status.next, locale, { today: t("store.today"), tomorrow: t("store.tomorrow") }) : null;
-  return { open: false, text: when ? `${t("store.closed")} · ${t("store.opens", { when })}` : t("store.closed") };
+  return describeStatus(status, locale, t);
 }
 
 export function StatusPill({ status, className = "" }: { status: OpenStatus | null; className?: string }) {
@@ -66,5 +61,30 @@ export function SoldBy({ storeId, linked = false, className = "" }: { storeId: s
     </Link>
   ) : (
     <span className={`inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-neutral-600 ${className}`}>{content}</span>
+  );
+}
+
+/** Dimmed overlay across a product photo when its shop is closed. */
+export function ClosedOverlay({ status }: { status: OpenStatus | null }) {
+  const info = useStatusText(status);
+  if (!info || info.open) return null;
+  return (
+    <span className="absolute inset-0 z-[5] flex items-center justify-center bg-white/55 p-2">
+      <span className="rounded-full bg-neutral-900/85 px-3 py-1 text-center text-[11px] font-bold leading-tight text-white">{info.text}</span>
+    </span>
+  );
+}
+
+/** Full-width notice shown where a closed shop's items are listed. */
+export function ClosedBanner({ storeId, className = "" }: { storeId: string | null | undefined; className?: string }) {
+  const { t } = useLocale();
+  const { store, status } = useStoreInfo(storeId);
+  const info = useStatusText(status);
+  if (!store || !info || info.open) return null;
+  return (
+    <div className={`rounded-2xl bg-neutral-100 p-3 text-sm text-neutral-700 ${className}`}>
+      <p className="font-bold text-neutral-900">{info.text}</p>
+      <p className="mt-0.5 text-xs text-neutral-500">{t("store.browse_only")}</p>
+    </div>
   );
 }

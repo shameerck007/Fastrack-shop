@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useLocale } from "@/components/LocaleProvider";
-import { StatusPill, StoreLogo } from "@/components/StoreBadge";
+import { StatusPill, StoreLogo, useStatusText } from "@/components/StoreBadge";
 import type { StoreInfo } from "@/components/StoreDirectoryProvider";
 import { DAY_KEYS, formatClock, getOpenStatus } from "@/lib/store-hours";
 
@@ -19,6 +19,7 @@ export default function StoreHero({ store }: { store: StoreInfo }) {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const status = useMemo(() => getOpenStatus(store.opening_hours, store.accepting_orders), [store, tick]);
+  const statusInfo = useStatusText(status);
 
   return (
     <section className="bg-white">
@@ -41,6 +42,13 @@ export default function StoreHero({ store }: { store: StoreInfo }) {
           <StatusPill status={status} />
           {store.city && <span className="text-xs text-neutral-400">{store.city}</span>}
         </div>
+
+        {statusInfo && !statusInfo.open && (
+          <div className="mt-3 rounded-2xl bg-neutral-100 p-3 text-sm">
+            <p className="font-bold text-neutral-900">{statusInfo.text}</p>
+            <p className="mt-0.5 text-xs text-neutral-500">{t("store.browse_only")}</p>
+          </div>
+        )}
 
         {store.opening_hours && (
           <details className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm">

@@ -113,3 +113,18 @@ export function formatNextOpening(next: NextOpening, locale: string, words: { to
   });
   return `${weekday} ${time}`;
 }
+
+type Translate = (key: string, vars?: Record<string, string | number>) => string;
+
+/** "Open · Closes 11:00 PM" / "Closed · Opens tomorrow 9:00 AM" / "Not taking orders". */
+export function describeStatus(status: OpenStatus, locale: string, t: Translate): { text: string; open: boolean } {
+  if (status.open) {
+    const closes = status.closesAt ? ` · ${t("store.closes", { time: formatClock(status.closesAt, locale) })}` : "";
+    return { open: true, text: `${t("store.open")}${closes}` };
+  }
+  if (status.reason === "paused") return { open: false, text: t("store.paused") };
+  const when = status.next
+    ? formatNextOpening(status.next, locale, { today: t("store.today"), tomorrow: t("store.tomorrow") })
+    : null;
+  return { open: false, text: when ? `${t("store.closed")} · ${t("store.opens", { when })}` : t("store.closed") };
+}

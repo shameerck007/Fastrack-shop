@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMyStoreProducts } from "@/lib/merchant";
 import StoreStatusActions from "@/components/admin/StoreStatusActions";
+import StoreProfileForm from "@/components/merchant/StoreProfileForm";
+import { describeStatus, getOpenStatus } from "@/lib/store-hours";
 import { formatSAR } from "@/lib/utils";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -68,6 +70,10 @@ export default async function AdminMerchantDetailPage({
     signedDocUrl(supabase, store.vat_document_path),
   ]);
 
+  const openInfo =
+    store.status === "approved"
+      ? describeStatus(getOpenStatus(store.opening_hours ?? null, store.accepting_orders ?? true), locale, t)
+      : null;
   const activeCount = products.filter((p) => p.is_active).length;
   const lowStock = products.filter((p) =>
     p.product_variants.some((v) => v.inventory.some((i) => i.stock < i.min_stock))
@@ -80,12 +86,30 @@ export default async function AdminMerchantDetailPage({
       </Link>
 
       <div className="mb-4 mt-2 flex flex-wrap items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-50 text-xl font-bold text-blue-700 ring-1 ring-neutral-200">
+            {store.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={store.logo_url} alt={store.name} className="h-full w-full object-cover" />
+            ) : (
+              store.name.trim().charAt(0).toUpperCase()
+            )}
+          </span>
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-semibold">{store.name}</h1>
             <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[store.status]}`}>
               {t(`merchants_list.status_${store.status}`)}
             </span>
+            {openInfo && (
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  openInfo.open ? "bg-emerald-50 text-emerald-700" : "bg-neutral-200 text-neutral-700"
+                }`}
+              >
+                {openInfo.text}
+              </span>
+            )}
           </div>
           <p className="text-sm text-neutral-500">
             {t("merchant_detail.joined", {
@@ -94,6 +118,7 @@ export default async function AdminMerchantDetailPage({
               date: new Date(store.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US"),
             })}
           </p>
+        </div>
         </div>
         <StoreStatusActions storeId={store.id} status={store.status} />
       </div>
@@ -169,7 +194,19 @@ export default async function AdminMerchantDetailPage({
           </Card>
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="flex flex-col gap-4 lg:col-span-2">
+          <Card title="Shop page & opening hours">
+            <StoreProfileForm
+              storeId={store.id}
+              initial={{
+                logoUrl: store.logo_url ?? null,
+                coverUrl: store.cover_url ?? null,
+                tagline: store.tagline ?? null,
+                hours: store.opening_hours ?? null,
+                acceptingOrders: store.accepting_orders ?? true,
+              }}
+            />
+          </Card>
           <Card title={t("merchant_detail.products_count", { count: products.length })}>
             {products.length === 0 ? (
               <p className="text-sm text-neutral-400">{t("merchant_detail.no_products_listed")}</p>

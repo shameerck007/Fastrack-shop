@@ -16,7 +16,7 @@ import { isProductWishlisted } from "@/lib/wishlist";
 import WishlistButton from "@/components/WishlistButton";
 import { ProductTopBar } from "@/components/MobileTopBar";
 import { PlaceOrderPill } from "@/components/FloatingCartBar";
-import { SoldBy } from "@/components/StoreBadge";
+import { SoldBy, ClosedBanner } from "@/components/StoreBadge";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
@@ -99,6 +99,7 @@ export default async function ProductPage({
         <div className="relative z-10 flex flex-col gap-4 max-md:-mt-7 max-md:rounded-t-3xl max-md:bg-neutral-50 max-md:px-4 max-md:pt-6 lg:col-span-4">
           <div>
             {product.store_id && <SoldBy storeId={product.store_id} linked className="mb-2 text-sm" />}
+            {product.store_id && <ClosedBanner storeId={product.store_id} className="mb-3" />}
             <div className="mb-1 flex items-center gap-2">
               <p className="text-sm text-neutral-500">{localizedField(product.brand, product.brand_ar, locale)}</p>
               {product.is_fresh && (
