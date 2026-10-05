@@ -17,3 +17,12 @@ export function isFullscreenMobileRoute(pathname: string): boolean {
 export function hasOwnMobileTopBar(pathname: string): boolean {
   return matches(pathname, OWN_TOP_BAR);
 }
+
+// Pages where the Keeta-style checkout bar floats at the bottom of the screen
+// (and takes the place of the bottom tabs). Product pages embed their own,
+// and cart/checkout/account/auth screens don't need one.
+const NO_CART_BAR = ["/products", "/cart", "/checkout", "/login", "/register", "/account", "/orders"];
+
+export function showsCartBar(pathname: string): boolean {
+  return !matches(pathname, NO_CART_BAR);
+}

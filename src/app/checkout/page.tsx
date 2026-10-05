@@ -32,7 +32,7 @@ export default async function CheckoutPage() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6 max-md:pb-44">
       <h1 className="mb-4 text-xl font-semibold max-md:hidden">{t("checkout.title")}</h1>
       <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} />
     </div>

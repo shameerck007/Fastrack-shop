@@ -89,6 +89,14 @@ const en = {
       browse_only: "You can still browse — ordering opens when the shop does.",
       shops_title: "Shops",
     },
+    cartbar: {
+      checkout: "Check out",
+      saved: "Saved {amount}",
+      delivery_fee: "Delivery fee {fee}",
+      free_delivery: "Free delivery",
+      add_for_free_delivery: "Add {amount} more to get free delivery",
+      add_items: "Add items",
+    },
     home: {
       hero_eyebrow: "FasTrack Shop",
       hero_title: "Everything you need. Delivered.",
@@ -1131,6 +1139,14 @@ const ar: LocaleShape = {
       closed_day: "مغلق",
       browse_only: "يمكنك التصفح — يفتح الطلب عند فتح المتجر.",
       shops_title: "المتاجر",
+    },
+    cartbar: {
+      checkout: "إتمام الطلب",
+      saved: "وفّرت {amount}",
+      delivery_fee: "رسوم التوصيل {fee}",
+      free_delivery: "توصيل مجاني",
+      add_for_free_delivery: "أضف {amount} للحصول على توصيل مجاني",
+      add_items: "إضافة منتجات",
     },
     home: {
       hero_eyebrow: "فاس تراك شوب",

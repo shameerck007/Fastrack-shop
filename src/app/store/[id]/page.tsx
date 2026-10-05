@@ -40,7 +40,7 @@ export default async function StorePage({
     <div>
       <StoreHeader storeName={store.name} />
       <StoreHero store={store} />
-      <div className="mx-auto max-w-6xl px-4 py-6">
+      <div className="mx-auto max-w-6xl px-4 py-6 max-md:pb-36">
         <DeliverableProductList
           products={products}
           ratings={Object.fromEntries(ratingsMap)}

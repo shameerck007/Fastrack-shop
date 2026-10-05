@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { addToCart } from "@/lib/actions/cart";
+import { addToCart, updateCartItemQuantity } from "@/lib/actions/cart";
+import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { notifyCartChanged } from "@/lib/cart-events";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
@@ -35,6 +36,33 @@ export default function QuickAddToCart({
   const pathname = usePathname();
   const { t } = useLocale();
   const { location, statusForStore, openPicker } = useDeliveryLocation();
+  const { cartLines } = useCustomerHeaderState();
+  const line = cartLines[variantId];
+  // Shown immediately on tap, then replaced by the real cart quantity.
+  const [optimisticQty, setOptimisticQty] = useState<number | null>(null);
+  const qty = optimisticQty ?? line?.qty ?? 0;
+
+  useEffect(() => {
+    setOptimisticQty(null);
+  }, [line?.qty]);
+
+  function handleMinus(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!line) return;
+    setError(null);
+    setOptimisticQty(Math.max(0, qty - 1));
+    startTransition(async () => {
+      try {
+        await updateCartItemQuantity(line.id, qty - 1);
+        notifyCartChanged();
+        router.refresh();
+      } catch {
+        setOptimisticQty(null);
+        setError(t("product.could_not_add"));
+      }
+    });
+  }
 
   useEffect(() => {
     if (!justAdded) return;
@@ -77,8 +105,10 @@ export default function QuickAddToCart({
           return;
         }
 
+        if (qty > 0) setOptimisticQty(qty + 1);
         const result = await addToCart(variantId, 1, location ? { lat: location.lat, lng: location.lng } : undefined);
         if (result.error) {
+          setOptimisticQty(null);
           if (result.error.toLowerCase().includes("logged in")) {
             router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
           } else {
@@ -102,6 +132,29 @@ export default function QuickAddToCart({
 
   return (
     <div className="absolute -bottom-4 end-3 z-10">
+      {qty > 0 ? (
+        <div className="flex h-10 items-center rounded-full bg-white shadow-lg ring-4 ring-white">
+          <button
+            type="button"
+            onClick={handleMinus}
+            disabled={pending}
+            aria-label="-"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold text-blue-700 active:scale-90 disabled:opacity-50"
+          >
+            −
+          </button>
+          <span className="min-w-5 text-center text-sm font-extrabold text-neutral-900">{qty}</span>
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={pending || qty >= stock}
+            aria-label={t("product.add_to_cart")}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-700 text-xl font-bold text-white active:scale-90 disabled:opacity-50"
+          >
+            +
+          </button>
+        </div>
+      ) : (
       <button
         type="button"
         onClick={handleAdd}
@@ -120,6 +173,7 @@ export default function QuickAddToCart({
           "+"
         )}
       </button>
+      )}
       {error && (
         <span className="absolute top-full mt-1 w-max max-w-[10rem] whitespace-normal rounded bg-neutral-900 px-2 py-1 text-[10px] text-white shadow-lg end-0">
           {error}

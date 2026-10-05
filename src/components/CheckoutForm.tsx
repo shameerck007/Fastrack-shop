@@ -86,21 +86,19 @@ export default function CheckoutForm({
   const listSep = locale === "ar" ? "، " : ", ";
 
   return (
+    <>
     <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
       <div className="flex flex-col gap-4">
-        <section className="rounded-xl border border-neutral-200 bg-white p-4">
-          <h2 className="mb-3 flex items-center gap-2 font-medium">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-semibold text-white">
-              1
-            </span>
+        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-100">
+          <h2 className="mb-3 text-base font-extrabold tracking-tight">
             {t("checkout.delivery_address")}
           </h2>
           <div className="flex flex-col gap-2">
             {addresses.map((addr) => (
               <label
                 key={addr.id}
-                className={`flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm ${
-                  addressId === addr.id ? "border-blue-600 bg-blue-50" : "border-neutral-200"
+                className={`flex cursor-pointer items-start gap-2 rounded-2xl border p-3 text-sm ${
+                  addressId === addr.id ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200"
                 }`}
               >
                 <input
@@ -164,18 +162,15 @@ export default function CheckoutForm({
           </div>
         </section>
 
-        <section className="rounded-xl border border-neutral-200 bg-white p-4">
-          <h2 className="mb-3 flex items-center gap-2 font-medium">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-semibold text-white">
-              2
-            </span>
+        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-100">
+          <h2 className="mb-3 text-base font-extrabold tracking-tight">
             {t("checkout.delivery_time")}
           </h2>
           <div className="flex flex-col gap-2">
             {DELIVERY_OPTIONS.map((opt) => (
               <label
                 key={opt.value}
-                className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 text-sm ${
+                className={`flex cursor-pointer items-center justify-between rounded-2xl border p-3 text-sm ${
                   deliveryType === opt.value ? "border-blue-600 bg-blue-50" : "border-neutral-200"
                 }`}
               >
@@ -205,18 +200,15 @@ export default function CheckoutForm({
           </div>
         </section>
 
-        <section className="rounded-xl border border-neutral-200 bg-white p-4">
-          <h2 className="mb-3 flex items-center gap-2 font-medium">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-semibold text-white">
-              3
-            </span>
+        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-100">
+          <h2 className="mb-3 text-base font-extrabold tracking-tight">
             {t("checkout.payment")}
           </h2>
           <div className="grid grid-cols-2 gap-2">
             {PAYMENT_OPTIONS.map((opt) => (
               <label
                 key={opt.value}
-                className={`flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm ${
+                className={`flex cursor-pointer items-center gap-2 rounded-2xl border p-3 text-sm ${
                   paymentMethod === opt.value ? "border-blue-600 bg-blue-50" : "border-neutral-200"
                 }`}
               >
@@ -232,11 +224,8 @@ export default function CheckoutForm({
           </div>
         </section>
 
-        <section className="rounded-xl border border-neutral-200 bg-white p-4">
-          <h2 className="mb-3 flex items-center gap-2 font-medium">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-semibold text-white">
-              4
-            </span>
+        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-100">
+          <h2 className="mb-3 text-base font-extrabold tracking-tight">
             {t("checkout.items_in_order", { count: itemCount })}
           </h2>
           <div className="-mx-4 divide-y divide-neutral-100 border-t border-neutral-100 px-4">
@@ -267,11 +256,10 @@ export default function CheckoutForm({
           </div>
         </section>
 
-        {error && <p className="text-sm text-red-600 lg:hidden">{error}</p>}
       </div>
 
       <div className="h-fit lg:sticky lg:top-20">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-100">
           <h2 className="mb-3 font-medium">{t("checkout.order_summary")}</h2>
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
@@ -293,7 +281,7 @@ export default function CheckoutForm({
           <button
             onClick={handlePlaceOrder}
             disabled={pending || blockedItems.length > 0}
-            className="mt-4 w-full rounded-full bg-blue-700 py-3 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+            className="mt-4 hidden w-full rounded-full bg-blue-700 py-3 font-medium text-white hover:bg-blue-800 disabled:opacity-50 lg:block"
           >
             {pending ? t("checkout.placing_order") : t("checkout.place_order_with_total", { total: formatSAR(total) })}
           </button>
@@ -305,5 +293,32 @@ export default function CheckoutForm({
         </div>
       </div>
     </div>
+
+    {/* Keeta-style bottom bar on phones: the total, and a big Place order button. */}
+    <div
+      className="fixed inset-x-0 bottom-0 z-40 rounded-t-3xl bg-white px-4 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.12)] lg:hidden"
+      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+    >
+      {error && <p className="mb-2 text-xs font-medium text-red-600">{error}</p>}
+      {blockedItems.length > 0 && !error && (
+        <p className="mb-2 text-xs font-medium text-red-600">
+          {t("checkout.some_items_blocked", { items: blockedItems.join(listSep) })}
+        </p>
+      )}
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-neutral-500">{t("checkout.total")}</p>
+          <p className="text-xl font-extrabold text-neutral-900">{formatSAR(total)}</p>
+        </div>
+        <button
+          onClick={handlePlaceOrder}
+          disabled={pending || blockedItems.length > 0}
+          className="shrink-0 rounded-full bg-blue-700 px-8 py-3.5 text-sm font-extrabold text-white transition hover:bg-blue-800 active:scale-95 disabled:opacity-50"
+        >
+          {pending ? t("checkout.placing_order") : t("checkout.place_order")}
+        </button>
+      </div>
+    </div>
+    </>
   );
 }

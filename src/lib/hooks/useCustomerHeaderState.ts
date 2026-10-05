@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CART_CHANGED_EVENT } from "@/lib/cart-events";
@@ -11,6 +11,10 @@ export interface CustomerHeaderState {
   firstName: string | null;
   cartCount: number;
   cartTotal: number;
+  /** Sum of (compare-at price - price) over the cart: what the shopper saves. */
+  cartSavings: number;
+  /** variant id -> cart line id and quantity, so cards can show a - qty + stepper. */
+  cartLines: Record<string, { id: string; qty: number }>;
 }
 
 const INITIAL_STATE: CustomerHeaderState = {
@@ -19,6 +23,8 @@ const INITIAL_STATE: CustomerHeaderState = {
   firstName: null,
   cartCount: 0,
   cartTotal: 0,
+  cartSavings: 0,
+  cartLines: {},
 };
 
 // Auth/cart state is fetched client-side (not on the server per request) to
@@ -28,7 +34,7 @@ const INITIAL_STATE: CustomerHeaderState = {
 // cart server-side and redirect: without this, the badge would keep showing
 // stale pre-checkout counts since navigating to a new route under the same
 // layout doesn't remount this component.
-export function useCustomerHeaderState(): CustomerHeaderState {
+export function useFetchCustomerState(): CustomerHeaderState {
   const pathname = usePathname();
   const [state, setState] = useState<CustomerHeaderState>(INITIAL_STATE);
   const [cartVersion, setCartVersion] = useState(0);
@@ -60,14 +66,25 @@ export function useCustomerHeaderState(): CustomerHeaderState {
 
       let cartCount = 0;
       let cartTotal = 0;
+      let cartSavings = 0;
+      const cartLines: Record<string, { id: string; qty: number }> = {};
       if (cart) {
         const { data: items } = await supabase
           .from("cart_items")
-          .select("quantity, product_variants(price)")
+          .select("id, variant_id, quantity, product_variants(price, compare_at_price)")
           .eq("cart_id", cart.id);
-        for (const item of (items ?? []) as unknown as { quantity: number; product_variants: { price: number } | null }[]) {
+        for (const item of (items ?? []) as unknown as {
+          id: string;
+          variant_id: string;
+          quantity: number;
+          product_variants: { price: number; compare_at_price: number | null } | null;
+        }[]) {
+          const price = item.product_variants?.price ?? 0;
+          const compare = item.product_variants?.compare_at_price ?? 0;
           cartCount += item.quantity;
-          cartTotal += item.quantity * (item.product_variants?.price ?? 0);
+          cartTotal += item.quantity * price;
+          if (compare > price) cartSavings += item.quantity * (compare - price);
+          cartLines[item.variant_id] = { id: item.id, qty: item.quantity };
         }
       }
       if (!cancelled) {
@@ -77,6 +94,8 @@ export function useCustomerHeaderState(): CustomerHeaderState {
           firstName: profile?.full_name?.split(" ")[0] ?? null,
           cartCount,
           cartTotal,
+          cartSavings,
+          cartLines,
         });
       }
     });
@@ -87,4 +106,12 @@ export function useCustomerHeaderState(): CustomerHeaderState {
   }, [pathname, cartVersion]);
 
   return state;
+}
+
+export const CustomerStateCtx = createContext<CustomerHeaderState>(INITIAL_STATE);
+
+/** Everything that shows cart/login state reads it from here, so it is loaded
+ * once by CustomerStateProvider instead of once per product card or button. */
+export function useCustomerHeaderState(): CustomerHeaderState {
+  return useContext(CustomerStateCtx);
 }

@@ -34,7 +34,7 @@ export default async function CategoryPage({
   return (
     <div>
     <MobileTitleBar title={categoryLabel} />
-    <div className="mx-auto max-w-6xl px-4 py-6 max-md:pt-4">
+    <div className="mx-auto max-w-6xl px-4 py-6 max-md:pb-36 max-md:pt-4">
       <div className="hidden md:block">
       <Breadcrumbs
         items={[
