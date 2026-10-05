@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { updateCartItemQuantity, removeCartItem } from "@/lib/actions/cart";
 import { notifyCartChanged } from "@/lib/cart-events";
-import { formatSAR } from "@/lib/utils";
+
 import type { CartItemWithVariant } from "@/types/database";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
+import { useMoney } from "@/components/MoneyProvider";
 
 export default function CartItemRow({
   item,
@@ -21,6 +22,7 @@ export default function CartItemRow({
    * doesn't match any saved address). */
   undeliverable?: boolean;
 }) {
+  const money = useMoney();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -108,7 +110,7 @@ export default function CartItemRow({
       </div>
 
       <div className="shrink-0 text-end font-semibold text-neutral-900">
-        {formatSAR(item.quantity * variant.price)}
+        {money(item.quantity * variant.price)}
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ProductWithVariants } from "@/types/database";
-import { formatSAR } from "@/lib/utils";
+
 import { getCategoryTheme } from "@/lib/categoryTheme";
 import StarRating from "@/components/StarRating";
 import type { ProductRating } from "@/lib/reviews";
@@ -11,6 +11,7 @@ import { localizedName, localizedField } from "@/lib/i18n/localized";
 import QuickAddToCart from "@/components/QuickAddToCart";
 import { SoldBy, ClosedOverlay } from "@/components/StoreBadge";
 import { useStoreInfo } from "@/components/StoreDirectoryProvider";
+import { useMoney } from "@/components/MoneyProvider";
 
 export default function ProductCard({
   product,
@@ -21,6 +22,7 @@ export default function ProductCard({
   rating?: ProductRating;
   stock?: number;
 }) {
+  const money = useMoney();
   const { t, locale } = useLocale();
 
   const variant =
@@ -88,11 +90,11 @@ export default function ProductCard({
         <div className="mt-auto flex items-center justify-between pt-2">
           <div className="flex items-baseline gap-2">
             <span className="text-base font-extrabold text-neutral-900">
-              {variant ? formatSAR(variant.price) : "—"}
+              {variant ? money(variant.price) : "—"}
             </span>
             {variant?.compare_at_price && (
               <span className="text-xs text-neutral-400 line-through">
-                {formatSAR(variant.compare_at_price)}
+                {money(variant.compare_at_price)}
               </span>
             )}
           </div>

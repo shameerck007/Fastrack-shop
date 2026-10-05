@@ -1,10 +1,13 @@
-import { formatSAR } from "@/lib/utils";
+
 import type { DayEarnings } from "@/lib/rider";
+import type { MoneyFormatter } from "@/lib/money";
 
 export default function RiderEarningsChart({
   days,
   t,
+  money,
 }: {
+  money: MoneyFormatter;
   days: DayEarnings[];
   t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
@@ -16,7 +19,7 @@ export default function RiderEarningsChart({
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-neutral-700">{t("rider.this_week")}</h2>
-        <span className="text-sm font-semibold text-neutral-900">{formatSAR(total)}</span>
+        <span className="text-sm font-semibold text-neutral-900">{money(total)}</span>
       </div>
 
       {/* Fixed-height row so each bar's percentage height resolves against a
@@ -28,9 +31,9 @@ export default function RiderEarningsChart({
           const isPeak = i === peakIndex && d.earnings > 0;
           return (
             <div key={d.date} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
-              {isPeak && <span className="text-[10px] font-semibold text-blue-700">{formatSAR(d.earnings)}</span>}
+              {isPeak && <span className="text-[10px] font-semibold text-blue-700">{money(d.earnings)}</span>}
               <div
-                title={`${d.label}: ${formatSAR(d.earnings)} · ${d.deliveries}`}
+                title={`${d.label}: ${money(d.earnings)} · ${d.deliveries}`}
                 className="w-full rounded-t-md"
                 style={{
                   height: `${heightPct}%`,

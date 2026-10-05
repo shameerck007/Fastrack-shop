@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getFastrackWarehouses } from "@/lib/fastrack-store";
-import { formatSAR } from "@/lib/utils";
+
 import AddFastrackStoreForm from "@/components/admin/AddFastrackStoreForm";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
   return (
@@ -28,6 +29,7 @@ function initials(name: string): string {
 }
 
 export default async function AdminFastrackStoresPage() {
+  const money = await getMoney();
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const warehouses = await getFastrackWarehouses();
@@ -55,7 +57,7 @@ export default async function AdminFastrackStoresPage() {
         <Stat icon="🏬" label={t("fastrack_stores.total_locations")} value={warehouses.length} accent="#2563eb" />
         <Stat icon="✅" label={t("admin.approved")} value={activeCount} accent="#059669" />
         <Stat icon="🧾" label={t("admin.orders_30d")} value={totalOrders30d} accent="#7c3aed" />
-        <Stat icon="📈" label={t("admin.revenue_30d")} value={formatSAR(totalRevenue30d)} accent="#d97706" />
+        <Stat icon="📈" label={t("admin.revenue_30d")} value={money(totalRevenue30d)} accent="#d97706" />
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
@@ -98,7 +100,7 @@ export default async function AdminFastrackStoresPage() {
                     {t("fastrack_stores.orders_count", { count: w.orders30d })}
                   </span>
                   <span className="hidden shrink-0 text-xs font-medium text-neutral-700 sm:block">
-                    {formatSAR(w.revenue30d)}
+                    {money(w.revenue30d)}
                   </span>
                   <span className="ms-auto shrink-0 text-xs font-medium text-blue-600">{t("fastrack_stores.view_details")}</span>
                 </Link>

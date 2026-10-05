@@ -1,8 +1,9 @@
 import { getAdminSettlementOverview } from "@/lib/settlements";
-import { formatSAR } from "@/lib/utils";
+
 import SettlementsList from "@/components/admin/SettlementsList";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
   return (
@@ -22,6 +23,7 @@ function Stat({ icon, label, value, accent }: { icon: string; label: string; val
 }
 
 export default async function AdminSettlementsPage() {
+  const money = await getMoney();
   const locale = await getServerLocale();
   const t = (key: string) => translate(locale, key);
   const rows = await getAdminSettlementOverview();
@@ -47,9 +49,9 @@ export default async function AdminSettlementsPage() {
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat icon="🏪" label={t("admin.suppliers_with_balance")} value={suppliersOwed} accent="#d97706" />
-        <Stat icon="💰" label={t("admin.net_earned_all_time")} value={formatSAR(totalNetEarned)} accent="#2563eb" />
-        <Stat icon="✅" label={t("admin.paid_out_all_time")} value={formatSAR(totalPaidOut)} accent="#059669" />
-        <Stat icon="⏳" label={t("admin.outstanding_balance")} value={formatSAR(totalBalanceDue)} accent="#dc2626" />
+        <Stat icon="💰" label={t("admin.net_earned_all_time")} value={money(totalNetEarned)} accent="#2563eb" />
+        <Stat icon="✅" label={t("admin.paid_out_all_time")} value={money(totalPaidOut)} accent="#059669" />
+        <Stat icon="⏳" label={t("admin.outstanding_balance")} value={money(totalBalanceDue)} accent="#dc2626" />
       </div>
 
       <SettlementsList rows={rows} />

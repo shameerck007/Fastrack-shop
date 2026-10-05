@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFastrackStoreAnalytics } from "@/lib/fastrack-store";
-import { formatSAR } from "@/lib/utils";
+
 import RevenueTrendChart from "@/components/admin/charts/RevenueTrendChart";
 import BarList from "@/components/admin/charts/BarList";
 import FastrackStoreStatusToggle from "@/components/admin/FastrackStoreStatusToggle";
@@ -10,6 +10,7 @@ import RemoveWarehouseStaffButton from "@/components/admin/RemoveWarehouseStaffB
 import { getWarehouseStaffList } from "@/lib/actions/admin-warehouse-staff";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-neutral-100 text-neutral-600",
@@ -56,6 +57,7 @@ function Stat({ icon, label, value, accent }: { icon: string; label: string; val
 }
 
 export default async function AdminFastrackStoreDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const money = await getMoney();
   const { id } = await params;
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
@@ -108,7 +110,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
       )}
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <Stat icon="📈" label={t("admin.revenue_30d")} value={formatSAR(analytics.revenue30d)} accent="#059669" />
+        <Stat icon="📈" label={t("admin.revenue_30d")} value={money(analytics.revenue30d)} accent="#059669" />
         <Stat icon="🧾" label={t("admin.orders_30d")} value={analytics.orders30d} accent="#2563eb" />
         <Stat icon="⚠️" label={t("admin.low_stock_items")} value={analytics.lowStockCount} accent={analytics.lowStockCount > 0 ? "#dc2626" : "#a3a3a3"} />
       </div>
@@ -118,7 +120,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
           <p className="text-sm font-medium">{t("admin.revenue_trend")}</p>
           <span className="text-xs text-neutral-400">{t("admin.last_14_days")}</span>
         </div>
-        <RevenueTrendChart data={analytics.dailyRevenue} />
+        <RevenueTrendChart data={analytics.dailyRevenue} money={money} />
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -136,12 +138,12 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
 
         <div className="rounded-xl border border-neutral-200 bg-white p-4">
           <p className="mb-3 text-sm font-medium">{t("admin.top_products_30d")}</p>
-          <BarList items={analytics.topProducts} formatValue={formatSAR} emptyLabel={t("admin.no_sales_30d")} />
+          <BarList items={analytics.topProducts} formatValue={money} emptyLabel={t("admin.no_sales_30d")} />
         </div>
 
         <div className="rounded-xl border border-neutral-200 bg-white p-4">
           <p className="mb-3 text-sm font-medium">{t("admin.revenue_by_category_30d")}</p>
-          <BarList items={analytics.topCategories} formatValue={formatSAR} emptyLabel={t("admin.no_sales_30d")} />
+          <BarList items={analytics.topCategories} formatValue={money} emptyLabel={t("admin.no_sales_30d")} />
         </div>
       </div>
 
@@ -191,7 +193,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-neutral-700">{formatSAR(order.total)}</span>
+                  <span className="text-neutral-700">{money(order.total)}</span>
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[order.status] ?? "bg-neutral-100 text-neutral-600"}`}
                   >

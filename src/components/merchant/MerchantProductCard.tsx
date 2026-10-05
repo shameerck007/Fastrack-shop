@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { toggleMerchantProductActive, updateMerchantProductStock } from "@/lib/actions/merchant-products";
 import StockCell from "@/components/admin/StockCell";
 import MerchantProductForm from "@/components/merchant/MerchantProductForm";
-import { formatSAR } from "@/lib/utils";
+
 import { useLocale } from "@/components/LocaleProvider";
 import type { Category } from "@/types/database";
 import type { MerchantProduct } from "@/lib/merchant";
+import { useMoney } from "@/components/MoneyProvider";
 
 export default function MerchantProductCard({
   product,
@@ -17,6 +18,7 @@ export default function MerchantProductCard({
   product: MerchantProduct;
   categories: Category[];
 }) {
+  const money = useMoney();
   const { t } = useLocale();
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -71,9 +73,9 @@ export default function MerchantProductCard({
         </div>
 
         <div className="flex items-baseline gap-2">
-          <span className="text-sm font-semibold text-neutral-900">{variant ? formatSAR(variant.price) : "—"}</span>
+          <span className="text-sm font-semibold text-neutral-900">{variant ? money(variant.price) : "—"}</span>
           {variant?.compare_at_price != null && (
-            <span className="text-xs text-neutral-400 line-through">{formatSAR(variant.compare_at_price)}</span>
+            <span className="text-xs text-neutral-400 line-through">{money(variant.compare_at_price)}</span>
           )}
         </div>
 

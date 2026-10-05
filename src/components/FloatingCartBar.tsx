@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { useLocale } from "@/components/LocaleProvider";
-import { formatSAR } from "@/lib/utils";
+
 import { showsCartBar } from "@/lib/mobile-fullscreen";
+import { useMoney } from "@/components/MoneyProvider";
 
 // Mirrors checkout: free delivery from SAR 50, otherwise the standard fee.
 const FREE_DELIVERY_FROM = 50;
@@ -27,6 +28,7 @@ function CartIcon() {
  * `compact` drops the nudge and the card chrome for use inside the product
  * page's own bottom sheet. Renders nothing while the cart is empty. */
 export function PlaceOrderPill({ className = "", compact = false }: { className?: string; compact?: boolean }) {
+  const money = useMoney();
   const { cartCount, cartTotal, cartSavings } = useCustomerHeaderState();
   const { t } = useLocale();
 
@@ -34,14 +36,14 @@ export function PlaceOrderPill({ className = "", compact = false }: { className?
 
   const toFree = Math.max(0, FREE_DELIVERY_FROM - cartTotal);
   const delivery =
-    toFree === 0 ? t("cartbar.free_delivery") : t("cartbar.delivery_fee", { fee: formatSAR(STANDARD_DELIVERY_FEE) });
-  const subline = cartSavings > 0 ? `${t("cartbar.saved", { amount: formatSAR(cartSavings) })} · ${delivery}` : delivery;
+    toFree === 0 ? t("cartbar.free_delivery") : t("cartbar.delivery_fee", { fee: money(STANDARD_DELIVERY_FEE) });
+  const subline = cartSavings > 0 ? `${t("cartbar.saved", { amount: money(cartSavings) })} · ${delivery}` : delivery;
 
   return (
     <div className={className}>
       {!compact && toFree > 0 && (
         <div className="flex items-center justify-between gap-3 rounded-t-3xl bg-blue-50 px-4 py-2 text-xs font-medium text-blue-900">
-          <span>{t("cartbar.add_for_free_delivery", { amount: formatSAR(toFree) })}</span>
+          <span>{t("cartbar.add_for_free_delivery", { amount: money(toFree) })}</span>
           <Link href="/" className="shrink-0 rounded-full border border-blue-700 px-3 py-1 font-semibold text-blue-700">
             {t("cartbar.add_items")}
           </Link>
@@ -56,8 +58,8 @@ export function PlaceOrderPill({ className = "", compact = false }: { className?
         </Link>
         <Link href="/cart" className="min-w-0 flex-1">
           <p className="flex items-baseline gap-2">
-            <span className="text-lg font-extrabold text-neutral-900">{formatSAR(cartTotal)}</span>
-            {cartSavings > 0 && <span className="text-xs text-neutral-400 line-through">{formatSAR(cartTotal + cartSavings)}</span>}
+            <span className="text-lg font-extrabold text-neutral-900">{money(cartTotal)}</span>
+            {cartSavings > 0 && <span className="text-xs text-neutral-400 line-through">{money(cartTotal + cartSavings)}</span>}
           </p>
           <p className="truncate text-xs text-neutral-500">{subline}</p>
         </Link>

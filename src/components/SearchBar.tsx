@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { formatSAR } from "@/lib/utils";
+
 import { useLocale } from "@/components/LocaleProvider";
+import { useMoney } from "@/components/MoneyProvider";
 
 interface Suggestion {
   id: string;
@@ -15,6 +16,7 @@ interface Suggestion {
 }
 
 export default function SearchBar({ defaultValue = "" }: { defaultValue?: string }) {
+  const money = useMoney();
   const router = useRouter();
   const { t } = useLocale();
   const [value, setValue] = useState(defaultValue);
@@ -110,7 +112,7 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
                 {s.brand && <span className="ms-1 text-neutral-500">· {s.brand}</span>}
               </span>
               {s.price !== null && (
-                <span className="text-sm font-medium text-blue-700">{formatSAR(s.price)}</span>
+                <span className="text-sm font-medium text-blue-700">{money(s.price)}</span>
               )}
             </Link>
           ))}

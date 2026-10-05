@@ -1,4 +1,6 @@
 import { cookies } from "next/headers";
+import { getMoney } from "@/lib/tenant-server";
+import { FREE_DELIVERY_THRESHOLD } from "@/lib/delivery-methods";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { dashboardPathForRole, SHOP_MODE_COOKIE } from "@/lib/landing";
@@ -42,7 +44,8 @@ async function redirectToPortalIfPreferred() {
 export default async function HomePage() {
   await redirectToPortalIfPreferred();
   const locale = await getServerLocale();
-  const t = (key: string) => translate(locale, key);
+  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
+  const money = await getMoney();
   const [categories, featured, freshToday, offers] = await Promise.all([
     getCategoriesWithChildren(),
     getFeaturedProducts(),
@@ -71,7 +74,7 @@ export default async function HomePage() {
           eyebrow={t("home.hero_eyebrow")}
           title={t("home.hero_title")}
           subtitle={t("home.hero_subtitle")}
-          chips={[t("home.hero_chip_fast"), t("home.hero_chip_free")]}
+          chips={[t("home.hero_chip_fast"), t("home.hero_chip_free", { amount: money(FREE_DELIVERY_THRESHOLD) })]}
           cta={t("home.hero_cta")}
         />
 

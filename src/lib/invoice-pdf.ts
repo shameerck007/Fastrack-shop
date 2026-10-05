@@ -1,7 +1,8 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { moneyFor } from "@/lib/money";
 import type { InvoiceData } from "@/lib/orders";
 import type { CompanySettings } from "@/lib/company-settings";
-import { formatSAR, ORDER_STATUS_LABELS } from "@/lib/utils";
+import { ORDER_STATUS_LABELS } from "@/lib/utils";
 
 // pdf-lib (unlike @react-pdf/renderer) is pure JS with no filesystem/URL
 // font loading, so it runs on Cloudflare Workers. Standard fonts only cover
@@ -28,6 +29,7 @@ export async function buildInvoicePdf({
 }): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Invoice ${order.order_number}`);
+  const money = moneyFor(order.currency ?? "SAR");
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
@@ -165,8 +167,8 @@ export async function buildInvoicePdf({
     }
     nameLines.forEach((l, i) => text(page, l, M + 6, y - i * 12));
     text(page, String(Number(item.ordered_quantity)), colQty, y, { right: true });
-    text(page, formatSAR(item.unit_price), colPrice, y, { right: true });
-    text(page, formatSAR(item.line_total), colTotal - 6, y, { right: true });
+    text(page, money(item.unit_price), colPrice, y, { right: true });
+    text(page, money(item.line_total), colTotal - 6, y, { right: true });
     y -= rowH - 2;
     page.drawLine({
       start: { x: M, y: y + 4 },
@@ -189,10 +191,10 @@ export async function buildInvoicePdf({
     text(page, value, tr, y, { font: f, size, right: true });
     y -= 14;
   };
-  totalRow("Item(s) Subtotal", formatSAR(order.subtotal));
-  totalRow("Delivery fee", order.delivery_fee === 0 ? "Free" : formatSAR(order.delivery_fee));
-  totalRow("VAT (15%)", formatSAR(order.vat));
-  if (order.discount > 0) totalRow("Discount", `-${formatSAR(order.discount)}`);
+  totalRow("Item(s) Subtotal", money(order.subtotal));
+  totalRow("Delivery fee", order.delivery_fee === 0 ? "Free" : money(order.delivery_fee));
+  totalRow("VAT (15%)", money(order.vat));
+  if (order.discount > 0) totalRow("Discount", `-${money(order.discount)}`);
   page.drawLine({
     start: { x: tl, y: y + 8 },
     end: { x: PAGE_W - M, y: y + 8 },
@@ -200,7 +202,7 @@ export async function buildInvoicePdf({
     color: rgb(0.83, 0.83, 0.83),
   });
   y -= 4;
-  totalRow("Total", formatSAR(order.total), bold, 11);
+  totalRow("Total", money(order.total), bold, 11);
 
   // Footer: QR
   const qr = await pdf.embedPng(qrPng);

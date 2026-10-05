@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getMoney } from "@/lib/tenant-server";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getStoreSettlementSummary, getStoreSettlementOrders, getStorePayouts } from "@/lib/settlements";
@@ -23,6 +24,7 @@ export default async function AdminSettlementDetailPage({
   const { storeId } = await params;
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
+  const money = await getMoney();
   const supabase = await createClient();
 
   const { data: store } = await supabase.from("stores").select("id, name, status, commission_rate").eq("id", storeId).maybeSingle();
@@ -57,7 +59,7 @@ export default async function AdminSettlementDetailPage({
 
       {summary && (
         <div className="mb-5">
-          <SettlementSummaryCards summary={summary} t={t} />
+          <SettlementSummaryCards summary={summary} t={t} money={money} />
         </div>
       )}
 
@@ -67,7 +69,7 @@ export default async function AdminSettlementDetailPage({
             <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-700">
               {t("merchant.delivered_orders_count", { count: orders.length })}
             </h2>
-            <SettlementOrdersTable orders={orders} t={t} locale={locale} />
+            <SettlementOrdersTable orders={orders} t={t} locale={locale} money={money} />
           </section>
         </div>
 
@@ -76,7 +78,7 @@ export default async function AdminSettlementDetailPage({
             <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-700">
               {t("merchant.payout_history_count", { count: payouts.length })}
             </h2>
-            <SettlementPayoutsList payouts={payouts} t={t} locale={locale} />
+            <SettlementPayoutsList payouts={payouts} t={t} locale={locale} money={money} />
           </section>
         </div>
       </div>

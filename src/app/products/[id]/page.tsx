@@ -9,7 +9,7 @@ import RecentlyViewed from "@/components/RecentlyViewed";
 import { getProductById, getProductsByCategory } from "@/lib/catalog";
 import { getProductRating, getProductReviews, getProductRatingsMap } from "@/lib/reviews";
 import { getVariantStockMap, getDefaultVariantStockMap } from "@/lib/inventory";
-import { formatSAR } from "@/lib/utils";
+
 import { getCategoryTheme } from "@/lib/categoryTheme";
 import { createClient } from "@/lib/supabase/server";
 import { isProductWishlisted } from "@/lib/wishlist";
@@ -20,12 +20,14 @@ import { SoldBy, ClosedBanner } from "@/components/StoreBadge";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
+import { getMoney } from "@/lib/tenant-server";
 
 export default async function ProductPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const money = await getMoney();
   const { id } = await params;
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
@@ -121,15 +123,15 @@ export default async function ProductPage({
           <div className="md:hidden">
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-extrabold text-neutral-900">
-                {variant ? formatSAR(variant.price) : "—"}
+                {variant ? money(variant.price) : "—"}
               </span>
               {variant?.compare_at_price && (
-                <span className="text-base text-neutral-400 line-through">{formatSAR(variant.compare_at_price)}</span>
+                <span className="text-base text-neutral-400 line-through">{money(variant.compare_at_price)}</span>
               )}
             </div>
             {product.is_variable_weight && product.price_per_kg && (
               <p className="mt-1 text-xs text-neutral-500">
-                {t("product.price_per_kg_note", { price: formatSAR(product.price_per_kg) })}
+                {t("product.price_per_kg_note", { price: money(product.price_per_kg) })}
               </p>
             )}
             <p className="mt-2 inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
@@ -170,17 +172,17 @@ export default async function ProductPage({
             <PlaceOrderPill compact className="mb-3 md:hidden" />
             <div className="mb-2 flex items-baseline gap-2 max-md:hidden">
               <span className="text-2xl font-bold text-blue-700">
-                {variant ? formatSAR(variant.price) : "—"}
+                {variant ? money(variant.price) : "—"}
               </span>
               {variant?.compare_at_price && (
                 <span className="text-neutral-400 line-through">
-                  {formatSAR(variant.compare_at_price)}
+                  {money(variant.compare_at_price)}
                 </span>
               )}
             </div>
             {product.is_variable_weight && product.price_per_kg && (
               <p className="mb-2 text-xs text-neutral-500 max-md:hidden">
-                {t("product.price_per_kg_note", { price: formatSAR(product.price_per_kg) })}
+                {t("product.price_per_kg_note", { price: money(product.price_per_kg) })}
               </p>
             )}
             <p className="mb-3 text-sm font-medium text-blue-700 max-md:hidden">

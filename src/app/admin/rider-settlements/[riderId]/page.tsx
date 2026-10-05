@@ -8,7 +8,8 @@ import {
 } from "@/lib/rider-settlements";
 import RiderEntryForm from "@/components/admin/RiderEntryForm";
 import { checkSaudiIban, formatIban } from "@/lib/iban";
-import { formatSAR } from "@/lib/utils";
+import { getMoney } from "@/lib/tenant-server";
+
 
 function Card({ label, value, tone }: { label: string; value: string; tone?: "emerald" | "amber" | "red" }) {
   const toneClass = tone === "emerald" ? "text-emerald-700" : tone === "amber" ? "text-amber-700" : tone === "red" ? "text-red-600" : "text-neutral-900";
@@ -23,6 +24,7 @@ function Card({ label, value, tone }: { label: string; value: string; tone?: "em
 const METHOD_LABELS: Record<string, string> = { cash: "Cash", bank_transfer: "Bank transfer", other: "Other" };
 
 export default async function AdminRiderSettlementDetailPage({ params }: { params: Promise<{ riderId: string }> }) {
+  const money = await getMoney();
   const { riderId } = await params;
   const supabase = await createClient();
 
@@ -73,13 +75,13 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
       ) : (
         <>
           <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
-            <Card label="Delivery fees earned" value={formatSAR(data.summary.earned)} tone="emerald" />
-            <Card label="Cash collected (COD)" value={formatSAR(data.summary.cashCollected)} />
-            <Card label="Paid to rider" value={formatSAR(data.summary.paidOut)} />
-            <Card label="Cash handed in" value={formatSAR(data.summary.cashDeposited)} />
+            <Card label="Delivery fees earned" value={money(data.summary.earned)} tone="emerald" />
+            <Card label="Cash collected (COD)" value={money(data.summary.cashCollected)} />
+            <Card label="Paid to rider" value={money(data.summary.paidOut)} />
+            <Card label="Cash handed in" value={money(data.summary.cashDeposited)} />
             <Card
               label={balance > 0.005 ? "We owe the rider" : balance < -0.005 ? "Rider owes us" : "Balance"}
-              value={balance < -0.005 ? formatSAR(-balance) : formatSAR(balance)}
+              value={balance < -0.005 ? money(-balance) : money(balance)}
               tone={balance > 0.005 ? "amber" : balance < -0.005 ? "red" : "emerald"}
             />
           </div>
@@ -107,8 +109,8 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
                         <tr key={o.orderId}>
                           <td className="px-4 py-2.5 font-medium text-neutral-800">{o.orderNumber}</td>
                           <td className="px-3 py-2.5 text-neutral-500">{o.deliveredAt ? new Date(o.deliveredAt).toLocaleDateString("en-US") : "—"}</td>
-                          <td className="px-3 py-2.5 text-right text-neutral-700">{formatSAR(o.deliveryFee)}</td>
-                          <td className="px-4 py-2.5 text-right text-neutral-500">{o.cashCollected > 0 ? formatSAR(o.cashCollected) : "—"}</td>
+                          <td className="px-3 py-2.5 text-right text-neutral-700">{money(o.deliveryFee)}</td>
+                          <td className="px-4 py-2.5 text-right text-neutral-500">{o.cashCollected > 0 ? money(o.cashCollected) : "—"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -129,7 +131,7 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
                     <li key={e.id} className="flex items-start justify-between gap-3 px-4 py-3 text-sm">
                       <div className="min-w-0">
                         <p className="font-medium text-neutral-900">
-                          {e.kind === "payout" ? "Paid to rider" : "Cash handed in"} · {formatSAR(e.amount)}
+                          {e.kind === "payout" ? "Paid to rider" : "Cash handed in"} · {money(e.amount)}
                         </p>
                         <p className="text-xs text-neutral-500">
                           {METHOD_LABELS[e.method] ?? e.method}

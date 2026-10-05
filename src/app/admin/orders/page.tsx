@@ -5,11 +5,12 @@ import OrdersKPIBar from "@/components/admin/OrdersKPIBar";
 import OrdersQueueBoard from "@/components/admin/OrdersQueueBoard";
 import OrdersLiveRefresher from "@/components/admin/OrdersLiveRefresher";
 import { getAdminOrders, getAdminOrdersQueue, getAdminOrderKPIs } from "@/lib/admin-orders";
-import { formatSAR, PAYMENT_METHOD_LABELS } from "@/lib/utils";
+import { PAYMENT_METHOD_LABELS } from "@/lib/utils";
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import type { OrderStatus } from "@/types/database";
+import { getMoney } from "@/lib/tenant-server";
 
 const DELIVERY_TYPE_KEY: Record<string, string> = {
   express: "admin.delivery_express",
@@ -29,6 +30,7 @@ const STATUS_BADGE: Record<OrderStatus, string> = {
 };
 
 export default async function AdminOrdersPage() {
+  const money = await getMoney();
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const [kpis, queueOrders, orders] = await Promise.all([
@@ -46,10 +48,10 @@ export default async function AdminOrdersPage() {
         </div>
       </div>
 
-      <OrdersKPIBar kpis={kpis} t={t} />
+      <OrdersKPIBar kpis={kpis} t={t} money={money} />
 
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">📋 {t("admin.order_queue")}</p>
-      <OrdersQueueBoard orders={queueOrders} t={t} />
+      <OrdersQueueBoard orders={queueOrders} t={t} money={money} />
 
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="text-sm font-semibold text-neutral-700">🕓 {t("admin.recent_orders")}</h2>
@@ -105,7 +107,7 @@ export default async function AdminOrdersPage() {
                   </span>
                   <span>
                     <span className="block text-neutral-400">{t("orders.total_label")}</span>
-                    <span className="font-medium text-neutral-700">{formatSAR(order.total)}</span>
+                    <span className="font-medium text-neutral-700">{money(order.total)}</span>
                   </span>
                 </div>
                 <div className="text-end">

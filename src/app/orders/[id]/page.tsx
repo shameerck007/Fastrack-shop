@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getOrderDetail, getMyOrderRating } from "@/lib/orders";
 import { getOrderMessages } from "@/lib/order-messages";
 import { createClient } from "@/lib/supabase/server";
-import { formatSAR } from "@/lib/utils";
+
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import LiveOrderStatus from "@/components/LiveOrderStatus";
 import RiderLocationMap from "@/components/RiderLocationMap";
@@ -13,12 +13,14 @@ import OrderRatingForm from "@/components/OrderRatingForm";
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 export default async function OrderDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const money = await getMoney();
   const { id } = await params;
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
@@ -122,21 +124,21 @@ export default async function OrderDetailPage({
           <div className="space-y-0.5 text-sm">
             <div className="flex justify-between">
               <span className="text-neutral-500">{t("orders.item_subtotal")}</span>
-              <span>{formatSAR(order.subtotal)}</span>
+              <span>{money(order.subtotal)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
-              <span>{order.delivery_fee === 0 ? t("checkout.free") : formatSAR(order.delivery_fee)}</span>
+              <span>{order.delivery_fee === 0 ? t("checkout.free") : money(order.delivery_fee)}</span>
             </div>
             {order.discount > 0 && (
               <div className="flex justify-between text-blue-600">
                 <span>{t("orders.discount")}</span>
-                <span>-{formatSAR(order.discount)}</span>
+                <span>-{money(order.discount)}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-neutral-200 pt-1 font-semibold">
               <span>{t("checkout.total")}</span>
-              <span>{formatSAR(order.total)}</span>
+              <span>{money(order.total)}</span>
             </div>
           </div>
         </div>
@@ -216,7 +218,7 @@ export default async function OrderDetailPage({
                   )}
                 </p>
               </div>
-              <span className="font-medium">{formatSAR(item.line_total)}</span>
+              <span className="font-medium">{money(item.line_total)}</span>
             </div>
           );
         })}

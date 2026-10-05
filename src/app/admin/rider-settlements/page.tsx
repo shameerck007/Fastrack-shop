@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getRiderSettlementOverview, type RiderSettlementOverviewRow } from "@/lib/rider-settlements";
-import { formatSAR } from "@/lib/utils";
+import { getMoney } from "@/lib/tenant-server";
+
 
 function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
   return (
@@ -17,6 +18,7 @@ function Stat({ icon, label, value, accent }: { icon: string; label: string; val
 }
 
 export default async function AdminRiderSettlementsPage() {
+  const money = await getMoney();
   let rows: RiderSettlementOverviewRow[] = [];
   let failed = false;
   try {
@@ -50,10 +52,10 @@ export default async function AdminRiderSettlementsPage() {
       ) : (
         <>
           <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat icon="💰" label="Earned by riders (all time)" value={formatSAR(totalEarned)} accent="#2563eb" />
-            <Stat icon="✅" label="Paid to riders" value={formatSAR(totalPaid)} accent="#059669" />
-            <Stat icon="⏳" label="We owe riders" value={formatSAR(owedToRiders)} accent="#d97706" />
-            <Stat icon="💵" label="Riders owe us (cash held)" value={formatSAR(owedByRiders)} accent="#dc2626" />
+            <Stat icon="💰" label="Earned by riders (all time)" value={money(totalEarned)} accent="#2563eb" />
+            <Stat icon="✅" label="Paid to riders" value={money(totalPaid)} accent="#059669" />
+            <Stat icon="⏳" label="We owe riders" value={money(owedToRiders)} accent="#d97706" />
+            <Stat icon="💵" label="Riders owe us (cash held)" value={money(owedByRiders)} accent="#dc2626" />
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
@@ -83,15 +85,15 @@ export default async function AdminRiderSettlementsPage() {
                           <div className="text-[11px] text-neutral-400">{r.payoutMethod === "bank" ? "🏦 Bank transfer" : "💵 Cash"}</div>
                         </td>
                         <td className="px-3 py-3 text-right text-neutral-500">{r.deliveredCount}</td>
-                        <td className="px-3 py-3 text-right text-neutral-700">{formatSAR(r.earned)}</td>
-                        <td className="px-3 py-3 text-right text-neutral-500">{formatSAR(r.cashCollected)}</td>
-                        <td className="px-3 py-3 text-right text-neutral-500">{formatSAR(r.paidOut + r.cashDeposited)}</td>
+                        <td className="px-3 py-3 text-right text-neutral-700">{money(r.earned)}</td>
+                        <td className="px-3 py-3 text-right text-neutral-500">{money(r.cashCollected)}</td>
+                        <td className="px-3 py-3 text-right text-neutral-500">{money(r.paidOut + r.cashDeposited)}</td>
                         <td
                           className={`px-3 py-3 text-right font-semibold ${
                             r.balance > 0.005 ? "text-amber-700" : r.balance < -0.005 ? "text-red-600" : "text-emerald-700"
                           }`}
                         >
-                          {r.balance < -0.005 ? `−${formatSAR(-r.balance)}` : formatSAR(r.balance)}
+                          {r.balance < -0.005 ? `−${money(-r.balance)}` : money(r.balance)}
                           <div className="text-[10px] font-normal">
                             {r.balance > 0.005 ? "we owe rider" : r.balance < -0.005 ? "rider owes us" : "settled"}
                           </div>

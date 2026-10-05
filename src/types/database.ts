@@ -187,6 +187,8 @@ export interface Order {
   vat: number;
   total: number;
   coupon_code: string | null;
+  /** Currency this order was placed in (added by migration 0044; 'SAR' for older rows). */
+  currency?: string;
   delivery_otp: string | null;
   notes: string | null;
   created_at: string;

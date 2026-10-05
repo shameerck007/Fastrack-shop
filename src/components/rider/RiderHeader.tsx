@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { getRiderTodayStats } from "@/lib/rider";
 import { signOut } from "@/lib/actions/auth";
-import { formatSAR } from "@/lib/utils";
+
 import Wordmark from "@/components/Wordmark";
 import LanguageToggle from "@/components/LanguageToggle";
 import NotificationBell from "@/components/NotificationBell";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 // The online/offline toggle lives on RiderProfileCard now, not here — having
 // it in both places (as it briefly was) showed two "Online" pills at once.
 export default async function RiderHeader() {
+  const money = await getMoney();
   const stats = await getRiderTodayStats();
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
@@ -27,7 +29,7 @@ export default async function RiderHeader() {
 
         <div className="flex shrink-0 items-center gap-3">
           <span className="hidden text-xs text-neutral-500 sm:inline">
-            {t("rider.today_stat", { count: stats.deliveries, earnings: formatSAR(stats.earnings) })}
+            {t("rider.today_stat", { count: stats.deliveries, earnings: money(stats.earnings) })}
           </span>
           <Link href="/api/enter-shop" prefetch={false} className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900">
             <span className="rtl:-scale-x-100">←</span> <span className="hidden sm:inline">{t("portal.back_to_shop")}</span>

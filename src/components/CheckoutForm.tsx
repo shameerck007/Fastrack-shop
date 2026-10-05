@@ -3,11 +3,12 @@
 import { useState, useTransition } from "react";
 import AddressForm from "@/components/AddressForm";
 import { placeOrder } from "@/lib/actions/orders";
-import { extractVat, formatSAR } from "@/lib/utils";
+import { extractVat } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
 import { EXPRESS_FEE, STANDARD_FEE, formatDeliveryDate, standardDeliveryDate } from "@/lib/delivery-methods";
 import type { Address, CartItemWithVariant, DeliveryType, PaymentMethod } from "@/types/database";
+import { useMoney } from "@/components/MoneyProvider";
 
 const DELIVERY_OPTIONS: { value: DeliveryType; labelKey: string; hintKey: string; fee: number }[] = [
   { value: "express", labelKey: "checkout.express", hintKey: "checkout.minutes_15_30", fee: EXPRESS_FEE },
@@ -37,6 +38,7 @@ export default function CheckoutForm({
   blockedByAddress?: Record<string, string[]>;
   methodsByAddress?: Record<string, { express: boolean; standard: boolean; standardDays: number }>;
 }) {
+  const money = useMoney();
   const { t, locale } = useLocale();
   // null means "no explicit user selection yet" — fall back to the first
   // address, which also picks up addresses added after this component mounted
@@ -250,7 +252,7 @@ export default function CheckoutForm({
                     </span>
                     {available && (
                       <span className={`mt-1 text-xs font-extrabold ${subtotal >= FREE_DELIVERY_THRESHOLD ? "text-emerald-600" : "text-neutral-800"}`}>
-                        {subtotal >= FREE_DELIVERY_THRESHOLD ? t("checkout.free") : formatSAR(opt.fee)}
+                        {subtotal >= FREE_DELIVERY_THRESHOLD ? t("checkout.free") : money(opt.fee)}
                       </span>
                     )}
                   </button>
@@ -294,7 +296,7 @@ export default function CheckoutForm({
                       <p className="truncate text-sm font-bold text-neutral-900">{name}</p>
                       <p className="text-xs text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</p>
                     </div>
-                    <span className="shrink-0 text-sm font-extrabold">{formatSAR(item.quantity * variant.price)}</span>
+                    <span className="shrink-0 text-sm font-extrabold">{money(item.quantity * variant.price)}</span>
                   </div>
                 );
               })}
@@ -352,7 +354,7 @@ export default function CheckoutForm({
                 t("checkout_ui.free_unlocked")
               ) : (
                 <>
-                  {t("checkout_ui.add_for_free", { amount: formatSAR(freeLeft) })}
+                  {t("checkout_ui.add_for_free", { amount: money(freeLeft) })}
                   <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-blue-100">
                     <span
                       className="block h-full rounded-full bg-blue-600"
@@ -366,19 +368,19 @@ export default function CheckoutForm({
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between">
                 <span className="text-neutral-500">{t("orders.item_subtotal")}</span>
-                <span className="font-medium">{formatSAR(subtotal)}</span>
+                <span className="font-medium">{money(subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
                 <span className={`font-medium ${deliveryFee === 0 ? "text-emerald-600" : ""}`}>
-                  {deliveryFee === 0 ? t("checkout.free") : formatSAR(deliveryFee)}
+                  {deliveryFee === 0 ? t("checkout.free") : money(deliveryFee)}
                 </span>
               </div>
               <div className="flex justify-between border-t border-dashed border-neutral-200 pt-2 text-base font-extrabold">
                 <span>{t("checkout.total")}</span>
-                <span>{formatSAR(total)}</span>
+                <span>{money(total)}</span>
               </div>
-              <p className="text-end text-[11px] text-neutral-400">{t("checkout_ui.vat_included", { amount: formatSAR(vatAmount) })}</p>
+              <p className="text-end text-[11px] text-neutral-400">{t("checkout_ui.vat_included", { amount: money(vatAmount) })}</p>
             </div>
 
             {error && <p className="mt-3 hidden text-sm text-red-600 lg:block">{error}</p>}
@@ -388,7 +390,7 @@ export default function CheckoutForm({
               disabled={pending || blockedItems.length > 0}
               className="mt-4 hidden h-12 w-full rounded-full bg-blue-700 font-extrabold text-white shadow-lg shadow-blue-700/25 hover:bg-blue-800 disabled:opacity-50 lg:block"
             >
-              {pending ? t("checkout.placing_order") : t("checkout.place_order_with_total", { total: formatSAR(total) })}
+              {pending ? t("checkout.placing_order") : t("checkout.place_order_with_total", { total: money(total) })}
             </button>
             {blockedItems.length > 0 && (
               <p className="mt-2 text-center text-xs text-red-600">
@@ -413,7 +415,7 @@ export default function CheckoutForm({
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-xs text-neutral-500">{t("checkout.total")}</p>
-            <p className="text-xl font-extrabold text-neutral-900">{formatSAR(total)}</p>
+            <p className="text-xl font-extrabold text-neutral-900">{money(total)}</p>
           </div>
           <button
             onClick={handlePlaceOrder}

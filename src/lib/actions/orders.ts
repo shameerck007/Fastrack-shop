@@ -7,6 +7,7 @@ import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
 import { combineMethods } from "@/lib/delivery-methods";
+import { getCurrentTenant } from "@/lib/tenant-server";
 import { assertStoresOpen } from "@/lib/stores";
 import { addToCart } from "@/lib/actions/cart";
 import { notifyUsers } from "@/lib/push";
@@ -118,6 +119,10 @@ async function placeOrderOrThrow(input: {
     throw new Error("Standard delivery isn't available for this address. Please choose Express delivery or another address.");
   }
 
+  // The order records the market it was placed in, so receipts and reports stay correct per country.
+  const tenant = await getCurrentTenant();
+  const orderCountry = tenant?.country_code ?? "SA";
+
   const orderNumber = generateOrderNumber();
   const { data: order, error: orderError } = await supabase
     .from("orders")
@@ -131,6 +136,9 @@ async function placeOrderOrThrow(input: {
       // splitting across sellers is intentionally out of scope for now.
       warehouse_id: itemWarehouseIds[0] ?? null,
       status: "pending",
+      currency: tenant?.currency ?? "SAR",
+      country_code: orderCountry,
+      tax_label: orderCountry === "IN" ? "GST" : "VAT",
       delivery_type: input.deliveryType,
       scheduled_for: input.deliveryType === "scheduled" ? input.scheduledFor : null,
       subtotal,

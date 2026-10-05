@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { recordSettlementPayout } from "@/lib/actions/admin-settlements";
-import { formatSAR } from "@/lib/utils";
+
 import { useLocale } from "@/components/LocaleProvider";
+import { useMoney } from "@/components/MoneyProvider";
 
 const METHODS = ["bank_transfer", "cheque", "cash", "other"];
 
 export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: string; balanceDue: number }) {
+  const money = useMoney();
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
@@ -110,7 +112,7 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
       </div>
 
       {balanceDue > 0.005 && (
-        <p className="text-xs text-neutral-400">{t("payout_form.outstanding_balance", { amount: formatSAR(balanceDue) })}</p>
+        <p className="text-xs text-neutral-400">{t("payout_form.outstanding_balance", { amount: money(balanceDue) })}</p>
       )}
       {error && <p className="text-sm text-red-600">{error}</p>}
 

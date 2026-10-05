@@ -165,6 +165,7 @@ export interface LabelData {
   discount: number;
   vat: number;
   total: number;
+  currency?: string;
   notes: string | null;
   created_at: string;
   order_items: { id: string }[];
@@ -192,7 +193,7 @@ export interface LabelData {
 // own doorstep-handover proof and must never appear on a document that
 // travels with the physical package.
 const LABEL_ORDER_COLUMNS =
-  "id, order_number, status, delivery_type, subtotal, delivery_fee, discount, vat, total, notes, created_at";
+  "id, order_number, status, delivery_type, subtotal, delivery_fee, discount, vat, total, currency, notes, created_at";
 
 export async function getLabelData(orderId: string): Promise<LabelData | null> {
   const supabase = await createClient();

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { moneyFor } from "@/lib/money";
 import { sendEmail } from "@/lib/email";
 import {
   renderEmailShell,
@@ -9,7 +10,6 @@ import {
   esc,
   type EmailLineItem,
 } from "@/lib/email-template";
-import { formatSAR } from "@/lib/utils";
 import type { DeliveryType, OrderStatus } from "@/types/database";
 
 const SITE_URL = "https://shop.fastrack.cloud";
@@ -58,7 +58,7 @@ type AddressRow = {
 } | null;
 
 const FULL_ORDER_SELECT =
-  "id, order_number, user_id, subtotal, delivery_fee, total, created_at, delivery_type, scheduled_for, addresses(address_line, city, district, receiver_name, receiver_phone), order_items(product_name, variant_label, ordered_quantity, line_total, product_variants!variant_id(products(image_url))), payments(method), profiles(full_name)";
+  "id, order_number, user_id, subtotal, delivery_fee, total, currency, created_at, delivery_type, scheduled_for, addresses(address_line, city, district, receiver_name, receiver_phone), order_items(product_name, variant_label, ordered_quantity, line_total, product_variants!variant_id(products(image_url))), payments(method), profiles(full_name)";
 
 interface FullOrderEmailData {
   to: string;
@@ -77,6 +77,7 @@ async function loadFullOrderEmailData(orderId: string): Promise<FullOrderEmailDa
   const supabase = await createClient();
   const { data: order } = await supabase.from("orders").select(FULL_ORDER_SELECT).eq("id", orderId).maybeSingle();
   if (!order) return null;
+  const money = moneyFor((order as unknown as { currency?: string }).currency ?? "SAR");
 
   const emails = await emailsFor([order.user_id]);
   const to = emails.get(order.user_id);
@@ -86,7 +87,7 @@ async function loadFullOrderEmailData(orderId: string): Promise<FullOrderEmailDa
     name: i.product_name,
     variant: i.variant_label,
     quantity: i.ordered_quantity,
-    lineTotalFormatted: formatSAR(Number(i.line_total)),
+    lineTotalFormatted: money(Number(i.line_total)),
     imageUrl: i.product_variants?.products?.image_url ?? null,
   }));
 
@@ -100,16 +101,16 @@ async function loadFullOrderEmailData(orderId: string): Promise<FullOrderEmailDa
     ${renderInfoGrid([
       { label: "Order #", value: order.order_number },
       { label: "Order date", value: formatOrderDate(order.created_at) },
-      { label: "Order total", value: formatSAR(order.total) },
+      { label: "Order total", value: money(order.total) },
       { label: "Delivery", value: estimateArrival(order.delivery_type, order.scheduled_for) },
     ])}
     <p style="margin:24px 0 8px;font-weight:700;color:#111111;font-size:15px;">Items in this order</p>
     ${renderOrderItemsTable(items)}
     <div style="margin-top:16px;max-width:260px;margin-inline-start:auto;">
       ${renderSummaryTable([
-        { label: "Item(s) subtotal", value: formatSAR(order.subtotal) },
-        { label: "Delivery", value: order.delivery_fee > 0 ? formatSAR(order.delivery_fee) : "Free" },
-        { label: "Order total", value: formatSAR(order.total), bold: true },
+        { label: "Item(s) subtotal", value: money(order.subtotal) },
+        { label: "Delivery", value: order.delivery_fee > 0 ? money(order.delivery_fee) : "Free" },
+        { label: "Order total", value: money(order.total), bold: true },
       ])}
     </div>
     ${
@@ -206,10 +207,11 @@ export async function sendRefundEmail(orderId: string, reason: string) {
   const supabase = await createClient();
   const { data: order } = await supabase
     .from("orders")
-    .select("id, user_id, order_number, total, profiles(full_name), payments(amount)")
+    .select("id, user_id, order_number, total, currency, profiles(full_name), payments(amount)")
     .eq("id", orderId)
     .maybeSingle();
   if (!order) return;
+  const money = moneyFor((order as unknown as { currency?: string }).currency ?? "SAR");
 
   const emails = await emailsFor([order.user_id]);
   const to = emails.get(order.user_id);
@@ -218,7 +220,7 @@ export async function sendRefundEmail(orderId: string, reason: string) {
   const profile = order.profiles as unknown as { full_name: string | null } | null;
   const payments = order.payments as unknown as { amount: number }[] | null;
   const firstName = profile?.full_name?.split(" ")[0] ?? "there";
-  const amount = formatSAR(payments?.[0]?.amount ?? order.total);
+  const amount = money(payments?.[0]?.amount ?? order.total);
   const n = order.order_number;
 
   const bodyHtml = `

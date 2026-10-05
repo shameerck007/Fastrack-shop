@@ -7,9 +7,10 @@ import { getMyStoreProducts } from "@/lib/merchant";
 import StoreStatusActions from "@/components/admin/StoreStatusActions";
 import StoreProfileForm from "@/components/merchant/StoreProfileForm";
 import { describeStatus, getOpenStatus } from "@/lib/store-hours";
-import { formatSAR } from "@/lib/utils";
+
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -50,6 +51,7 @@ export default async function AdminMerchantDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const money = await getMoney();
   const { id } = await params;
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
@@ -240,7 +242,7 @@ export default async function AdminMerchantDetailPage({
                         <p className="truncate text-sm font-medium">{product.name}</p>
                         <p className="text-xs text-neutral-400">{variant?.label}</p>
                       </div>
-                      <span className="shrink-0 text-sm font-medium">{variant ? formatSAR(variant.price) : "—"}</span>
+                      <span className="shrink-0 text-sm font-medium">{variant ? money(variant.price) : "—"}</span>
                       <span className="w-16 shrink-0 text-right text-xs text-neutral-500">
                         {inv ? t("merchant_detail.in_stock", { count: inv.stock }) : t("product_card_admin.no_stock_row")}
                       </span>

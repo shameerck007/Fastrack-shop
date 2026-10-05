@@ -6,9 +6,10 @@ import DownloadLabelButton from "@/components/DownloadLabelButton";
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
 import RefundOrderButton from "@/components/admin/RefundOrderButton";
 import { getAdminOrderDetail } from "@/lib/admin-orders";
-import { formatSAR, ORDER_STATUS_FLOW, PAYMENT_METHOD_LABELS } from "@/lib/utils";
+import { ORDER_STATUS_FLOW, PAYMENT_METHOD_LABELS } from "@/lib/utils";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 const DELIVERY_TYPE_KEY: Record<string, string> = {
   express: "admin.delivery_express",
@@ -39,6 +40,7 @@ export default async function AdminOrderDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const money = await getMoney();
   const { id } = await params;
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
@@ -162,9 +164,9 @@ export default async function AdminOrderDetailPage({
                   </div>
                   <div className="text-right text-sm">
                     <p className="text-neutral-500">
-                      {formatSAR(item.unit_price)} × {Number(item.ordered_quantity)}
+                      {money(item.unit_price)} × {Number(item.ordered_quantity)}
                     </p>
-                    <p className="font-medium">{formatSAR(item.line_total)}</p>
+                    <p className="font-medium">{money(item.line_total)}</p>
                   </div>
                 </div>
               ))}
@@ -172,18 +174,18 @@ export default async function AdminOrderDetailPage({
           </Card>
 
           <Card title={t("admin.payment_summary")}>
-            <Row label={t("orders.item_subtotal")}>{formatSAR(order.subtotal)}</Row>
+            <Row label={t("orders.item_subtotal")}>{money(order.subtotal)}</Row>
             <Row label={t("checkout.delivery_fee")}>
-              {order.delivery_fee === 0 ? t("checkout.free") : formatSAR(order.delivery_fee)}
+              {order.delivery_fee === 0 ? t("checkout.free") : money(order.delivery_fee)}
             </Row>
             {order.discount > 0 && (
               <Row label={`${t("orders.discount")}${order.coupon_code ? ` (${order.coupon_code})` : ""}`}>
-                <span className="text-blue-600">-{formatSAR(order.discount)}</span>
+                <span className="text-blue-600">-{money(order.discount)}</span>
               </Row>
             )}
             <div className="mt-2 flex justify-between border-t border-neutral-200 pt-2 font-semibold">
               <span>{t("admin.order_total")}</span>
-              <span>{formatSAR(order.total)}</span>
+              <span>{money(order.total)}</span>
             </div>
           </Card>
 
@@ -300,7 +302,7 @@ export default async function AdminOrderDetailPage({
                 <Row label={t("admin.status_label")}>
                   <span className="capitalize">{payment.status}</span>
                 </Row>
-                <Row label={t("admin.amount_label")}>{formatSAR(payment.amount)}</Row>
+                <Row label={t("admin.amount_label")}>{money(payment.amount)}</Row>
                 {payment.status !== "refunded" && <RefundOrderButton orderId={id} />}
               </>
             ) : (

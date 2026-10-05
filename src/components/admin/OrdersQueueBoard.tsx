@@ -1,7 +1,9 @@
 import Link from "next/link";
+import type { MoneyFormatter } from "@/lib/money";
 import type { AdminQueueOrder } from "@/lib/admin-orders";
-import { formatSAR } from "@/lib/utils";
+
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
+import { getMoney } from "@/lib/tenant-server";
 
 // Same active-pipeline order as ORDER_STATUS_FLOW, minus "delivered" — one
 // column per stage, an ops team works the board left to right.
@@ -32,7 +34,9 @@ const TONE_CLASS: Record<"ok" | "warn" | "late", string> = {
 export default function OrdersQueueBoard({
   orders,
   t,
+  money,
 }: {
+  money: MoneyFormatter;
   orders: AdminQueueOrder[];
   t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
@@ -84,7 +88,7 @@ export default function OrdersQueueBoard({
                           <span className="truncate text-neutral-400">
                             {t("admin.item_count", { count: order.item_count, plural: order.item_count === 1 ? "" : "s" })}
                           </span>
-                          <span className="shrink-0 font-medium text-neutral-900">{formatSAR(order.total)}</span>
+                          <span className="shrink-0 font-medium text-neutral-900">{money(order.total)}</span>
                         </div>
                         <FulfillmentBadge fulfillment={order.fulfillment} />
                       </Link>

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { recordRiderSettlementEntry } from "@/lib/actions/admin-rider-settlements";
-import { formatSAR } from "@/lib/utils";
+import { useMoney } from "@/components/MoneyProvider";
+
 
 const field = "rounded-lg border border-neutral-300 px-3 py-2 text-sm";
 
@@ -18,6 +19,7 @@ export default function RiderEntryForm({
   balance: number;
   payoutMethod: "bank" | "cash";
 }) {
+  const money = useMoney();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<"payout" | "cash_deposit">("payout");
@@ -116,9 +118,9 @@ export default function RiderEntryForm({
       </div>
       <p className="text-xs text-neutral-400">
         {balance > 0.005
-          ? `FasTrack owes this rider ${formatSAR(balance)}.`
+          ? `FasTrack owes this rider ${money(balance)}.`
           : balance < -0.005
-            ? `This rider owes FasTrack ${formatSAR(-balance)} in collected cash.`
+            ? `This rider owes FasTrack ${money(-balance)} in collected cash.`
             : "Nothing outstanding."}
       </p>
       {error && <p className="text-sm text-red-600">{error}</p>}

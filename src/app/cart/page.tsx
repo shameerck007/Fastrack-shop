@@ -4,12 +4,14 @@ import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getAddresses } from "@/lib/addresses";
 import { CartDeliveryOptions } from "@/components/DeliveryOptionsInfo";
 import { checkProductsDeliverable } from "@/lib/delivery-zones";
-import { formatSAR } from "@/lib/utils";
+
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 export default async function CartPage() {
+  const money = await getMoney();
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const [items, addresses] = await Promise.all([getCartItems(), getAddresses()]);
@@ -77,7 +79,7 @@ export default async function CartPage() {
             <span className="text-neutral-500">
               {t("cart.subtotal_items", { count: itemCount, plural: itemCount === 1 ? "" : "s" })}:
             </span>{" "}
-            <span className="font-semibold">{formatSAR(subtotal)}</span>
+            <span className="font-semibold">{money(subtotal)}</span>
           </p>
           <div className="mt-4">
             <CartDeliveryOptions storeIds={items.map((i) => i.product_variants.products.store_id)} />
@@ -90,7 +92,7 @@ export default async function CartPage() {
               <span className="text-neutral-600">
                 {t("cart.subtotal_items", { count: itemCount, plural: itemCount === 1 ? "" : "s" })}:
               </span>{" "}
-              <span className="font-semibold">{formatSAR(subtotal)}</span>
+              <span className="font-semibold">{money(subtotal)}</span>
             </p>
             <p className="mb-4 text-xs text-neutral-400">{t("cart.delivery_fee_note")}</p>
             <Link

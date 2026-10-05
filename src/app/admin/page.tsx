@@ -2,11 +2,12 @@ import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminAnalytics } from "@/lib/admin-analytics";
-import { formatSAR } from "@/lib/utils";
+
 import RevenueTrendChart from "@/components/admin/charts/RevenueTrendChart";
 import BarList from "@/components/admin/charts/BarList";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-neutral-100 text-neutral-600",
@@ -45,6 +46,7 @@ const STATUS_ORDER = [
 ];
 
 export default async function AdminDashboardPage() {
+  const money = await getMoney();
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const supabase = await createClient();
@@ -88,7 +90,7 @@ export default async function AdminDashboardPage() {
   const todayStats = [
     { label: t("admin.todays_orders"), value: todayOrders ?? 0, icon: "🧾", color: "bg-blue-50 text-blue-700", href: "/admin/orders" },
     { label: t("admin.pending_orders"), value: pendingOrders ?? 0, icon: "⏳", color: "bg-amber-50 text-amber-700", href: "/admin/orders" },
-    { label: t("admin.todays_revenue"), value: formatSAR(revenueToday), icon: "💰", color: "bg-emerald-50 text-emerald-700", href: "/admin/orders" },
+    { label: t("admin.todays_revenue"), value: money(revenueToday), icon: "💰", color: "bg-emerald-50 text-emerald-700", href: "/admin/orders" },
     {
       label: t("admin.low_stock_items"),
       value: lowStockCount,
@@ -99,9 +101,9 @@ export default async function AdminDashboardPage() {
   ];
 
   const businessStats = [
-    { label: t("admin.revenue_30d"), value: formatSAR(analytics.revenue30d), icon: "📈", color: "bg-emerald-50 text-emerald-700" },
+    { label: t("admin.revenue_30d"), value: money(analytics.revenue30d), icon: "📈", color: "bg-emerald-50 text-emerald-700" },
     { label: t("admin.orders_30d"), value: analytics.orders30d, icon: "🧾", color: "bg-blue-50 text-blue-700" },
-    { label: t("admin.avg_order_value"), value: formatSAR(analytics.avgOrderValue30d), icon: "🧮", color: "bg-violet-50 text-violet-700" },
+    { label: t("admin.avg_order_value"), value: money(analytics.avgOrderValue30d), icon: "🧮", color: "bg-violet-50 text-violet-700" },
     { label: t("admin.total_customers"), value: analytics.totalCustomers, icon: "👥", color: "bg-cyan-50 text-cyan-700" },
     { label: t("admin.new_customers_30d"), value: analytics.newCustomers30d, icon: "✨", color: "bg-blue-50 text-blue-700" },
     { label: t("admin.all_products_label"), value: totalProducts ?? 0, icon: "📦", color: "bg-blue-50 text-blue-700", href: "/admin/products" },
@@ -171,7 +173,7 @@ export default async function AdminDashboardPage() {
           <p className="text-sm font-medium">{t("admin.revenue_trend")}</p>
           <span className="text-xs text-neutral-400">{t("admin.last_14_days")}</span>
         </div>
-        <RevenueTrendChart data={analytics.dailyRevenue} />
+        <RevenueTrendChart data={analytics.dailyRevenue} money={money} />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -214,12 +216,12 @@ export default async function AdminDashboardPage() {
 
         <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <p className="mb-3 text-sm font-medium">{t("admin.top_products_30d")}</p>
-          <BarList items={analytics.topProducts} formatValue={formatSAR} emptyLabel={t("admin.no_sales_30d")} />
+          <BarList items={analytics.topProducts} formatValue={money} emptyLabel={t("admin.no_sales_30d")} />
         </div>
 
         <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <p className="mb-3 text-sm font-medium">{t("admin.revenue_by_category_30d")}</p>
-          <BarList items={analytics.topCategories} formatValue={formatSAR} emptyLabel={t("admin.no_sales_30d")} />
+          <BarList items={analytics.topCategories} formatValue={money} emptyLabel={t("admin.no_sales_30d")} />
         </div>
       </div>
 
@@ -241,7 +243,7 @@ export default async function AdminDashboardPage() {
                   <p className="text-xs text-neutral-400">{new Date(order.created_at).toLocaleString()}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-neutral-700">{formatSAR(order.total)}</span>
+                  <span className="text-neutral-700">{money(order.total)}</span>
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[order.status] ?? "bg-neutral-100 text-neutral-600"}`}
                   >

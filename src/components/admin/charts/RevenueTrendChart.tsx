@@ -1,5 +1,6 @@
-import { formatSAR } from "@/lib/utils";
+
 import type { DailyRevenuePoint } from "@/lib/admin-analytics";
+import type { MoneyFormatter } from "@/lib/money";
 
 const WIDTH = 700;
 const HEIGHT = 180;
@@ -22,7 +23,7 @@ function formatDay(dateStr: string) {
   return { day: d, label: `${weekday}, ${MONTHS[m - 1]} ${d}` };
 }
 
-export default function RevenueTrendChart({ data }: { data: DailyRevenuePoint[] }) {
+export default function RevenueTrendChart({ data, money }: { data: DailyRevenuePoint[]; money: MoneyFormatter }) {
   const max = Math.max(...data.map((d) => d.revenue), 1);
   const plotWidth = WIDTH - PAD_LEFT - PAD_RIGHT;
   const plotHeight = HEIGHT - PAD_TOP - PAD_BOTTOM;
@@ -56,7 +57,7 @@ export default function RevenueTrendChart({ data }: { data: DailyRevenuePoint[] 
               fill="#2563eb"
               opacity={d.revenue > 0 ? 1 : 0.15}
             >
-              <title>{`${label}: ${formatSAR(d.revenue)} · ${d.orders} order${d.orders === 1 ? "" : "s"}`}</title>
+              <title>{`${label}: ${money(d.revenue)} · ${d.orders} order${d.orders === 1 ? "" : "s"}`}</title>
             </rect>
             {d.revenue === 0 && (
               <rect x={x} y={HEIGHT - PAD_BOTTOM - 2} width={barWidth} height={2} rx={1} fill="#2563eb" opacity={0.15} />

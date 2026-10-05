@@ -3,7 +3,8 @@
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
 import { EXPRESS_FEE, FREE_DELIVERY_THRESHOLD, STANDARD_FEE, formatDeliveryDate, standardDeliveryDate } from "@/lib/delivery-methods";
-import { formatSAR } from "@/lib/utils";
+import { useMoney } from "@/components/MoneyProvider";
+
 
 function Row({ icon, title, detail, fee, ok }: { icon: string; title: string; detail: string; fee?: string; ok: boolean }) {
   return (
@@ -26,8 +27,9 @@ interface Offer {
 }
 
 function OptionRows({ offer }: { offer: Offer }) {
+  const money = useMoney();
   const { t, locale } = useLocale();
-  const freeHint = t("delivery_info.free_over", { amount: formatSAR(FREE_DELIVERY_THRESHOLD) });
+  const freeHint = t("delivery_info.free_over", { amount: money(FREE_DELIVERY_THRESHOLD) });
   return (
     <section className="flex flex-col gap-2">
       <h3 className="text-sm font-extrabold tracking-tight text-neutral-900">{t("delivery_info.title")}</h3>
@@ -42,7 +44,7 @@ function OptionRows({ offer }: { offer: Offer }) {
               ? `${t("delivery_info.express_unavailable")} — ${t("delivery_info.express_within", { radius: offer.expressRadiusKm })}`
               : t("delivery_info.express_unavailable")
         }
-        fee={formatSAR(EXPRESS_FEE)}
+        fee={money(EXPRESS_FEE)}
       />
       <Row
         icon="📦"
@@ -53,7 +55,7 @@ function OptionRows({ offer }: { offer: Offer }) {
             ? `${t("delivery_info.standard_by", { date: formatDeliveryDate(standardDeliveryDate(offer.standardDays), locale) })} · ${freeHint}`
             : t("delivery_info.standard_unavailable")
         }
-        fee={formatSAR(STANDARD_FEE)}
+        fee={money(STANDARD_FEE)}
       />
     </section>
   );

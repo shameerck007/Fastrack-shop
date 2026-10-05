@@ -1,9 +1,8 @@
+import { formatMoney } from "@/lib/money";
+
+/** @deprecated Fixed to SAR. Use useMoney() (client) / getMoney() (server) so other markets show their own currency. */
 export function formatSAR(amount: number): string {
-  return new Intl.NumberFormat("en-SA", {
-    style: "currency",
-    currency: "SAR",
-    minimumFractionDigits: 2,
-  }).format(amount);
+  return formatMoney(amount, "SAR");
 }
 
 export const VAT_RATE = 0.15;

@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { moneyFor } from "@/lib/money";
 import type { LabelData } from "@/lib/orders";
-import { formatSAR } from "@/lib/utils";
 
 // Same pdf-lib approach as invoice-pdf.ts (pure JS, runs on Cloudflare
 // Workers) — see the comment there for why. Standard fonts only cover
@@ -35,6 +35,7 @@ export async function buildLabelPdf({
 }): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Delivery label ${order.order_number}`);
+  const money = moneyFor(order.currency ?? "SAR");
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
@@ -112,10 +113,10 @@ export async function buildLabelPdf({
       color: rgb(1, 0.96, 0.96),
     });
     text(page, "COLLECT ON DELIVERY", M + 8, y - 10, { size: 8, font: bold, color: RED });
-    text(page, formatSAR(order.total), PAGE_W - M - 8, y - 18, { size: 14, font: bold, color: RED, right: true });
+    text(page, money(order.total), PAGE_W - M - 8, y - 18, { size: 14, font: bold, color: RED, right: true });
     y -= boxH + 10;
   } else {
-    text(page, `Prepaid — ${formatSAR(order.total)}`, M, y - 10, { size: 9, color: GRAY });
+    text(page, `Prepaid — ${money(order.total)}`, M, y - 10, { size: 9, color: GRAY });
     y -= 22;
   }
 

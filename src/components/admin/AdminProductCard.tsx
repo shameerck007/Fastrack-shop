@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { toggleProductActive, updateProductStock } from "@/lib/actions/admin-products";
 import StockCell from "@/components/admin/StockCell";
 import ProductForm from "@/components/admin/ProductForm";
-import { formatSAR } from "@/lib/utils";
+
 import { useLocale } from "@/components/LocaleProvider";
 import type { Category, Warehouse } from "@/types/database";
 import type { AdminProduct } from "@/lib/admin-products";
+import { useMoney } from "@/components/MoneyProvider";
 
 export default function AdminProductCard({
   product,
@@ -19,6 +20,7 @@ export default function AdminProductCard({
   categories: Category[];
   warehouses: Warehouse[];
 }) {
+  const money = useMoney();
   const { t } = useLocale();
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -78,9 +80,9 @@ export default function AdminProductCard({
         </div>
 
         <div className="flex items-baseline gap-2">
-          <span className="text-sm font-semibold text-neutral-900">{variant ? formatSAR(variant.price) : "—"}</span>
+          <span className="text-sm font-semibold text-neutral-900">{variant ? money(variant.price) : "—"}</span>
           {variant?.compare_at_price != null && (
-            <span className="text-xs text-neutral-400 line-through">{formatSAR(variant.compare_at_price)}</span>
+            <span className="text-xs text-neutral-400 line-through">{money(variant.compare_at_price)}</span>
           )}
         </div>
 

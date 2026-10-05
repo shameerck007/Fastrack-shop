@@ -1,4 +1,5 @@
 import LandingPreferenceCard from "@/components/LandingPreferenceCard";
+import type { MoneyFormatter } from "@/lib/money";
 import {
   getRiderProfile,
   getAvailableOrders,
@@ -8,7 +9,7 @@ import {
   getWeeklyEarnings,
   type AvailableOrder,
 } from "@/lib/rider";
-import { formatSAR } from "@/lib/utils";
+
 import AcceptOrderButton from "@/components/rider/AcceptOrderButton";
 import RiderProfileCard from "@/components/rider/RiderProfileCard";
 import RiderStatsGrid from "@/components/rider/RiderStatsGrid";
@@ -17,6 +18,7 @@ import ActiveDeliveryCard from "@/components/rider/ActiveDeliveryCard";
 import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 const DELIVERY_TYPE_KEY: Record<string, string> = {
   express: "checkout.express",
@@ -27,6 +29,7 @@ const DELIVERY_TYPE_KEY: Record<string, string> = {
 export default async function RiderHomePage() {
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
+  const money = await getMoney();
   const rider = await getRiderProfile();
   const activeDelivery = await getActiveDelivery();
   const isMatching = rider?.deliveryPartner.is_available && !activeDelivery;
@@ -52,6 +55,7 @@ export default async function RiderHomePage() {
       <RiderProfileCard profile={rider.profile} deliveryPartner={rider.deliveryPartner} t={t} locale={locale} />
 
       <RiderStatsGrid
+        money={money}
         todayDeliveries={todayStats.deliveries}
         todayEarnings={todayStats.earnings}
         totalDeliveries={lifetimeStats?.totalDeliveries ?? 0}
@@ -59,7 +63,7 @@ export default async function RiderHomePage() {
         t={t}
       />
 
-      <RiderEarningsChart days={weeklyEarnings} t={t} />
+      <RiderEarningsChart days={weeklyEarnings} t={t} money={money} />
 
       {!rider.deliveryPartner.is_available && !activeDelivery && (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-white py-12 text-center">
@@ -69,7 +73,7 @@ export default async function RiderHomePage() {
         </div>
       )}
 
-      {activeDelivery && <ActiveDeliveryCard delivery={activeDelivery} t={t} />}
+      {activeDelivery && <ActiveDeliveryCard delivery={activeDelivery} t={t} money={money} />}
 
       {isMatching && (
         <div>
@@ -88,7 +92,7 @@ export default async function RiderHomePage() {
           ) : (
             <div className="flex flex-col gap-3">
               {availableOrders.map((order) => (
-                <AvailableOrderCard key={order.id} order={order} t={t} />
+                <AvailableOrderCard key={order.id} order={order} t={t} money={money} />
               ))}
             </div>
           )}
@@ -102,7 +106,9 @@ export default async function RiderHomePage() {
 function AvailableOrderCard({
   order,
   t,
+  money,
 }: {
+  money: MoneyFormatter;
   order: AvailableOrder;
   t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
@@ -128,7 +134,7 @@ function AvailableOrderCard({
           )}
         </div>
         <div className="text-right">
-          <p className="mb-1 font-semibold text-blue-700">{formatSAR(order.delivery_fee)}</p>
+          <p className="mb-1 font-semibold text-blue-700">{money(order.delivery_fee)}</p>
           <AcceptOrderButton orderId={order.id} />
         </div>
       </div>

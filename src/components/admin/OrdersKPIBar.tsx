@@ -1,5 +1,6 @@
-import { formatSAR } from "@/lib/utils";
+
 import type { AdminOrderKPIs } from "@/lib/admin-orders";
+import type { MoneyFormatter } from "@/lib/money";
 
 function Kpi({ icon, label, value, accent, urgent }: { icon: string; label: string; value: string | number; accent: string; urgent?: boolean }) {
   return (
@@ -22,7 +23,7 @@ function Kpi({ icon, label, value, accent, urgent }: { icon: string; label: stri
   );
 }
 
-export default function OrdersKPIBar({ kpis, t }: { kpis: AdminOrderKPIs; t: (key: string) => string }) {
+export default function OrdersKPIBar({ kpis, t, money }: { kpis: AdminOrderKPIs; t: (key: string) => string; money: MoneyFormatter }) {
   return (
     <div className="mb-5 flex flex-col gap-2.5">
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
@@ -35,7 +36,7 @@ export default function OrdersKPIBar({ kpis, t }: { kpis: AdminOrderKPIs; t: (ke
         <Kpi icon="🧾" label={t("admin.orders_today")} value={kpis.today.totalOrders} accent="#0891b2" />
         <Kpi icon="✅" label={t("admin.delivered_today")} value={kpis.today.delivered} accent="#059669" />
         <Kpi icon="✕" label={t("admin.cancelled_today")} value={kpis.today.cancelled} accent="#64748b" />
-        <Kpi icon="💰" label={t("admin.revenue_today")} value={formatSAR(kpis.today.revenue)} accent="#2563eb" />
+        <Kpi icon="💰" label={t("admin.revenue_today")} value={money(kpis.today.revenue)} accent="#2563eb" />
       </div>
     </div>
   );

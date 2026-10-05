@@ -1,10 +1,11 @@
 import { getWarehouseOrders, summarizeWarehouseOrders } from "@/lib/warehouse-staff";
-import { formatSAR } from "@/lib/utils";
+
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import WarehouseOrderStatusAction from "@/components/warehouse/WarehouseOrderStatusAction";
 import type { OrderStatus } from "@/types/database";
+import { getMoney } from "@/lib/tenant-server";
 
 const STATUS_BADGE: Record<OrderStatus, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -18,6 +19,7 @@ const STATUS_BADGE: Record<OrderStatus, string> = {
 };
 
 export default async function WarehouseOrdersPage() {
+  const money = await getMoney();
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
 
@@ -67,7 +69,7 @@ export default async function WarehouseOrdersPage() {
                   </span>
                   <span>
                     <span className="block text-neutral-400">{t("orders.total_label")}</span>
-                    <span className="font-medium text-neutral-700">{formatSAR(order.total)}</span>
+                    <span className="font-medium text-neutral-700">{money(order.total)}</span>
                   </span>
                   <div className="text-end">
                     <span className="block text-neutral-400">

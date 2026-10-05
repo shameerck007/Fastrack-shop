@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getMoney } from "@/lib/tenant-server";
 import { getMyStore } from "@/lib/merchant";
 import { getStoreSettlementSummary, getStoreSettlementOrders, getStorePayouts } from "@/lib/settlements";
 import { SettlementSummaryCards, SettlementOrdersTable, SettlementPayoutsList } from "@/components/SettlementLedger";
@@ -8,6 +9,7 @@ import { translate } from "@/lib/i18n/t";
 export default async function MerchantSettlementsPage() {
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
+  const money = await getMoney();
   const store = await getMyStore();
   if (!store) redirect("/merchant");
 
@@ -24,7 +26,7 @@ export default async function MerchantSettlementsPage() {
 
       {summary && (
         <div className="my-5">
-          <SettlementSummaryCards summary={summary} t={t} />
+          <SettlementSummaryCards summary={summary} t={t} money={money} />
         </div>
       )}
 
@@ -34,7 +36,7 @@ export default async function MerchantSettlementsPage() {
             <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-700">
               {t("merchant.delivered_orders_count", { count: orders.length })}
             </h2>
-            <SettlementOrdersTable orders={orders} t={t} locale={locale} />
+            <SettlementOrdersTable orders={orders} t={t} locale={locale} money={money} />
           </section>
         </div>
 
@@ -43,7 +45,7 @@ export default async function MerchantSettlementsPage() {
             <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-700">
               {t("merchant.payout_history_count", { count: payouts.length })}
             </h2>
-            <SettlementPayoutsList payouts={payouts} t={t} locale={locale} />
+            <SettlementPayoutsList payouts={payouts} t={t} locale={locale} money={money} />
           </section>
         </div>
       </div>

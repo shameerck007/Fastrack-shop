@@ -1,5 +1,6 @@
-import { formatSAR } from "@/lib/utils";
+
 import type { SettlementOrderRow, SettlementPayout, SettlementSummary } from "@/lib/settlements";
+import type { MoneyFormatter } from "@/lib/money";
 import type { Locale } from "@/lib/i18n/config";
 
 type T = (key: string, vars?: Record<string, string | number>) => string;
@@ -15,23 +16,23 @@ function SummaryCard({ label, value, tone }: { label: string; value: string; ton
   );
 }
 
-export function SettlementSummaryCards({ summary, t }: { summary: SettlementSummary; t: T }) {
+export function SettlementSummaryCards({ summary, t, money }: { summary: SettlementSummary; t: T; money: MoneyFormatter }) {
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-      <SummaryCard label={t("merchant.gross_sales_delivered")} value={formatSAR(summary.grossSales)} />
-      <SummaryCard label={t("merchant.commission_pct", { rate: summary.commissionRate })} value={formatSAR(summary.commissionAmount)} />
-      <SummaryCard label={t("merchant.net_earned")} value={formatSAR(summary.netEarned)} tone="emerald" />
-      <SummaryCard label={t("merchant.paid_out")} value={formatSAR(summary.paidOut)} />
+      <SummaryCard label={t("merchant.gross_sales_delivered")} value={money(summary.grossSales)} />
+      <SummaryCard label={t("merchant.commission_pct", { rate: summary.commissionRate })} value={money(summary.commissionAmount)} />
+      <SummaryCard label={t("merchant.net_earned")} value={money(summary.netEarned)} tone="emerald" />
+      <SummaryCard label={t("merchant.paid_out")} value={money(summary.paidOut)} />
       <SummaryCard
         label={t("merchant.balance_due")}
-        value={formatSAR(summary.balanceDue)}
+        value={money(summary.balanceDue)}
         tone={summary.balanceDue > 0.005 ? "amber" : "emerald"}
       />
     </div>
   );
 }
 
-export function SettlementOrdersTable({ orders, t, locale }: { orders: SettlementOrderRow[]; t: T; locale: Locale }) {
+export function SettlementOrdersTable({ orders, t, locale, money }: { orders: SettlementOrderRow[]; t: T; locale: Locale; money: MoneyFormatter }) {
   if (orders.length === 0) {
     return <p className="p-4 text-sm text-neutral-400">{t("merchant.no_delivered_orders")}</p>;
   }
@@ -56,9 +57,9 @@ export function SettlementOrdersTable({ orders, t, locale }: { orders: Settlemen
                 {o.deliveredAt ? new Date(o.deliveredAt).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US") : "—"}
               </td>
               <td className="px-3 py-2.5 text-right text-neutral-500">{o.itemCount}</td>
-              <td className="px-3 py-2.5 text-right text-neutral-700">{formatSAR(o.lineTotal)}</td>
-              <td className="px-3 py-2.5 text-right text-neutral-500">{formatSAR(o.commissionAmount)}</td>
-              <td className="px-4 py-2.5 text-right font-medium text-neutral-900">{formatSAR(o.netAmount)}</td>
+              <td className="px-3 py-2.5 text-right text-neutral-700">{money(o.lineTotal)}</td>
+              <td className="px-3 py-2.5 text-right text-neutral-500">{money(o.commissionAmount)}</td>
+              <td className="px-4 py-2.5 text-right font-medium text-neutral-900">{money(o.netAmount)}</td>
             </tr>
           ))}
         </tbody>
@@ -67,7 +68,7 @@ export function SettlementOrdersTable({ orders, t, locale }: { orders: Settlemen
   );
 }
 
-export function SettlementPayoutsList({ payouts, t, locale }: { payouts: SettlementPayout[]; t: T; locale: Locale }) {
+export function SettlementPayoutsList({ payouts, t, locale, money }: { payouts: SettlementPayout[]; t: T; locale: Locale; money: MoneyFormatter }) {
   if (payouts.length === 0) {
     return <p className="p-4 text-sm text-neutral-400">{t("merchant.no_payouts")}</p>;
   }
@@ -80,7 +81,7 @@ export function SettlementPayoutsList({ payouts, t, locale }: { payouts: Settlem
       {payouts.map((p) => (
         <li key={p.id} className="flex items-start justify-between gap-3 px-4 py-3 text-sm">
           <div className="min-w-0">
-            <p className="font-medium text-neutral-900">{formatSAR(p.amount)}</p>
+            <p className="font-medium text-neutral-900">{money(p.amount)}</p>
             <p className="text-xs text-neutral-500">
               {methodLabel(p.method)}
               {p.reference && ` ${t("merchant.ref", { ref: p.reference })}`}

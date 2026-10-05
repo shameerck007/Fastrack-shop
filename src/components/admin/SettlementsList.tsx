@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { formatSAR } from "@/lib/utils";
+
 import type { AdminSettlementOverviewRow } from "@/lib/settlements";
 import { useLocale } from "@/components/LocaleProvider";
+import { useMoney } from "@/components/MoneyProvider";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -14,6 +15,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function SettlementsList({ rows }: { rows: AdminSettlementOverviewRow[] }) {
+  const money = useMoney();
   const [q, setQ] = useState("");
   const { t } = useLocale();
 
@@ -65,14 +67,14 @@ export default function SettlementsList({ rows }: { rows: AdminSettlementOvervie
                       </span>
                     </div>
                   </td>
-                  <td className="px-3 py-3 text-right text-neutral-700">{formatSAR(r.grossSales)}</td>
+                  <td className="px-3 py-3 text-right text-neutral-700">{money(r.grossSales)}</td>
                   <td className="px-3 py-3 text-right text-neutral-500">
-                    {formatSAR(r.commissionAmount)} <span className="text-xs">({r.commissionRate}%)</span>
+                    {money(r.commissionAmount)} <span className="text-xs">({r.commissionRate}%)</span>
                   </td>
-                  <td className="px-3 py-3 text-right text-neutral-700">{formatSAR(r.netEarned)}</td>
-                  <td className="px-3 py-3 text-right text-neutral-700">{formatSAR(r.paidOut)}</td>
+                  <td className="px-3 py-3 text-right text-neutral-700">{money(r.netEarned)}</td>
+                  <td className="px-3 py-3 text-right text-neutral-700">{money(r.paidOut)}</td>
                   <td className={`px-3 py-3 text-right font-semibold ${r.balanceDue > 0.005 ? "text-amber-700" : "text-emerald-700"}`}>
-                    {formatSAR(r.balanceDue)}
+                    {money(r.balanceDue)}
                   </td>
                   <td className="px-5 py-3 text-right">
                     <Link href={`/admin/settlements/${r.storeId}`} className="text-xs font-medium text-blue-600 hover:underline">

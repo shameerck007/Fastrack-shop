@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { getMyOrders, type OrderListItem } from "@/lib/orders";
-import { formatSAR } from "@/lib/utils";
+
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import BuyItAgainButton from "@/components/BuyItAgainButton";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import type { OrderStatus } from "@/types/database";
+import { getMoney } from "@/lib/tenant-server";
 
 const ACTIVE_STATUSES: OrderStatus[] = [
   "pending",
@@ -51,6 +52,7 @@ export default async function OrdersPage({
 }: {
   searchParams: Promise<{ filter?: string }>;
 }) {
+  const money = await getMoney();
   const { filter = "all" } = await searchParams;
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
@@ -109,7 +111,7 @@ export default async function OrdersPage({
                         </span>
                         <span>
                           <span className="block text-neutral-400">{t("orders.total_label")}</span>
-                          <span className="text-neutral-700">{formatSAR(order.total)}</span>
+                          <span className="text-neutral-700">{money(order.total)}</span>
                         </span>
                         {shipTo && (
                           <span className="hidden sm:inline">

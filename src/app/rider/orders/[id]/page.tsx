@@ -6,9 +6,10 @@ import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
 import RiderTaskMap from "@/components/rider/RiderTaskMap";
 import OrderChat from "@/components/OrderChat";
 import { getOrderMessages } from "@/lib/order-messages";
-import { formatSAR } from "@/lib/utils";
+
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getMoney } from "@/lib/tenant-server";
 
 interface Place {
   lat: number | null;
@@ -60,6 +61,7 @@ export default async function RiderOrderPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const money = await getMoney();
   const { id } = await params;
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
@@ -103,7 +105,7 @@ export default async function RiderOrderPage({
         </div>
         <div className="rounded-2xl bg-blue-700 px-4 py-2 text-end text-white shadow-md shadow-blue-700/20">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-100">{t("rider_task.you_earn")}</p>
-          <p className="text-lg font-extrabold leading-tight">{formatSAR(order.delivery_fee)}</p>
+          <p className="text-lg font-extrabold leading-tight">{money(order.delivery_fee)}</p>
         </div>
       </div>
 
@@ -133,7 +135,7 @@ export default async function RiderOrderPage({
               {collectCash ? t("rider_task.collect_cash_hint") : t("rider_task.paid_online_hint")}
             </p>
           </div>
-          {collectCash && <p className="shrink-0 text-xl font-extrabold text-amber-900">{formatSAR(order.total)}</p>}
+          {collectCash && <p className="shrink-0 text-xl font-extrabold text-amber-900">{money(order.total)}</p>}
         </div>
       )}
 
@@ -212,12 +214,12 @@ export default async function RiderOrderPage({
               <span className="block truncate font-medium text-neutral-900">{item.product_name}</span>
               <span className="block text-xs text-neutral-500">{item.variant_label}</span>
             </span>
-            <span className="shrink-0 text-neutral-700">{formatSAR(item.line_total)}</span>
+            <span className="shrink-0 text-neutral-700">{money(item.line_total)}</span>
           </div>
         ))}
         <div className="flex justify-between border-t border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-bold">
           <span>{t("checkout.total")}</span>
-          <span>{formatSAR(order.total)}</span>
+          <span>{money(order.total)}</span>
         </div>
       </div>
 
