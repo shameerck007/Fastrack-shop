@@ -4,7 +4,6 @@ import Wordmark from "@/components/Wordmark";
 import UserHeaderActions from "@/components/UserHeaderActions";
 import DeliverToChip from "@/components/DeliverToChip";
 import CategoryNavBar from "@/components/CategoryNavBar";
-import LanguageToggle from "@/components/LanguageToggle";
 import { getCategoriesWithChildren } from "@/lib/catalog";
 
 export default async function Header() {
@@ -19,16 +18,15 @@ export default async function Header() {
     <header className="sticky top-0 z-30 bg-white shadow-sm" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 pb-2.5 pt-2 sm:gap-3 sm:py-3">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/" className="hidden shrink-0 items-center gap-2 sm:flex">
-            <Wordmark height={24} />
-            <span className="inline-block rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700">Shop</span>
+          <Link href="/" className="flex shrink-0 items-center gap-1.5">
+            <Wordmark height={17} />
+            <span className="inline-block rounded bg-blue-50 px-1 py-px text-[10px] font-semibold text-blue-700">Shop</span>
           </Link>
 
-          <DeliverToChip variant="plain" className="min-w-0 flex-1 sm:hidden" />
+          <DeliverToChip variant="plain" className="ms-auto min-w-0 sm:hidden" />
           <DeliverToChip className="hidden sm:flex" />
 
           <div className="flex shrink-0 items-center gap-3">
-            <LanguageToggle />
             <UserHeaderActions />
           </div>
         </div>

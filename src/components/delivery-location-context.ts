@@ -7,6 +7,8 @@ export interface DeliveryLocation {
   lng: number;
   label: string;
   addressId?: string;
+  /** Set when the position came from the device GPS (vs a saved address or searched place). */
+  source?: "gps";
 }
 
 export interface ZoneRow {

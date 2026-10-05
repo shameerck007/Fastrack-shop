@@ -16,6 +16,7 @@ import {
 
 const STORAGE_KEY = "fastrack:delivery-location";
 const SKIPPED_KEY = "fastrack:delivery-location-skipped";
+const GPS_REFRESHED_KEY = "fastrack:gps-refreshed";
 // Pages where prompting a shopper for a delivery location makes no sense.
 const NO_PROMPT_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse", "/login", "/register", "/sell"];
 
@@ -165,7 +166,7 @@ export default function DeliveryLocationProvider({ children }: { children: React
           if (cancelled) return;
           try {
             const label = await reverseAreaName(pos.coords.latitude, pos.coords.longitude);
-            if (!cancelled) setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, label });
+            if (!cancelled) setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, label, source: "gps" });
           } catch {
             if (!cancelled) setPickerOpen(true);
           }
@@ -182,6 +183,41 @@ export default function DeliveryLocationProvider({ children }: { children: React
       cancelled = true;
     };
   }, [ready, location, pathname, setLocation]);
+
+  // Returning visitor whose saved spot came from GPS: quietly re-check where
+  // they are once per session so the header says where they are *now*
+  // (a manually chosen address is never overridden). Only runs when the
+  // browser already granted permission, so it never shows a prompt.
+  useEffect(() => {
+    if (!ready || location?.source !== "gps") return;
+    try {
+      if (sessionStorage.getItem(GPS_REFRESHED_KEY)) return;
+      sessionStorage.setItem(GPS_REFRESHED_KEY, "1");
+    } catch {
+      return;
+    }
+    if (!navigator.geolocation || !navigator.permissions?.query) return;
+
+    let cancelled = false;
+    navigator.permissions
+      .query({ name: "geolocation" as PermissionName })
+      .then((status) => {
+        if (cancelled || status.state !== "granted") return;
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            if (cancelled) return;
+            const label = await reverseAreaName(pos.coords.latitude, pos.coords.longitude);
+            if (!cancelled) setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, label, source: "gps" });
+          },
+          () => {},
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+        );
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, location?.source, setLocation]);
 
   const statusForStore = useCallback(
     (storeId: string | null): DeliveryStatus => {

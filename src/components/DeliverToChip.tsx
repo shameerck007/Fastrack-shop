@@ -23,7 +23,11 @@ export default function DeliverToChip({
       } ${className}`}
       aria-label={t("header.change_location")}
     >
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm transition group-hover:bg-blue-100">
+      <span
+        className={`flex shrink-0 items-center justify-center rounded-full bg-blue-50 transition group-hover:bg-blue-100 ${
+          variant === "pill" ? "h-7 w-7 text-sm" : "h-6 w-6 text-xs"
+        }`}
+      >
         📍
       </span>
       <span className="flex min-w-0 flex-col leading-tight">
@@ -31,7 +35,7 @@ export default function DeliverToChip({
         {!ready ? (
           <span className="h-3.5 w-20 animate-pulse rounded bg-neutral-200" />
         ) : (
-          <span className="max-w-[11rem] truncate text-sm font-bold text-neutral-900 sm:max-w-[14rem]">
+          <span className="max-w-[11rem] truncate text-[13px] font-bold sm:text-sm text-neutral-900 sm:max-w-[14rem]">
             {location?.label ?? t("header.choose_location")}
           </span>
         )}

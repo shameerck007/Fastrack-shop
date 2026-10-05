@@ -245,6 +245,8 @@ const en = {
       cancelled: "Cancelled",
     },
     account: {
+      language_title: "Language",
+      language_desc: "Choose English or Arabic for the whole app.",
       title: "Your Account",
       logout: "Log out",
       my_addresses: "My Addresses",
@@ -1269,6 +1271,8 @@ const ar: LocaleShape = {
       cancelled: "ملغى",
     },
     account: {
+      language_title: "اللغة",
+      language_desc: "اختر العربية أو الإنجليزية للتطبيق بالكامل.",
       title: "حسابي",
       logout: "تسجيل الخروج",
       my_addresses: "عناويني",

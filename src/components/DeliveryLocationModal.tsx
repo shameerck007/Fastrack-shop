@@ -104,14 +104,14 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
     return best;
   }
 
-  async function resolveLocation(lat: number, lng: number, addressId?: string) {
+  async function resolveLocation(lat: number, lng: number, addressId?: string, fromGps = false) {
     const match = matchSavedAddress(lat, lng);
     if (match) {
       setLocation({ lat, lng, label: addressLabelText(match.label), addressId: match.id });
       return;
     }
     const label = await reverseAreaName(lat, lng);
-    setLocation({ lat, lng, label, addressId });
+    setLocation({ lat, lng, label, addressId, ...(fromGps ? { source: "gps" as const } : {}) });
   }
 
   function useCurrentLocation() {
@@ -124,7 +124,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
-        await resolveLocation(latitude, longitude);
+        await resolveLocation(latitude, longitude, undefined, true);
         setLocating(false);
       },
       () => {
