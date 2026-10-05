@@ -30,7 +30,7 @@ export default function StoreHero({ store }: { store: StoreInfo }) {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 pb-4">
-        <div className="-mt-10 flex items-end gap-3">
+        <div className="relative z-10 -mt-10 flex items-end gap-3">
           <StoreLogo store={store} size={80} className="shadow-md ring-4 ring-white" />
         </div>
 
