@@ -77,7 +77,15 @@ export default function QuickAddToCart({
           return;
         }
 
-        await addToCart(variantId, 1, location ? { lat: location.lat, lng: location.lng } : undefined);
+        const result = await addToCart(variantId, 1, location ? { lat: location.lat, lng: location.lng } : undefined);
+        if (result.error) {
+          if (result.error.toLowerCase().includes("logged in")) {
+            router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+          } else {
+            setError(result.error);
+          }
+          return;
+        }
         notifyCartChanged();
         setJustAdded(true);
         router.refresh();

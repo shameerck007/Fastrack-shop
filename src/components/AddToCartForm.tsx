@@ -50,7 +50,11 @@ export default function AddToCartForm({
     setMessage(null);
     startTransition(async () => {
       try {
-        await addToCart(variantId, quantity, location ? { lat: location.lat, lng: location.lng } : undefined);
+        const result = await addToCart(variantId, quantity, location ? { lat: location.lat, lng: location.lng } : undefined);
+        if (result.error) {
+          setMessage(result.error);
+          return;
+        }
         setMessage(t("product.added_to_cart"));
         notifyCartChanged();
         router.refresh();

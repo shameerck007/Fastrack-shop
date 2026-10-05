@@ -46,7 +46,7 @@ async function getOrCreateCartId(): Promise<string> {
   return created.id;
 }
 
-export async function addToCart(
+async function addToCartOrThrow(
   variantId: string,
   quantity: number,
   location?: { lat: number; lng: number }
@@ -145,4 +145,22 @@ export async function removeCartItem(cartItemId: string) {
   const { error } = await supabase.from("cart_items").delete().eq("id", cartItemId);
   if (error) throw error;
   revalidatePath("/cart");
+}
+
+/** Why this returns a result instead of throwing: in production, Next.js
+ * replaces the message of any error thrown out of a server action with a
+ * generic placeholder ("An error occurred in the Server Components render",
+ * shown as React error #441), so "shop is closed" or "not enough stock"
+ * would never reach the shopper. Returned values are not redacted. */
+export async function addToCart(
+  variantId: string,
+  quantity: number,
+  location?: { lat: number; lng: number }
+): Promise<{ error?: string }> {
+  try {
+    await addToCartOrThrow(variantId, quantity, location);
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Could not add to cart." };
+  }
 }

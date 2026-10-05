@@ -67,12 +67,13 @@ export default function CheckoutForm({
     }
     startTransition(async () => {
       try {
-        await placeOrder({
+        const result = await placeOrder({
           addressId,
           deliveryType,
           scheduledFor: deliveryType === "scheduled" ? scheduledFor : undefined,
           paymentMethod,
         });
+        if (result?.error) setError(result.error);
       } catch (err) {
         // Next.js redirect() throws an object with a NEXT_REDIRECT digest — rethrow so navigation still happens.
         const digest = (err as { digest?: string } | null)?.digest;

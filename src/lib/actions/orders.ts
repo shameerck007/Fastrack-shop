@@ -20,7 +20,7 @@ const DELIVERY_FEES: Record<DeliveryType, number> = {
   scheduled: 7,
 };
 
-export async function placeOrder(input: {
+async function placeOrderOrThrow(input: {
   addressId: string;
   deliveryType: DeliveryType;
   scheduledFor?: string;
@@ -238,8 +238,9 @@ export async function reorderItems(orderId: string) {
   let skipped = 0;
   for (const item of order.order_items as { variant_id: string; ordered_quantity: number }[]) {
     try {
-      await addToCart(item.variant_id, item.ordered_quantity);
-      added++;
+      const result = await addToCart(item.variant_id, item.ordered_quantity);
+      if (result.error) skipped++;
+      else added++;
     } catch {
       skipped++;
     }
@@ -247,4 +248,18 @@ export async function reorderItems(orderId: string) {
 
   revalidatePath("/cart");
   return { added, skipped };
+}
+
+/** Same reason as addToCart: expected refusals (closed shop, no stock, outside
+ * the delivery area...) come back as { error } so the real message survives
+ * production. On success placeOrderOrThrow redirects, which must propagate. */
+export async function placeOrder(input: Parameters<typeof placeOrderOrThrow>[0]): Promise<{ error: string }> {
+  try {
+    await placeOrderOrThrow(input);
+    return { error: "" };
+  } catch (err) {
+    const digest = (err as { digest?: string } | null)?.digest;
+    if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) throw err;
+    return { error: err instanceof Error ? err.message : "Could not place your order." };
+  }
 }
