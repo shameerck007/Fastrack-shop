@@ -61,3 +61,14 @@ export const DEFAULT_COUNTRY_CODE = "SA";
 export function findCountry(code: string): Country {
   return COUNTRIES.find((c) => c.code === code) ?? COUNTRIES[0];
 }
+
+/** Checks a stored E.164 number ("+966501234567"). Saudi numbers are held to the
+ * exact mobile shape (5 + 8 digits); other countries get the E.164 length range. */
+export function validatePhone(value: string): { ok: boolean; error: string | null } {
+  if (!value) return { ok: false, error: "Enter a mobile number." };
+  if (!/^\+\d{8,15}$/.test(value)) return { ok: false, error: "Enter a valid mobile number." };
+  if (value.startsWith("+966") && !/^\+9665\d{8}$/.test(value)) {
+    return { ok: false, error: "Saudi mobile numbers have 9 digits and start with 5 (e.g. 5X XXX XXXX)." };
+  }
+  return { ok: true, error: null };
+}

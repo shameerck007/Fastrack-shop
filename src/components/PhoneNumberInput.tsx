@@ -1,39 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { COUNTRIES, findCountry, type Country } from "@/lib/countries";
+import { useDefaultCountry } from "@/components/DefaultCountryProvider";
 
-/** Splits a stored E.164-ish value ("+966501234567") back into a country +
- * national number for editing, so re-opening a form with an existing phone
- * shows the right flag instead of always resetting to the default country. */
+/** Splits a stored value back into a country + national number for editing, so
+ * re-opening a form with an existing phone shows the right flag. Accepts the
+ * clean E.164 we store ("+966501234567") and older hand-typed values
+ * ("0501234567", "+966 50 123 4567", "00966…"). */
 function splitValue(value: string, fallbackCountry: Country): { country: Country; national: string } {
-  const match = COUNTRIES.filter((c) => value.startsWith(c.dial)).sort((a, b) => b.dial.length - a.dial.length)[0];
-  if (match) return { country: match, national: value.slice(match.dial.length) };
-  return { country: fallbackCountry, national: value.replace(/^\+?\d*$/, "") };
+  let clean = value.replace(/[\s()-]/g, "");
+  if (clean.startsWith("00")) clean = `+${clean.slice(2)}`;
+
+  if (clean.startsWith("+")) {
+    const match = COUNTRIES.filter((c) => clean.startsWith(c.dial)).sort((a, b) => b.dial.length - a.dial.length)[0];
+    if (match) return { country: match, national: clean.slice(match.dial.length) };
+    return { country: fallbackCountry, national: clean.replace(/\D/g, "") };
+  }
+  return { country: fallbackCountry, national: clean.replace(/\D/g, "") };
 }
 
+/** A country-code dropdown plus the national number. The country starts as the
+ * visitor's own (detected from their connection, see DefaultCountryProvider)
+ * and can be changed; the value handed back is always clean E.164. */
 export default function PhoneNumberInput({
   value,
   onChange,
   defaultCountryCode,
   placeholder,
+  required,
 }: {
   value: string;
   onChange: (value: string) => void;
-  defaultCountryCode: string;
+  /** Overrides the detected country (rarely needed). */
+  defaultCountryCode?: string;
   placeholder?: string;
+  required?: boolean;
 }) {
-  const fallback = findCountry(defaultCountryCode);
+  const detected = useDefaultCountry();
+  const fallback = findCountry(defaultCountryCode ?? detected);
   const initial = splitValue(value, fallback);
   const [country, setCountry] = useState(initial.country);
   const [national, setNational] = useState(initial.national);
 
+  // The parent can change the value from outside (a prefill that arrives late,
+  // or a form reset). Re-sync then; ignore the echo of what we just emitted.
+  const lastEmitted = useRef(value);
+  useEffect(() => {
+    if (value === lastEmitted.current) return;
+    lastEmitted.current = value;
+    const next = splitValue(value, fallback);
+    setCountry(value ? next.country : country);
+    setNational(next.national);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
   function emit(nextCountry: Country, nextNational: string) {
     // A leading 0 is the national trunk prefix ("0501234567"), dropped
-    // when combined with the country code — same as how Amazon/noon-style
-    // inputs normalize this.
+    // when combined with the country code.
     const digits = nextNational.replace(/\D/g, "").replace(/^0+/, "");
-    onChange(digits ? `${nextCountry.dial}${digits}` : "");
+    const out = digits ? `${nextCountry.dial}${digits}` : "";
+    lastEmitted.current = out;
+    onChange(out);
   }
 
   return (
@@ -45,6 +73,7 @@ export default function PhoneNumberInput({
           setCountry(next);
           emit(next, national);
         }}
+        aria-label="Country code"
         className="w-[108px] shrink-0 rounded-lg border border-neutral-300 bg-white px-2 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
         {COUNTRIES.map((c) => (
@@ -56,6 +85,7 @@ export default function PhoneNumberInput({
       <input
         type="tel"
         inputMode="numeric"
+        required={required}
         value={national}
         placeholder={placeholder}
         onChange={(e) => {

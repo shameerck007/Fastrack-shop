@@ -1,5 +1,7 @@
 "use client";
 
+import PhoneNumberInput from "@/components/PhoneNumberInput";
+
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { applyAsRider } from "@/lib/actions/rider-application";
@@ -47,14 +49,7 @@ export default function RiderApplicationForm() {
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium">{t("become_rider.phone")}</label>
-        <input
-          required
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="+966..."
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-        />
+        <PhoneNumberInput required value={phone} onChange={setPhone} placeholder="5X XXX XXXX" />
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium">{t("become_rider.vehicle_type")}</label>

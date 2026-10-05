@@ -1,5 +1,8 @@
 "use client";
 
+import PhoneNumberInput from "@/components/PhoneNumberInput";
+import { validatePhone } from "@/lib/countries";
+
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addAddress, updateAddress, type AddressInput } from "@/lib/actions/addresses";
@@ -81,7 +84,7 @@ export default function AddressForm({
       setError(t("addresses.enter_receiver_name"));
       return;
     }
-    if (!/^[+\d][\d\s-]{7,15}$/.test(receiverPhone.trim())) {
+    if (!validatePhone(receiverPhone.trim()).ok) {
       setError(t("addresses.enter_valid_phone"));
       return;
     }
@@ -188,14 +191,7 @@ export default function AddressForm({
           autoComplete="name"
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
-        <input
-          value={receiverPhone}
-          onChange={(e) => setReceiverPhone(e.target.value)}
-          placeholder={t("addresses.receiver_phone_placeholder")}
-          inputMode="tel"
-          autoComplete="tel"
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-        />
+        <PhoneNumberInput value={receiverPhone} onChange={setReceiverPhone} placeholder={t("addresses.receiver_phone_placeholder")} />
       </div>
 
       <input

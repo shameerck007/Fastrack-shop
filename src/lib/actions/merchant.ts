@@ -1,5 +1,8 @@
 "use server";
 
+import { validatePhone } from "@/lib/countries";
+import { checkSaudiIban, IBAN_PROBLEM_MESSAGES } from "@/lib/iban";
+import { checkBankDetails } from "@/lib/saudi-banks";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyAdmins } from "@/lib/push";
@@ -35,13 +38,21 @@ export async function applyForStore(input: {
     throw new Error("Please upload a copy of your CR document.");
   }
 
+  // Payouts go to this account, so it is re-checked here, not just in the form.
+  const phoneCheck = validatePhone(input.contactPhone?.trim() ?? "");
+  if (!phoneCheck.ok) throw new Error(phoneCheck.error ?? "Enter a valid mobile number.");
+  const ibanShape = checkSaudiIban(input.bankIban ?? "");
+  if (!ibanShape.ok) throw new Error(IBAN_PROBLEM_MESSAGES[ibanShape.problem!]);
+  const bankCheck = checkBankDetails(input.bankName?.trim() ?? "", input.bankIban ?? "");
+  if (!bankCheck.ok) throw new Error(bankCheck.error ?? "Check the bank details.");
+
   const row = {
     owner_id: user.id,
     name: input.name.trim(),
     cr_number: input.crNumber.trim(),
     vat_number: input.vatNumber?.trim() || null,
     bank_name: input.bankName?.trim() || null,
-    bank_iban: input.bankIban?.trim() || null,
+    bank_iban: bankCheck.iban,
     contact_phone: input.contactPhone?.trim() || null,
     address_line: input.addressLine?.trim() || null,
     city: input.city?.trim() || "Riyadh",

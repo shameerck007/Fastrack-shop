@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { checkSaudiIban, formatIban } from "@/lib/iban";
+import { checkBankDetails } from "@/lib/saudi-banks";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMyStoreProducts } from "@/lib/merchant";
@@ -163,7 +165,16 @@ export default async function AdminMerchantDetailPage({
             {store.vat_number && <Row label={t("merchant_detail.vat_number")}>{store.vat_number}</Row>}
             {store.contact_phone && <Row label={t("merchant_detail.contact_phone")}>{store.contact_phone}</Row>}
             {store.bank_name && <Row label={t("merchant_detail.bank")}>{store.bank_name}</Row>}
-            {store.bank_iban && <Row label={t("merchant_detail.iban")}>{store.bank_iban}</Row>}
+            {store.bank_iban && (
+              <Row label={t("merchant_detail.iban")}>
+                <span className="font-mono">{formatIban(store.bank_iban)}</span>{" "}
+                {checkSaudiIban(store.bank_iban).ok && checkBankDetails(store.bank_name ?? "", store.bank_iban).ok ? (
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">Valid</span>
+                ) : (
+                  <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">Check IBAN</span>
+                )}
+              </Row>
+            )}
             {store.address_line && (
               <div className="pt-1 text-sm">
                 <p className="text-neutral-500">{t("merchant_detail.address")}</p>

@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { applyForStore } from "@/lib/actions/merchant";
 import DocumentUploader from "@/components/merchant/DocumentUploader";
 import StoreProfileFields, { type StoreProfileValue } from "@/components/merchant/StoreProfileFields";
+import PhoneNumberInput from "@/components/PhoneNumberInput";
+import BankFields from "@/components/merchant/BankFields";
+import { validatePhone } from "@/lib/countries";
+import { checkBankDetails } from "@/lib/saudi-banks";
+import { checkSaudiIban, IBAN_PROBLEM_MESSAGES } from "@/lib/iban";
 import { defaultOpeningHours } from "@/lib/store-hours";
 
 export default function StoreApplicationForm() {
@@ -32,6 +37,21 @@ export default function StoreApplicationForm() {
     setError(null);
     if (!crDocumentPath) {
       setError("Please upload a copy of your CR document.");
+      return;
+    }
+    const phoneCheck = validatePhone(contactPhone);
+    if (!phoneCheck.ok) {
+      setError(phoneCheck.error);
+      return;
+    }
+    const shape = checkSaudiIban(bankIban);
+    if (!shape.ok) {
+      setError(IBAN_PROBLEM_MESSAGES[shape.problem!]);
+      return;
+    }
+    const bankCheck = checkBankDetails(bankName, bankIban);
+    if (!bankCheck.ok) {
+      setError(bankCheck.error);
       return;
     }
     startTransition(async () => {
@@ -90,13 +110,7 @@ export default function StoreApplicationForm() {
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium">Contact phone</label>
-        <input
-          type="tel"
-          value={contactPhone}
-          onChange={(e) => setContactPhone(e.target.value)}
-          placeholder="+966..."
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-        />
+        <PhoneNumberInput required value={contactPhone} onChange={setContactPhone} placeholder="5X XXX XXXX" />
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium">Pickup address</label>
@@ -107,25 +121,7 @@ export default function StoreApplicationForm() {
           className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Bank name</label>
-          <input
-            value={bankName}
-            onChange={(e) => setBankName(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">IBAN</label>
-          <input
-            value={bankIban}
-            onChange={(e) => setBankIban(e.target.value)}
-            placeholder="For settlement payouts"
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          />
-        </div>
-      </div>
+      <BankFields value={{ bankName, iban: bankIban }} onChange={(v) => { setBankName(v.bankName); setBankIban(v.iban); }} />
 
       <div className="mt-2 border-t border-neutral-100 pt-4">
         <p className="mb-3 text-sm font-semibold">Your shop page</p>

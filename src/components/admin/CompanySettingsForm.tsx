@@ -1,5 +1,7 @@
 "use client";
 
+import PhoneNumberInput from "@/components/PhoneNumberInput";
+
 import { useState, useTransition } from "react";
 import { updateCompanySettings } from "@/lib/actions/admin-settings";
 import { useLocale } from "@/components/LocaleProvider";
@@ -100,7 +102,7 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className={label}>{t("admin.contact_phone")}</label>
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("admin.not_set_placeholder")} className={`${field} w-full`} />
+            <PhoneNumberInput value={phone} onChange={setPhone} placeholder={t("admin.not_set_placeholder")} />
           </div>
           <div>
             <label className={label}>{t("admin.contact_email")}</label>

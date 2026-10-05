@@ -14,6 +14,8 @@ import PushOptIn from "@/components/PushOptIn";
 import LocaleProvider from "@/components/LocaleProvider";
 import StoreDirectoryProvider from "@/components/StoreDirectoryProvider";
 import CustomerStateProvider from "@/components/CustomerStateProvider";
+import DefaultCountryProvider from "@/components/DefaultCountryProvider";
+import { getRequestCountryCode } from "@/lib/get-request-country";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { dirFor } from "@/lib/i18n/config";
 import "./globals.css";
@@ -62,6 +64,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getServerLocale();
+  const countryCode = await getRequestCountryCode();
 
   return (
     <html lang={locale} dir={dirFor(locale)}>
@@ -70,6 +73,7 @@ export default async function RootLayout({
       >
         <ChunkErrorReload />
         <LocaleProvider locale={locale}>
+        <DefaultCountryProvider countryCode={countryCode}>
         <CustomerStateProvider>
         <StoreDirectoryProvider>
         <DeliveryLocationProvider>
@@ -94,6 +98,7 @@ export default async function RootLayout({
         </DeliveryLocationProvider>
         </StoreDirectoryProvider>
         </CustomerStateProvider>
+        </DefaultCountryProvider>
         </LocaleProvider>
       </body>
     </html>

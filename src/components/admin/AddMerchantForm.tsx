@@ -1,5 +1,7 @@
 "use client";
 
+import PhoneNumberInput from "@/components/PhoneNumberInput";
+
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -147,12 +149,7 @@ export default function AddMerchantForm() {
                   className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
                 />
               </div>
-              <input
-                value={contactPhone}
-                onChange={(e) => setContactPhone(e.target.value)}
-                placeholder={t("add_merchant.contact_phone_optional")}
-                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-              />
+              <PhoneNumberInput value={contactPhone} onChange={setContactPhone} placeholder={t("add_merchant.contact_phone_optional")} />
               <input
                 value={addressLine}
                 onChange={(e) => setAddressLine(e.target.value)}
