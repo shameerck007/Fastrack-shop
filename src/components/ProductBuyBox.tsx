@@ -1,5 +1,6 @@
 "use client";
 
+import DeliveryOptionsInfo from "@/components/DeliveryOptionsInfo";
 import AddToCartForm from "@/components/AddToCartForm";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
@@ -57,6 +58,9 @@ export default function ProductBuyBox({
   }
 
   return (
-    <AddToCartForm variants={variants} stock={stock} isLoggedIn={isLoggedIn} storeId={storeId} />
+    <div className="flex flex-col gap-4">
+      <DeliveryOptionsInfo storeId={storeId} />
+      <AddToCartForm variants={variants} stock={stock} isLoggedIn={isLoggedIn} storeId={storeId} />
+    </div>
   );
 }

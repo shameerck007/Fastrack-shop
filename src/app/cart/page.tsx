@@ -2,6 +2,7 @@ import Link from "next/link";
 import CartItemRow from "@/components/CartItemRow";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getAddresses } from "@/lib/addresses";
+import { CartDeliveryOptions } from "@/components/DeliveryOptionsInfo";
 import { checkProductsDeliverable } from "@/lib/delivery-zones";
 import { formatSAR } from "@/lib/utils";
 import { localizedName } from "@/lib/i18n/localized";
@@ -78,6 +79,9 @@ export default async function CartPage() {
             </span>{" "}
             <span className="font-semibold">{formatSAR(subtotal)}</span>
           </p>
+          <div className="mt-4">
+            <CartDeliveryOptions storeIds={items.map((i) => i.product_variants.products.store_id)} />
+          </div>
         </div>
 
         <div className="h-fit lg:sticky lg:top-20">

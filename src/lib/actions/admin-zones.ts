@@ -46,3 +46,44 @@ export async function updateWarehouseZone(
 
   revalidatePath("/admin/zones");
 }
+
+/** Standard delivery settings for a warehouse: on/off, optional distance limit, estimated days.
+ * The warehouse's delivery radius (set in the map editor) now only controls Express. */
+export async function updateWarehouseStandardDelivery(
+  warehouseId: string,
+  settings: { enabled: boolean; radiusKm: number | null; days: number }
+): Promise<{ error?: string }> {
+  if (settings.radiusKm != null && !(settings.radiusKm > 0 && settings.radiusKm <= 5000)) {
+    return { error: "Standard delivery radius must be between 0.1 and 5000 km, or empty for no limit." };
+  }
+  if (!Number.isInteger(settings.days) || settings.days < 0 || settings.days > 30) {
+    return { error: "Estimated delivery days must be a whole number from 0 to 30." };
+  }
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Your session has expired — please sign in again and retry." };
+
+  const { data, error } = await supabase
+    .from("warehouses")
+    .update({
+      standard_delivery_enabled: settings.enabled,
+      standard_radius_km: settings.radiusKm,
+      standard_delivery_days: settings.days,
+    } as never)
+    .eq("id", warehouseId)
+    .select("id");
+  if (error) {
+    return {
+      error:
+        error.code === "42703" || error.code === "PGRST204"
+          ? "Standard delivery settings need database migration 0043 first."
+          : error.message,
+    };
+  }
+  if (!data || data.length === 0) return { error: "Could not update this warehouse — it may have been removed. Refresh and try again." };
+
+  revalidatePath("/admin/zones");
+  return {};
+}

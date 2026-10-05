@@ -6,12 +6,13 @@ import { placeOrder } from "@/lib/actions/orders";
 import { extractVat, formatSAR } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
+import { EXPRESS_FEE, STANDARD_FEE, formatDeliveryDate, standardDeliveryDate } from "@/lib/delivery-methods";
 import type { Address, CartItemWithVariant, DeliveryType, PaymentMethod } from "@/types/database";
 
 const DELIVERY_OPTIONS: { value: DeliveryType; labelKey: string; hintKey: string; fee: number }[] = [
-  { value: "express", labelKey: "checkout.express", hintKey: "checkout.minutes_15_30", fee: 12 },
-  { value: "standard", labelKey: "checkout.standard", hintKey: "checkout.minutes_30_60", fee: 7 },
-  { value: "scheduled", labelKey: "checkout.scheduled", hintKey: "checkout.choose_datetime", fee: 7 },
+  { value: "express", labelKey: "checkout.express", hintKey: "checkout.minutes_15_30", fee: EXPRESS_FEE },
+  { value: "standard", labelKey: "checkout.standard", hintKey: "checkout.minutes_30_60", fee: STANDARD_FEE },
+  { value: "scheduled", labelKey: "checkout.scheduled", hintKey: "checkout.choose_datetime", fee: STANDARD_FEE },
 ];
 
 // Card/Apple Pay are modeled in the schema (see PaymentMethod) but there is
@@ -28,11 +29,13 @@ export default function CheckoutForm({
   items,
   subtotal,
   blockedByAddress = {},
+  methodsByAddress = {},
 }: {
   addresses: Address[];
   items: CartItemWithVariant[];
   subtotal: number;
   blockedByAddress?: Record<string, string[]>;
+  methodsByAddress?: Record<string, { express: boolean; standard: boolean; standardDays: number }>;
 }) {
   const { t, locale } = useLocale();
   // null means "no explicit user selection yet" — fall back to the first
@@ -44,13 +47,26 @@ export default function CheckoutForm({
       ? selectedAddressId
       : addresses[0]?.id ?? "";
   const blockedItems = blockedByAddress[addressId] ?? [];
-  const [deliveryType, setDeliveryType] = useState<DeliveryType>("standard");
+  const [chosenDeliveryType, setDeliveryType] = useState<DeliveryType>("standard");
   const [scheduledFor, setScheduledFor] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
   const [notes, setNotes] = useState("");
   const [showAddresses, setShowAddresses] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  // Express only inside the express radius; Standard (and Scheduled) wherever Standard applies.
+  const offered = methodsByAddress[addressId] ?? { express: true, standard: true, standardDays: 2 };
+  const optionAvailable = (type: DeliveryType) => (type === "express" ? offered.express : offered.standard);
+  // If the chosen method isn't offered at the selected address, fall back to one that is.
+  const deliveryType: DeliveryType = optionAvailable(chosenDeliveryType)
+    ? chosenDeliveryType
+    : offered.standard
+      ? "standard"
+      : offered.express
+        ? "express"
+        : chosenDeliveryType;
+  const standardDate = formatDeliveryDate(standardDeliveryDate(offered.standardDays), locale);
 
   const deliveryFee =
     subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_OPTIONS.find((d) => d.value === deliveryType)!.fee;
@@ -61,6 +77,10 @@ export default function CheckoutForm({
     setError(null);
     if (!addressId) {
       setError(t("checkout.select_address_error"));
+      return;
+    }
+    if (!offered.express && !offered.standard) {
+      setError(t("delivery_info.standard_unavailable"));
       return;
     }
     if (blockedItems.length > 0) {
@@ -202,21 +222,37 @@ export default function CheckoutForm({
             <div className="grid grid-cols-3 gap-2">
               {DELIVERY_OPTIONS.map((opt) => {
                 const active = deliveryType === opt.value;
+                const available = optionAvailable(opt.value);
                 return (
                   <button
                     key={opt.value}
                     type="button"
+                    disabled={!available}
                     onClick={() => setDeliveryType(opt.value)}
-                    className={`flex flex-col items-center gap-0.5 rounded-2xl border p-3 text-center transition active:scale-95 ${
-                      active ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200"
+                    className={`flex flex-col items-center gap-0.5 rounded-2xl border p-3 text-center transition ${
+                      !available
+                        ? "cursor-not-allowed border-neutral-200 bg-neutral-50 opacity-60"
+                        : active
+                          ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600 active:scale-95"
+                          : "border-neutral-200 active:scale-95"
                     }`}
                   >
-                    <span className="text-xl">{opt.value === "express" ? "⚡" : opt.value === "standard" ? "🛵" : "🗓️"}</span>
+                    <span className={`text-xl ${available ? "" : "grayscale"}`}>{opt.value === "express" ? "⚡" : opt.value === "standard" ? "📦" : "🗓️"}</span>
                     <span className={`text-sm font-bold ${active ? "text-blue-800" : "text-neutral-900"}`}>{t(opt.labelKey)}</span>
-                    <span className="text-[11px] leading-tight text-neutral-500">{t(opt.hintKey)}</span>
-                    <span className={`mt-1 text-xs font-extrabold ${subtotal >= FREE_DELIVERY_THRESHOLD ? "text-emerald-600" : "text-neutral-800"}`}>
-                      {subtotal >= FREE_DELIVERY_THRESHOLD ? t("checkout.free") : formatSAR(opt.fee)}
+                    <span className="text-[11px] leading-tight text-neutral-500">
+                      {!available
+                        ? t("delivery_info.not_available_here")
+                        : opt.value === "express"
+                          ? t("delivery_info.express_eta")
+                          : opt.value === "standard"
+                            ? t("delivery_info.standard_by", { date: standardDate })
+                            : t(opt.hintKey)}
                     </span>
+                    {available && (
+                      <span className={`mt-1 text-xs font-extrabold ${subtotal >= FREE_DELIVERY_THRESHOLD ? "text-emerald-600" : "text-neutral-800"}`}>
+                        {subtotal >= FREE_DELIVERY_THRESHOLD ? t("checkout.free") : formatSAR(opt.fee)}
+                      </span>
+                    )}
                   </button>
                 );
               })}

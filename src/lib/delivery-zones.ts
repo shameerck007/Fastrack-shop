@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { checkZone, distanceKm, type Coords, type ZoneVerdict } from "@/lib/delivery-geo";
+import { distanceKm, type Coords, type ZoneVerdict } from "@/lib/delivery-geo";
+import { DEFAULT_STANDARD_DAYS, methodsFor, type DeliveryMethods, type DeliveryZone } from "@/lib/delivery-methods";
 
 // A delivery boundary is a circle around a warehouse (each merchant store
 // has its own warehouse; FasTrack's own dark store is the default one).
@@ -10,7 +11,11 @@ export interface WarehouseZone {
   name: string;
   lat: number | null;
   lng: number | null;
+  /** Express radius (the former "delivery radius"). */
   radiusKm: number | null;
+  standardEnabled: boolean;
+  standardRadiusKm: number | null;
+  standardDays: number;
 }
 
 export function verdictMessage(verdict: ZoneVerdict, itemName?: string): string | null {
@@ -24,13 +29,30 @@ export function verdictMessage(verdict: ZoneVerdict, itemName?: string): string 
 
 export async function loadZones(): Promise<Map<string, WarehouseZone>> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  type Row = {
+    id: string;
+    name: string;
+    lat: number | null;
+    lng: number | null;
+    delivery_radius_km: number | null;
+    standard_delivery_enabled?: boolean;
+    standard_radius_km?: number | null;
+    standard_delivery_days?: number;
+  };
+  let { data, error } = await supabase
     .from("warehouses")
-    .select("id, name, lat, lng, delivery_radius_km, is_active")
+    .select("id, name, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days, is_active")
     .eq("is_active", true);
+  // Standard-delivery columns arrive with migration 0043 — until it's applied, fall back to the old shape.
+  if (error?.code === "42703") {
+    ({ data, error } = (await supabase
+      .from("warehouses")
+      .select("id, name, lat, lng, delivery_radius_km, is_active")
+      .eq("is_active", true)) as unknown as { data: typeof data; error: typeof error });
+  }
   if (error) throw error;
   return new Map(
-    (data ?? []).map((w) => [
+    ((data ?? []) as unknown as Row[]).map((w) => [
       w.id,
       {
         id: w.id,
@@ -38,9 +60,24 @@ export async function loadZones(): Promise<Map<string, WarehouseZone>> {
         lat: w.lat,
         lng: w.lng,
         radiusKm: w.delivery_radius_km == null ? null : Number(w.delivery_radius_km),
+        standardEnabled: w.standard_delivery_enabled ?? true,
+        standardRadiusKm: w.standard_radius_km == null ? null : Number(w.standard_radius_km),
+        standardDays: w.standard_delivery_days ?? DEFAULT_STANDARD_DAYS,
       },
     ])
   );
+}
+
+export function toDeliveryZone(zone: WarehouseZone | undefined): DeliveryZone | undefined {
+  if (!zone) return undefined;
+  return {
+    lat: zone.lat,
+    lng: zone.lng,
+    expressRadiusKm: zone.radiusKm,
+    standardEnabled: zone.standardEnabled,
+    standardRadiusKm: zone.standardRadiusKm,
+    standardDays: zone.standardDays,
+  };
 }
 
 /** Which FasTrack-owned warehouse (products.store_id is null) should fulfil
@@ -118,9 +155,12 @@ export async function resolveProductWarehouses(
 export interface Deliverability {
   verdict: ZoneVerdict;
   message: string | null;
+  methods: DeliveryMethods;
 }
 
-/** Deliverability of each product to the given location (productId -> result). */
+/** Deliverability of each product to the given location (productId -> result).
+ * A product is deliverable when Express OR Standard applies; the distance radius
+ * only decides Express. */
 export async function checkProductsDeliverable(
   products: { id: string; store_id: string | null; name?: string }[],
   coords: Coords | null
@@ -130,8 +170,20 @@ export async function checkProductsDeliverable(
   return new Map(
     products.map((p) => {
       const wid = warehouseByProduct.get(p.id);
-      const verdict = checkZone(wid ? zones.get(wid) : undefined, coords);
-      return [p.id, { verdict, message: verdictMessage(verdict, p.name) }];
+      const zone = wid ? zones.get(wid) : undefined;
+      const methods = methodsFor(toDeliveryZone(zone), coords);
+      let verdict: ZoneVerdict;
+      if (methods.state === "no_location") verdict = { ok: false, reason: "no_location" };
+      else if (methods.express || methods.standard) verdict = { ok: true };
+      else {
+        verdict = {
+          ok: false,
+          reason: "outside",
+          distanceKm: methods.distanceKm ?? 0,
+          radiusKm: (zone?.standardEnabled ? zone.standardRadiusKm : zone?.radiusKm) ?? zone?.radiusKm ?? 0,
+        };
+      }
+      return [p.id, { verdict, message: verdictMessage(verdict, p.name), methods }];
     })
   );
 }

@@ -15,13 +15,26 @@ export interface ZoneRow {
   storeId: string | null; // null = FasTrack's own products
   lat: number | null;
   lng: number | null;
+  /** Express radius (the former "delivery radius"). */
   radiusKm: number | null;
+  standardEnabled: boolean;
+  standardRadiusKm: number | null;
+  standardDays: number;
 }
 
 export type DeliveryStatus =
   | { state: "loading" }
   | { state: "no_location" }
-  | { state: "ok" }
+  | {
+      state: "ok";
+      /** Express delivery is offered here (inside the express radius). */
+      express: boolean;
+      /** Standard delivery is offered here. */
+      standard: boolean;
+      standardDays: number;
+      expressRadiusKm: number | null;
+    }
+  /** Neither Express nor Standard reaches this location. */
   | { state: "outside"; distanceKm: number; radiusKm: number };
 
 export interface Ctx {

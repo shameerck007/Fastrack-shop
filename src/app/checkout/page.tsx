@@ -3,6 +3,7 @@ import CheckoutForm from "@/components/CheckoutForm";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getAddresses } from "@/lib/addresses";
 import { checkProductsDeliverable } from "@/lib/delivery-zones";
+import { combineMethods } from "@/lib/delivery-methods";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName } from "@/lib/i18n/localized";
@@ -23,18 +24,21 @@ export default async function CheckoutPage() {
     name: localizedName(i.product_variants.products, locale),
   }));
   const blockedByAddress: Record<string, string[]> = {};
+  // Which delivery methods (Express / Standard) apply at each address, across every item in the cart.
+  const methodsByAddress: Record<string, { express: boolean; standard: boolean; standardDays: number }> = {};
   await Promise.all(
     addresses.map(async (a) => {
       const results = await checkProductsDeliverable(products, { lat: a.lat, lng: a.lng });
       const names = products.filter((p) => results.get(p.id)?.message).map((p) => p.name);
       if (names.length > 0) blockedByAddress[a.id] = names;
+      methodsByAddress[a.id] = combineMethods([...results.values()].map((r) => r.methods));
     })
   );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 max-md:pb-44">
       <h1 className="mb-4 text-xl font-semibold max-md:hidden">{t("checkout.title")}</h1>
-      <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} />
+      <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} methodsByAddress={methodsByAddress} />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Modal from "@/components/Modal";
 import ZoneEditor from "@/components/admin/ZoneEditor";
+import StandardDeliverySettings from "@/components/admin/StandardDeliverySettings";
 import { useLocale } from "@/components/LocaleProvider";
 
 export interface ZoneCard {
@@ -19,6 +20,9 @@ export interface ZoneCard {
   productCount: number;
   orderCount: number;
   inside: number | null;
+  standardEnabled: boolean;
+  standardRadius: number | null;
+  standardDays: number;
 }
 
 function initials(name: string): string {
@@ -102,6 +106,15 @@ export default function ZonesList({ cards }: { cards: ZoneCard[] }) {
       </div>
 
       <Modal open={!!active} onClose={() => setActiveId(null)} title={active?.displayName} size="xl">
+        {active && (
+          <StandardDeliverySettings
+            warehouseId={active.warehouseId}
+            initialEnabled={active.standardEnabled}
+            initialRadiusKm={active.standardRadius}
+            initialDays={active.standardDays}
+            expressRadiusKm={active.radius}
+          />
+        )}
         {active && (
           <ZoneEditor
             warehouseId={active.warehouseId}

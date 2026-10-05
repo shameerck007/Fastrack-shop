@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { checkZone, type ZoneVerdict } from "@/lib/delivery-geo";
+import { methodsFor, type DeliveryZone } from "@/lib/delivery-methods";
 import { reverseAreaName } from "@/lib/map-config";
 import DeliveryLocationModal from "@/components/DeliveryLocationModal";
 import {
@@ -18,6 +18,17 @@ const STORAGE_KEY = "fastrack:delivery-location";
 const SKIPPED_KEY = "fastrack:delivery-location-skipped";
 const GPS_REFRESHED_KEY = "fastrack:gps-refreshed";
 // Pages where prompting a shopper for a delivery location makes no sense.
+function toZone(z: ZoneRow): DeliveryZone {
+  return {
+    lat: z.lat,
+    lng: z.lng,
+    expressRadiusKm: z.radiusKm,
+    standardEnabled: z.standardEnabled,
+    standardRadiusKm: z.standardRadiusKm,
+    standardDays: z.standardDays,
+  };
+}
+
 const NO_PROMPT_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse", "/login", "/register", "/sell"];
 
 function readStored(): DeliveryLocation | null {
@@ -219,69 +230,70 @@ export default function DeliveryLocationProvider({ children }: { children: React
     };
   }, [ready, location?.source, setLocation]);
 
+  // Visibility rule: a seller's products are shown when Express OR Standard reaches the
+  // shopper. The radius only decides Express; Standard is on by default with no distance limit.
   const statusForStore = useCallback(
     (storeId: string | null): DeliveryStatus => {
       if (!zones) return { state: "loading" };
       const candidates = zones.filter((z) => z.storeId === storeId);
 
-      // A store/warehouse with no zone row at all (e.g. not yet approved) is
-      // unrestricted — same single checkZone(undefined, ...) call as before.
+      // A store/warehouse with no zone row at all (e.g. not yet approved) is unrestricted.
       if (candidates.length === 0) {
-        const verdict = checkZone(undefined, location);
-        return verdict.ok ? { state: "ok" } : { state: "no_location" };
+        return { state: "ok", express: true, standard: true, standardDays: 2, expressRadiusKm: null };
       }
 
-      // storeId === null can now match more than one row — FasTrack can have
-      // several of its own warehouse locations. Deliverable if ANY of them
-      // covers this location; a real merchant store still only ever has one
-      // row here, so this is a no-op for that case. When none cover, report
-      // the nearest one's actual distance (same fallback checkout's own
-      // resolveFastrackWarehouse routing uses) instead of a generic block.
+      // storeId === null can match several FasTrack warehouses: offered if ANY of them offers it.
+      let express = false;
+      let standard = false;
+      let days: number | null = null;
+      let expressRadiusKm: number | null = null;
       let nearestOutside: { distanceKm: number; radiusKm: number } | null = null;
+      let sawKnown = false;
       for (const zone of candidates) {
-        const verdict: ZoneVerdict = checkZone(zone, location);
-        if (verdict.ok) return { state: "ok" };
-        if (verdict.reason === "no_location") continue;
-        if (!nearestOutside || verdict.distanceKm < nearestOutside.distanceKm) {
-          nearestOutside = { distanceKm: verdict.distanceKm, radiusKm: verdict.radiusKm };
+        const m = methodsFor(toZone(zone), location);
+        if (m.state === "no_location") continue;
+        sawKnown = true;
+        if (m.express) {
+          express = true;
+          expressRadiusKm = m.expressRadiusKm;
+        }
+        if (m.standard) {
+          standard = true;
+          days = days == null ? m.standardDays : Math.min(days, m.standardDays);
+        }
+        if (!m.express && !m.standard && m.distanceKm != null) {
+          const radius = (zone.standardEnabled ? zone.standardRadiusKm : zone.radiusKm) ?? zone.radiusKm ?? 0;
+          if (!nearestOutside || m.distanceKm < nearestOutside.distanceKm) nearestOutside = { distanceKm: m.distanceKm, radiusKm: radius };
         }
       }
-      // Either every candidate reported "outside" (nearestOutside is set) or
-      // every candidate reported "no_location" (location itself is unset,
-      // since a configured zone only ever says no_location for that reason).
-      return nearestOutside ? { state: "outside", ...nearestOutside } : { state: "no_location" };
+      if (!sawKnown) return { state: "no_location" };
+      if (express || standard) return { state: "ok", express, standard, standardDays: days ?? 2, expressRadiusKm };
+      return { state: "outside", ...(nearestOutside ?? { distanceKm: 0, radiusKm: 0 }) };
     },
     [zones, location]
   );
 
-  // A zone row with no lat/lng/radius configured (e.g. a store whose
-  // warehouse was never set up) makes checkZone() return "ok" unconditionally
-  // — correct for that one store's own product visibility (nothing to
-  // restrict against), but useless as evidence that a given location is
-  // actually covered by anyone. Only zones with a real boundary count
-  // toward "is this location serviceable at all"; an unconfigured zone is
-  // silently ignored here rather than making every location look servicable.
-  const configuredZones = useMemo(
-    () => zones?.filter((z) => z.lat != null && z.lng != null && z.radiusKm != null) ?? null,
+  // Is this location reached by anyone, by Express or Standard?
+  const serviceableAt = useCallback(
+    (lat: number, lng: number): boolean | null => {
+      if (!zones) return null;
+      if (zones.length === 0) return true;
+      return zones.some((z) => {
+        const m = methodsFor(toZone(z), { lat, lng });
+        return m.state === "known" && (m.express || m.standard);
+      });
+    },
     [zones]
   );
 
-  const serviceableAt = useCallback(
-    (lat: number, lng: number): boolean | null => {
-      if (!configuredZones) return null;
-      if (configuredZones.length === 0) return true;
-      return configuredZones.some((z) => checkZone(z, { lat, lng }).ok);
-    },
-    [configuredZones]
-  );
-
-  // Serviceable if at least one seller with an actual delivery boundary
-  // (incl. FasTrack's own stock) reaches here.
   const serviceable = useMemo(() => {
-    if (!configuredZones || !location) return null;
-    if (configuredZones.length === 0) return true;
-    return configuredZones.some((z) => checkZone(z, location).ok);
-  }, [configuredZones, location]);
+    if (!zones || !location) return null;
+    if (zones.length === 0) return true;
+    return zones.some((z) => {
+      const m = methodsFor(toZone(z), location);
+      return m.state === "known" && (m.express || m.standard);
+    });
+  }, [zones, location]);
 
   const value = useMemo<Ctx>(
     () => ({

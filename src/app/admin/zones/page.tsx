@@ -15,6 +15,9 @@ interface WarehouseRow {
   lat: number | null;
   lng: number | null;
   delivery_radius_km: number | null;
+  standard_delivery_enabled?: boolean;
+  standard_radius_km?: number | null;
+  standard_delivery_days?: number;
 }
 
 function Stat({
@@ -55,7 +58,7 @@ export default async function AdminZonesPage() {
     await Promise.all([
       supabase
         .from("warehouses")
-        .select("id, name, address_line, lat, lng, delivery_radius_km")
+        .select("id, name, address_line, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days")
         .eq("is_active", true)
         .order("created_at", { ascending: true }),
       supabase.from("stores").select("id, name, warehouse_id, contact_phone, address_line, status"),
@@ -64,7 +67,17 @@ export default async function AdminZonesPage() {
       supabase.from("addresses").select("lat, lng").not("lat", "is", null).limit(5000),
     ]);
 
-  const rows = (warehouses ?? []) as WarehouseRow[];
+  let warehouseRows = warehouses;
+  if (!warehouseRows) {
+    // Standard-delivery columns arrive with migration 0043; until then read the old shape.
+    const { data: legacy } = await supabase
+      .from("warehouses")
+      .select("id, name, address_line, lat, lng, delivery_radius_km")
+      .eq("is_active", true)
+      .order("created_at", { ascending: true });
+    warehouseRows = legacy as typeof warehouses;
+  }
+  const rows = (warehouseRows ?? []) as WarehouseRow[];
   const storeByWarehouse = new Map((stores ?? []).map((s) => [s.warehouse_id, s]));
 
   const productsByStore = new Map<string | null, number>();
@@ -116,6 +129,9 @@ export default async function AdminZonesPage() {
     productCount: c.productCount,
     orderCount: c.orderCount,
     inside: c.inside,
+    standardEnabled: c.w.standard_delivery_enabled ?? true,
+    standardRadius: c.w.standard_radius_km == null ? null : Number(c.w.standard_radius_km),
+    standardDays: c.w.standard_delivery_days ?? 2,
   }));
 
   const overviewZones: OverviewZone[] = cards

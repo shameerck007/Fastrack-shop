@@ -9,12 +9,24 @@ export async function GET() {
   const { data, error } = await supabase.rpc("public_delivery_zones");
   if (error) return NextResponse.json({ error: "Could not load delivery zones" }, { status: 500 });
 
-  const rows = ((data ?? []) as { store_id: string | null; lat: number | null; lng: number | null; radius_km: number | null }[]).map(
+  const rows = ((data ?? []) as {
+    store_id: string | null;
+    lat: number | null;
+    lng: number | null;
+    radius_km: number | null;
+    standard_enabled?: boolean;
+    standard_radius_km?: number | null;
+    standard_days?: number;
+  }[]).map(
     (r) => ({
       storeId: r.store_id,
       lat: r.lat,
       lng: r.lng,
       radiusKm: r.radius_km == null ? null : Number(r.radius_km),
+      // Added by migration 0043; before it's applied, Standard is on everywhere.
+      standardEnabled: r.standard_enabled ?? true,
+      standardRadiusKm: r.standard_radius_km == null ? null : Number(r.standard_radius_km),
+      standardDays: r.standard_days ?? 2,
     })
   );
 

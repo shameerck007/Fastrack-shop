@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
+import { combineMethods } from "@/lib/delivery-methods";
 import { assertStoresOpen } from "@/lib/stores";
 import { addToCart } from "@/lib/actions/cart";
 import { notifyUsers } from "@/lib/push";
@@ -105,6 +106,16 @@ async function placeOrderOrThrow(input: {
     throw new Error(
       `We can't deliver some items to this address: ${blocked.map((d) => d.message).join(" ")} Please remove them or choose another address.`
     );
+  }
+
+  // The chosen delivery method must be offered for every item at this address: Express only
+  // inside the express radius, Standard (and Scheduled, which is a Standard slot) where Standard applies.
+  const offered = combineMethods([...deliverability.values()].map((d) => d.methods));
+  if (input.deliveryType === "express" && !offered.express) {
+    throw new Error("Express delivery isn't available for this address. Please choose Standard delivery.");
+  }
+  if (input.deliveryType !== "express" && !offered.standard) {
+    throw new Error("Standard delivery isn't available for this address. Please choose Express delivery or another address.");
   }
 
   const orderNumber = generateOrderNumber();
