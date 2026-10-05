@@ -31,7 +31,8 @@ export async function getCompanySettings(): Promise<CompanySettings> {
   const { data } = await supabase
     .from("company_settings")
     .select("trading_name, cr_number, vat_number, address_line, city, district, postal_code, phone, email")
-    .eq("id", COMPANY_SETTINGS_ID)
+    // One row per tenant; the database's tenant rules return only the current market's row.
+    .limit(1)
     .maybeSingle();
   return data ?? FALLBACK;
 }

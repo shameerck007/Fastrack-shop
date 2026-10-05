@@ -324,6 +324,13 @@ const en = {
       est_delivery: "Estimated delivery",
       choose_scheduled: "Pick a date",
     },
+    market: {
+      title: "Country / market",
+      desc: "Choose which FasTrack shop you want to browse and order from.",
+      suggest: "It looks like you're in {country}. Shop FasTrack {country}?",
+      switch: "Switch",
+      stay: "Stay here",
+    },
     order_status: {
       pending: "Order placed",
       confirmed: "Confirmed",
@@ -1440,6 +1447,13 @@ const ar: LocaleShape = {
       not_available_here: "غير متاح لهذا العنوان",
       est_delivery: "موعد التوصيل المتوقع",
       choose_scheduled: "اختر التاريخ",
+    },
+    market: {
+      title: "الدولة / السوق",
+      desc: "اختر متجر فاستراك الذي تريد التصفح والطلب منه.",
+      suggest: "يبدو أنك في {country}. هل تريد التسوق من فاستراك {country}؟",
+      switch: "تبديل",
+      stay: "البقاء هنا",
     },
     order_status: {
       pending: "تم تقديم الطلب",

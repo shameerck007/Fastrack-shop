@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { COMPANY_SETTINGS_ID } from "@/lib/company-settings";
 
 export async function updateCompanySettings(input: {
   tradingName: string;
@@ -18,6 +17,8 @@ export async function updateCompanySettings(input: {
   const supabase = await createClient();
 
   if (!input.tradingName.trim()) throw new Error("Trading name is required.");
+  const { data: tenantId } = await supabase.rpc("current_tenant_id" as never);
+  if (!tenantId) throw new Error("Could not work out which market these settings belong to.");
 
   // Ensured by RLS ("admins manage company settings") too — this just
   // surfaces a clear error instead of a silent no-op for a non-admin.
@@ -35,7 +36,7 @@ export async function updateCompanySettings(input: {
       email: input.email?.trim() || null,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", COMPANY_SETTINGS_ID);
+    .eq("tenant_id", tenantId);
   if (error) throw error;
 
   revalidatePath("/admin/settings");

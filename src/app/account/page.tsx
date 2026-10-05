@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/actions/auth";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import MarketSwitcher from "@/components/MarketSwitcher";
+import { getActiveTenants, getCurrentTenant } from "@/lib/tenant-server";
 import LandingPreference from "@/components/LandingPreference";
 import { dashboardPathForRole } from "@/lib/landing";
 import LanguageToggle from "@/components/LanguageToggle";
@@ -44,6 +46,7 @@ export default async function AccountPage() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+  const [tenants, currentTenant] = await Promise.all([getActiveTenants(), getCurrentTenant()]);
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -87,6 +90,8 @@ export default async function AccountPage() {
         </span>
         <LanguageToggle />
       </div>
+
+      {currentTenant && <MarketSwitcher tenants={tenants} currentId={currentTenant.id} />}
 
       {dashboardPathForRole(profile?.role) && (
         <LandingPreference initial={profile?.landing_page === "shop" ? "shop" : "portal"} portalLabel={t("account.dashboard_tile_title", { role: roleLabel })} />

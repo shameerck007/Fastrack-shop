@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { readTenantCookie } from "@/lib/tenant";
 import { createClient } from "@/lib/supabase/client";
 import Wordmark from "@/components/Wordmark";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
@@ -42,7 +43,8 @@ function RegisterFormInner({ defaultCountryCode }: { defaultCountryCode: string 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName, phone } },
+      // tenant_id: the market the customer registered in (read by the profile trigger, migration 0046).
+      options: { data: { full_name: fullName, phone, tenant_id: readTenantCookie() ?? undefined } },
     });
 
     setLoading(false);

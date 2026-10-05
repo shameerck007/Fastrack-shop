@@ -14,6 +14,8 @@ import PushOptIn from "@/components/PushOptIn";
 import LocaleProvider from "@/components/LocaleProvider";
 import StoreDirectoryProvider from "@/components/StoreDirectoryProvider";
 import CustomerStateProvider from "@/components/CustomerStateProvider";
+import MarketSuggestionBanner from "@/components/MarketSuggestionBanner";
+import { getMarketSuggestion } from "@/lib/tenant-server";
 import DefaultCountryProvider from "@/components/DefaultCountryProvider";
 import { getRequestCountryCode } from "@/lib/get-request-country";
 import { getServerLocale } from "@/lib/i18n/get-locale";
@@ -65,6 +67,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getServerLocale();
   const countryCode = await getRequestCountryCode();
+  const marketSuggestion = await getMarketSuggestion().catch(() => null);
 
   return (
     <html lang={locale} dir={dirFor(locale)}>
@@ -78,6 +81,7 @@ export default async function RootLayout({
         <StoreDirectoryProvider>
         <DeliveryLocationProvider>
         <HeaderGate hideOnMobileFullscreen>
+          {marketSuggestion && <MarketSuggestionBanner suggested={marketSuggestion.suggested} />}
           <Header />
         </HeaderGate>
         <DeliveryBanner />
