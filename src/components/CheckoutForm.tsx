@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import AddressForm from "@/components/AddressForm";
 import { placeOrder } from "@/lib/actions/orders";
-import { formatSAR } from "@/lib/utils";
+import { extractVat, formatSAR } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
 import type { Address, CartItemWithVariant, DeliveryType, PaymentMethod } from "@/types/database";
@@ -19,9 +19,9 @@ const DELIVERY_OPTIONS: { value: DeliveryType; labelKey: string; hintKey: string
 // marked "authorized" without ever actually charging anyone. Until a real
 // gateway (Moyasar/HyperPay/Tap/PayTabs) is integrated, checkout only
 // offers Cash on Delivery; placeOrder() also enforces this server-side.
-const PAYMENT_OPTIONS: { value: PaymentMethod; label: string }[] = [
-  { value: "cash_on_delivery", label: "Cash on Delivery" },
-];
+const PAYMENT_OPTIONS: { value: PaymentMethod }[] = [{ value: "cash_on_delivery" }];
+
+const FREE_DELIVERY_THRESHOLD = 50;
 
 export default function CheckoutForm({
   addresses,
@@ -47,11 +47,13 @@ export default function CheckoutForm({
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("standard");
   const [scheduledFor, setScheduledFor] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
+  const [notes, setNotes] = useState("");
+  const [showAddresses, setShowAddresses] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const deliveryFee =
-    subtotal >= 50 ? 0 : DELIVERY_OPTIONS.find((d) => d.value === deliveryType)!.fee;
+    subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_OPTIONS.find((d) => d.value === deliveryType)!.fee;
   const total = Math.round((subtotal + deliveryFee) * 100) / 100;
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
@@ -72,6 +74,7 @@ export default function CheckoutForm({
           deliveryType,
           scheduledFor: deliveryType === "scheduled" ? scheduledFor : undefined,
           paymentMethod,
+          notes: notes.trim() || undefined,
         });
         if (result?.error) setError(result.error);
       } catch (err) {
@@ -84,241 +87,307 @@ export default function CheckoutForm({
   }
 
   const listSep = locale === "ar" ? "، " : ", ";
+  const selectedAddress = addresses.find((a) => a.id === addressId) ?? null;
+  const freeLeft = Math.max(0, FREE_DELIVERY_THRESHOLD - subtotal);
+  const vatAmount = extractVat(total);
+  const card = "rounded-3xl bg-white p-4 shadow-sm ring-1 ring-neutral-100";
+  const labelText = (label: Address["label"]) =>
+    label === "home" ? t("addresses.label_home") : label === "office" ? t("addresses.label_office") : t("addresses.label_other");
+  const addressMeta = (addr: Address) =>
+    [
+      addr.building_number && `${t("addresses.bldg_short")} ${addr.building_number}`,
+      addr.unit_number && `${t("addresses.unit_short")} ${addr.unit_number}`,
+      addr.district,
+      addr.city,
+    ]
+      .filter(Boolean)
+      .join(", ");
 
   return (
     <>
-    <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-      <div className="flex flex-col gap-4">
-        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-100">
-          <h2 className="mb-3 text-base font-extrabold tracking-tight">
-            {t("checkout.delivery_address")}
-          </h2>
-          <div className="flex flex-col gap-2">
-            {addresses.map((addr) => (
-              <label
-                key={addr.id}
-                className={`flex cursor-pointer items-start gap-2 rounded-2xl border p-3 text-sm ${
-                  addressId === addr.id ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="address"
-                  checked={addressId === addr.id}
-                  onChange={() => setAddressId(addr.id)}
-                />
-                <span className="flex flex-col gap-0.5">
-                  <span className="flex items-center gap-2">
-                    <span className="font-medium capitalize">
-                      {addr.label === "home"
-                        ? t("addresses.label_home")
-                        : addr.label === "office"
-                          ? t("addresses.label_office")
-                          : t("addresses.label_other")}
-                    </span>
-                    {addr.short_address && (
-                      <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-neutral-600">
-                        {addr.short_address}
+      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+        <div className="flex flex-col gap-4">
+          {/* delivery address */}
+          <section className={card}>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-base font-extrabold tracking-tight">{t("checkout_ui.deliver_to")}</h2>
+              {addresses.length > 1 && (
+                <button type="button" onClick={() => setShowAddresses((v) => !v)} className="text-sm font-bold text-blue-700">
+                  {showAddresses ? t("common.cancel") : t("checkout_ui.change")}
+                </button>
+              )}
+            </div>
+
+            {selectedAddress && !showAddresses && (
+              <div className="flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-xl">📍</span>
+                <div className="min-w-0 flex-1 text-sm">
+                  <p className="flex items-center gap-2 font-bold text-neutral-900">
+                    {labelText(selectedAddress.label)}
+                    {selectedAddress.short_address && (
+                      <span className="rounded-md bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-neutral-600">
+                        {selectedAddress.short_address}
                       </span>
                     )}
-                  </span>
-                  {addr.receiver_name && (
-                    <span className="font-medium">
-                      {addr.receiver_name}
-                      {addr.receiver_phone && (
-                        <span className="ms-2 font-normal text-neutral-500">📞 {addr.receiver_phone}</span>
+                  </p>
+                  <p className="text-neutral-700">{selectedAddress.address_line}</p>
+                  <p className="text-xs text-neutral-500">{addressMeta(selectedAddress)}</p>
+                  {selectedAddress.receiver_name && (
+                    <p className="mt-1 text-xs font-medium text-neutral-700">
+                      {selectedAddress.receiver_name}
+                      {selectedAddress.receiver_phone && (
+                        <span className="ms-2 font-normal text-neutral-500">📞 {selectedAddress.receiver_phone}</span>
+                      )}
+                    </p>
+                  )}
+                  {blockedByAddress[selectedAddress.id] ? (
+                    <p className="mt-1 text-xs font-medium text-red-600">
+                      {t("checkout.outside_delivery_area", { items: blockedByAddress[selectedAddress.id].join(listSep) })}
+                    </p>
+                  ) : selectedAddress.lat != null && selectedAddress.lng != null ? (
+                    <p className="mt-1 text-xs font-medium text-emerald-600">✓ {t("checkout.map_pinned_deliverable")}</p>
+                  ) : null}
+                </div>
+              </div>
+            )}
+
+            {(showAddresses || !selectedAddress) && (
+              <div className="flex flex-col gap-2">
+                {addresses.map((addr) => (
+                  <label
+                    key={addr.id}
+                    className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3 text-sm ${
+                      addressId === addr.id ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="address"
+                      checked={addressId === addr.id}
+                      onChange={() => {
+                        setAddressId(addr.id);
+                        setShowAddresses(false);
+                      }}
+                      className="mt-1"
+                    />
+                    <span className="flex flex-col gap-0.5">
+                      <span className="font-bold">{labelText(addr.label)}</span>
+                      <span>{addr.address_line}</span>
+                      <span className="text-xs text-neutral-500">{addressMeta(addr)}</span>
+                      {blockedByAddress[addr.id] && (
+                        <span className="text-xs font-medium text-red-600">
+                          {t("checkout.outside_delivery_area", { items: blockedByAddress[addr.id].join(listSep) })}
+                        </span>
                       )}
                     </span>
-                  )}
-                  <span>{addr.address_line}</span>
-                  <span className="text-xs text-neutral-500">
-                    {[
-                      addr.building_number && `${t("addresses.bldg_short")} ${addr.building_number}`,
-                      addr.unit_number && `${t("addresses.unit_short")} ${addr.unit_number}`,
-                      addr.district,
-                      addr.city,
-                      addr.postal_code,
-                    ]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </span>
-                  {blockedByAddress[addr.id] ? (
-                    <span className="text-xs font-medium text-red-600">
-                      {t("checkout.outside_delivery_area", { items: blockedByAddress[addr.id].join(listSep) })}
-                    </span>
-                  ) : addr.lat != null && addr.lng != null ? (
-                    <span className="text-xs text-emerald-600">{t("checkout.map_pinned_deliverable")}</span>
-                  ) : null}
-                </span>
-              </label>
-            ))}
+                  </label>
+                ))}
+              </div>
+            )}
 
-            <div className="pt-1">
+            <div className="pt-3">
               <AddressForm
-                onAdded={setAddressId}
+                onAdded={(id) => {
+                  setAddressId(id);
+                  setShowAddresses(false);
+                }}
                 triggerLabel={addresses.length === 0 ? t("checkout.add_delivery_address") : t("common.add_new_address")}
               />
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-100">
-          <h2 className="mb-3 text-base font-extrabold tracking-tight">
-            {t("checkout.delivery_time")}
-          </h2>
-          <div className="flex flex-col gap-2">
-            {DELIVERY_OPTIONS.map((opt) => (
-              <label
-                key={opt.value}
-                className={`flex cursor-pointer items-center justify-between rounded-2xl border p-3 text-sm ${
-                  deliveryType === opt.value ? "border-blue-600 bg-blue-50" : "border-neutral-200"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="delivery"
-                    checked={deliveryType === opt.value}
-                    onChange={() => setDeliveryType(opt.value)}
-                  />
-                  <span>
-                    <span className="font-medium">{t(opt.labelKey)}</span>{" "}
-                    <span className="text-neutral-500">— {t(opt.hintKey)}</span>
-                  </span>
-                </span>
-                <span>{subtotal >= 50 ? t("checkout.free") : formatSAR(opt.fee)}</span>
-              </label>
-            ))}
+          {/* delivery speed */}
+          <section className={card}>
+            <h2 className="mb-3 text-base font-extrabold tracking-tight">{t("checkout.delivery_time")}</h2>
+            <div className="grid grid-cols-3 gap-2">
+              {DELIVERY_OPTIONS.map((opt) => {
+                const active = deliveryType === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setDeliveryType(opt.value)}
+                    className={`flex flex-col items-center gap-0.5 rounded-2xl border p-3 text-center transition active:scale-95 ${
+                      active ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200"
+                    }`}
+                  >
+                    <span className="text-xl">{opt.value === "express" ? "⚡" : opt.value === "standard" ? "🛵" : "🗓️"}</span>
+                    <span className={`text-sm font-bold ${active ? "text-blue-800" : "text-neutral-900"}`}>{t(opt.labelKey)}</span>
+                    <span className="text-[11px] leading-tight text-neutral-500">{t(opt.hintKey)}</span>
+                    <span className={`mt-1 text-xs font-extrabold ${subtotal >= FREE_DELIVERY_THRESHOLD ? "text-emerald-600" : "text-neutral-800"}`}>
+                      {subtotal >= FREE_DELIVERY_THRESHOLD ? t("checkout.free") : formatSAR(opt.fee)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
             {deliveryType === "scheduled" && (
               <input
                 type="datetime-local"
                 value={scheduledFor}
                 onChange={(e) => setScheduledFor(e.target.value)}
-                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                className="mt-3 w-full rounded-2xl border border-neutral-300 px-3 py-2.5 text-sm"
               />
             )}
-          </div>
-        </section>
+          </section>
 
-        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-100">
-          <h2 className="mb-3 text-base font-extrabold tracking-tight">
-            {t("checkout.payment")}
-          </h2>
-          <div className="grid grid-cols-2 gap-2">
+          {/* order items */}
+          <section className={card}>
+            <h2 className="mb-1 text-base font-extrabold tracking-tight">{t("checkout.items_in_order", { count: itemCount })}</h2>
+            <div className="divide-y divide-neutral-100">
+              {items.map((item) => {
+                const variant = item.product_variants;
+                const product = variant.products;
+                const name = localizedName(product, locale);
+                return (
+                  <div key={item.id} className="flex items-center gap-3 py-3">
+                    <div className="relative h-16 w-16 shrink-0">
+                      <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-100">
+                        {product.image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={product.image_url} alt={name} className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="text-2xl">📦</span>
+                        )}
+                      </div>
+                      <span className="absolute -end-1.5 -top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-blue-700 px-1.5 text-xs font-extrabold text-white ring-2 ring-white">
+                        {item.quantity}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-neutral-900">{name}</p>
+                      <p className="text-xs text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</p>
+                    </div>
+                    <span className="shrink-0 text-sm font-extrabold">{formatSAR(item.quantity * variant.price)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* payment */}
+          <section className={card}>
+            <h2 className="mb-3 text-base font-extrabold tracking-tight">{t("checkout.payment")}</h2>
             {PAYMENT_OPTIONS.map((opt) => (
-              <label
+              <button
                 key={opt.value}
-                className={`flex cursor-pointer items-center gap-2 rounded-2xl border p-3 text-sm ${
-                  paymentMethod === opt.value ? "border-blue-600 bg-blue-50" : "border-neutral-200"
+                type="button"
+                onClick={() => setPaymentMethod(opt.value)}
+                className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-start ${
+                  paymentMethod === opt.value ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200"
                 }`}
               >
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === opt.value}
-                  onChange={() => setPaymentMethod(opt.value)}
-                />
-                {opt.label}
-              </label>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm ring-1 ring-neutral-100">
+                  💵
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold text-neutral-900">{t("checkout_ui.cod_title")}</span>
+                  <span className="block text-xs text-neutral-500">{t("checkout_ui.cod_hint")}</span>
+                </span>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs text-white">✓</span>
+              </button>
             ))}
-          </div>
-        </section>
+          </section>
 
-        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-100">
-          <h2 className="mb-3 text-base font-extrabold tracking-tight">
-            {t("checkout.items_in_order", { count: itemCount })}
-          </h2>
-          <div className="-mx-4 divide-y divide-neutral-100 border-t border-neutral-100 px-4">
-            {items.map((item) => {
-              const variant = item.product_variants;
-              const product = variant.products;
-              const name = localizedName(product, locale);
-              return (
-                <div key={item.id} className="flex items-center gap-3 py-3">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-100">
-                    {product.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={product.image_url} alt={name} className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-2xl">📦</span>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-neutral-900">{name}</p>
-                    <p className="text-xs text-neutral-500">
-                      {localizedField(variant.label, variant.label_ar, locale)} × {item.quantity}
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-sm font-medium">{formatSAR(item.quantity * variant.price)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+          {/* note for the rider */}
+          <section className={card}>
+            <h2 className="mb-2 text-base font-extrabold tracking-tight">{t("checkout_ui.note_title")}</h2>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value.slice(0, 200))}
+              rows={2}
+              placeholder={t("checkout_ui.note_placeholder")}
+              className="w-full resize-none rounded-2xl border border-neutral-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            />
+          </section>
+        </div>
 
+        {/* summary */}
+        <div className="h-fit lg:sticky lg:top-20">
+          <div className={card}>
+            <h2 className="mb-3 text-base font-extrabold tracking-tight">{t("checkout.order_summary")}</h2>
+
+            <div
+              className={`mb-3 rounded-2xl px-3 py-2.5 text-xs font-bold ${
+                freeLeft === 0 ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-800"
+              }`}
+            >
+              {freeLeft === 0 ? (
+                t("checkout_ui.free_unlocked")
+              ) : (
+                <>
+                  {t("checkout_ui.add_for_free", { amount: formatSAR(freeLeft) })}
+                  <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-blue-100">
+                    <span
+                      className="block h-full rounded-full bg-blue-600"
+                      style={{ width: `${Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100)}%` }}
+                    />
+                  </span>
+                </>
+              )}
+            </div>
+
+            <div className="space-y-1.5 text-sm">
+              <div className="flex justify-between">
+                <span className="text-neutral-500">{t("orders.item_subtotal")}</span>
+                <span className="font-medium">{formatSAR(subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
+                <span className={`font-medium ${deliveryFee === 0 ? "text-emerald-600" : ""}`}>
+                  {deliveryFee === 0 ? t("checkout.free") : formatSAR(deliveryFee)}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-dashed border-neutral-200 pt-2 text-base font-extrabold">
+                <span>{t("checkout.total")}</span>
+                <span>{formatSAR(total)}</span>
+              </div>
+              <p className="text-end text-[11px] text-neutral-400">{t("checkout_ui.vat_included", { amount: formatSAR(vatAmount) })}</p>
+            </div>
+
+            {error && <p className="mt-3 hidden text-sm text-red-600 lg:block">{error}</p>}
+
+            <button
+              onClick={handlePlaceOrder}
+              disabled={pending || blockedItems.length > 0}
+              className="mt-4 hidden h-12 w-full rounded-full bg-blue-700 font-extrabold text-white shadow-lg shadow-blue-700/25 hover:bg-blue-800 disabled:opacity-50 lg:block"
+            >
+              {pending ? t("checkout.placing_order") : t("checkout.place_order_with_total", { total: formatSAR(total) })}
+            </button>
+            {blockedItems.length > 0 && (
+              <p className="mt-2 text-center text-xs text-red-600">
+                {t("checkout.some_items_blocked", { items: blockedItems.join(listSep) })}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="h-fit lg:sticky lg:top-20">
-        <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-100">
-          <h2 className="mb-3 font-medium">{t("checkout.order_summary")}</h2>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-neutral-500">{t("orders.item_subtotal")}</span>
-              <span>{formatSAR(subtotal)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
-              <span>{deliveryFee === 0 ? t("checkout.free") : formatSAR(deliveryFee)}</span>
-            </div>
-            <div className="flex justify-between border-t border-neutral-200 pt-1 text-base font-semibold">
-              <span>{t("checkout.total")}</span>
-              <span>{formatSAR(total)}</span>
-            </div>
+      {/* Keeta-style bottom bar on phones: the total, and a big Place order button. */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 rounded-t-3xl bg-white px-4 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.12)] lg:hidden"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
+        {error && <p className="mb-2 text-xs font-medium text-red-600">{error}</p>}
+        {blockedItems.length > 0 && !error && (
+          <p className="mb-2 text-xs font-medium text-red-600">
+            {t("checkout.some_items_blocked", { items: blockedItems.join(listSep) })}
+          </p>
+        )}
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-neutral-500">{t("checkout.total")}</p>
+            <p className="text-xl font-extrabold text-neutral-900">{formatSAR(total)}</p>
           </div>
-
-          {error && <p className="mt-3 hidden text-sm text-red-600 lg:block">{error}</p>}
-
           <button
             onClick={handlePlaceOrder}
             disabled={pending || blockedItems.length > 0}
-            className="mt-4 hidden w-full rounded-full bg-blue-700 py-3 font-medium text-white hover:bg-blue-800 disabled:opacity-50 lg:block"
+            className="h-12 shrink-0 rounded-full bg-blue-700 px-8 text-sm font-extrabold text-white shadow-lg shadow-blue-700/25 transition hover:bg-blue-800 active:scale-95 disabled:opacity-50"
           >
-            {pending ? t("checkout.placing_order") : t("checkout.place_order_with_total", { total: formatSAR(total) })}
+            {pending ? t("checkout.placing_order") : t("checkout.place_order")}
           </button>
-          {blockedItems.length > 0 && (
-            <p className="mt-2 text-center text-xs text-red-600">
-              {t("checkout.some_items_blocked", { items: blockedItems.join(listSep) })}
-            </p>
-          )}
         </div>
       </div>
-    </div>
-
-    {/* Keeta-style bottom bar on phones: the total, and a big Place order button. */}
-    <div
-      className="fixed inset-x-0 bottom-0 z-40 rounded-t-3xl bg-white px-4 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.12)] lg:hidden"
-      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
-    >
-      {error && <p className="mb-2 text-xs font-medium text-red-600">{error}</p>}
-      {blockedItems.length > 0 && !error && (
-        <p className="mb-2 text-xs font-medium text-red-600">
-          {t("checkout.some_items_blocked", { items: blockedItems.join(listSep) })}
-        </p>
-      )}
-      <div className="flex items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs text-neutral-500">{t("checkout.total")}</p>
-          <p className="text-xl font-extrabold text-neutral-900">{formatSAR(total)}</p>
-        </div>
-        <button
-          onClick={handlePlaceOrder}
-          disabled={pending || blockedItems.length > 0}
-          className="shrink-0 rounded-full bg-blue-700 px-8 py-3.5 text-sm font-extrabold text-white transition hover:bg-blue-800 active:scale-95 disabled:opacity-50"
-        >
-          {pending ? t("checkout.placing_order") : t("checkout.place_order")}
-        </button>
-      </div>
-    </div>
     </>
   );
 }
