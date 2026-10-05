@@ -1,3 +1,8 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { dashboardPathForRole, SHOP_MODE_COOKIE } from "@/lib/landing";
+import { getMyStaffWarehouse } from "@/lib/warehouse-staff";
 import CategoryGrid from "@/components/CategoryGrid";
 import HomeHero from "@/components/HomeHero";
 import ShopsRow from "@/components/ShopsRow";
@@ -16,7 +21,26 @@ import { getDefaultVariantStockMap } from "@/lib/inventory";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
+/** Riders, suppliers, admins and warehouse staff land on their own portal by
+ * default (their saved preference). "Back to shop" sets a session cookie so the
+ * shop stays open for the rest of the visit. */
+async function redirectToPortalIfPreferred() {
+  if ((await cookies()).get(SHOP_MODE_COOKIE)) return;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+  const target = dashboardPathForRole(profile?.role);
+  if (!target || (profile?.landing_page ?? "portal") !== "portal") return;
+  // A staff account with no warehouse assigned has no portal to land on.
+  if (profile?.role === "store_staff" && !(await getMyStaffWarehouse())) return;
+  redirect(target);
+}
+
 export default async function HomePage() {
+  await redirectToPortalIfPreferred();
   const locale = await getServerLocale();
   const t = (key: string) => translate(locale, key);
   const [categories, featured, freshToday, offers] = await Promise.all([

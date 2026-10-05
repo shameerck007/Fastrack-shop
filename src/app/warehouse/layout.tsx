@@ -26,7 +26,7 @@ export default async function WarehouseLayout({ children }: { children: React.Re
               <Wordmark height={24} />
             </Link>
             <div className="flex shrink-0 items-center gap-3 text-sm sm:gap-4">
-              <Link href="/" className="flex items-center gap-1 text-neutral-500 hover:text-neutral-900">
+              <Link href="/api/enter-shop" prefetch={false} className="flex items-center gap-1 text-neutral-500 hover:text-neutral-900">
                 <span className="rtl:-scale-x-100">←</span> <span className="hidden sm:inline">{t("portal.back_to_shop")}</span>
               </Link>
               <LanguageToggle />

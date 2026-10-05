@@ -29,7 +29,7 @@ export default async function RiderHeader() {
           <span className="hidden text-xs text-neutral-500 sm:inline">
             {t("rider.today_stat", { count: stats.deliveries, earnings: formatSAR(stats.earnings) })}
           </span>
-          <Link href="/" className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900">
+          <Link href="/api/enter-shop" prefetch={false} className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900">
             <span className="rtl:-scale-x-100">←</span> <span className="hidden sm:inline">{t("portal.back_to_shop")}</span>
           </Link>
           <LanguageToggle />

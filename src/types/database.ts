@@ -27,6 +27,7 @@ export interface Profile {
   full_name: string | null;
   phone: string | null;
   avatar_url: string | null;
+  landing_page?: "portal" | "shop";
   created_at: string;
   updated_at: string;
 }

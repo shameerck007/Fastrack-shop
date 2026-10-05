@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/actions/auth";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import LandingPreference from "@/components/LandingPreference";
+import { dashboardPathForRole } from "@/lib/landing";
 import LanguageToggle from "@/components/LanguageToggle";
 
 function AccountTile({
@@ -85,6 +87,10 @@ export default async function AccountPage() {
         </span>
         <LanguageToggle />
       </div>
+
+      {dashboardPathForRole(profile?.role) && (
+        <LandingPreference initial={profile?.landing_page === "shop" ? "shop" : "portal"} portalLabel={t("account.dashboard_tile_title", { role: roleLabel })} />
+      )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <AccountTile
