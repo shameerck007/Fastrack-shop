@@ -24,11 +24,14 @@ export default function DeliverToChip({
       aria-label={t("header.change_location")}
     >
       <span
-        className={`flex shrink-0 items-center justify-center rounded-full bg-blue-50 transition group-hover:bg-blue-100 ${
-          variant === "pill" ? "h-7 w-7 text-sm" : "h-6 w-6 text-xs"
+        className={`flex shrink-0 items-center justify-center rounded-full transition ${
+          variant === "pill" ? "h-7 w-7 bg-blue-50 group-hover:bg-blue-100" : "h-5 w-5"
         }`}
       >
-        📍
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-blue-700 ${variant === "pill" ? "h-3.5 w-3.5" : "h-[18px] w-[18px]"}`}>
+          <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11Z" strokeLinejoin="round" />
+          <circle cx="12" cy="10" r="2.3" fill="currentColor" stroke="none" />
+        </svg>
       </span>
       <span className="flex min-w-0 flex-col leading-tight">
         {variant === "pill" && (

@@ -50,12 +50,48 @@ function buildLabel(data: { name?: string; category?: string; address?: Record<s
   return a.city || a.town || a.village || a.county || a.state_district || a.state || null;
 }
 
+// Venue-level lookup via Stadia's geocoder (Foursquare-backed POIs), which
+// knows business names like "Obeikan" where OpenStreetMap often has nothing
+// at the exact spot — this is what lets the header say where the shopper
+// actually is instead of just "Riyadh Governorate". Only a venue within
+// 60 m counts, so a GPS fix doesn't get labelled with a place down the road.
+const STADIA_KEY = process.env.NEXT_PUBLIC_STADIAMAPS_KEY;
+
+async function venueLabel(lat: string, lng: string): Promise<string | null> {
+  if (!STADIA_KEY) return null;
+  try {
+    const res = await fetch(
+      `https://api.stadiamaps.com/geocoding/v1/reverse?point.lat=${encodeURIComponent(lat)}&point.lon=${encodeURIComponent(lng)}&layers=venue&size=3&boundary.circle.radius=1&api_key=${STADIA_KEY}`,
+      { signal: AbortSignal.timeout(4000) }
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      features?: { properties?: { name?: string; distance?: number; neighbourhood?: string; locality?: string } }[];
+    };
+    const best = data.features?.find((f) => (f.properties?.distance ?? Infinity) <= 0.06 && f.properties?.name);
+    if (!best?.properties?.name) return null;
+    // Names often come bilingual as "العبيكان | Obeikan" — the English half reads
+    // better in the header; keep the Arabic one when it's all there is.
+    const parts = best.properties.name.split("|").map((p) => p.trim()).filter(Boolean);
+    const name = parts.find((p) => /[A-Za-z]/.test(p)) ?? parts[0];
+    const area = best.properties.neighbourhood || best.properties.locality;
+    return area ? `${name}, ${area}` : name;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const lat = searchParams.get("lat");
   const lng = searchParams.get("lng");
   if (!lat || !lng) {
     return NextResponse.json({ error: "lat and lng are required" }, { status: 400 });
+  }
+
+  const venue = await venueLabel(lat, lng);
+  if (venue) {
+    return NextResponse.json({ label: venue }, { headers: { "Cache-Control": "public, max-age=300" } });
   }
 
   // Fine zoom first (street-level); a coarser zoom as a second attempt picks
