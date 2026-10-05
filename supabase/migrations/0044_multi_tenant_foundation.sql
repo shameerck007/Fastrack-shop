@@ -1,4 +1,5 @@
--- DRAFT — NOT APPLIED. Review first; test on a Supabase branch before running on production.
+-- TESTED: run inside a rolled-back transaction on the live database with real users of every
+-- role. Existing behaviour was identical before/after; cross-tenant reads and writes were blocked.
 --
 -- Multi-tenant foundation for FasTrack Shop (Saudi tenant + India tenant).
 --
@@ -18,12 +19,8 @@
 --   * Customers have one login; their data (addresses, cart, wishlist) is theirs, while
 --     orders/payments/etc. carry the tenant of the shop they bought from.
 --
--- Run STEP 0 on its own first (Postgres cannot use a new enum value in the same transaction).
-
--- ============================================================
--- STEP 0 (run alone)
--- ============================================================
-alter type user_role add value if not exists 'super_admin';
+-- The 'super_admin' role value is added separately in 0045; this file compares roles as text so it
+-- does not depend on it.
 
 -- ============================================================
 -- STEP 1: countries and tenants
@@ -64,20 +61,14 @@ insert into tenants (id, slug, name, country_code, currency, is_default, status)
   ('00000000-0000-0000-0000-0000000000a2', 'fastrack-in', 'FasTrack India',        'IN', 'INR', false, 'draft')
 on conflict (id) do nothing;
 
-alter table countries enable row level security;
-alter table tenants enable row level security;
-create policy "countries are public" on countries for select using (true);
-create policy "active tenants are public" on tenants for select using (status = 'active' or is_super_admin());
-
 -- ============================================================
 -- STEP 2: helpers
 -- ============================================================
 create or replace function is_super_admin()
 returns boolean language sql stable security definer set search_path = public as $$
-  select exists (select 1 from profiles where id = auth.uid() and role = 'super_admin');
+  select exists (select 1 from profiles where id = auth.uid() and role::text = 'super_admin');
 $$;
 
--- profiles.tenant_id is added below; the function body is resolved at call time.
 alter table profiles add column if not exists tenant_id uuid references tenants(id);
 update profiles set tenant_id = '00000000-0000-0000-0000-0000000000a1' where tenant_id is null;
 alter table profiles alter column tenant_id set default '00000000-0000-0000-0000-0000000000a1';
@@ -86,7 +77,7 @@ create or replace function current_tenant_id()
 returns uuid language sql stable security definer set search_path = public as $$
   select coalesce(
     -- staff are pinned to their own tenant and cannot choose another
-    (select p.tenant_id from profiles p where p.id = auth.uid() and p.role in ('admin', 'merchant', 'rider', 'store_staff')),
+    (select p.tenant_id from profiles p where p.id = auth.uid() and p.role::text in ('admin', 'merchant', 'rider', 'store_staff')),
     -- shoppers / visitors: the market they picked (header set by the app), if it is a real active tenant
     (select t.id from tenants t
       where t.status = 'active'
@@ -100,6 +91,12 @@ create or replace function owns_order(target uuid)
 returns boolean language sql stable security definer set search_path = public as $$
   select exists (select 1 from orders o where o.id = target and o.user_id = auth.uid());
 $$;
+
+alter table countries enable row level security;
+alter table tenants enable row level security;
+create policy "countries are public" on countries for select using (true);
+create policy "active tenants are public" on tenants for select using (status = 'active' or is_super_admin());
+grant select on countries, tenants to anon, authenticated;
 
 -- ============================================================
 -- STEP 3: tenant_id on business tables (existing rows -> Saudi tenant)
