@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
+import MobileSearchBar from "@/components/MobileSearchBar";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
 import { hasOwnMobileTopBar, isFullscreenMobileRoute } from "@/lib/mobile-fullscreen";
@@ -69,6 +70,11 @@ export default function BackBar() {
 
   return (
     <>
+      {pathname === "/search" && (
+        <Suspense fallback={null}>
+          <MobileSearchBar />
+        </Suspense>
+      )}
       {fullscreen && !ownBar && (
         <div
           className="sticky top-0 z-30 flex items-center gap-3 bg-white/95 px-4 pb-2.5 shadow-sm backdrop-blur md:hidden"

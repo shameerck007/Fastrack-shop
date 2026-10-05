@@ -1,5 +1,6 @@
 "use client";
 
+import EmptyState from "@/components/EmptyState";
 import DeliverableProductGrid from "@/components/DeliverableProductGrid";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import type { ProductWithVariants } from "@/types/database";
@@ -22,15 +23,13 @@ export default function DeliverableProductList({
   const { statusForStore } = useDeliveryLocation();
 
   if (products.length === 0) {
-    return <p className="text-sm text-neutral-500">{emptyMessage}</p>;
+    return <EmptyState icon="📦" title={emptyMessage} />;
   }
 
   const anyVisible = products.some((p) => statusForStore(p.store_id).state !== "outside");
   if (!anyVisible) {
     return (
-      <p className="text-sm text-neutral-500">
-        Nothing here can be delivered to your current location yet.
-      </p>
+      <EmptyState icon="📍" title="Nothing to deliver to you yet" hint="These items can't be delivered to your current location. Try changing your delivery address." />
     );
   }
 

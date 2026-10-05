@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
+import { ProductTopBar } from "@/components/MobileTopBar";
 import DeliverToChip from "@/components/DeliverToChip";
 
 export default function StoreHeader({ storeName }: { storeName: string }) {
   const { cartCount } = useCustomerHeaderState();
 
   return (
-    <header className="sticky top-0 z-30 bg-white shadow-sm">
+    <>
+      <ProductTopBar />
+    <header className="sticky top-0 z-30 hidden bg-white shadow-sm md:block">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="min-w-0">
           <p className="truncate text-lg font-semibold text-neutral-900">{storeName}</p>
@@ -25,5 +28,6 @@ export default function StoreHeader({ storeName }: { storeName: string }) {
         </Link>
       </div>
     </header>
+    </>
   );
 }
