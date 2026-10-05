@@ -29,7 +29,7 @@ export default function LanguageToggle({ className = "" }: { className?: string 
         type="button"
         onClick={() => switchTo("en")}
         disabled={pending}
-        className={`rounded-full px-2 py-0.5 transition ${
+        className={`rounded-full px-1.5 py-0.5 transition ${
           locale === "en" ? "bg-blue-700 text-white" : "text-neutral-500 hover:text-neutral-900"
         }`}
       >
@@ -39,7 +39,7 @@ export default function LanguageToggle({ className = "" }: { className?: string 
         type="button"
         onClick={() => switchTo("ar")}
         disabled={pending}
-        className={`rounded-full px-2 py-0.5 transition ${
+        className={`rounded-full px-1.5 py-0.5 transition ${
           locale === "ar" ? "bg-blue-700 text-white" : "text-neutral-500 hover:text-neutral-900"
         }`}
       >

@@ -17,13 +17,14 @@ export default async function Header() {
     // sit flush against the notch on Android/iOS. env(...) is 0 in a normal
     // browser tab, so this is a no-op there.
     <header className="sticky top-0 z-30 bg-white shadow-sm" style={{ paddingTop: "env(safe-area-inset-top)" }}>
-      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-2.5 sm:gap-3 sm:py-3">
+      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 pb-2.5 pt-2 sm:gap-3 sm:py-3">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/" className="flex shrink-0 items-center gap-2">
+          <Link href="/" className="hidden shrink-0 items-center gap-2 sm:flex">
             <Wordmark height={24} />
             <span className="inline-block rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700">Shop</span>
           </Link>
 
+          <DeliverToChip variant="plain" className="min-w-0 flex-1 sm:hidden" />
           <DeliverToChip className="hidden sm:flex" />
 
           <div className="flex shrink-0 items-center gap-3">
@@ -32,11 +33,10 @@ export default async function Header() {
           </div>
         </div>
 
-        <DeliverToChip className="sm:hidden" />
         <SearchBar />
       </div>
 
-      <div className="border-t border-blue-100 bg-blue-50/60">
+      <div className="hidden border-t border-blue-100 bg-blue-50/60 md:block">
         <CategoryNavBar categories={categories} />
       </div>
     </header>

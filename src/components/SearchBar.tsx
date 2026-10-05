@@ -61,18 +61,30 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
   return (
     <div ref={containerRef} className="relative">
       <form
+        className="relative"
         onSubmit={(e) => {
           e.preventDefault();
           goToSearch(value);
         }}
       >
+        <svg
+          aria-hidden
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+        >
+          <circle cx="9" cy="9" r="6" />
+          <path d="m14 14 4 4" strokeLinecap="round" />
+        </svg>
         <input
           type="search"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           placeholder={t("header.search_placeholder")}
-          className="w-full rounded-full border border-neutral-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
+          className="w-full rounded-full border border-transparent bg-neutral-100 py-2.5 pe-4 ps-10 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:bg-white"
         />
       </form>
 
