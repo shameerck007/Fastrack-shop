@@ -8,20 +8,19 @@ import { formatSAR } from "@/lib/utils";
 
 const HIDE_ON = ["/products", "/cart", "/checkout", "/login", "/register", "/account", "/orders"];
 
-/** Keeta-style checkout pill above the bottom nav: appears as soon as the
- * cart has something in it and goes straight to Place order. Mobile only —
- * desktop has the header cart link. */
-export default function FloatingCartBar() {
-  const pathname = usePathname();
+/** Keeta-style checkout pill: item count + total on the left, a yellow Place
+ * order button on the right that goes straight to checkout (tapping the
+ * count/total opens the cart). Renders nothing while the cart is empty. */
+export function PlaceOrderPill({ className = "", style }: { className?: string; style?: React.CSSProperties }) {
   const { cartCount, cartTotal } = useCustomerHeaderState();
   const { t } = useLocale();
 
-  if (cartCount <= 0 || HIDE_ON.some((p) => pathname.startsWith(p))) return null;
+  if (cartCount <= 0) return null;
 
   return (
     <div
-      className="fixed inset-x-4 z-40 flex items-center justify-between gap-3 rounded-full bg-neutral-900 py-2 pe-2 ps-5 text-white shadow-xl shadow-black/25 md:hidden"
-      style={{ bottom: "calc(4.25rem + env(safe-area-inset-bottom))" }}
+      className={`flex items-center justify-between gap-3 rounded-full bg-neutral-900 py-2 pe-2 ps-5 text-white shadow-xl shadow-black/25 ${className}`}
+      style={style}
     >
       <Link href="/cart" className="flex min-w-0 items-center gap-2.5 text-sm font-semibold">
         <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-bold text-neutral-900">
@@ -36,5 +35,20 @@ export default function FloatingCartBar() {
         {t("checkout.place_order")}
       </Link>
     </div>
+  );
+}
+
+/** Floats above the bottom nav on browsing pages (phones only). Product pages
+ * embed the same pill inside their own bottom sheet instead. */
+export default function FloatingCartBar() {
+  const pathname = usePathname();
+
+  if (HIDE_ON.some((p) => pathname.startsWith(p))) return null;
+
+  return (
+    <PlaceOrderPill
+      className="fixed inset-x-4 z-40 md:hidden"
+      style={{ bottom: "calc(4.25rem + env(safe-area-inset-bottom))" }}
+    />
   );
 }

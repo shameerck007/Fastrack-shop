@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isProductWishlisted } from "@/lib/wishlist";
 import WishlistButton from "@/components/WishlistButton";
 import { ProductTopBar } from "@/components/MobileTopBar";
+import { PlaceOrderPill } from "@/components/FloatingCartBar";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
@@ -60,7 +61,7 @@ export default async function ProductPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 max-md:px-0 max-md:pb-36 max-md:pt-0">
+    <div className="mx-auto max-w-6xl px-4 py-6 max-md:px-0 max-md:pb-56 max-md:pt-0">
       <TrackRecentlyViewed productId={id} />
       <ProductTopBar>
         <WishlistButton productId={product.id} initialInList={wishlisted} />
@@ -163,6 +164,7 @@ export default async function ProductPage({
             className="rounded-2xl border border-neutral-200 bg-white p-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:rounded-b-none max-md:rounded-t-3xl max-md:border-x-0 max-md:border-b-0 max-md:px-4 max-md:pt-3 max-md:shadow-[0_-8px_24px_rgba(0,0,0,0.08)] lg:sticky lg:top-20"
             style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
           >
+            <PlaceOrderPill className="mb-3 md:hidden" />
             <div className="mb-2 flex items-baseline gap-2 max-md:hidden">
               <span className="text-2xl font-bold text-blue-700">
                 {variant ? formatSAR(variant.price) : "—"}
