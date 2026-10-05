@@ -19,8 +19,8 @@ export default async function Header() {
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 pb-2.5 pt-2 sm:gap-3 sm:py-3">
         <div className="flex items-center justify-between gap-3">
           <Link href="/" className="flex shrink-0 items-center gap-1.5">
-            <Wordmark height={17} />
-            <span className="inline-block rounded bg-blue-50 px-1 py-px text-[10px] font-semibold text-blue-700">Shop</span>
+            <Wordmark height={14} />
+            <span className="inline-block rounded bg-blue-50 px-1 py-px text-[9px] font-semibold text-blue-700">Shop</span>
           </Link>
 
           <DeliverToChip variant="plain" className="ms-auto min-w-0 sm:hidden" />

@@ -31,11 +31,13 @@ export default function DeliverToChip({
         📍
       </span>
       <span className="flex min-w-0 flex-col leading-tight">
-        <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">{t("header.deliver_to")}</span>
+        {variant === "pill" && (
+          <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">{t("header.deliver_to")}</span>
+        )}
         {!ready ? (
           <span className="h-3.5 w-20 animate-pulse rounded bg-neutral-200" />
         ) : (
-          <span className="max-w-[11rem] truncate text-[13px] font-bold sm:text-sm text-neutral-900 sm:max-w-[14rem]">
+          <span className="max-w-[13rem] truncate text-sm font-bold text-neutral-900 sm:max-w-[14rem]">
             {location?.label ?? t("header.choose_location")}
           </span>
         )}
