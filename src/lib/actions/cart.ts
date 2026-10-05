@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getVariantStock } from "@/lib/inventory";
 import { checkProductsDeliverable, getCustomerLocation } from "@/lib/delivery-zones";
+import { assertStoresOpen } from "@/lib/stores";
 
 async function getOrCreateCartId(): Promise<string> {
   const supabase = await createClient();
@@ -63,6 +64,8 @@ export async function addToCart(
   const product = (variantRow as unknown as { products: { id: string; name: string; store_id: string | null } | null } | null)
     ?.products;
   if (product) {
+    // A closed or paused supplier can't take new items, same as at checkout.
+    await assertStoresOpen([product.store_id]);
     // The shopper's chosen browsing location if given, else their default
     // address. Checkout re-checks against the actual delivery address.
     const where = location ?? (await getCustomerLocation());

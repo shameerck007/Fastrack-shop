@@ -99,6 +99,11 @@ export interface Store {
   cr_document_path: string | null;
   vat_document_path: string | null;
   commission_rate: number;
+  logo_url?: string | null;
+  cover_url?: string | null;
+  tagline?: string | null;
+  opening_hours?: Record<string, { closed: boolean; open: string; close: string }> | null;
+  accepting_orders?: boolean;
   created_at: string;
   updated_at: string;
 }

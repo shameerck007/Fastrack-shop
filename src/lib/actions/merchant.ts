@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyAdmins } from "@/lib/push";
 import { sendNewApplicationEmails } from "@/lib/email-notifications";
+import { sanitizeOpeningHours } from "@/lib/store-hours";
 
 export async function applyForStore(input: {
   name: string;
@@ -16,6 +17,10 @@ export async function applyForStore(input: {
   city?: string;
   crDocumentPath?: string;
   vatDocumentPath?: string;
+  logoUrl?: string | null;
+  coverUrl?: string | null;
+  tagline?: string;
+  openingHours?: unknown;
 }) {
   const supabase = await createClient();
   const {
@@ -30,7 +35,7 @@ export async function applyForStore(input: {
     throw new Error("Please upload a copy of your CR document.");
   }
 
-  const { error } = await supabase.from("stores").insert({
+  const row = {
     owner_id: user.id,
     name: input.name.trim(),
     cr_number: input.crNumber.trim(),
@@ -42,7 +47,20 @@ export async function applyForStore(input: {
     city: input.city?.trim() || "Riyadh",
     cr_document_path: input.crDocumentPath,
     vat_document_path: input.vatDocumentPath ?? null,
-  });
+    logo_url: input.logoUrl ?? null,
+    cover_url: input.coverUrl ?? null,
+    tagline: input.tagline?.trim() || null,
+    opening_hours: sanitizeOpeningHours(input.openingHours ?? null),
+  };
+
+  let { error } = await supabase.from("stores").insert(row);
+  // Branding/hours columns arrive with a database migration — if it hasn't
+  // been applied yet, still accept the application without them.
+  if (error?.code === "42703" || error?.code === "PGRST204") {
+    const { logo_url, cover_url, tagline, opening_hours, ...basic } = row;
+    void logo_url; void cover_url; void tagline; void opening_hours;
+    ({ error } = await supabase.from("stores").insert(basic));
+  }
 
   if (error) {
     if (error.code === "23505") {
@@ -63,4 +81,32 @@ export async function applyForStore(input: {
     `${input.name.trim()} applied to sell on FasTrack.`,
     "/admin/merchants"
   );
+}
+
+/** Logo, cover, tagline, opening hours and the pause-orders switch — the
+ * parts of a store the owner manages themselves, even after approval. */
+export async function updateStoreProfile(input: {
+  logoUrl: string | null;
+  coverUrl: string | null;
+  tagline: string;
+  openingHours: unknown;
+  acceptingOrders: boolean;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("You must be logged in.");
+
+  const { error } = await supabase.rpc("update_own_store_profile", {
+    p_logo_url: input.logoUrl,
+    p_cover_url: input.coverUrl,
+    p_tagline: input.tagline.slice(0, 80),
+    p_opening_hours: sanitizeOpeningHours(input.openingHours),
+    p_accepting_orders: input.acceptingOrders,
+  });
+  if (error) throw error;
+
+  revalidatePath("/merchant");
+  revalidatePath("/store");
 }

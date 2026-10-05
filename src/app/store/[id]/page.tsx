@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import StoreHeader from "@/components/StoreHeader";
+import StoreHero from "@/components/StoreHero";
 import DeliverableProductList from "@/components/DeliverableProductList";
 import { getApprovedStoreById, getStoreProducts } from "@/lib/catalog";
+import { getStoreDirectory } from "@/lib/stores";
 import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
 
@@ -11,8 +13,22 @@ export default async function StorePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const store = await getApprovedStoreById(id);
-  if (!store) notFound();
+  const profile = await getApprovedStoreById(id);
+  if (!profile) notFound();
+
+  // Branding and hours come from the directory; if it isn't available yet
+  // (migration not applied) fall back to the bare profile so the page still works.
+  const entry = (await getStoreDirectory()).find((s) => s.id === id);
+  const store = entry ?? {
+    id: profile.id,
+    name: profile.name,
+    city: profile.city,
+    logo_url: null,
+    cover_url: null,
+    tagline: null,
+    opening_hours: null,
+    accepting_orders: true,
+  };
 
   const products = await getStoreProducts(id);
   const [ratingsMap, stockMap] = await Promise.all([
@@ -23,8 +39,8 @@ export default async function StorePage({
   return (
     <div>
       <StoreHeader storeName={store.name} />
+      <StoreHero store={store} />
       <div className="mx-auto max-w-6xl px-4 py-6">
-        <p className="mb-4 text-sm text-neutral-500">{store.city}</p>
         <DeliverableProductList
           products={products}
           ratings={Object.fromEntries(ratingsMap)}

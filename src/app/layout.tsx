@@ -12,6 +12,7 @@ import DeliveryBanner from "@/components/DeliveryBanner";
 import ChunkErrorReload from "@/components/ChunkErrorReload";
 import PushOptIn from "@/components/PushOptIn";
 import LocaleProvider from "@/components/LocaleProvider";
+import StoreDirectoryProvider from "@/components/StoreDirectoryProvider";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { dirFor } from "@/lib/i18n/config";
 import "./globals.css";
@@ -68,6 +69,7 @@ export default async function RootLayout({
       >
         <ChunkErrorReload />
         <LocaleProvider locale={locale}>
+        <StoreDirectoryProvider>
         <DeliveryLocationProvider>
         <HeaderGate hideOnMobileFullscreen>
           <Header />
@@ -88,6 +90,7 @@ export default async function RootLayout({
         </MobileNavGate>
         <PushOptIn />
         </DeliveryLocationProvider>
+        </StoreDirectoryProvider>
         </LocaleProvider>
       </body>
     </html>

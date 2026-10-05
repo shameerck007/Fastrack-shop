@@ -3,6 +3,8 @@
 import AddToCartForm from "@/components/AddToCartForm";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
+import { useStoreInfo } from "@/components/StoreDirectoryProvider";
+import { StatusPill } from "@/components/StoreBadge";
 import type { ProductVariant } from "@/types/database";
 
 export default function ProductBuyBox({
@@ -19,6 +21,20 @@ export default function ProductBuyBox({
   const { statusForStore, location, openPicker } = useDeliveryLocation();
   const { t } = useLocale();
   const status = statusForStore(storeId);
+  const { store, status: openStatus } = useStoreInfo(storeId);
+
+  if (store && openStatus && !openStatus.open) {
+    return (
+      <div className="rounded-xl bg-neutral-100 p-4 text-sm">
+        <StatusPill status={openStatus} className="mb-2" />
+        <p className="text-neutral-700">
+          {openStatus.reason === "paused"
+            ? t("store.paused_notice", { name: store.name })
+            : t("store.closed_notice", { name: store.name })}
+        </p>
+      </div>
+    );
+  }
 
   if (status.state === "outside") {
     return (

@@ -36,9 +36,16 @@ async function prepareImage(file: File): Promise<Blob> {
 export default function ImageUploader({
   value,
   onChange,
+  alt = "Product",
+  emoji = "📦",
+  wide = false,
 }: {
   value: string | null;
   onChange: (url: string | null) => void;
+  alt?: string;
+  emoji?: string;
+  /** Landscape preview, for cover images. */
+  wide?: boolean;
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,12 +93,12 @@ export default function ImageUploader({
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-neutral-300 bg-neutral-50">
+      <div className={`flex h-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-neutral-300 bg-neutral-50 ${wide ? "w-36" : "w-20"}`}>
         {value ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt="Product" className="h-full w-full object-cover" />
+          <img src={value} alt={alt} className="h-full w-full object-cover" />
         ) : (
-          <span className="text-2xl">📦</span>
+          <span className="text-2xl">{emoji}</span>
         )}
       </div>
       <div className="flex flex-col gap-1">

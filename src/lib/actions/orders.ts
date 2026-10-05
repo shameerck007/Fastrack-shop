@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
+import { assertStoresOpen } from "@/lib/stores";
 import { addToCart } from "@/lib/actions/cart";
 import { notifyUsers } from "@/lib/push";
 import { sendOrderConfirmationEmail, sendNewOrderEmails } from "@/lib/email-notifications";
@@ -83,6 +84,10 @@ export async function placeOrder(input: {
     store_id: i.product_variants.products.store_id,
     name: i.product_variants.products.name,
   }));
+  // The real gate for opening hours: a cart can sit through a shop's closing
+  // time, so every supplier in it is re-checked at the moment of ordering.
+  await assertStoresOpen(productRefs.map((p) => p.store_id));
+
   const warehouseByProduct = await resolveProductWarehouses(productRefs, coords);
 
   const itemWarehouseIds = items.map((item) => {

@@ -9,6 +9,8 @@ import type { ProductRating } from "@/lib/reviews";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
 import QuickAddToCart from "@/components/QuickAddToCart";
+import { SoldBy } from "@/components/StoreBadge";
+import { useStoreInfo } from "@/components/StoreDirectoryProvider";
 
 export default function ProductCard({
   product,
@@ -29,13 +31,15 @@ export default function ProductCard({
       ? Math.round((1 - variant.price / variant.compare_at_price) * 100)
       : null;
   const outOfStock = stock !== undefined && stock <= 0;
+  const { status: storeStatus } = useStoreInfo(product.store_id);
+  const storeClosed = !!storeStatus && !storeStatus.open;
   const name = locale === "ar" ? localizedName(product, "ar") : product.name;
 
   return (
     <Link
       href={`/products/${product.id}`}
       className={`group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-neutral-100 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-neutral-300/50 active:scale-[0.98] ${
-        outOfStock ? "opacity-60" : ""
+        outOfStock || storeClosed ? "opacity-60" : ""
       }`}
     >
       <div className={`relative flex h-36 items-center justify-center bg-gradient-to-br ${theme.gradient}`}>
@@ -66,11 +70,17 @@ export default function ProductCard({
             </span>
           )
         )}
-        {variant && !outOfStock && (
+        {storeClosed && !outOfStock && (
+          <span className="absolute inset-x-0 bottom-0 bg-neutral-900/70 py-1 text-center text-[11px] font-bold text-white">
+            {t("store.closed")}
+          </span>
+        )}
+        {variant && !outOfStock && !storeClosed && (
           <QuickAddToCart variantId={variant.id} storeId={product.store_id} stock={stock ?? Infinity} />
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3.5">
+        {product.store_id && <SoldBy storeId={product.store_id} className="mb-0.5" />}
         <span className="text-xs text-neutral-500">{localizedField(product.brand, product.brand_ar, locale)}</span>
         <span className="line-clamp-2 text-sm font-semibold leading-snug text-neutral-900">{name}</span>
         {rating && rating.review_count > 0 && (

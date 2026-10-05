@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getMyStore, getMyStoreProducts } from "@/lib/merchant";
 import { updateMerchantProductStock } from "@/lib/actions/merchant-products";
 import StockCell from "@/components/admin/StockCell";
+import StoreProfileForm from "@/components/merchant/StoreProfileForm";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName } from "@/lib/i18n/localized";
@@ -103,6 +104,16 @@ export default async function MerchantDashboardPage() {
           </div>
         </div>
       )}
+
+      <StoreProfileForm
+        initial={{
+          logoUrl: store.logo_url ?? null,
+          coverUrl: store.cover_url ?? null,
+          tagline: store.tagline ?? null,
+          hours: store.opening_hours ?? null,
+          acceptingOrders: store.accepting_orders ?? true,
+        }}
+      />
 
       {store.status === "approved" && (
         <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4">
