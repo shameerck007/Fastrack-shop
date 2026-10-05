@@ -17,9 +17,14 @@ export default async function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-lg font-medium">{t("cart.empty")}</p>
-        <Link href="/" className="mt-3 inline-block text-blue-600 hover:underline">
+      <div className="mx-auto flex max-w-2xl flex-col items-center px-6 py-16 text-center">
+        <span className="mb-5 flex h-28 w-28 items-center justify-center rounded-full bg-blue-50 text-5xl shadow-inner ring-8 ring-blue-50/60">🛒</span>
+        <p className="text-xl font-bold text-neutral-900">{t("cart.empty")}</p>
+        <p className="mt-1 max-w-xs text-sm text-neutral-500">Add groceries and daily essentials — we&apos;ll bring them to your door in minutes.</p>
+        <Link
+          href="/"
+          className="mt-6 rounded-full bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/25 transition active:scale-95"
+        >
           {t("cart.start_shopping")}
         </Link>
       </div>
