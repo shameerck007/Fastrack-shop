@@ -47,6 +47,25 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
   const [showAddNew, setShowAddNew] = useState(false);
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [nearby, setNearby] = useState<{ label: string; detail: string; lat: number; lng: number; distanceM: number }[]>([]);
+  const nearLat = location?.lat;
+  const nearLng = location?.lng;
+
+  // Named places around the current position, so a slightly-off GPS fix can be
+  // corrected by tapping the building you're really in.
+  useEffect(() => {
+    if (!open || nearLat == null || nearLng == null) return;
+    let cancelled = false;
+    fetch(`/api/geo/nearby?lat=${nearLat}&lng=${nearLng}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list) => {
+        if (!cancelled) setNearby(Array.isArray(list) ? list : []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [open, nearLat, nearLng]);
 
   useEffect(() => {
     if (!open) return;
@@ -201,6 +220,26 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
+
+        {nearby.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">Nearby places</p>
+            {nearby.map((p) => (
+              <button
+                key={`${p.label}-${p.lat}-${p.lng}`}
+                onClick={() => pickSearchResult({ label: p.label, detail: p.detail, lat: p.lat, lng: p.lng })}
+                className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-start text-sm transition hover:bg-neutral-50"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-base">📍</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium text-neutral-900">{p.label}</span>
+                  {p.detail && <span className="block truncate text-xs text-neutral-500">{p.detail}</span>}
+                </span>
+                <span className="shrink-0 text-xs text-neutral-400">{p.distanceM} m</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {showAddNew && (
           <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-3">
