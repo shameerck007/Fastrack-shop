@@ -3,12 +3,38 @@
 // so this is a fixed UTC+3). A close time earlier than the open time means
 // the shop runs past midnight (open 18:00, close 02:00).
 
+export interface Shift {
+  open: string;
+  close: string;
+}
+
+/** `open`/`close` are the day's first shift (kept as-is so hours saved before
+ * split shifts existed still read correctly); `more` holds any extra shifts
+ * the same day, e.g. 09:00-13:00 then 17:00-23:00 for a shop that closes
+ * in the middle of the day. */
 export interface DayHours {
   closed: boolean;
   open: string;
   close: string;
+  more?: Shift[];
 }
 export type OpeningHours = Record<string, DayHours> | null;
+
+export const MAX_SHIFTS_PER_DAY = 3;
+
+/** All of a day's shifts in order, or none if the day is closed. */
+export function shiftsOf(day: DayHours | undefined): Shift[] {
+  if (!day || day.closed) return [];
+  return [{ open: day.open, close: day.close }, ...(day.more ?? [])];
+}
+
+/** Writes a list of shifts back into the DayHours shape. */
+export function withShifts(day: DayHours, shifts: Shift[]): DayHours {
+  const [first, ...rest] = shifts.length ? shifts : [{ open: day.open, close: day.close }];
+  const next: DayHours = { closed: day.closed, open: first.open, close: first.close };
+  if (rest.length) next.more = rest;
+  return next;
+}
 
 export const DAY_KEYS = ["0", "1", "2", "3", "4", "5", "6"] as const;
 export const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -28,12 +54,17 @@ export function sanitizeOpeningHours(input: unknown): Record<string, DayHours> |
     const day = (input as Record<string, Partial<DayHours>>)[key];
     if (!day) throw new Error("Opening hours must cover every day of the week.");
     const closed = !!day.closed;
-    const open = String(day.open ?? "");
-    const close = String(day.close ?? "");
-    if (!closed && (!TIME_RE.test(open) || !TIME_RE.test(close))) {
+    const raw: Shift[] = [{ open: String(day.open ?? ""), close: String(day.close ?? "") }];
+    if (Array.isArray(day.more)) {
+      for (const m of day.more) raw.push({ open: String(m?.open ?? ""), close: String(m?.close ?? "") });
+    }
+    if (raw.length > MAX_SHIFTS_PER_DAY) throw new Error(`At most ${MAX_SHIFTS_PER_DAY} opening periods per day.`);
+    if (!closed && raw.some((r) => !TIME_RE.test(r.open) || !TIME_RE.test(r.close))) {
       throw new Error("Opening and closing times must look like 09:00.");
     }
-    out[key] = { closed, open: TIME_RE.test(open) ? open : "09:00", close: TIME_RE.test(close) ? close : "23:00" };
+    out[key] = closed
+      ? { closed: true, open: TIME_RE.test(raw[0].open) ? raw[0].open : "09:00", close: TIME_RE.test(raw[0].close) ? raw[0].close : "23:00" }
+      : withShifts({ closed: false, open: raw[0].open, close: raw[0].close }, raw);
   }
   return out;
 }
@@ -70,28 +101,32 @@ export function getOpenStatus(hours: OpeningHours, acceptingOrders: boolean, now
   if (!hours) return { open: true, reason: null, next: null, closesAt: null };
 
   const { day, minutes } = riyadhNow(now);
-  const today = hours[String(day)];
-  const yesterday = hours[String((day + 6) % 7)];
 
-  // Still inside yesterday's late-night shift (e.g. open 18:00, close 02:00).
-  if (yesterday && !yesterday.closed) {
-    const o = toMinutes(yesterday.open);
-    const c = toMinutes(yesterday.close);
-    if (c < o && minutes < c) return { open: true, reason: null, next: null, closesAt: yesterday.close };
+  // Still inside one of yesterday's late-night shifts (e.g. 18:00 -> 02:00).
+  for (const shift of shiftsOf(hours[String((day + 6) % 7)])) {
+    const o = toMinutes(shift.open);
+    const c = toMinutes(shift.close);
+    if (c <= o && minutes < c) return { open: true, reason: null, next: null, closesAt: shift.close };
   }
 
-  if (today && !today.closed) {
-    const o = toMinutes(today.open);
-    const c = toMinutes(today.close);
-    const isOpen = c > o ? minutes >= o && minutes < c : minutes >= o; // overnight: open until midnight, rest handled tomorrow
-    if (isOpen) return { open: true, reason: null, next: null, closesAt: today.close };
-    if (minutes < o) return { open: false, reason: "closed", next: { daysAhead: 0, day, time: today.open }, closesAt: null };
+  // Today's shifts: open if inside any; otherwise remember the next one to start.
+  let nextToday: Shift | null = null;
+  for (const shift of shiftsOf(hours[String(day)])) {
+    const o = toMinutes(shift.open);
+    const c = toMinutes(shift.close);
+    const inside = c > o ? minutes >= o && minutes < c : minutes >= o; // overnight: open until midnight, the rest counts tomorrow
+    if (inside) return { open: true, reason: null, next: null, closesAt: shift.close };
+    if (minutes < o && (!nextToday || o < toMinutes(nextToday.open))) nextToday = shift;
   }
+  if (nextToday) return { open: false, reason: "closed", next: { daysAhead: 0, day, time: nextToday.open }, closesAt: null };
 
   for (let ahead = 1; ahead <= 7; ahead++) {
     const d = (day + ahead) % 7;
-    const h = hours[String(d)];
-    if (h && !h.closed) return { open: false, reason: "closed", next: { daysAhead: ahead, day: d, time: h.open }, closesAt: null };
+    const shifts = shiftsOf(hours[String(d)]);
+    if (shifts.length) {
+      const earliest = shifts.reduce((a, b) => (toMinutes(b.open) < toMinutes(a.open) ? b : a));
+      return { open: false, reason: "closed", next: { daysAhead: ahead, day: d, time: earliest.open }, closesAt: null };
+    }
   }
   return { open: false, reason: "closed", next: null, closesAt: null };
 }

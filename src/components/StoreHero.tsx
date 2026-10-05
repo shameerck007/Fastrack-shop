@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useLocale } from "@/components/LocaleProvider";
 import { StatusPill, StoreLogo, useStatusText } from "@/components/StoreBadge";
 import type { StoreInfo } from "@/components/StoreDirectoryProvider";
-import { DAY_KEYS, formatClock, getOpenStatus } from "@/lib/store-hours";
+import { DAY_KEYS, formatClock, getOpenStatus, shiftsOf } from "@/lib/store-hours";
 
 const WEEKDAY_ANCHOR = 2; // 2000-01-02 was a Sunday
 
@@ -63,8 +63,12 @@ export default function StoreHero({ store }: { store: StoreInfo }) {
                 return (
                   <li key={key} className="flex justify-between text-neutral-600">
                     <span>{name}</span>
-                    <span className="font-medium">
-                      {!day || day.closed ? t("store.closed_day") : `${formatClock(day.open, locale)} – ${formatClock(day.close, locale)}`}
+                    <span className="font-medium text-end">
+                      {!day || day.closed
+                        ? t("store.closed_day")
+                        : shiftsOf(day)
+                            .map((sh) => `${formatClock(sh.open, locale)} – ${formatClock(sh.close, locale)}`)
+                            .join(" · ")}
                     </span>
                   </li>
                 );
