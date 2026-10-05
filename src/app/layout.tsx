@@ -69,7 +69,7 @@ export default async function RootLayout({
         <ChunkErrorReload />
         <LocaleProvider locale={locale}>
         <DeliveryLocationProvider>
-        <HeaderGate>
+        <HeaderGate hideOnMobileFullscreen>
           <Header />
         </HeaderGate>
         <DeliveryBanner />
@@ -77,7 +77,7 @@ export default async function RootLayout({
           <BackBar />
           {children}
         </main>
-        <HeaderGate>
+        <HeaderGate hideOnMobileFullscreen>
           <div className="pb-16 md:pb-0">
             <Footer />
           </div>

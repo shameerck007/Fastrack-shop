@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
+import { isFullscreenMobileRoute } from "@/lib/mobile-fullscreen";
 
 // Routes that have no page of their own (only /x/[id] exists), so "up one
 // level" from them should skip to the next real ancestor.
@@ -20,6 +21,15 @@ function parentPath(pathname: string): string {
   return segments.length === 0 ? "/" : "/" + segments.join("/");
 }
 
+// Navigation depth is module-level (not per-component) so any back button —
+// this bar or a full-screen page's own round back button — behaves the same.
+const nav = { depth: 0, popped: false, first: true };
+
+export function smartBack(router: ReturnType<typeof useRouter>, pathname: string) {
+  if (nav.depth > 0) router.back();
+  else router.push(parentPath(pathname));
+}
+
 // Lives in the root layout so every page — for every role, and any page
 // added later — gets a Back control without doing anything itself.
 //
@@ -30,40 +40,36 @@ export default function BackBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
-  const depth = useRef(0);
-  const popped = useRef(false);
-  const first = useRef(true);
 
   useEffect(() => {
     const onPop = () => {
-      popped.current = true;
+      nav.popped = true;
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
+    if (nav.first) {
+      nav.first = false;
       return;
     }
-    if (popped.current) {
-      depth.current = Math.max(0, depth.current - 1);
-      popped.current = false;
+    if (nav.popped) {
+      nav.depth = Math.max(0, nav.depth - 1);
+      nav.popped = false;
     } else {
-      depth.current += 1;
+      nav.depth += 1;
     }
   }, [pathname]);
 
   if (pathname === "/" || HIDE_PREFIXES.some((p) => pathname.startsWith(p))) return null;
 
   function goBack() {
-    if (depth.current > 0) router.back();
-    else router.push(parentPath(pathname));
+    smartBack(router, pathname);
   }
 
   return (
-    <div className="border-b border-neutral-200 bg-white">
+    <div className={`border-b border-neutral-200 bg-white ${isFullscreenMobileRoute(pathname) ? "hidden md:block" : ""}`}>
       <div className="mx-auto flex max-w-6xl items-center px-2 py-1">
         <button
           type="button"

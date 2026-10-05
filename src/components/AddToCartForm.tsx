@@ -96,8 +96,8 @@ export default function AddToCartForm({
 
       {inStock ? (
         <>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center self-start rounded-full border border-neutral-300">
+          <div className="flex items-center gap-3 md:flex-col md:items-stretch md:gap-2">
+            <div className="flex items-center self-start rounded-full border border-neutral-300 max-md:self-auto">
               <button
                 className="px-3 py-1 text-lg disabled:opacity-40"
                 disabled={quantity <= 1}
@@ -118,7 +118,7 @@ export default function AddToCartForm({
             <button
               onClick={handleAdd}
               disabled={pending || needsLocation}
-              className="w-full whitespace-nowrap rounded-full bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+              className="w-full flex-1 whitespace-nowrap rounded-full bg-blue-700 px-6 py-3 font-bold text-white hover:bg-blue-800 disabled:opacity-50 md:py-2 md:font-medium"
             >
               {pending ? t("product.adding") : t("product.add_to_cart")}
             </button>

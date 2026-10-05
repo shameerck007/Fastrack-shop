@@ -3,6 +3,7 @@ import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import DeliverableProductList from "@/components/DeliverableProductList";
 import DeliveryGate from "@/components/DeliveryGate";
+import { MobileTitleBar } from "@/components/MobileTopBar";
 import { getProductsByCategory } from "@/lib/catalog";
 import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
@@ -31,7 +32,10 @@ export default async function CategoryPage({
   const categoryLabel = localizedName(category, locale);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
+    <div>
+    <MobileTitleBar title={categoryLabel} />
+    <div className="mx-auto max-w-6xl px-4 py-6 max-md:pt-4">
+      <div className="hidden md:block">
       <Breadcrumbs
         items={[
           { label: t("category.home"), href: "/" },
@@ -39,9 +43,10 @@ export default async function CategoryPage({
           { label: categoryLabel },
         ]}
       />
-      <h1 className="mb-1 text-xl font-semibold">{categoryLabel}</h1>
+      </div>
+      <h1 className="mb-1 hidden text-xl font-semibold md:block">{categoryLabel}</h1>
       {subcategories.length > 0 && (
-        <p className="mb-3 text-sm text-neutral-500">{t("category.showing_all_of", { name: categoryLabel })}</p>
+        <p className="mb-3 hidden text-sm text-neutral-500 md:block">{t("category.showing_all_of", { name: categoryLabel })}</p>
       )}
 
       {subcategories.length > 0 && (
@@ -54,7 +59,7 @@ export default async function CategoryPage({
                 href={`/categories/${sub.slug}`}
                 className="group flex shrink-0 flex-col items-center gap-1.5"
               >
-                <div className="h-14 w-14 overflow-hidden rounded-xl border border-neutral-200 shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <div className="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow-sm ring-1 ring-neutral-200 transition group-hover:-translate-y-0.5 group-hover:shadow-md">
                   {sub.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={sub.image_url} alt={localizedName(sub, locale)} className="h-full w-full object-cover" />
@@ -81,6 +86,7 @@ export default async function CategoryPage({
           emptyMessage={t("category.no_products")}
         />
       </DeliveryGate>
+    </div>
     </div>
   );
 }

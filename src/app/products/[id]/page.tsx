@@ -14,6 +14,7 @@ import { getCategoryTheme } from "@/lib/categoryTheme";
 import { createClient } from "@/lib/supabase/server";
 import { isProductWishlisted } from "@/lib/wishlist";
 import WishlistButton from "@/components/WishlistButton";
+import { ProductTopBar } from "@/components/MobileTopBar";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
@@ -59,8 +60,12 @@ export default async function ProductPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6 max-md:px-0 max-md:pb-36 max-md:pt-0">
       <TrackRecentlyViewed productId={id} />
+      <ProductTopBar>
+        <WishlistButton productId={product.id} initialInList={wishlisted} />
+      </ProductTopBar>
+      <div className="hidden md:block">
       <Breadcrumbs
         items={[
           { label: t("category.home"), href: "/" },
@@ -70,25 +75,26 @@ export default async function ProductPage({
           { label: productName },
         ]}
       />
+      </div>
 
-      <div className="grid gap-8 lg:grid-cols-12">
+      <div className="grid gap-8 max-md:gap-0 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <div
-            className={`relative flex h-72 items-center justify-center rounded-2xl bg-gradient-to-br text-8xl lg:sticky lg:top-20 ${theme.gradient}`}
+            className={`relative flex h-72 items-center justify-center rounded-2xl bg-gradient-to-br text-8xl max-md:h-[22rem] max-md:rounded-none lg:sticky lg:top-20 ${theme.gradient}`}
           >
             {product.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={product.image_url} alt={productName} className="h-full w-full rounded-2xl object-cover" />
+              <img src={product.image_url} alt={productName} className="h-full w-full rounded-2xl object-cover max-md:rounded-none" />
             ) : (
               <span className="drop-shadow-sm">{theme.emoji}</span>
             )}
-            <div className="absolute end-3 top-3">
+            <div className="absolute end-3 top-3 max-md:hidden">
               <WishlistButton productId={product.id} initialInList={wishlisted} />
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 lg:col-span-4">
+        <div className="relative z-10 flex flex-col gap-4 max-md:-mt-7 max-md:rounded-t-3xl max-md:bg-neutral-50 max-md:px-4 max-md:pt-6 lg:col-span-4">
           <div>
             <div className="mb-1 flex items-center gap-2">
               <p className="text-sm text-neutral-500">{localizedField(product.brand, product.brand_ar, locale)}</p>
@@ -98,7 +104,7 @@ export default async function ProductPage({
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-semibold">{productName}</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight">{productName}</h1>
             {rating ? (
               <a href="#reviews" className="mt-1 inline-block">
                 <StarRating rating={rating.avg_rating} count={rating.review_count} />
@@ -106,6 +112,25 @@ export default async function ProductPage({
             ) : (
               <p className="mt-1 text-xs text-neutral-400">{t("product.no_reviews_yet")}</p>
             )}
+          </div>
+
+          <div className="md:hidden">
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-extrabold text-neutral-900">
+                {variant ? formatSAR(variant.price) : "—"}
+              </span>
+              {variant?.compare_at_price && (
+                <span className="text-base text-neutral-400 line-through">{formatSAR(variant.compare_at_price)}</span>
+              )}
+            </div>
+            {product.is_variable_weight && product.price_per_kg && (
+              <p className="mt-1 text-xs text-neutral-500">
+                {t("product.price_per_kg_note", { price: formatSAR(product.price_per_kg) })}
+              </p>
+            )}
+            <p className="mt-2 inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+              {t("product.get_it_in")}
+            </p>
           </div>
 
           <dl className="grid grid-cols-2 gap-2 text-sm text-neutral-600">
@@ -134,8 +159,11 @@ export default async function ProductPage({
         </div>
 
         <div className="lg:col-span-3">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 lg:sticky lg:top-20">
-            <div className="mb-2 flex items-baseline gap-2">
+          <div
+            className="rounded-2xl border border-neutral-200 bg-white p-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:rounded-b-none max-md:rounded-t-3xl max-md:border-x-0 max-md:border-b-0 max-md:px-4 max-md:pt-3 max-md:shadow-[0_-8px_24px_rgba(0,0,0,0.08)] lg:sticky lg:top-20"
+            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+          >
+            <div className="mb-2 flex items-baseline gap-2 max-md:hidden">
               <span className="text-2xl font-bold text-blue-700">
                 {variant ? formatSAR(variant.price) : "—"}
               </span>
@@ -146,11 +174,11 @@ export default async function ProductPage({
               )}
             </div>
             {product.is_variable_weight && product.price_per_kg && (
-              <p className="mb-2 text-xs text-neutral-500">
+              <p className="mb-2 text-xs text-neutral-500 max-md:hidden">
                 {t("product.price_per_kg_note", { price: formatSAR(product.price_per_kg) })}
               </p>
             )}
-            <p className="mb-3 text-sm font-medium text-blue-700">
+            <p className="mb-3 text-sm font-medium text-blue-700 max-md:hidden">
               {t("product.get_it_in")}
             </p>
 
@@ -168,6 +196,7 @@ export default async function ProductPage({
         </div>
       </div>
 
+      <div className="max-md:bg-neutral-50 max-md:px-4">
       <ProductAlternatives
         storeId={product.store_id}
         products={alternativeProducts}
@@ -208,6 +237,7 @@ export default async function ProductPage({
 
       <div className="mt-10">
         <RecentlyViewed excludeProductId={id} />
+      </div>
       </div>
     </div>
   );

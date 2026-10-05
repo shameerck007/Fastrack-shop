@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { useLocale } from "@/components/LocaleProvider";
 
-const HIDE_ON = ["/cart", "/checkout", "/login", "/register", "/account", "/orders"];
+const HIDE_ON = ["/products", "/cart", "/checkout", "/login", "/register", "/account", "/orders"];
 
 /** Keeta-style floating pill above the bottom nav: appears as soon as the
  * cart has something in it, one tap from checkout. Mobile only — desktop
