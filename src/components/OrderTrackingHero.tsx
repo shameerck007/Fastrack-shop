@@ -151,7 +151,7 @@ export default function OrderTrackingHero({
         shownPos.current = riderPos;
       }
       routeCasing.current = L.polyline([], { color: "#ffffff", weight: 9, opacity: 0.95, lineCap: "round", lineJoin: "round" }).addTo(map);
-      routeLine.current = L.polyline([], { color: "#1d4ed8", weight: 5, opacity: 0.9, lineCap: "round", lineJoin: "round" }).addTo(map);
+      routeLine.current = L.polyline([], { color: "#1d4ed8", weight: 7, opacity: 1, dashArray: "0.1 11", lineCap: "round", lineJoin: "round" }).addTo(map);
       mapRef.current = map;
       setMapReady(true);
     });
@@ -184,13 +184,14 @@ export default function OrderTrackingHero({
       const targetKey = to ? `${to.lat.toFixed(5)},${to.lng.toFixed(5)}` : "";
       const onRoad = !!road && road.target === targetKey && road.points.length > 1 && !done;
       if (onRoad && road) {
-        routeCasing.current?.setLatLngs(road.points);
+        // Round dots along the road, in FasTrack blue (zero-length dashes + round caps = dots).
+        routeCasing.current?.setLatLngs([]);
         routeLine.current?.setLatLngs(road.points);
-        routeLine.current?.setStyle({ dashArray: undefined, weight: 5, opacity: 0.9 });
+        routeLine.current?.setStyle({ dashArray: "0.1 11", weight: 7, opacity: 1, lineCap: "round" });
       } else {
         routeCasing.current?.setLatLngs([]);
         routeLine.current?.setLatLngs(from && to && !done ? [[from.lat, from.lng], [to.lat, to.lng]] : []);
-        routeLine.current?.setStyle({ dashArray: "2 10", weight: 4, opacity: 0.7 });
+        routeLine.current?.setStyle({ dashArray: "0.1 11", weight: 6, opacity: 0.55, lineCap: "round" });
       }
       const pts = [riderPos, dest, shop].filter(Boolean) as Point[];
       if (pts.length > 1 && (!fitted.current || (riderPos && !map.getBounds().contains([riderPos.lat, riderPos.lng])))) {
