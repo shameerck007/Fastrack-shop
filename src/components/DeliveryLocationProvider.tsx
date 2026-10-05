@@ -165,7 +165,7 @@ export default function DeliveryLocationProvider({ children }: { children: React
         async (pos) => {
           if (cancelled) return;
           try {
-            const label = await reverseAreaName(pos.coords.latitude, pos.coords.longitude);
+            const label = await reverseAreaName(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
             if (!cancelled) setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, label, source: "gps" });
           } catch {
             if (!cancelled) setPickerOpen(true);
@@ -206,7 +206,7 @@ export default function DeliveryLocationProvider({ children }: { children: React
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
             if (cancelled) return;
-            const label = await reverseAreaName(pos.coords.latitude, pos.coords.longitude);
+            const label = await reverseAreaName(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
             if (!cancelled) setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, label, source: "gps" });
           },
           () => {},

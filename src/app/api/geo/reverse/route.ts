@@ -57,18 +57,25 @@ function buildLabel(data: { name?: string; category?: string; address?: Record<s
 // 60 m counts, so a GPS fix doesn't get labelled with a place down the road.
 const STADIA_KEY = process.env.NEXT_PUBLIC_STADIAMAPS_KEY;
 
-async function venueLabel(lat: string, lng: string): Promise<string | null> {
+async function venueLabel(lat: string, lng: string, accuracyM: number | null): Promise<string | null> {
   if (!STADIA_KEY) return null;
+  // Look as far as the device says it might be off (60 m for a precise GPS fix,
+  // up to 250 m for a rough one). A fix worse than ~1 km is IP-based: any
+  // venue near it would be a guess, so don't name one.
+  if (accuracyM !== null && accuracyM > 1000) return null;
+  const radiusKm = Math.min(Math.max(accuracyM ?? 0, 60), 250) / 1000;
   try {
     const res = await fetch(
-      `https://api.stadiamaps.com/geocoding/v1/reverse?point.lat=${encodeURIComponent(lat)}&point.lon=${encodeURIComponent(lng)}&layers=venue&size=3&boundary.circle.radius=1&api_key=${STADIA_KEY}`,
+      `https://api.stadiamaps.com/geocoding/v1/reverse?point.lat=${encodeURIComponent(lat)}&point.lon=${encodeURIComponent(lng)}&layers=venue&size=10&boundary.circle.radius=1&api_key=${STADIA_KEY}`,
       { signal: AbortSignal.timeout(4000) }
     );
     if (!res.ok) return null;
     const data = (await res.json()) as {
       features?: { properties?: { name?: string; distance?: number; neighbourhood?: string; locality?: string } }[];
     };
-    const best = data.features?.find((f) => (f.properties?.distance ?? Infinity) <= 0.06 && f.properties?.name);
+    const best = data.features
+      ?.filter((f) => (f.properties?.distance ?? Infinity) <= radiusKm && f.properties?.name)
+      .sort((a, b) => (a.properties?.distance ?? 0) - (b.properties?.distance ?? 0))[0];
     if (!best?.properties?.name) return null;
     // Names often come bilingual as "العبيكان | Obeikan" — the English half reads
     // better in the header; keep the Arabic one when it's all there is.
@@ -89,7 +96,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "lat and lng are required" }, { status: 400 });
   }
 
-  const venue = await venueLabel(lat, lng);
+  const acc = Number(searchParams.get("acc"));
+  const venue = await venueLabel(lat, lng, Number.isFinite(acc) && acc > 0 ? acc : null);
   if (venue) {
     return NextResponse.json({ label: venue }, { headers: { "Cache-Control": "public, max-age=300" } });
   }

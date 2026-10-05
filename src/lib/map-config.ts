@@ -55,9 +55,13 @@ export async function searchPlaces(query: string): Promise<PlaceResult[]> {
   return (await res.json()) as PlaceResult[];
 }
 
-export async function reverseAreaName(lat: number, lng: number): Promise<string> {
+/** `accuracy` is the device's reported position error in metres: the server uses it to
+ * decide how far around the point to look for a named place (a phone's GPS is
+ * ~10 m, a laptop's Wi-Fi position can be hundreds of metres off). */
+export async function reverseAreaName(lat: number, lng: number, accuracy?: number): Promise<string> {
   try {
-    const res = await fetch(`/api/geo/reverse?lat=${lat}&lng=${lng}`);
+    const acc = accuracy && Number.isFinite(accuracy) ? `&acc=${Math.round(accuracy)}` : "";
+    const res = await fetch(`/api/geo/reverse?lat=${lat}&lng=${lng}${acc}`);
     if (!res.ok) throw new Error();
     const data = (await res.json()) as { label: string | null };
     return data.label ?? "Current location";
