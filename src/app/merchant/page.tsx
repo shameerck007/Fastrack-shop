@@ -1,5 +1,6 @@
 import LandingPreferenceCard from "@/components/LandingPreferenceCard";
 import Link from "next/link";
+import PageHero from "@/components/PageHero";
 import { getMyStore, getMyStoreProducts } from "@/lib/merchant";
 import { updateMerchantProductStock } from "@/lib/actions/merchant-products";
 import StockCell from "@/components/admin/StockCell";
@@ -28,18 +29,17 @@ export default async function MerchantDashboardPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold">{t("merchant.welcome_back", { name: store.name })}</h1>
-      <p className="mb-6 text-sm text-neutral-500">{t("merchant.storefront_intro")}</p>
+      <PageHero icon="🏪" title={t("merchant.welcome_back", { name: store.name })} subtitle={t("merchant.storefront_intro")} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {stats.map((s) => (
           <Link
             key={s.label}
             href={s.href}
-            className="rounded-xl border border-neutral-200 bg-white p-4 transition hover:shadow-md"
+            className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <div className="flex items-center gap-3">
-              <span className={`flex h-10 w-10 items-center justify-center rounded-full text-lg ${s.color}`}>
+              <span className={`flex h-11 w-11 items-center justify-center rounded-xl text-lg ${s.color}`}>
                 {s.icon}
               </span>
               <div>
@@ -61,7 +61,7 @@ export default async function MerchantDashboardPage() {
       </div>
 
       {products.length > 0 && (
-        <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-medium">{t("merchant.stock_overview")}</p>
             <Link href="/merchant/products" className="text-xs text-blue-600 hover:underline">
@@ -117,7 +117,7 @@ export default async function MerchantDashboardPage() {
       />
 
       {store.status === "approved" && (
-        <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <p className="mb-1 text-sm font-medium">{t("merchant.store_qr_code")}</p>
           <p className="mb-3 text-xs text-neutral-500">{t("merchant.qr_intro")}</p>
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
@@ -145,7 +145,7 @@ export default async function MerchantDashboardPage() {
         </div>
       )}
 
-      <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
+      <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm text-sm">
         <p className="mb-3 font-medium">{t("merchant.store_details")}</p>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
           <div>

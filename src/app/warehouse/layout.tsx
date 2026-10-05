@@ -18,8 +18,8 @@ export default async function WarehouseLayout({ children }: { children: React.Re
   const t = (key: string) => translate(locale, key);
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <header className="border-b border-neutral-200 bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50/70 via-neutral-50 to-neutral-50">
+      <header className="sticky top-0 z-30 border-b border-neutral-200/70 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <Link href="/warehouse" className="shrink-0">

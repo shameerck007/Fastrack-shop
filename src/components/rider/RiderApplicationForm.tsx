@@ -184,7 +184,7 @@ export default function RiderApplicationForm() {
   const docHint = "Clear photo or PDF, up to 10 MB.";
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-5">
+    <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
       {/* progress */}
       <div className="mb-5">
         <div className="mb-2 flex items-center justify-between text-xs">

@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useLocale } from "@/components/LocaleProvider";
+import PortalNav, { type PortalNavItem } from "@/components/PortalNav";
 
-const NAV = [
+const NAV: PortalNavItem[] = [
   { href: "/admin", labelKey: "portal.dashboard", icon: "📊" },
   { href: "/admin/store", labelKey: "admin.fastrack_stores", icon: "🏬" },
   { href: "/admin/products", labelKey: "admin.products", icon: "📦" },
@@ -19,26 +17,5 @@ const NAV = [
 ];
 
 export default function AdminNav() {
-  const pathname = usePathname();
-  const { t } = useLocale();
-
-  return (
-    <nav className="flex flex-col gap-1">
-      {NAV.map((item) => {
-        const active = item.href === "/admin" ? pathname === item.href : pathname.startsWith(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
-              active ? "bg-blue-50 text-blue-700" : "text-neutral-700 hover:bg-neutral-100"
-            }`}
-          >
-            <span>{item.icon}</span>
-            {t(item.labelKey)}
-          </Link>
-        );
-      })}
-    </nav>
-  );
+  return <PortalNav items={NAV} rootHref="/admin" />;
 }

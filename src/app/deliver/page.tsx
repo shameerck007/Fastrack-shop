@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import PageHero from "@/components/PageHero";
 import { createClient } from "@/lib/supabase/server";
 import { getMyRiderApplication } from "@/lib/rider";
 import RiderApplicationForm from "@/components/rider/RiderApplicationForm";
@@ -24,13 +25,17 @@ export default async function DeliverPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
-      <h1 className="mb-1 text-2xl font-semibold">{t("become_rider.title")}</h1>
-      <p className="mb-6 text-sm text-neutral-500">{t("become_rider.subtitle")}</p>
+      <PageHero
+        icon="🛵"
+        title={t("become_rider.title")}
+        subtitle={t("become_rider.subtitle")}
+        chips={["Flexible hours", "Weekly earnings", "Cash or bank payout"]}
+      />
 
       {!application && <RiderApplicationForm />}
 
       {application?.status === "pending" && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
           <p className="font-medium text-amber-800">{t("become_rider.under_review_title")}</p>
           <p className="mt-1 text-sm text-amber-700">
             {t("become_rider.under_review_body", { name: profile?.full_name ?? "" })}
@@ -39,7 +44,7 @@ export default async function DeliverPage() {
       )}
 
       {application?.status === "rejected" && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
           <p className="font-medium text-red-800">{t("become_rider.not_approved_title")}</p>
           {application.rejection_reason && (
             <p className="mt-1 text-sm text-red-700">{application.rejection_reason}</p>
@@ -49,7 +54,7 @@ export default async function DeliverPage() {
       )}
 
       {application?.status === "suspended" && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
           <p className="font-medium text-red-800">{t("become_rider.suspended_title")}</p>
           <p className="mt-1 text-sm text-neutral-600">{t("become_rider.suspended_body")}</p>
         </div>

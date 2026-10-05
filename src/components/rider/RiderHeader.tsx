@@ -16,7 +16,7 @@ export default async function RiderHeader() {
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
 
   return (
-    <header className="sticky top-0 z-30 bg-white shadow-sm">
+    <header className="sticky top-0 z-30 border-b border-neutral-200/70 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
         <Link href="/rider" className="flex min-w-0 shrink items-center gap-2">
           <Wordmark height={24} />

@@ -14,8 +14,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const t = (key: string) => translate(locale, key);
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <header className="border-b border-neutral-200 bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50/70 via-neutral-50 to-neutral-50">
+      <header className="sticky top-0 z-30 border-b border-neutral-200/70 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <Link href="/admin" className="shrink-0">
@@ -43,8 +43,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-6xl gap-6 px-4 py-6">
-        <aside className="w-48 shrink-0">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 md:flex-row md:gap-6 md:py-6">
+        <aside className="shrink-0 md:w-56">
           <AdminNav />
         </aside>
         <div className="min-w-0 flex-1">{children}</div>

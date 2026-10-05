@@ -91,7 +91,7 @@ export default function StoreApplicationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
       <div>
         <label className="mb-1 block text-sm font-medium">Store name *</label>
         <input

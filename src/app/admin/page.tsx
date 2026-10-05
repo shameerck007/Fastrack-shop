@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PageHero from "@/components/PageHero";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminAnalytics } from "@/lib/admin-analytics";
 import { formatSAR } from "@/lib/utils";
@@ -120,18 +121,17 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold">{t("portal.dashboard")}</h1>
-      <p className="mb-6 text-sm text-neutral-500">{t("admin.live_overview")}</p>
+      <PageHero icon="📊" title={t("portal.dashboard")} subtitle={t("admin.live_overview")} />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {todayStats.map((s) => (
           <Link
             key={s.label}
             href={s.href}
-            className="rounded-xl border border-neutral-200 bg-white p-4 transition hover:shadow-md"
+            className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <div className="flex items-center gap-3">
-              <span className={`flex h-10 w-10 items-center justify-center rounded-full text-lg ${s.color}`}>
+              <span className={`flex h-11 w-11 items-center justify-center rounded-xl text-lg ${s.color}`}>
                 {s.icon}
               </span>
               <div>
@@ -166,7 +166,7 @@ export default async function AdminDashboardPage() {
         )}
       </div>
 
-      <div className="mt-8 rounded-xl border border-neutral-200 bg-white p-4">
+      <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="mb-1 flex items-center justify-between">
           <p className="text-sm font-medium">{t("admin.revenue_trend")}</p>
           <span className="text-xs text-neutral-400">{t("admin.last_14_days")}</span>
@@ -178,7 +178,7 @@ export default async function AdminDashboardPage() {
         {businessStats.map((s) => {
           const content = (
             <div className="flex items-center gap-3">
-              <span className={`flex h-10 w-10 items-center justify-center rounded-full text-lg ${s.color}`}>
+              <span className={`flex h-11 w-11 items-center justify-center rounded-xl text-lg ${s.color}`}>
                 {s.icon}
               </span>
               <div>
@@ -188,11 +188,11 @@ export default async function AdminDashboardPage() {
             </div>
           );
           return s.href ? (
-            <Link key={s.label} href={s.href} className="rounded-xl border border-neutral-200 bg-white p-4 transition hover:shadow-md">
+            <Link key={s.label} href={s.href} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
               {content}
             </Link>
           ) : (
-            <div key={s.label} className="rounded-xl border border-neutral-200 bg-white p-4">
+            <div key={s.label} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
               {content}
             </div>
           );
@@ -200,7 +200,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <p className="mb-3 text-sm font-medium">{t("admin.orders_by_status_30d")}</p>
           <BarList
             items={orderedStatusCounts.map((s) => ({
@@ -212,18 +212,18 @@ export default async function AdminDashboardPage() {
           />
         </div>
 
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <p className="mb-3 text-sm font-medium">{t("admin.top_products_30d")}</p>
           <BarList items={analytics.topProducts} formatValue={formatSAR} emptyLabel={t("admin.no_sales_30d")} />
         </div>
 
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <p className="mb-3 text-sm font-medium">{t("admin.revenue_by_category_30d")}</p>
           <BarList items={analytics.topCategories} formatValue={formatSAR} emptyLabel={t("admin.no_sales_30d")} />
         </div>
       </div>
 
-      <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4">
+      <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-medium">{t("admin.recent_orders")}</p>
           <Link href="/admin/orders" className="text-xs text-blue-600 hover:underline">
