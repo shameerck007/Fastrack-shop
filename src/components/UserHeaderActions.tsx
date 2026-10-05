@@ -25,7 +25,7 @@ export default function UserHeaderActions() {
       <Link href="/cart" className="relative hidden items-center gap-1 hover:text-blue-600 md:flex">
         🛒 {t("header.cart")}
         {loaded && cartCount > 0 && (
-          <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-semibold text-white rtl:right-auto rtl:-left-3">
+          <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-700 px-1 text-[10px] font-semibold text-white rtl:right-auto rtl:-left-3">
             {cartCount}
           </span>
         )}

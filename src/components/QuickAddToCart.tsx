@@ -101,7 +101,7 @@ export default function QuickAddToCart({
         aria-label={t("product.add_to_cart")}
         title={t("product.add_to_cart")}
         className={`flex h-10 w-10 items-center justify-center rounded-full text-2xl font-bold leading-none shadow-lg ring-4 ring-white transition active:scale-90 disabled:opacity-50 ${
-          justAdded ? "bg-emerald-500 text-white" : "bg-amber-400 text-neutral-900 hover:bg-amber-300"
+          justAdded ? "bg-emerald-500 text-white" : "bg-blue-700 text-white hover:bg-blue-800"
         }`}
       >
         {pending ? (

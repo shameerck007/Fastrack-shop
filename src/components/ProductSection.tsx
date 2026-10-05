@@ -43,10 +43,10 @@ export default function ProductSection({
   return (
     <section
       id={id}
-      className={`mb-8 scroll-mt-40 ${promo ? "-mx-4 rounded-3xl bg-amber-50 px-4 py-5 sm:mx-0 sm:px-5" : ""}`}
+      className={`mb-8 scroll-mt-40 ${promo ? "-mx-4 rounded-3xl bg-blue-50 px-4 py-5 sm:mx-0 sm:px-5" : ""}`}
     >
       <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold tracking-tight">
-        <span aria-hidden className="h-5 w-1.5 rounded-full bg-amber-400" />
+        <span aria-hidden className="h-5 w-1.5 rounded-full bg-blue-600" />
         {title}
       </h2>
       <DeliverableProductGrid products={products} ratings={ratings} stock={stock} />

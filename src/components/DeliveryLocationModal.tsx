@@ -191,7 +191,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
             onClick={() => setShowAddNew((v) => !v)}
             className={`flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-2.5 text-[13px] font-medium sm:gap-2 sm:px-3 sm:text-sm ${
               showAddNew
-                ? "border-neutral-900 bg-neutral-900 text-white"
+                ? "border-blue-700 bg-blue-700 text-white"
                 : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
             }`}
           >

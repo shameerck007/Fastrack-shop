@@ -19,18 +19,18 @@ export function PlaceOrderPill({ className = "", style }: { className?: string; 
 
   return (
     <div
-      className={`flex items-center justify-between gap-3 rounded-full bg-neutral-900 py-2 pe-2 ps-5 text-white shadow-xl shadow-black/25 ${className}`}
+      className={`flex items-center justify-between gap-3 rounded-full bg-white py-2 pe-2 ps-5 text-neutral-900 shadow-xl shadow-blue-900/15 ring-1 ring-blue-100 ${className}`}
       style={style}
     >
       <Link href="/cart" className="flex min-w-0 items-center gap-2.5 text-sm font-semibold">
-        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-bold text-neutral-900">
+        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-blue-700 px-1.5 text-xs font-bold text-white">
           {cartCount}
         </span>
         <span className="truncate">{cartTotal > 0 ? formatSAR(cartTotal) : t("home.cart_bar_items", { count: cartCount })}</span>
       </Link>
       <Link
         href="/checkout"
-        className="shrink-0 rounded-full bg-amber-400 px-6 py-2.5 text-sm font-extrabold text-neutral-900 transition active:scale-95"
+        className="shrink-0 rounded-full bg-blue-700 px-6 py-2.5 text-sm font-extrabold text-white transition hover:bg-blue-800 active:scale-95"
       >
         {t("checkout.place_order")}
       </Link>

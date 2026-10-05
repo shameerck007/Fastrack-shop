@@ -89,7 +89,7 @@ export default function CheckoutForm({
       <div className="flex flex-col gap-4">
         <section className="rounded-xl border border-neutral-200 bg-white p-4">
           <h2 className="mb-3 flex items-center gap-2 font-medium">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-semibold text-white">
               1
             </span>
             {t("checkout.delivery_address")}
@@ -165,7 +165,7 @@ export default function CheckoutForm({
 
         <section className="rounded-xl border border-neutral-200 bg-white p-4">
           <h2 className="mb-3 flex items-center gap-2 font-medium">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-semibold text-white">
               2
             </span>
             {t("checkout.delivery_time")}
@@ -206,7 +206,7 @@ export default function CheckoutForm({
 
         <section className="rounded-xl border border-neutral-200 bg-white p-4">
           <h2 className="mb-3 flex items-center gap-2 font-medium">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-semibold text-white">
               3
             </span>
             {t("checkout.payment")}
@@ -233,7 +233,7 @@ export default function CheckoutForm({
 
         <section className="rounded-xl border border-neutral-200 bg-white p-4">
           <h2 className="mb-3 flex items-center gap-2 font-medium">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-semibold text-white">
               4
             </span>
             {t("checkout.items_in_order", { count: itemCount })}

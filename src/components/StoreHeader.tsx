@@ -18,7 +18,7 @@ export default function StoreHeader({ storeName }: { storeName: string }) {
         <Link href="/cart" className="relative flex shrink-0 items-center gap-1 text-sm hover:text-blue-600">
           🛒 Cart
           {cartCount > 0 && (
-            <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-semibold text-white">
+            <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-700 px-1 text-[10px] font-semibold text-white">
               {cartCount}
             </span>
           )}

@@ -52,7 +52,7 @@ export default function MobileBottomNav() {
               </span>
               {item.label}
               {item.href === "/cart" && cartCount > 0 && (
-                <span className="absolute right-[22%] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[9px] font-semibold text-white">
+                <span className="absolute right-[22%] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-700 px-1 text-[9px] font-semibold text-white">
                   {cartCount}
                 </span>
               )}

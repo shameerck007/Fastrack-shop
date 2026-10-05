@@ -61,7 +61,7 @@ export default function ProductCard({
           </span>
         ) : (
           discountPct && (
-            <span className="absolute end-2 top-2 rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-extrabold text-neutral-900 shadow-sm">
+            <span className="absolute end-2 top-2 rounded-full bg-blue-700 px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-sm">
               -{discountPct}%
             </span>
           )
