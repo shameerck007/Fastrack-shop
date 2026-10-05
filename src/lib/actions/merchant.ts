@@ -1,5 +1,6 @@
 "use server";
 
+import { checkCrNumber, checkVatNumber } from "@/lib/saudi-tax";
 import { validatePhone } from "@/lib/countries";
 import { checkSaudiIban, IBAN_PROBLEM_MESSAGES } from "@/lib/iban";
 import { checkBankDetails } from "@/lib/saudi-banks";
@@ -38,6 +39,11 @@ export async function applyForStore(input: {
     throw new Error("Please upload a copy of your CR document.");
   }
 
+  const crCheck = checkCrNumber(input.crNumber);
+  if (!crCheck.ok) throw new Error(crCheck.error ?? "Check the CR number.");
+  const vatCheck = checkVatNumber(input.vatNumber ?? "");
+  if (!vatCheck.ok) throw new Error(vatCheck.error ?? "Check the VAT number.");
+
   // Payouts go to this account, so it is re-checked here, not just in the form.
   const phoneCheck = validatePhone(input.contactPhone?.trim() ?? "");
   if (!phoneCheck.ok) throw new Error(phoneCheck.error ?? "Enter a valid mobile number.");
@@ -49,8 +55,8 @@ export async function applyForStore(input: {
   const row = {
     owner_id: user.id,
     name: input.name.trim(),
-    cr_number: input.crNumber.trim(),
-    vat_number: input.vatNumber?.trim() || null,
+    cr_number: crCheck.value,
+    vat_number: vatCheck.value || null,
     bank_name: input.bankName?.trim() || null,
     bank_iban: bankCheck.iban,
     contact_phone: input.contactPhone?.trim() || null,

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { applyForStore } from "@/lib/actions/merchant";
 import DocumentUploader from "@/components/merchant/DocumentUploader";
 import StoreProfileFields, { type StoreProfileValue } from "@/components/merchant/StoreProfileFields";
+import TaxIdInput from "@/components/TaxIdInput";
+import { checkCrNumber, checkVatNumber } from "@/lib/saudi-tax";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 import BankFields from "@/components/merchant/BankFields";
 import { validatePhone } from "@/lib/countries";
@@ -37,6 +39,16 @@ export default function StoreApplicationForm() {
     setError(null);
     if (!crDocumentPath) {
       setError("Please upload a copy of your CR document.");
+      return;
+    }
+    const crCheck = checkCrNumber(crNumber);
+    if (!crCheck.ok) {
+      setError(crCheck.error);
+      return;
+    }
+    const vatCheck = checkVatNumber(vatNumber);
+    if (!vatCheck.ok) {
+      setError(vatCheck.error);
       return;
     }
     const phoneCheck = validatePhone(contactPhone);
@@ -92,20 +104,11 @@ export default function StoreApplicationForm() {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="mb-1 block text-sm font-medium">CR number *</label>
-          <input
-            required
-            value={crNumber}
-            onChange={(e) => setCrNumber(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          />
+          <TaxIdInput required value={crNumber} onChange={setCrNumber} check={checkCrNumber} length={10} placeholder="10 digits" />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">VAT number</label>
-          <input
-            value={vatNumber}
-            onChange={(e) => setVatNumber(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-          />
+          <TaxIdInput value={vatNumber} onChange={setVatNumber} check={checkVatNumber} length={15} placeholder="15 digits (optional)" />
         </div>
       </div>
       <div>

@@ -1,5 +1,7 @@
 "use client";
 
+import TaxIdInput from "@/components/TaxIdInput";
+import { checkCrNumber, checkVatNumber } from "@/lib/saudi-tax";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 
 import { useState, useTransition } from "react";
@@ -65,6 +67,15 @@ export default function AddMerchantForm() {
     if (!name.trim() || !crNumber.trim()) {
       setError(t("add_merchant.name_cr_required"));
       return;
+    }
+    if (country.trim().toLowerCase() === "saudi arabia") {
+      const cr = checkCrNumber(crNumber);
+      const vat = checkVatNumber(vatNumber);
+      const problem = cr.error ?? vat.error;
+      if (problem) {
+        setError(problem);
+        return;
+      }
     }
     setError(null);
     startSave(async () => {
@@ -136,18 +147,27 @@ export default function AddMerchantForm() {
                 className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               />
               <div className="grid grid-cols-2 gap-2">
-                <input
-                  value={crNumber}
-                  onChange={(e) => setCrNumber(e.target.value)}
-                  placeholder={t("add_merchant.cr_number")}
-                  className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-                />
-                <input
-                  value={vatNumber}
-                  onChange={(e) => setVatNumber(e.target.value)}
-                  placeholder={t("add_merchant.vat_number_optional")}
-                  className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-                />
+                {country.trim().toLowerCase() === "saudi arabia" ? (
+                  <>
+                    <TaxIdInput value={crNumber} onChange={setCrNumber} check={checkCrNumber} length={10} placeholder={t("add_merchant.cr_number")} />
+                    <TaxIdInput value={vatNumber} onChange={setVatNumber} check={checkVatNumber} length={15} placeholder={t("add_merchant.vat_number_optional")} />
+                  </>
+                ) : (
+                  <>
+                    <input
+                      value={crNumber}
+                      onChange={(e) => setCrNumber(e.target.value)}
+                      placeholder={t("add_merchant.cr_number")}
+                      className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                    />
+                    <input
+                      value={vatNumber}
+                      onChange={(e) => setVatNumber(e.target.value)}
+                      placeholder={t("add_merchant.vat_number_optional")}
+                      className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                    />
+                  </>
+                )}
               </div>
               <PhoneNumberInput value={contactPhone} onChange={setContactPhone} placeholder={t("add_merchant.contact_phone_optional")} />
               <input

@@ -1,5 +1,6 @@
 "use server";
 
+import { checkCrNumber, checkVatNumber } from "@/lib/saudi-tax";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyUsers } from "@/lib/push";
@@ -175,6 +176,11 @@ export interface AdminCreateMerchantInput {
 /** Admin adding a merchant directly: skips the applicant flow and is approved immediately. */
 export async function adminCreateMerchant(input: AdminCreateMerchantInput) {
   const supabase = await createClient();
+
+  if ((input.country || "Saudi Arabia").trim().toLowerCase() === "saudi arabia") {
+    const problem = checkCrNumber(input.crNumber).error ?? checkVatNumber(input.vatNumber ?? "").error;
+    if (problem) throw new Error(problem);
+  }
 
   const { data: existing } = await supabase
     .from("stores")
