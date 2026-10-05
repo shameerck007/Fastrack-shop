@@ -10,7 +10,7 @@ import { COUNTRIES, findCountry } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
 
 type Mode = "password" | "otp";
-type Step = "identifier" | "password" | "phone-code" | "phone-new";
+type Step = "identifier" | "password" | "phone-password" | "phone-code" | "phone-new";
 
 /** Turns a free-typed mobile number into E.164 using the visitor's detected
  * country when no "+" prefix was typed, or null if the digit count can't be
@@ -80,15 +80,43 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
       return;
     }
 
+    setLoading(false);
+    setPhoneEmail(email);
+    setStep("phone-password");
+  }
+
+  async function handleSendPhoneCode() {
+    setLoading(true);
+    setError(null);
+
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    const { error } = await supabase.auth.signInWithOtp({
+      email: phoneEmail,
+      options: { shouldCreateUser: false },
+    });
     setLoading(false);
     if (error) {
       setError(t("auth.could_not_send_code"));
       return;
     }
-    setPhoneEmail(email);
     setStep("phone-code");
+  }
+
+  async function handlePhonePasswordSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email: phoneEmail, password });
+
+    setLoading(false);
+    if (error) {
+      setError(t("auth.invalid_credentials"));
+      return;
+    }
+    router.push(redirectTo);
+    router.refresh();
   }
 
   async function handlePasswordSubmit(e: React.FormEvent) {
@@ -245,6 +273,40 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
                 {loading ? t("auth.signing_in") : t("auth.sign_in_button")}
               </button>
             </form>
+          ) : step === "phone-password" ? (
+            <form onSubmit={handlePhonePasswordSubmit} className="flex flex-col gap-4">
+              <p className="text-sm font-medium text-neutral-800">
+                {describePhone(phone)}{" "}
+                <button type="button" onClick={backToIdentifier} className="font-medium text-blue-600 hover:underline">
+                  {t("auth.change")}
+                </button>
+              </p>
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="font-medium text-neutral-800">{t("auth.password")}</span>
+                <input
+                  type="password"
+                  required
+                  autoFocus
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={inputClass}
+                />
+              </label>
+
+              {error && <p className="text-sm text-red-600">{error}</p>}
+
+              <button type="submit" disabled={loading} className={primaryButton}>
+                {loading ? t("auth.signing_in") : t("auth.sign_in_button")}
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={handleSendPhoneCode}
+                className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-50"
+              >
+                {t("auth.email_me_a_code")}
+              </button>
+            </form>
           ) : step === "phone-code" ? (
             <form onSubmit={handlePhoneCodeSubmit} className="flex flex-col gap-4">
               <p className="text-sm font-medium text-neutral-800">
@@ -271,6 +333,17 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
 
               <button type="submit" disabled={loading} className={primaryButton}>
                 {loading ? t("auth.verifying") : t("auth.verify_and_sign_in")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("phone-password");
+                  setPhoneCode("");
+                  setError(null);
+                }}
+                className="text-sm font-medium text-blue-600 hover:underline"
+              >
+                {t("auth.use_password_instead")}
               </button>
             </form>
           ) : (
