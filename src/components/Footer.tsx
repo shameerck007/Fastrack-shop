@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Wordmark from "@/components/Wordmark";
-import LanguageToggle from "@/components/LanguageToggle";
 import { getCompanySettings } from "@/lib/company-settings";
 
 export default async function Footer() {
@@ -54,7 +53,6 @@ export default async function Footer() {
 
         <div className="mt-10 flex flex-col items-center gap-3 border-t border-blue-100 pt-6 text-center">
           <Wordmark height={22} />
-          <LanguageToggle className="bg-white" />
           <p className="max-w-md text-xs text-neutral-500">
             {company.trading_name}
             {company.cr_number ? ` · CR ${company.cr_number}` : ""}
