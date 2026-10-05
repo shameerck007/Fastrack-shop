@@ -55,7 +55,7 @@ export default async function CartPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>
           <div className="mb-2 flex items-end justify-between border-b border-neutral-200 pb-2">
-            <h1 className="text-2xl font-semibold">{t("cart.title")}</h1>
+            <h1 className="text-2xl font-semibold max-md:hidden">{t("cart.title")}</h1>
             <span className="hidden text-sm text-neutral-500 sm:inline">{t("cart.price_col")}</span>
           </div>
           <div className="rounded-xl border border-neutral-200 bg-white px-4">

@@ -10,6 +10,7 @@ export interface CustomerHeaderState {
   signedIn: boolean;
   firstName: string | null;
   cartCount: number;
+  cartTotal: number;
 }
 
 const INITIAL_STATE: CustomerHeaderState = {
@@ -17,6 +18,7 @@ const INITIAL_STATE: CustomerHeaderState = {
   signedIn: false,
   firstName: null,
   cartCount: 0,
+  cartTotal: 0,
 };
 
 // Auth/cart state is fetched client-side (not on the server per request) to
@@ -57,9 +59,16 @@ export function useCustomerHeaderState(): CustomerHeaderState {
       if (cancelled) return;
 
       let cartCount = 0;
+      let cartTotal = 0;
       if (cart) {
-        const { data: items } = await supabase.from("cart_items").select("quantity").eq("cart_id", cart.id);
-        cartCount = (items ?? []).reduce((sum, item) => sum + item.quantity, 0);
+        const { data: items } = await supabase
+          .from("cart_items")
+          .select("quantity, product_variants(price)")
+          .eq("cart_id", cart.id);
+        for (const item of (items ?? []) as unknown as { quantity: number; product_variants: { price: number } | null }[]) {
+          cartCount += item.quantity;
+          cartTotal += item.quantity * (item.product_variants?.price ?? 0);
+        }
       }
       if (!cancelled) {
         setState({
@@ -67,6 +76,7 @@ export function useCustomerHeaderState(): CustomerHeaderState {
           signedIn: true,
           firstName: profile?.full_name?.split(" ")[0] ?? null,
           cartCount,
+          cartTotal,
         });
       }
     });

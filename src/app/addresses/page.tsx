@@ -20,7 +20,7 @@ export default async function AddressesPage() {
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t("addresses.title")}</h1>
+        <h1 className="text-xl font-semibold max-md:hidden">{t("addresses.title")}</h1>
         <AddressForm />
       </div>
 

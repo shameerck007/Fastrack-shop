@@ -59,7 +59,7 @@ export default async function OrdersPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      <h1 className="mb-4 text-xl font-semibold">{t("orders.title")}</h1>
+      <h1 className="mb-4 text-xl font-semibold max-md:hidden">{t("orders.title")}</h1>
 
       {orders.length === 0 ? (
         <p className="text-sm text-neutral-500">

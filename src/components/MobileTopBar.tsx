@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { smartBack } from "@/components/BackBar";
+import { smartBack } from "@/lib/nav-history";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { useLocale } from "@/components/LocaleProvider";
 

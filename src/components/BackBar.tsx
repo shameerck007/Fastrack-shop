@@ -3,39 +3,34 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
-import { isFullscreenMobileRoute } from "@/lib/mobile-fullscreen";
-
-// Routes that have no page of their own (only /x/[id] exists), so "up one
-// level" from them should skip to the next real ancestor.
-const NON_PAGE_PATHS = new Set(["/categories", "/products", "/store", "/rider/orders", "/api"]);
+import { hasOwnMobileTopBar, isFullscreenMobileRoute } from "@/lib/mobile-fullscreen";
+import { nav, smartBack } from "@/lib/nav-history";
 
 // Portal sections (merchant/admin/rider) have their own chrome — a header
 // with a single explicit "Back to shop" exit and a sidebar nav — so this
 // generic bar would just be a second, redundant "back" control there.
 const HIDE_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse"];
 
-function parentPath(pathname: string): string {
-  const segments = pathname.split("/").filter(Boolean);
-  segments.pop();
-  while (segments.length > 0 && NON_PAGE_PATHS.has("/" + segments.join("/"))) segments.pop();
-  return segments.length === 0 ? "/" : "/" + segments.join("/");
-}
+// Page titles for the phone top bar (translation keys).
+const TITLE_KEYS: [string, string][] = [
+  ["/cart", "cart.title"],
+  ["/checkout", "checkout.title"],
+  ["/orders", "orders.title"],
+  ["/account", "account.title"],
+  ["/addresses", "addresses.title"],
+  ["/login", "auth.sign_in_title"],
+  ["/register", "auth.create_account_title"],
+];
 
-// Navigation depth is module-level (not per-component) so any back button —
-// this bar or a full-screen page's own round back button — behaves the same.
-const nav = { depth: 0, popped: false, first: true };
-
-export function smartBack(router: ReturnType<typeof useRouter>, pathname: string) {
-  if (nav.depth > 0) router.back();
-  else router.push(parentPath(pathname));
+function titleKeyFor(pathname: string): string | null {
+  return TITLE_KEYS.find(([p]) => pathname === p || pathname.startsWith(p + "/"))?.[1] ?? null;
 }
 
 // Lives in the root layout so every page — for every role, and any page
 // added later — gets a Back control without doing anything itself.
 //
-// It goes to the previous page when the user got here by navigating inside
-// the app, and otherwise (direct link, refresh, new tab) to the page's
-// logical parent, so it never throws someone out of the site.
+// Desktop: the plain "← Back" strip. Phones: a Keeta-style slim title bar
+// with a round back button (product/category pages draw their own).
 export default function BackBar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -64,22 +59,47 @@ export default function BackBar() {
 
   if (pathname === "/" || HIDE_PREFIXES.some((p) => pathname.startsWith(p))) return null;
 
+  const fullscreen = isFullscreenMobileRoute(pathname);
+  const ownBar = hasOwnMobileTopBar(pathname);
+  const titleKey = titleKeyFor(pathname);
+
   function goBack() {
     smartBack(router, pathname);
   }
 
   return (
-    <div className={`border-b border-neutral-200 bg-white ${isFullscreenMobileRoute(pathname) ? "hidden md:block" : ""}`}>
-      <div className="mx-auto flex max-w-6xl items-center px-2 py-1">
-        <button
-          type="button"
-          onClick={goBack}
-          aria-label={t("common.back")}
-          className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200"
+    <>
+      {fullscreen && !ownBar && (
+        <div
+          className="sticky top-0 z-30 flex items-center gap-3 bg-white/95 px-4 pb-2.5 shadow-sm backdrop-blur md:hidden"
+          style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.625rem)" }}
         >
-          <span aria-hidden className="text-lg leading-none rtl:-scale-x-100">←</span> {t("common.back")}
-        </button>
+          <button
+            type="button"
+            onClick={goBack}
+            aria-label={t("common.back")}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-neutral-900 shadow-md ring-1 ring-black/5 transition active:scale-90"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="h-5 w-5 rtl:-scale-x-100">
+              <path d="m15 5-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          {titleKey && <span className="min-w-0 flex-1 truncate text-lg font-extrabold tracking-tight">{t(titleKey)}</span>}
+        </div>
+      )}
+
+      <div className={`border-b border-neutral-200 bg-white ${fullscreen ? "hidden md:block" : ""}`}>
+        <div className="mx-auto flex max-w-6xl items-center px-2 py-1">
+          <button
+            type="button"
+            onClick={goBack}
+            aria-label={t("common.back")}
+            className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200"
+          >
+            <span aria-hidden className="text-lg leading-none rtl:-scale-x-100">←</span> {t("common.back")}
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
