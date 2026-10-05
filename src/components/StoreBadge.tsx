@@ -3,22 +3,50 @@
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
 import { useStoreInfo, type StoreInfo } from "@/components/StoreDirectoryProvider";
+import { placeholderFor } from "@/lib/store-placeholder";
 import { describeStatus, type OpenStatus } from "@/lib/store-hours";
 
-/** Round supplier logo, falling back to the shop's first letter. */
+/** Square (rounded) supplier logo; a coloured tile with the shop's first letter when there is no picture yet. */
 export function StoreLogo({ store, size = 24, className = "" }: { store: Pick<StoreInfo, "name" | "logo_url">; size?: number; className?: string }) {
+  const art = placeholderFor(store.name);
   return (
     <span
-      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-50 font-bold text-blue-700 ${className}`}
-      style={{ width: size, height: size, fontSize: size * 0.45 }}
+      className={`flex shrink-0 items-center justify-center overflow-hidden font-extrabold text-white ${className}`}
+      style={{
+        width: size,
+        height: size,
+        fontSize: size * 0.46,
+        borderRadius: Math.max(6, size * 0.24),
+        background: store.logo_url ? "#fff" : art.gradient,
+      }}
     >
       {store.logo_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={store.logo_url} alt={store.name} className="h-full w-full object-cover" />
       ) : (
-        store.name.trim().charAt(0).toUpperCase()
+        art.initial
       )}
     </span>
+  );
+}
+
+/** Shop cover picture, or a branded placeholder (gradient, soft circles and a grocery emoji) until one is uploaded. */
+export function StoreCover({ store, className = "", emojiSize = 56 }: { store: Pick<StoreInfo, "name" | "cover_url">; className?: string; emojiSize?: number }) {
+  const art = placeholderFor(store.name);
+  if (store.cover_url) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={store.cover_url} alt="" className={`h-full w-full object-cover ${className}`} />
+    );
+  }
+  return (
+    <div className={`relative h-full w-full overflow-hidden ${className}`} style={{ background: art.gradient }}>
+      <span className="absolute -end-6 -top-8 h-28 w-28 rounded-full bg-white/10" />
+      <span className="absolute -bottom-10 start-6 h-24 w-24 rounded-full bg-white/10" />
+      <span className="absolute inset-0 flex items-center justify-center opacity-90 drop-shadow-lg" style={{ fontSize: emojiSize }}>
+        {art.emoji}
+      </span>
+    </div>
   );
 }
 

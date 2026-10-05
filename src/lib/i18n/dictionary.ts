@@ -88,6 +88,7 @@ const en = {
       closed_day: "Closed",
       browse_only: "You can still browse — ordering opens when the shop does.",
       shops_title: "Shops",
+      closed_badge: "Closed",
     },
     cartbar: {
       checkout: "Check out",
@@ -1188,6 +1189,7 @@ const ar: LocaleShape = {
       closed_day: "مغلق",
       browse_only: "يمكنك التصفح — يفتح الطلب عند فتح المتجر.",
       shops_title: "المتاجر",
+      closed_badge: "مغلق",
     },
     cartbar: {
       checkout: "إتمام الطلب",

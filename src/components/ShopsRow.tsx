@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useLocale } from "@/components/LocaleProvider";
 import { useAllStores } from "@/components/StoreDirectoryProvider";
-import { StoreLogo } from "@/components/StoreBadge";
+import { StoreCover, StoreLogo } from "@/components/StoreBadge";
 import { describeStatus, getOpenStatus } from "@/lib/store-hours";
 
 /** Keeta-style row of partner shops: open ones first, closed ones greyed
@@ -27,15 +27,31 @@ export default function ShopsRow() {
   return (
     <section className="mb-8">
       <h2 className="mb-3 text-xl font-extrabold tracking-tight">{t("store.shops_title")}</h2>
-      <div className="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
+      <div className="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
         {shops.map(({ store, info }) => (
-          <Link key={store.id} href={`/store/${store.id}`} className="flex w-24 shrink-0 snap-start flex-col items-center gap-1.5 text-center">
-            <span className={`rounded-full p-0.5 ring-2 ${info.open ? "ring-blue-600" : "ring-neutral-200"}`}>
-              <StoreLogo store={store} size={64} className={`border-2 border-white ${info.open ? "" : "opacity-60 grayscale"}`} />
+          <Link
+            key={store.id}
+            href={`/store/${store.id}`}
+            className="group w-40 shrink-0 snap-start overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-neutral-100 transition active:scale-[0.97] md:w-48 md:hover:-translate-y-0.5 md:hover:shadow-md"
+          >
+            <span className={`relative block h-28 w-full overflow-hidden md:h-32 ${info.open ? "" : "grayscale"}`}>
+              <StoreCover store={store} emojiSize={52} />
+              {!info.open && <span className="absolute inset-0 bg-white/40" />}
+              <span className="absolute bottom-2 start-2">
+                <StoreLogo store={store} size={44} className="shadow-md ring-2 ring-white" />
+              </span>
+              {!info.open && (
+                <span className="absolute end-2 top-2 rounded-full bg-neutral-900/85 px-2 py-0.5 text-[10px] font-bold text-white">{t("store.closed_badge")}</span>
+              )}
             </span>
-            <span className="w-full truncate text-xs font-bold text-neutral-900">{store.name}</span>
-            <span className={`line-clamp-2 text-[10px] font-medium leading-tight ${info.open ? "text-emerald-600" : "text-neutral-500"}`}>
-              {info.text}
+            <span className="block px-3 pb-3 pt-2">
+              <span className="block truncate text-sm font-extrabold text-neutral-900">{store.name}</span>
+              <span className={`mt-0.5 line-clamp-1 text-[11px] font-semibold ${info.open ? "text-emerald-600" : "text-neutral-500"}`}>
+                {info.text}
+              </span>
+              {(store.tagline || store.city) && (
+                <span className="mt-0.5 block truncate text-[11px] text-neutral-400">{store.tagline || store.city}</span>
+              )}
             </span>
           </Link>
         ))}

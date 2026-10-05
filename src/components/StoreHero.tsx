@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useLocale } from "@/components/LocaleProvider";
-import { StatusPill, StoreLogo, useStatusText } from "@/components/StoreBadge";
+import { StatusPill, StoreCover, StoreLogo, useStatusText } from "@/components/StoreBadge";
 import type { StoreInfo } from "@/components/StoreDirectoryProvider";
 import { DAY_KEYS, formatClock, getOpenStatus, shiftsOf } from "@/lib/store-hours";
 
@@ -24,15 +24,12 @@ export default function StoreHero({ store }: { store: StoreInfo }) {
   return (
     <section className="bg-white">
       <div className="relative h-36 w-full overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 sm:h-56">
-        {store.cover_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={store.cover_url} alt="" className="h-full w-full object-cover" />
-        )}
+        <StoreCover store={store} emojiSize={88} />
       </div>
 
       <div className="mx-auto max-w-6xl px-4 pb-4">
         <div className="relative z-10 -mt-10 flex items-end gap-3">
-          <StoreLogo store={store} size={80} className="shadow-md ring-4 ring-white" />
+          <StoreLogo store={store} size={84} className="shadow-lg ring-4 ring-white" />
         </div>
 
         <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-neutral-900">{store.name}</h1>
