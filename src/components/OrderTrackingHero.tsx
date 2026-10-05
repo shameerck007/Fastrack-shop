@@ -225,17 +225,19 @@ export default function OrderTrackingHero({
   // Road route for the current leg (rider -> shop before pickup, rider -> you after).
   // Refetched when the rider has moved about 60 m, the leg changes, or every 25 seconds.
   useEffect(() => {
-    if (done || !riderPos) return;
-    const headingToShop = status === "rider_assigned" && !!shop;
+    // Before a rider is on the map the route still follows the roads, shop -> you.
+    const origin = riderPos ?? shop;
+    if (done || !origin) return;
+    const headingToShop = status === "rider_assigned" && !!riderPos && !!shop;
     const to = headingToShop ? shop : dest;
     if (!to) return;
     const targetKey = `${to.lat.toFixed(5)},${to.lng.toFixed(5)}`;
     const last = lastRouteFetch.current;
-    const movedKm = last ? distanceKm(last.from.lat, last.from.lng, riderPos.lat, riderPos.lng) : Infinity;
+    const movedKm = last ? distanceKm(last.from.lat, last.from.lng, origin.lat, origin.lng) : Infinity;
     if (last && last.to === targetKey && movedKm < 0.06 && Date.now() - last.at < 25_000) return;
-    lastRouteFetch.current = { from: riderPos, to: targetKey, at: Date.now() };
+    lastRouteFetch.current = { from: origin, to: targetKey, at: Date.now() };
     let cancelled = false;
-    fetch(`/api/geo/route?from=${riderPos.lat},${riderPos.lng}&to=${to.lat},${to.lng}`)
+    fetch(`/api/geo/route?from=${origin.lat},${origin.lng}&to=${to.lat},${to.lng}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { points?: [number, number][]; durationSec?: number } | null) => {
         if (cancelled || !data?.points || data.points.length < 2) return;
