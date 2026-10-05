@@ -6,22 +6,30 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { resolveLoginEmail } from "@/lib/actions/auth";
 import Wordmark from "@/components/Wordmark";
-import { findCountry } from "@/lib/countries";
+import { COUNTRIES, findCountry } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
 
 type Mode = "password" | "otp";
+type Step = "identifier" | "password" | "phone-code" | "phone-new";
 
-/** Normalizes a free-typed "email or mobile number" into what
- * resolveLoginEmail expects: an email as-is, or a bare phone number into
- * E.164 using the visitor's detected country — same leading-zero-stripping
- * PhoneNumberInput uses, just without a separate country dropdown, to
- * match the single-field Amazon-style identifier input. */
-function normalizeIdentifier(raw: string, defaultCountryCode: string): string {
+/** Turns a free-typed mobile number into E.164 using the visitor's detected
+ * country when no "+" prefix was typed, or null if the digit count can't be
+ * a real number (E.164 allows at most 15 digits; under 7 is never valid). */
+function normalizePhone(raw: string, defaultCountryCode: string): string | null {
   const trimmed = raw.trim();
-  if (trimmed.includes("@")) return trimmed;
-  if (trimmed.startsWith("+")) return `+${trimmed.slice(1).replace(/\D/g, "")}`;
-  const digits = trimmed.replace(/\D/g, "").replace(/^0+/, "");
-  return `${findCountry(defaultCountryCode).dial}${digits}`;
+  const explicit = trimmed.startsWith("+");
+  const digits = trimmed.replace(/\D/g, "");
+  const national = explicit ? digits : digits.replace(/^0+/, "");
+  if (national.length < 7 || national.length > 15) return null;
+  return explicit ? `+${digits}` : `${findCountry(defaultCountryCode).dial}${national}`;
+}
+
+/** "🇮🇳 +91 9243231121" — same display Amazon shows once it has figured out
+ * which country a typed number belongs to. */
+function describePhone(e164: string): string {
+  const country = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length).find((c) => e164.startsWith(c.dial));
+  if (!country) return e164;
+  return `${country.flag} ${country.code} ${country.dial} ${e164.slice(country.dial.length)}`;
 }
 
 function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) {
@@ -31,25 +39,56 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
   const redirectTo = searchParams.get("redirect") || "/";
 
   const [mode, setMode] = useState<Mode>("password");
-
-  // password mode
-  const [step, setStep] = useState<"identifier" | "password">("identifier");
+  const [step, setStep] = useState<Step>("identifier");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [phoneEmail, setPhoneEmail] = useState("");
+  const [phoneCode, setPhoneCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // otp mode
+  // standalone "Sign in with a code" (email) mode
   const [otpEmail, setOtpEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [otpStage, setOtpStage] = useState<"enter-email" | "enter-code">("enter-email");
   const [otpError, setOtpError] = useState<string | null>(null);
   const [otpLoading, setOtpLoading] = useState(false);
 
-  function handleContinue(e: React.FormEvent) {
+  async function handleContinue(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setStep("password");
+
+    if (identifier.includes("@")) {
+      setStep("password");
+      return;
+    }
+
+    const normalized = normalizePhone(identifier, defaultCountryCode);
+    if (!normalized) {
+      setError(t("auth.invalid_mobile_number"));
+      return;
+    }
+
+    setLoading(true);
+    const email = await resolveLoginEmail(normalized);
+    setPhone(normalized);
+
+    if (!email) {
+      setLoading(false);
+      setStep("phone-new");
+      return;
+    }
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    setLoading(false);
+    if (error) {
+      setError(t("auth.could_not_send_code"));
+      return;
+    }
+    setPhoneEmail(email);
+    setStep("phone-code");
   }
 
   async function handlePasswordSubmit(e: React.FormEvent) {
@@ -57,19 +96,29 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
     setLoading(true);
     setError(null);
 
-    const resolvedEmail = await resolveLoginEmail(normalizeIdentifier(identifier, defaultCountryCode));
-    if (!resolvedEmail) {
-      setLoading(false);
-      setError(t("auth.invalid_credentials"));
-      return;
-    }
-
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email: resolvedEmail, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: identifier.trim(), password });
 
     setLoading(false);
     if (error) {
       setError(t("auth.invalid_credentials"));
+      return;
+    }
+    router.push(redirectTo);
+    router.refresh();
+  }
+
+  async function handlePhoneCodeSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.verifyOtp({ email: phoneEmail, token: phoneCode, type: "email" });
+
+    setLoading(false);
+    if (error) {
+      setError(t("auth.invalid_code"));
       return;
     }
     router.push(redirectTo);
@@ -112,6 +161,18 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
     router.refresh();
   }
 
+  function backToIdentifier() {
+    setStep("identifier");
+    setPassword("");
+    setPhoneCode("");
+    setError(null);
+  }
+
+  const inputClass =
+    "rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+  const primaryButton =
+    "rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800 disabled:opacity-50";
+
   return (
     <div className="mx-auto flex max-w-sm flex-col items-center px-4 py-10">
       <Link href="/" className="mb-6">
@@ -120,7 +181,9 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
 
       <div className="w-full rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">{t("auth.sign_in_title")}</h1>
+          <h1 className="text-xl font-semibold">
+            {mode === "password" && step === "phone-new" ? t("auth.new_here_heading") : t("auth.sign_in_title")}
+          </h1>
           <button
             type="button"
             onClick={() => {
@@ -144,32 +207,23 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder={t("auth.email_or_mobile_placeholder")}
-                  className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className={inputClass}
                 />
               </label>
 
-              <button
-                type="submit"
-                className="rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800"
-              >
-                {t("auth.continue")}
+              {error && <p className="text-sm text-red-600">{error}</p>}
+
+              <button type="submit" disabled={loading} className={primaryButton}>
+                {loading ? t("auth.checking") : t("auth.continue")}
               </button>
 
               <p className="text-xs text-neutral-500">{t("auth.terms_notice")}</p>
             </form>
-          ) : (
+          ) : step === "password" ? (
             <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
               <p className="text-sm text-neutral-600">
                 {t("auth.signing_in_as", { identifier })}{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep("identifier");
-                    setPassword("");
-                    setError(null);
-                  }}
-                  className="font-medium text-blue-600 hover:underline"
-                >
+                <button type="button" onClick={backToIdentifier} className="font-medium text-blue-600 hover:underline">
                   {t("auth.change")}
                 </button>
               </p>
@@ -181,20 +235,62 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
                   autoFocus
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className={inputClass}
                 />
               </label>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
-              >
+              <button type="submit" disabled={loading} className={primaryButton}>
                 {loading ? t("auth.signing_in") : t("auth.sign_in_button")}
               </button>
             </form>
+          ) : step === "phone-code" ? (
+            <form onSubmit={handlePhoneCodeSubmit} className="flex flex-col gap-4">
+              <p className="text-sm font-medium text-neutral-800">
+                {describePhone(phone)}{" "}
+                <button type="button" onClick={backToIdentifier} className="font-medium text-blue-600 hover:underline">
+                  {t("auth.change")}
+                </button>
+              </p>
+              <p className="text-sm text-neutral-600">{t("auth.code_sent_to_account_email")}</p>
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="font-medium text-neutral-800">{t("auth.verification_code")}</span>
+                <input
+                  required
+                  inputMode="numeric"
+                  autoFocus
+                  value={phoneCode}
+                  onChange={(e) => setPhoneCode(e.target.value)}
+                  placeholder={t("auth.verification_code_placeholder")}
+                  className={`${inputClass} text-center text-lg tracking-[0.3em]`}
+                />
+              </label>
+
+              {error && <p className="text-sm text-red-600">{error}</p>}
+
+              <button type="submit" disabled={loading} className={primaryButton}>
+                {loading ? t("auth.verifying") : t("auth.verify_and_sign_in")}
+              </button>
+            </form>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-medium text-neutral-800">
+                {describePhone(phone)}{" "}
+                <button type="button" onClick={backToIdentifier} className="font-medium text-blue-600 hover:underline">
+                  {t("auth.change")}
+                </button>
+              </p>
+              <p className="text-sm text-neutral-600">{t("auth.new_here_mobile_notice")}</p>
+              <Link
+                href={`/register?phone=${encodeURIComponent(phone)}${
+                  redirectTo !== "/" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""
+                }`}
+                className={`${primaryButton} text-center`}
+              >
+                {t("auth.proceed_create_account")}
+              </Link>
+            </div>
           )
         ) : otpStage === "enter-email" ? (
           <form onSubmit={handleSendCode} className="flex flex-col gap-4">
@@ -205,17 +301,13 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
                 required
                 value={otpEmail}
                 onChange={(e) => setOtpEmail(e.target.value)}
-                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={inputClass}
               />
             </label>
 
             {otpError && <p className="text-sm text-red-600">{otpError}</p>}
 
-            <button
-              type="submit"
-              disabled={otpLoading}
-              className="rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
-            >
+            <button type="submit" disabled={otpLoading} className={primaryButton}>
               {otpLoading ? t("auth.sending_code") : t("auth.send_code")}
             </button>
           </form>
@@ -231,17 +323,13 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value)}
                 placeholder={t("auth.verification_code_placeholder")}
-                className="rounded-lg border border-neutral-300 px-3 py-2 text-center text-lg tracking-[0.3em] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={`${inputClass} text-center text-lg tracking-[0.3em]`}
               />
             </label>
 
             {otpError && <p className="text-sm text-red-600">{otpError}</p>}
 
-            <button
-              type="submit"
-              disabled={otpLoading}
-              className="rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
-            >
+            <button type="submit" disabled={otpLoading} className={primaryButton}>
               {otpLoading ? t("auth.verifying") : t("auth.verify_and_sign_in")}
             </button>
             <button
