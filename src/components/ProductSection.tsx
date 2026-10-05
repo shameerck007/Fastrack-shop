@@ -11,12 +11,16 @@ export default function ProductSection({
   ratings,
   stock,
   emptyMessage,
+  id,
+  promo,
 }: {
   title: string;
   products: ProductWithVariants[];
   ratings: Record<string, ProductRating>;
   stock: Record<string, number>;
   emptyMessage?: string;
+  id?: string;
+  promo?: boolean;
 }) {
   const { statusForStore } = useDeliveryLocation();
 
@@ -26,8 +30,8 @@ export default function ProductSection({
   if (products.length === 0) {
     if (!emptyMessage) return null;
     return (
-      <section className="mb-8">
-        <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+      <section id={id} className="mb-8 scroll-mt-40">
+        <h2 className="mb-3 text-xl font-extrabold tracking-tight">{title}</h2>
         <p className="text-sm text-neutral-500">{emptyMessage}</p>
       </section>
     );
@@ -37,8 +41,14 @@ export default function ProductSection({
   if (!anyVisible) return null;
 
   return (
-    <section className="mb-8">
-      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+    <section
+      id={id}
+      className={`mb-8 scroll-mt-40 ${promo ? "-mx-4 rounded-3xl bg-amber-50 px-4 py-5 sm:mx-0 sm:px-5" : ""}`}
+    >
+      <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold tracking-tight">
+        <span aria-hidden className="h-5 w-1.5 rounded-full bg-amber-400" />
+        {title}
+      </h2>
       <DeliverableProductGrid products={products} ratings={ratings} stock={stock} />
     </section>
   );

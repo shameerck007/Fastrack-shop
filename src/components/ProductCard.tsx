@@ -34,11 +34,11 @@ export default function ProductCard({
   return (
     <Link
       href={`/products/${product.id}`}
-      className={`group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-neutral-200/60 ${
+      className={`group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-neutral-100 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-neutral-300/50 active:scale-[0.98] ${
         outOfStock ? "opacity-60" : ""
       }`}
     >
-      <div className={`relative flex h-32 items-center justify-center bg-gradient-to-br ${theme.gradient}`}>
+      <div className={`relative flex h-36 items-center justify-center bg-gradient-to-br ${theme.gradient}`}>
         {product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={product.image_url} alt={name} className="h-full w-full object-cover" />
@@ -50,7 +50,7 @@ export default function ProductCard({
 
         <div className="absolute start-2 top-2 flex flex-col gap-1">
           {product.is_fresh && (
-            <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-blue-700 shadow-sm">
+            <span className="rounded-full bg-white/95 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 shadow-sm">
               {locale === "ar" ? "طازج" : "Fresh"}
             </span>
           )}
@@ -61,7 +61,7 @@ export default function ProductCard({
           </span>
         ) : (
           discountPct && (
-            <span className="absolute end-2 top-2 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+            <span className="absolute end-2 top-2 rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-extrabold text-neutral-900 shadow-sm">
               -{discountPct}%
             </span>
           )
@@ -70,9 +70,9 @@ export default function ProductCard({
           <QuickAddToCart variantId={variant.id} storeId={product.store_id} stock={stock ?? Infinity} />
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-1 p-3">
+      <div className="flex flex-1 flex-col gap-1 p-3.5">
         <span className="text-xs text-neutral-500">{localizedField(product.brand, product.brand_ar, locale)}</span>
-        <span className="line-clamp-2 text-sm font-medium text-neutral-900">{name}</span>
+        <span className="line-clamp-2 text-sm font-semibold leading-snug text-neutral-900">{name}</span>
         {rating && rating.review_count > 0 && (
           <StarRating rating={rating.avg_rating} count={rating.review_count} />
         )}
@@ -81,7 +81,7 @@ export default function ProductCard({
         )}
         <div className="mt-auto flex items-center justify-between pt-2">
           <div className="flex items-baseline gap-2">
-            <span className="font-semibold text-blue-700">
+            <span className="text-base font-extrabold text-neutral-900">
               {variant ? formatSAR(variant.price) : "—"}
             </span>
             {variant?.compare_at_price && (

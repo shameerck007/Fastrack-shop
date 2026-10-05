@@ -5,6 +5,7 @@
   --foreground: #171717;
   --brand: #2563eb;
   --brand-dark: #1d4ed8;
+  --accent: #ffc72c;
 }
 
 @theme inline {
@@ -26,4 +27,13 @@ body {
 
 ::selection {
   background: color-mix(in srgb, var(--brand) 25%, transparent);
+}
+
+/* Horizontal scrollers (category chips) — hide the bar, keep swipe/scroll. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

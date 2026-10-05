@@ -93,15 +93,15 @@ export default function QuickAddToCart({
   }
 
   return (
-    <div className="absolute bottom-2 end-2 z-10">
+    <div className="absolute -bottom-4 end-3 z-10">
       <button
         type="button"
         onClick={handleAdd}
         disabled={pending || stock <= 0}
         aria-label={t("product.add_to_cart")}
         title={t("product.add_to_cart")}
-        className={`flex h-9 w-9 items-center justify-center rounded-full text-lg font-semibold text-white shadow-md transition active:scale-95 disabled:opacity-50 ${
-          justAdded ? "bg-emerald-600" : "bg-blue-700 hover:bg-blue-800"
+        className={`flex h-10 w-10 items-center justify-center rounded-full text-2xl font-bold leading-none shadow-lg ring-4 ring-white transition active:scale-90 disabled:opacity-50 ${
+          justAdded ? "bg-emerald-500 text-white" : "bg-amber-400 text-neutral-900 hover:bg-amber-300"
         }`}
       >
         {pending ? (

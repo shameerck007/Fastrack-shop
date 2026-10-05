@@ -24,19 +24,19 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
   }
 
   return (
-    <div className="grid grid-cols-3 gap-3 sm:grid-cols-5 md:grid-cols-9">
+    <div className="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-9 md:gap-3 md:overflow-visible md:px-0">
       {categories.map((category) => {
         const theme = getCategoryTheme(category.slug);
         const hasChildren = category.children.length > 0;
         return (
           <div
             key={category.id}
-            className="relative"
+            className="relative shrink-0 snap-start md:shrink"
             onMouseEnter={() => hasChildren && open(category.id)}
             onMouseLeave={scheduleClose}
           >
             <Link href={`/categories/${category.slug}`} className="group flex flex-col items-center gap-2">
-              <div className="h-16 w-16 overflow-hidden rounded-2xl shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md sm:h-20 sm:w-20">
+              <div className="h-[4.5rem] w-[4.5rem] overflow-hidden rounded-full shadow-sm ring-2 ring-white transition group-hover:-translate-y-0.5 group-hover:shadow-md group-active:scale-95 sm:h-20 sm:w-20 md:mx-auto">
                 {category.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={category.image_url} alt={category.name} className="h-full w-full object-cover" />
@@ -48,7 +48,7 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
                   </div>
                 )}
               </div>
-              <span className="flex items-center gap-0.5 text-center text-xs font-medium text-neutral-700 sm:text-sm">
+              <span className="flex items-center gap-0.5 text-center text-xs font-semibold text-neutral-800 sm:text-sm">
                 {localizedName(category, locale)}
                 {hasChildren && (
                   <span aria-hidden className="text-[8px] text-neutral-400">
@@ -60,7 +60,7 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
 
             {hasChildren && openId === category.id && (
               <div
-                className="absolute left-1/2 top-full z-40 mt-1 min-w-[12rem] -translate-x-1/2 rounded-xl border border-neutral-200 bg-white py-2 shadow-lg"
+                className="absolute left-1/2 top-full z-40 mt-1 hidden min-w-[12rem] md:block -translate-x-1/2 rounded-xl border border-neutral-200 bg-white py-2 shadow-lg"
                 onMouseEnter={() => open(category.id)}
                 onMouseLeave={scheduleClose}
               >

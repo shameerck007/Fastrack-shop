@@ -1,4 +1,5 @@
 import CategoryGrid from "@/components/CategoryGrid";
+import HomeHero from "@/components/HomeHero";
 import ProductSection from "@/components/ProductSection";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import BuyAgainSection from "@/components/BuyAgainSection";
@@ -40,14 +41,22 @@ export default async function HomePage() {
 
   return (
     <DeliveryGate>
-      <div className="mx-auto max-w-6xl px-4 py-6">
+      <div className="mx-auto max-w-6xl px-4 py-5">
+        <HomeHero
+          eyebrow={t("home.hero_eyebrow")}
+          title={t("home.hero_title")}
+          subtitle={t("home.hero_subtitle")}
+          chips={[t("home.hero_chip_fast"), t("home.hero_chip_free")]}
+          cta={t("home.hero_cta")}
+        />
+
         <section className="mb-8">
-          <h2 className="mb-3 text-lg font-semibold">{t("home.shop_by_category")}</h2>
+          <h2 className="mb-3 text-xl font-extrabold tracking-tight">{t("home.shop_by_category")}</h2>
           <CategoryGrid categories={categories} />
         </section>
 
         <BuyAgainSection />
-        <ProductSection title={t("home.offers")} products={offers} ratings={ratings} stock={stock} />
+        <ProductSection id="offers" promo title={t("home.offers")} products={offers} ratings={ratings} stock={stock} />
         <ProductSection title={t("home.fresh_today")} products={freshToday} ratings={ratings} stock={stock} />
         <ProductSection
           title={t("home.best_sellers")}

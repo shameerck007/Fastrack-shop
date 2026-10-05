@@ -29,7 +29,7 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 rounded-t-3xl border-t border-neutral-100 bg-white shadow-[0_-8px_24px_rgba(0,0,0,0.06)] md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="grid grid-cols-4">
@@ -39,11 +39,17 @@ export default function MobileBottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium ${
+              className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold ${
                 isActive ? "text-blue-700" : "text-neutral-500"
               }`}
             >
-              <span className="text-lg leading-none">{item.icon}</span>
+              <span
+                className={`flex h-7 w-12 items-center justify-center rounded-full text-lg leading-none transition ${
+                  isActive ? "bg-blue-100" : ""
+                }`}
+              >
+                {item.icon}
+              </span>
               {item.label}
               {item.href === "/cart" && cartCount > 0 && (
                 <span className="absolute right-[22%] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[9px] font-semibold text-white">

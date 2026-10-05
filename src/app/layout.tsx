@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import HeaderGate from "@/components/HeaderGate";
 import MobileNavGate from "@/components/MobileNavGate";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import FloatingCartBar from "@/components/FloatingCartBar";
 import BackBar from "@/components/BackBar";
 import DeliveryLocationProvider from "@/components/DeliveryLocationProvider";
 import DeliveryBanner from "@/components/DeliveryBanner";
@@ -82,6 +83,7 @@ export default async function RootLayout({
           </div>
         </HeaderGate>
         <MobileNavGate>
+          <FloatingCartBar />
           <MobileBottomNav />
         </MobileNavGate>
         <PushOptIn />
