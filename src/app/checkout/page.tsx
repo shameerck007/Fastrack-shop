@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { extractTax, productTaxRate, taxProfileFor } from "@/lib/tax";
 import CheckoutForm from "@/components/CheckoutForm";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getAddresses } from "@/lib/addresses";
@@ -16,6 +18,13 @@ export default async function CheckoutPage() {
   if (items.length === 0) redirect("/cart");
 
   const subtotal = cartSubtotal(items);
+  // Tax already inside the prices, per item at each product's own rate (GST slabs / VAT).
+  const tenant = await getCurrentTenant();
+  const taxProfile = taxProfileFor(tenant?.country_code);
+  const taxTotal =
+    Math.round(
+      items.reduce((sum, i) => sum + extractTax(i.quantity * i.product_variants.price, productTaxRate(i.product_variants.products, tenant?.country_code)), 0) * 100
+    ) / 100;
 
   // For each saved address, which cart items the sellers can't deliver there.
   const products = items.map((i) => ({
@@ -38,7 +47,7 @@ export default async function CheckoutPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 max-md:pb-44">
       <h1 className="mb-4 text-xl font-semibold max-md:hidden">{t("checkout.title")}</h1>
-      <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} methodsByAddress={methodsByAddress} />
+      <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} methodsByAddress={methodsByAddress} taxTotal={taxTotal} taxLabel={taxProfile.label} />
     </div>
   );
 }

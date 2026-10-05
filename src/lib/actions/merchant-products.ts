@@ -30,6 +30,9 @@ export async function createMerchantProduct(input: {
   sku?: string;
   description?: string;
   descriptionAr?: string;
+  /** Tax percent for this product (null/undefined = the market's default). */
+  taxRate?: number | null;
+  hsnCode?: string;
   imageUrl?: string;
   price: number;
   compareAtPrice?: number;
@@ -59,6 +62,8 @@ export async function createMerchantProduct(input: {
       description: input.description ?? null,
       description_ar: input.descriptionAr?.trim() || null,
       image_url: input.imageUrl ?? null,
+      tax_rate: input.taxRate ?? null,
+      hsn_code: input.hsnCode?.trim() || null,
     })
     .select("id")
     .single();
@@ -102,6 +107,8 @@ export async function updateMerchantProduct(
     sku?: string;
     description?: string;
     descriptionAr?: string;
+    taxRate?: number | null;
+    hsnCode?: string;
     imageUrl?: string;
     price: number;
     compareAtPrice?: number;
@@ -140,6 +147,8 @@ export async function updateMerchantProduct(
       description: input.description ?? null,
       description_ar: input.descriptionAr?.trim() || null,
       image_url: input.imageUrl ?? null,
+      tax_rate: input.taxRate ?? null,
+      hsn_code: input.hsnCode?.trim() || null,
     })
     .eq("id", productId);
   if (productError) throw productError;

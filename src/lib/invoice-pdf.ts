@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { groupTaxByRate } from "@/lib/tax";
 import { moneyFor } from "@/lib/money";
 import type { InvoiceData } from "@/lib/orders";
 import type { CompanySettings } from "@/lib/company-settings";
@@ -30,6 +31,8 @@ export async function buildInvoicePdf({
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Invoice ${order.order_number}`);
   const money = moneyFor(order.currency ?? "SAR");
+  const taxLabel = order.tax_label ?? "VAT";
+  const isGst = taxLabel === "GST";
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
@@ -94,8 +97,10 @@ export async function buildInvoicePdf({
   const soldByLines = [
     company.trading_name,
     [company.address_line, company.city].filter(Boolean).join(", ") || null,
-    company.cr_number ? `CR No: ${company.cr_number}` : null,
-    `VAT Registration No: ${company.vat_number ?? "Not yet configured"}`,
+    isGst ? null : company.cr_number ? `CR No: ${company.cr_number}` : null,
+    isGst
+      ? `GSTIN: ${company.vat_number ?? "Not yet configured"}`
+      : `VAT Registration No: ${company.vat_number ?? "Not yet configured"}`,
   ].filter((l): l is string => !!l);
   for (const l of soldByLines) {
     text(page, l, M, yl);
@@ -159,13 +164,18 @@ export async function buildInvoicePdf({
 
   for (const item of order.order_items) {
     const nameLines = wrap(`${item.product_name} (${item.variant_label})`, colQty - M - 60, font, 10);
-    const rowH = nameLines.length * 12 + 8;
+    const taxNote =
+      item.tax_rate != null
+        ? `${isGst && item.hsn_code ? `HSN ${item.hsn_code} · ` : ""}${taxLabel} ${Number(item.tax_rate)}%`
+        : null;
+    const rowH = nameLines.length * 12 + 8 + (taxNote ? 10 : 0);
     if (y - rowH < M + 140) {
       page = pdf.addPage([PAGE_W, PAGE_H]);
       y = PAGE_H - M;
       drawTableHeader();
     }
     nameLines.forEach((l, i) => text(page, l, M + 6, y - i * 12));
+    if (taxNote) text(page, taxNote, M + 6, y - nameLines.length * 12 + 2, { size: 8, color: GRAY });
     text(page, String(Number(item.ordered_quantity)), colQty, y, { right: true });
     text(page, money(item.unit_price), colPrice, y, { right: true });
     text(page, money(item.line_total), colTotal - 6, y, { right: true });
@@ -193,7 +203,28 @@ export async function buildInvoicePdf({
   };
   totalRow("Item(s) Subtotal", money(order.subtotal));
   totalRow("Delivery fee", order.delivery_fee === 0 ? "Free" : money(order.delivery_fee));
-  totalRow("VAT (15%)", money(order.vat));
+  const taxedLines = order.order_items
+    .filter((i) => i.tax_rate != null)
+    .map((i) => ({ rate: Number(i.tax_rate), gross: Number(i.line_total), tax: Number(i.tax_amount ?? 0) }));
+  if (taxedLines.length > 0) {
+    // One row per tax rate. GST is CGST + SGST when seller and buyer are in the same state, else IGST.
+    const sameState =
+      isGst && !!company.state && !!order.addresses?.state && company.state.trim().toLowerCase() === order.addresses.state.trim().toLowerCase();
+    for (const g of groupTaxByRate(taxedLines)) {
+      if (g.rate === 0) {
+        totalRow(`${taxLabel} 0% (taxable ${money(g.taxable)})`, money(0));
+      } else if (isGst && sameState) {
+        totalRow(`CGST ${g.rate / 2}% (on ${money(g.taxable)})`, money(g.tax / 2));
+        totalRow(`SGST ${g.rate / 2}% (on ${money(g.taxable)})`, money(g.tax / 2));
+      } else if (isGst && company.state && order.addresses?.state) {
+        totalRow(`IGST ${g.rate}% (on ${money(g.taxable)})`, money(g.tax));
+      } else {
+        totalRow(`${taxLabel} ${g.rate}% (on ${money(g.taxable)})`, money(g.tax));
+      }
+    }
+  } else {
+    totalRow("VAT (15%)", money(order.vat));
+  }
   if (order.discount > 0) totalRow("Discount", `-${money(order.discount)}`);
   page.drawLine({
     start: { x: tl, y: y + 8 },

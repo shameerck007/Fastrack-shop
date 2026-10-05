@@ -12,7 +12,8 @@ import { assertStoresOpen } from "@/lib/stores";
 import { addToCart } from "@/lib/actions/cart";
 import { notifyUsers } from "@/lib/push";
 import { sendOrderConfirmationEmail, sendNewOrderEmails } from "@/lib/email-notifications";
-import { generateOrderNumber, generateOtp, extractVat } from "@/lib/utils";
+import { generateOrderNumber, generateOtp } from "@/lib/utils";
+import { extractTax, productTaxRate } from "@/lib/tax";
 import type { DeliveryType, PaymentMethod } from "@/types/database";
 
 const FREE_DELIVERY_THRESHOLD = 50;
@@ -60,7 +61,14 @@ async function placeOrderOrThrow(input: {
   // extracted for the receipt/ZATCA breakdown, not added on top.
   const subtotal = cartSubtotal(items);
   const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEES[input.deliveryType];
-  const vat = extractVat(subtotal);
+  // Tax is computed per item from each product's own rate (GST slabs in India, VAT in Saudi).
+  const taxCountry = (await getCurrentTenant())?.country_code ?? "SA";
+  const itemTaxes = items.map((item) => {
+    const rate = productTaxRate(item.product_variants.products, taxCountry);
+    const gross = Math.round(item.quantity * item.product_variants.price * 100) / 100;
+    return { rate, tax: extractTax(gross, rate) };
+  });
+  const vat = Math.round(itemTaxes.reduce((sum, t) => sum + t.tax, 0) * 100) / 100;
   const total = Math.round((subtotal + deliveryFee) * 100) / 100;
 
   // Fetched before warehouse resolution — for FasTrack's own items (no
@@ -154,7 +162,10 @@ async function placeOrderOrThrow(input: {
 
   if (orderError) throw orderError;
 
-  const orderItems = items.map((item) => ({
+  const orderItems = items.map((item, idx) => ({
+    tax_rate: itemTaxes[idx].rate,
+    tax_amount: itemTaxes[idx].tax,
+    hsn_code: item.product_variants.products.hsn_code ?? null,
     order_id: order.id,
     variant_id: item.variant_id,
     product_name: item.product_variants.products.name,
@@ -164,7 +175,13 @@ async function placeOrderOrThrow(input: {
     line_total: Math.round(item.quantity * item.product_variants.price * 100) / 100,
   }));
 
-  const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+  let { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+  // Per-item tax columns arrive with migration 0047; until it's applied, save the lines without them.
+  if (itemsError && (itemsError.code === "42703" || itemsError.code === "PGRST204")) {
+    ({ error: itemsError } = await supabase
+      .from("order_items")
+      .insert(orderItems.map(({ tax_rate: _r, tax_amount: _a, hsn_code: _h, ...rest }) => rest)));
+  }
   if (itemsError) throw itemsError;
 
   for (let i = 0; i < items.length; i++) {

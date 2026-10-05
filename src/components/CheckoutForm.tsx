@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import AddressForm from "@/components/AddressForm";
 import { placeOrder } from "@/lib/actions/orders";
-import { extractVat } from "@/lib/utils";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
 import { EXPRESS_FEE, STANDARD_FEE, formatDeliveryDate, standardDeliveryDate } from "@/lib/delivery-methods";
@@ -31,11 +30,15 @@ export default function CheckoutForm({
   subtotal,
   blockedByAddress = {},
   methodsByAddress = {},
+  taxTotal = 0,
+  taxLabel = "VAT",
 }: {
   addresses: Address[];
   items: CartItemWithVariant[];
   subtotal: number;
   blockedByAddress?: Record<string, string[]>;
+  taxTotal?: number;
+  taxLabel?: string;
   methodsByAddress?: Record<string, { express: boolean; standard: boolean; standardDays: number }>;
 }) {
   const money = useMoney();
@@ -111,7 +114,6 @@ export default function CheckoutForm({
   const listSep = locale === "ar" ? "، " : ", ";
   const selectedAddress = addresses.find((a) => a.id === addressId) ?? null;
   const freeLeft = Math.max(0, FREE_DELIVERY_THRESHOLD - subtotal);
-  const vatAmount = extractVat(total);
   const card = "rounded-3xl bg-white p-4 shadow-sm ring-1 ring-neutral-100";
   const labelText = (label: Address["label"]) =>
     label === "home" ? t("addresses.label_home") : label === "office" ? t("addresses.label_office") : t("addresses.label_other");
@@ -380,7 +382,7 @@ export default function CheckoutForm({
                 <span>{t("checkout.total")}</span>
                 <span>{money(total)}</span>
               </div>
-              <p className="text-end text-[11px] text-neutral-400">{t("checkout_ui.vat_included", { amount: money(vatAmount) })}</p>
+              <p className="text-end text-[11px] text-neutral-400">{t("checkout_ui.vat_included", { label: taxLabel, amount: money(taxTotal) })}</p>
             </div>
 
             {error && <p className="mt-3 hidden text-sm text-red-600 lg:block">{error}</p>}

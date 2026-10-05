@@ -5,14 +5,15 @@ import { DEFAULT_CURRENCY, moneyFor, type MoneyFormatter } from "@/lib/money";
 
 interface Ctx {
   currency: string;
+  countryCode: string;
   money: MoneyFormatter;
 }
 
-const MoneyCtx = createContext<Ctx>({ currency: DEFAULT_CURRENCY, money: moneyFor(DEFAULT_CURRENCY) });
+const MoneyCtx = createContext<Ctx>({ currency: DEFAULT_CURRENCY, countryCode: "SA", money: moneyFor(DEFAULT_CURRENCY) });
 
 /** The current market's currency, available to every client component. */
-export default function MoneyProvider({ currency, children }: { currency: string; children: React.ReactNode }) {
-  const value = useMemo(() => ({ currency, money: moneyFor(currency) }), [currency]);
+export default function MoneyProvider({ currency, countryCode = "SA", children }: { currency: string; countryCode?: string; children: React.ReactNode }) {
+  const value = useMemo(() => ({ currency, countryCode, money: moneyFor(currency) }), [currency, countryCode]);
   return <MoneyCtx.Provider value={value}>{children}</MoneyCtx.Provider>;
 }
 
@@ -23,4 +24,10 @@ export function useMoney(): MoneyFormatter {
 
 export function useCurrency(): string {
   return useContext(MoneyCtx).currency;
+}
+
+/** The market the shopper (or staff member) is working in. */
+export function useMarket(): { currency: string; countryCode: string } {
+  const { currency, countryCode } = useContext(MoneyCtx);
+  return { currency, countryCode };
 }

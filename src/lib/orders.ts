@@ -130,6 +130,8 @@ export interface InvoiceData extends Order {
     short_address: string | null;
     receiver_name: string | null;
     receiver_phone: string | null;
+    /** Added by migration 0047. */
+    state?: string | null;
   } | null;
   profiles: { full_name: string | null; phone: string | null } | null;
   payments: { method: string; status: string }[];
@@ -143,7 +145,7 @@ export async function getInvoiceData(orderId: string): Promise<InvoiceData | nul
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "*, order_items(*), addresses(address_line, label, city, district, building_number, unit_number, postal_code, short_address, receiver_name, receiver_phone), profiles(full_name, phone), payments(method, status)"
+      "*, order_items(*), addresses(*), profiles(full_name, phone), payments(method, status)"
     )
     .eq("id", orderId)
     .maybeSingle();

@@ -12,6 +12,8 @@ export interface CompanySettings {
   postal_code: string | null;
   phone: string | null;
   email: string | null;
+  /** State (for GST CGST/SGST vs IGST); column added by migration 0047. */
+  state?: string | null;
 }
 
 const FALLBACK: CompanySettings = {
@@ -30,7 +32,7 @@ export async function getCompanySettings(): Promise<CompanySettings> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("company_settings")
-    .select("trading_name, cr_number, vat_number, address_line, city, district, postal_code, phone, email")
+    .select("*")
     // One row per tenant; the database's tenant rules return only the current market's row.
     .limit(1)
     .maybeSingle();

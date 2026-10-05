@@ -128,6 +128,9 @@ export interface Product {
   is_variable_weight: boolean;
   price_per_kg: number | null;
   vat_rate: number;
+  /** Tax percent for this product (e.g. 15, or GST 0/5/12/18); null = the market's default. */
+  tax_rate?: number | null;
+  hsn_code?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -187,6 +190,8 @@ export interface Order {
   vat: number;
   total: number;
   coupon_code: string | null;
+  tax_label?: string;
+  country_code?: string;
   /** Currency this order was placed in (added by migration 0044; 'SAR' for older rows). */
   currency?: string;
   delivery_otp: string | null;
@@ -202,6 +207,10 @@ export interface OrderItem {
   product_name: string;
   variant_label: string;
   ordered_quantity: number;
+  /** Tax percent and amount copied from the product when ordered (migration 0047). */
+  tax_rate?: number | null;
+  tax_amount?: number | null;
+  hsn_code?: string | null;
   packed_quantity: number | null;
   unit_price: number;
   line_total: number;

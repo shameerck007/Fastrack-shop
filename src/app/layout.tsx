@@ -16,7 +16,7 @@ import StoreDirectoryProvider from "@/components/StoreDirectoryProvider";
 import CustomerStateProvider from "@/components/CustomerStateProvider";
 import MarketSuggestionBanner from "@/components/MarketSuggestionBanner";
 import MoneyProvider from "@/components/MoneyProvider";
-import { getCurrency, getMarketSuggestion } from "@/lib/tenant-server";
+import { getCurrentTenant, getMarketSuggestion } from "@/lib/tenant-server";
 import DefaultCountryProvider from "@/components/DefaultCountryProvider";
 import { getRequestCountryCode } from "@/lib/get-request-country";
 import { getServerLocale } from "@/lib/i18n/get-locale";
@@ -69,7 +69,9 @@ export default async function RootLayout({
   const locale = await getServerLocale();
   const countryCode = await getRequestCountryCode();
   const marketSuggestion = await getMarketSuggestion().catch(() => null);
-  const currency = await getCurrency();
+  const tenant = await getCurrentTenant().catch(() => null);
+  const currency = tenant?.currency ?? "SAR";
+  const marketCountry = tenant?.country_code ?? "SA";
 
   return (
     <html lang={locale} dir={dirFor(locale)}>
@@ -78,7 +80,7 @@ export default async function RootLayout({
       >
         <ChunkErrorReload />
         <LocaleProvider locale={locale}>
-        <MoneyProvider currency={currency}>
+        <MoneyProvider currency={currency} countryCode={marketCountry}>
         <DefaultCountryProvider countryCode={countryCode}>
         <CustomerStateProvider>
         <StoreDirectoryProvider>

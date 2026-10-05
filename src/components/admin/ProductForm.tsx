@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import TaxFields from "@/components/admin/TaxFields";
 import { useRouter } from "next/navigation";
 import { createProduct, updateProduct } from "@/lib/actions/admin-products";
 import { autoTranslateToArabic } from "@/lib/actions/translate";
@@ -41,6 +42,8 @@ export default function ProductForm({
   const [sku, setSku] = useState(existing?.sku ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
   const [descriptionAr, setDescriptionAr] = useState(existing?.description_ar ?? "");
+  const [taxRate, setTaxRate] = useState(existing?.tax_rate != null ? String(existing.tax_rate) : "");
+  const [hsnCode, setHsnCode] = useState(existing?.hsn_code ?? "");
   const [descriptionArEdited, setDescriptionArEdited] = useState(Boolean(existing?.description_ar));
   const [translatingDescription, setTranslatingDescription] = useState(false);
   const [categoryId, setCategoryId] = useState(existing?.category_id ?? categories[0]?.id ?? "");
@@ -114,6 +117,8 @@ export default function ProductForm({
             description: description || undefined,
             descriptionAr: descriptionAr || undefined,
             imageUrl: imageUrl || undefined,
+            taxRate: taxRate === "" ? null : Number(taxRate),
+            hsnCode: hsnCode || undefined,
             price: Number(price),
             compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
             variantLabel,
@@ -133,6 +138,8 @@ export default function ProductForm({
             description: description || undefined,
             descriptionAr: descriptionAr || undefined,
             imageUrl: imageUrl || undefined,
+            taxRate: taxRate === "" ? null : Number(taxRate),
+            hsnCode: hsnCode || undefined,
             price: Number(price),
             compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
             variantLabel,
@@ -359,6 +366,8 @@ export default function ProductForm({
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
       </div>
+
+      <TaxFields taxRate={taxRate} onTaxRate={setTaxRate} hsnCode={hsnCode} onHsnCode={setHsnCode} />
 
       {existing && (
         <p className="text-xs text-neutral-400">{t("product_form.stock_managed_separately")}</p>

@@ -22,7 +22,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   // fulfilled from a FasTrack-owned warehouse).
   const company = await getOrderSeller(order.warehouse_id);
 
-  const qrPayload = buildZatcaQrPayload({
+  // Saudi invoices carry the ZATCA QR; other markets get a plain QR pointing back to the order.
+  const qrPayload =
+    order.country_code && order.country_code !== "SA"
+      ? `Invoice ${order.order_number} | ${company.trading_name} | ${order.total}`
+      : buildZatcaQrPayload({
     sellerName: company.trading_name,
     vatNumber: company.vat_number ?? "",
     timestamp: order.created_at,
