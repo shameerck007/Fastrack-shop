@@ -6,6 +6,7 @@ import { formatSAR } from "@/lib/utils";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import LiveOrderStatus from "@/components/LiveOrderStatus";
 import RiderLocationMap from "@/components/RiderLocationMap";
+import OrderTrackingHero from "@/components/OrderTrackingHero";
 import OrderChat from "@/components/OrderChat";
 import BuyItAgainButton from "@/components/BuyItAgainButton";
 import OrderRatingForm from "@/components/OrderRatingForm";
@@ -35,8 +36,41 @@ export default async function OrderDetailPage({
   const messages = rider && user ? await getOrderMessages(order.id) : [];
   const myRating = order.status === "delivered" ? await getMyOrderRating(order.id) : null;
 
+  const activeOrder = !["delivered", "cancelled"].includes(order.status);
+  const dest =
+    order.addresses?.lat != null && order.addresses?.lng != null
+      ? { lat: order.addresses.lat, lng: order.addresses.lng }
+      : null;
+  const shop =
+    order.warehouses?.lat != null && order.warehouses?.lng != null
+      ? { lat: order.warehouses.lat, lng: order.warehouses.lng, name: order.warehouses.name }
+      : null;
+  // Keeta-style tracking screen while the order is in flight (it has its own rider
+  // card and map, so the plain ones below are skipped).
+  const showTracking = activeOrder && !!(dest || shop);
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
+      {showTracking && (
+        <OrderTrackingHero
+          orderId={order.id}
+          orderNumber={order.order_number}
+          initialStatus={order.status}
+          rider={
+            rider && order.delivery_assignments?.rider_id
+              ? {
+                  id: order.delivery_assignments.rider_id,
+                  name: rider.profiles.full_name,
+                  phone: rider.profiles.phone,
+                  lat: rider.current_lat,
+                  lng: rider.current_lng,
+                }
+              : null
+          }
+          dest={dest}
+          shop={shop}
+        />
+      )}
       <h1 className="mb-1 text-2xl font-semibold">{t("orders.order_details_title")}</h1>
       <p className="mb-4 flex flex-wrap items-center gap-x-2 text-sm text-neutral-500">
         <span>
@@ -121,7 +155,7 @@ export default async function OrderDetailPage({
         </div>
       )}
 
-      {rider && (
+      {rider && !showTracking && (
         <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
           <p className="text-sm text-neutral-500">{t("orders.rider")}</p>
           <p className="font-medium">{rider.profiles.full_name}</p>
@@ -144,7 +178,7 @@ export default async function OrderDetailPage({
       )}
 
       {rider && user && (
-        <div className="mb-6">
+        <div id="order-chat" className="mb-6 scroll-mt-4">
           <OrderChat
             orderId={order.id}
             currentUserId={user.id}

@@ -1,0 +1,285 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { Map as LeafletMap, Marker, Polyline } from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { TILE_URL, TILE_OPTIONS } from "@/lib/map-config";
+import { createClient } from "@/lib/supabase/client";
+import { distanceKm } from "@/lib/delivery-geo";
+import { useLocale } from "@/components/LocaleProvider";
+import type { OrderStatus } from "@/types/database";
+
+interface Point {
+  lat: number;
+  lng: number;
+}
+
+export interface TrackingRider {
+  id: string;
+  name: string | null;
+  phone: string | null;
+  lat: number | null;
+  lng: number | null;
+}
+
+// Straight-line distance understates road distance; scooter speed in city traffic.
+const ROAD_FACTOR = 1.35;
+const SPEED_KMH = 24;
+const PREP_MINUTES = 15;
+
+const STEPS = [
+  { key: "step_placed", icon: "🧾", statuses: ["pending", "confirmed"] },
+  { key: "step_preparing", icon: "🍳", statuses: ["preparing", "ready_for_pickup"] },
+  { key: "step_on_way", icon: "🛵", statuses: ["rider_assigned", "out_for_delivery"] },
+  { key: "step_delivered", icon: "✅", statuses: ["delivered"] },
+] as const;
+
+function pin(emoji: string, tone: "blue" | "white", pulse = false) {
+  const bg = tone === "blue" ? "background:#1d4ed8;color:#fff" : "background:#fff;color:#111";
+  return (
+    `<div style="position:relative;width:40px;height:40px">` +
+    (pulse ? `<span style="position:absolute;inset:-6px;border-radius:9999px;background:rgba(37,99,235,.25);animation:ping 1.6s cubic-bezier(0,0,.2,1) infinite"></span>` : "") +
+    `<div style="position:relative;width:40px;height:40px;border-radius:9999px;${bg};display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.25);border:3px solid #fff">${emoji}</div>` +
+    `</div>`
+  );
+}
+
+/** Keeta-style live tracking: full-width map with shop, rider and your address, plus a
+ * bottom sheet with the status, estimated arrival, progress steps and rider contact. */
+export default function OrderTrackingHero({
+  orderId,
+  orderNumber,
+  initialStatus,
+  rider,
+  dest,
+  shop,
+}: {
+  orderId: string;
+  orderNumber: string;
+  initialStatus: OrderStatus;
+  rider: TrackingRider | null;
+  dest: Point | null;
+  shop: (Point & { name: string }) | null;
+}) {
+  const { t, locale } = useLocale();
+  const [status, setStatus] = useState(initialStatus);
+  const [riderPos, setRiderPos] = useState<Point | null>(
+    rider?.lat != null && rider?.lng != null ? { lat: rider.lat, lng: rider.lng } : null
+  );
+  const [live, setLive] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const riderMarker = useRef<Marker | null>(null);
+  const routeLine = useRef<Polyline | null>(null);
+  const fitted = useRef(false);
+  const [mapReady, setMapReady] = useState(false);
+
+  const riderId = rider?.id ?? null;
+  const done = status === "delivered" || status === "cancelled";
+
+  // Status and rider position arrive over realtime (the session must be awaited
+  // first, otherwise the socket connects as anon and RLS drops every event).
+  useEffect(() => {
+    const supabase = createClient();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+    supabase.auth.getSession().then(() => {
+      if (cancelled) return;
+      channel = supabase
+        .channel(`order-tracking-${orderId}`)
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${orderId}` }, (payload) => {
+          const next = payload.new as { status?: OrderStatus };
+          if (next.status) setStatus(next.status);
+        });
+      if (riderId) {
+        channel = channel.on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "delivery_partners", filter: `id=eq.${riderId}` },
+          (payload) => {
+            const next = payload.new as { current_lat: number | null; current_lng: number | null };
+            if (next.current_lat != null && next.current_lng != null) {
+              setRiderPos({ lat: next.current_lat, lng: next.current_lng });
+              setLive(true);
+            }
+          }
+        );
+      }
+      channel.subscribe();
+    });
+    return () => {
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [orderId, riderId]);
+
+  const hasMap = !!(dest || shop || riderPos);
+
+  // Build the map once.
+  useEffect(() => {
+    if (!hasMap || !containerRef.current || mapRef.current) return;
+    let cancelled = false;
+    import("leaflet").then((L) => {
+      if (cancelled || !containerRef.current || mapRef.current) return;
+      const center = riderPos ?? dest ?? shop!;
+      const map = L.map(containerRef.current, { zoomControl: false, attributionControl: false }).setView([center.lat, center.lng], 15);
+      L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
+      L.control.attribution({ prefix: false, position: "bottomleft" }).addTo(map);
+      const icon = (html: string) => L.divIcon({ html, className: "", iconSize: [40, 40], iconAnchor: [20, 20] });
+      if (shop) L.marker([shop.lat, shop.lng], { icon: icon(pin("🏪", "white")) }).addTo(map);
+      if (dest) L.marker([dest.lat, dest.lng], { icon: icon(pin("🏠", "blue")) }).addTo(map);
+      if (riderPos) riderMarker.current = L.marker([riderPos.lat, riderPos.lng], { icon: icon(pin("🛵", "blue", true)), zIndexOffset: 1000 }).addTo(map);
+      routeLine.current = L.polyline([], { color: "#1d4ed8", weight: 4, opacity: 0.7, dashArray: "2 10", lineCap: "round" }).addTo(map);
+      mapRef.current = map;
+      setMapReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMap]);
+
+  // Keep the rider marker, route line and viewport in step with the rider's position.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map) return;
+    import("leaflet").then((L) => {
+      // Before pickup the route is rider -> shop; afterwards rider/shop -> you.
+      const from: Point | null = riderPos ?? shop;
+      const headingToShop = status === "rider_assigned" && !!riderPos && !!shop;
+      const to: Point | null = headingToShop ? shop : dest;
+      if (riderPos) {
+        if (riderMarker.current) riderMarker.current.setLatLng([riderPos.lat, riderPos.lng]);
+        else {
+          riderMarker.current = L.marker([riderPos.lat, riderPos.lng], {
+            icon: L.divIcon({ html: pin("🛵", "blue", true), className: "", iconSize: [40, 40], iconAnchor: [20, 20] }),
+            zIndexOffset: 1000,
+          }).addTo(map);
+        }
+      }
+      routeLine.current?.setLatLngs(from && to && !done ? [[from.lat, from.lng], [to.lat, to.lng]] : []);
+      const pts = [riderPos, dest, shop].filter(Boolean) as Point[];
+      if (pts.length > 1 && (!fitted.current || (riderPos && !map.getBounds().contains([riderPos.lat, riderPos.lng])))) {
+        map.fitBounds(L.latLngBounds(pts.map((p) => [p.lat, p.lng] as [number, number])), { padding: [60, 60], maxZoom: 16 });
+        fitted.current = true;
+      }
+    });
+  }, [mapReady, riderPos, status, dest, shop, done]);
+
+  useEffect(
+    () => () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+    },
+    []
+  );
+
+  // Estimated minutes left.
+  const etaMinutes = useMemo(() => {
+    if (done || !dest) return null;
+    const leg = (a: Point, b: Point) => ((distanceKm(a.lat, a.lng, b.lat, b.lng) * ROAD_FACTOR) / SPEED_KMH) * 60;
+    let minutes: number;
+    if (status === "out_for_delivery" && riderPos) minutes = leg(riderPos, dest);
+    else if (status === "rider_assigned" && riderPos && shop) minutes = leg(riderPos, shop) + 3 + leg(shop, dest);
+    else if (shop) minutes = PREP_MINUTES + leg(shop, dest);
+    else return null;
+    return Math.max(2, Math.round(minutes));
+  }, [status, riderPos, dest, shop, done]);
+
+  const arrival = useMemo(() => {
+    if (etaMinutes == null) return null;
+    const fmt = (d: Date) => d.toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" });
+    const from = new Date(Date.now() + etaMinutes * 60_000);
+    const to = new Date(from.getTime() + 10 * 60_000);
+    return `${fmt(from)} – ${fmt(to)}`;
+  }, [etaMinutes, locale]);
+
+  const stepIndex = Math.max(
+    0,
+    STEPS.findIndex((s) => (s.statuses as readonly string[]).includes(status))
+  );
+  const title =
+    status === "cancelled"
+      ? t("tracking.title_cancelled")
+      : status === "delivered"
+        ? t("tracking.title_delivered")
+        : status === "out_for_delivery"
+          ? t("tracking.title_delivering")
+          : status === "rider_assigned"
+            ? t("tracking.title_pickup")
+            : status === "preparing" || status === "ready_for_pickup"
+              ? t("tracking.title_preparing")
+              : t("tracking.title_placed");
+
+  return (
+    <section className="-mx-4 -mt-6 mb-6 md:mx-0 md:mt-0 md:overflow-hidden md:rounded-3xl md:border md:border-neutral-200 md:shadow-sm">
+      {hasMap && (
+        <div className="relative">
+          <div ref={containerRef} className="h-[46vh] min-h-[260px] w-full bg-blue-50 md:h-[380px] [&_.leaflet-bottom]:mb-7 md:[&_.leaflet-bottom]:mb-0 [&_.leaflet-control-attribution]:text-[9px]" />
+          {live && !done && (
+            <span className="absolute start-3 top-3 z-[500] flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-emerald-600 shadow-md">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+              {t("tracking.live")}
+            </span>
+          )}
+          {etaMinutes != null && (
+            <span className="absolute end-3 top-3 z-[500] rounded-full bg-blue-700 px-3 py-1.5 text-xs font-extrabold text-white shadow-lg">
+              {t("tracking.arriving_in", { min: etaMinutes })}
+            </span>
+          )}
+        </div>
+      )}
+
+      <div className={`relative z-[600] bg-white px-5 pb-5 pt-5 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] ${hasMap ? "-mt-6 rounded-t-3xl md:mt-0 md:rounded-none md:shadow-none" : "rounded-3xl"}`}>
+        <h2 className="text-xl font-extrabold tracking-tight text-neutral-900">{title}</h2>
+        <p className="text-sm text-neutral-500">#{orderNumber}</p>
+
+        {arrival && (
+          <div className="mt-3 rounded-2xl bg-blue-50 px-4 py-3">
+            <p className="text-xs font-medium text-blue-700">{t("tracking.eta_label")}</p>
+            <p className="text-lg font-extrabold text-blue-900">{arrival}</p>
+          </div>
+        )}
+
+        {status !== "cancelled" && (
+          <ol className="mt-4 grid grid-cols-4 gap-1.5">
+            {STEPS.map((s, i) => (
+              <li key={s.key} className="flex flex-col items-center gap-1 text-center">
+                <span className={`h-1.5 w-full rounded-full ${i <= stepIndex ? "bg-blue-600" : "bg-neutral-200"}`} />
+                <span className={`text-lg ${i <= stepIndex ? "" : "opacity-40 grayscale"}`}>{s.icon}</span>
+                <span className={`text-[11px] font-semibold leading-tight ${i <= stepIndex ? "text-neutral-900" : "text-neutral-400"}`}>
+                  {t(`tracking.${s.key}`)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
+
+        {rider && !done && (
+          <div className="mt-4 flex items-center gap-3 rounded-2xl border border-neutral-200 p-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-blue-700">
+              {(rider.name ?? "R").charAt(0).toUpperCase()}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-neutral-500">{t("tracking.rider_label")}</p>
+              <p className="truncate font-bold text-neutral-900">{rider.name ?? "—"}</p>
+            </div>
+            <a
+              href="#order-chat"
+              className="flex h-10 items-center rounded-full border border-neutral-300 px-4 text-sm font-semibold text-neutral-700 active:scale-95"
+            >
+              {t("tracking.chat")}
+            </a>
+            {rider.phone && (
+              <a
+                href={`tel:${rider.phone}`}
+                className="flex h-10 items-center rounded-full bg-blue-700 px-4 text-sm font-semibold text-white active:scale-95"
+              >
+                {t("tracking.call")}
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
