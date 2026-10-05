@@ -44,6 +44,17 @@ function pin(emoji: string, tone: "blue" | "white", pulse = false) {
   );
 }
 
+/** The rider: pulsing ring, blue disc and a scooter that flips to face the way it is travelling. */
+function riderPin() {
+  return (
+    `<div style="position:relative;width:44px;height:44px">` +
+    `<span style="position:absolute;inset:-8px;border-radius:9999px;background:rgba(37,99,235,.28);animation:ping 1.8s cubic-bezier(0,0,.2,1) infinite"></span>` +
+    `<div style="position:relative;width:44px;height:44px;border-radius:9999px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(29,78,216,.45);border:3px solid #fff">` +
+    `<span class="ft-rider" style="display:inline-block;font-size:22px;line-height:1;transition:transform .35s ease">🛵</span></div>` +
+    `</div>`
+  );
+}
+
 /** Keeta-style live tracking: full-width map with shop, rider and your address, plus a
  * bottom sheet with the status, estimated arrival, progress steps and rider contact. */
 export default function OrderTrackingHero({
@@ -71,6 +82,11 @@ export default function OrderTrackingHero({
   const mapRef = useRef<LeafletMap | null>(null);
   const riderMarker = useRef<Marker | null>(null);
   const routeLine = useRef<Polyline | null>(null);
+  const routeCasing = useRef<Polyline | null>(null);
+  const shownPos = useRef<Point | null>(null);
+  const animFrame = useRef<number | null>(null);
+  const lastRouteFetch = useRef<{ from: Point; to: string; at: number } | null>(null);
+  const [road, setRoad] = useState<{ points: [number, number][]; sec: number; target: string } | null>(null);
   const fitted = useRef(false);
   const [mapReady, setMapReady] = useState(false);
 
@@ -127,8 +143,15 @@ export default function OrderTrackingHero({
       const icon = (html: string) => L.divIcon({ html, className: "", iconSize: [40, 40], iconAnchor: [20, 20] });
       if (shop) L.marker([shop.lat, shop.lng], { icon: icon(pin("🏪", "white")) }).addTo(map);
       if (dest) L.marker([dest.lat, dest.lng], { icon: icon(pin("🏠", "blue")) }).addTo(map);
-      if (riderPos) riderMarker.current = L.marker([riderPos.lat, riderPos.lng], { icon: icon(pin("🛵", "blue", true)), zIndexOffset: 1000 }).addTo(map);
-      routeLine.current = L.polyline([], { color: "#1d4ed8", weight: 4, opacity: 0.7, dashArray: "2 10", lineCap: "round" }).addTo(map);
+      if (riderPos) {
+        riderMarker.current = L.marker([riderPos.lat, riderPos.lng], {
+          icon: L.divIcon({ html: riderPin(), className: "", iconSize: [44, 44], iconAnchor: [22, 22] }),
+          zIndexOffset: 1000,
+        }).addTo(map);
+        shownPos.current = riderPos;
+      }
+      routeCasing.current = L.polyline([], { color: "#ffffff", weight: 9, opacity: 0.95, lineCap: "round", lineJoin: "round" }).addTo(map);
+      routeLine.current = L.polyline([], { color: "#1d4ed8", weight: 5, opacity: 0.9, lineCap: "round", lineJoin: "round" }).addTo(map);
       mapRef.current = map;
       setMapReady(true);
     });
@@ -148,25 +171,85 @@ export default function OrderTrackingHero({
       const headingToShop = status === "rider_assigned" && !!riderPos && !!shop;
       const to: Point | null = headingToShop ? shop : dest;
       if (riderPos) {
-        if (riderMarker.current) riderMarker.current.setLatLng([riderPos.lat, riderPos.lng]);
+        if (riderMarker.current) glideTo(riderPos);
         else {
           riderMarker.current = L.marker([riderPos.lat, riderPos.lng], {
-            icon: L.divIcon({ html: pin("🛵", "blue", true), className: "", iconSize: [40, 40], iconAnchor: [20, 20] }),
+            icon: L.divIcon({ html: riderPin(), className: "", iconSize: [44, 44], iconAnchor: [22, 22] }),
             zIndexOffset: 1000,
           }).addTo(map);
+          shownPos.current = riderPos;
         }
       }
-      routeLine.current?.setLatLngs(from && to && !done ? [[from.lat, from.lng], [to.lat, to.lng]] : []);
+      // Road route when we have it for this leg; otherwise a straight dotted guide.
+      const targetKey = to ? `${to.lat.toFixed(5)},${to.lng.toFixed(5)}` : "";
+      const onRoad = !!road && road.target === targetKey && road.points.length > 1 && !done;
+      if (onRoad && road) {
+        routeCasing.current?.setLatLngs(road.points);
+        routeLine.current?.setLatLngs(road.points);
+        routeLine.current?.setStyle({ dashArray: undefined, weight: 5, opacity: 0.9 });
+      } else {
+        routeCasing.current?.setLatLngs([]);
+        routeLine.current?.setLatLngs(from && to && !done ? [[from.lat, from.lng], [to.lat, to.lng]] : []);
+        routeLine.current?.setStyle({ dashArray: "2 10", weight: 4, opacity: 0.7 });
+      }
       const pts = [riderPos, dest, shop].filter(Boolean) as Point[];
       if (pts.length > 1 && (!fitted.current || (riderPos && !map.getBounds().contains([riderPos.lat, riderPos.lng])))) {
         map.fitBounds(L.latLngBounds(pts.map((p) => [p.lat, p.lng] as [number, number])), { padding: [60, 60], maxZoom: 16 });
         fitted.current = true;
       }
     });
-  }, [mapReady, riderPos, status, dest, shop, done]);
+  }, [mapReady, riderPos, status, dest, shop, done, road]);
+
+  /** Slide the scooter to its new position instead of jumping, flipping it to face east or west. */
+  function glideTo(target: Point) {
+    const marker = riderMarker.current;
+    const start = shownPos.current ?? target;
+    if (!marker) return;
+    if (animFrame.current != null) cancelAnimationFrame(animFrame.current);
+    const dLng = target.lng - start.lng;
+    const face = marker.getElement()?.querySelector<HTMLElement>(".ft-rider");
+    if (face && Math.abs(dLng) > 0.000005) face.style.transform = dLng > 0 ? "scaleX(-1)" : "scaleX(1)";
+    const t0 = performance.now();
+    const duration = 2200;
+    const step = (now: number) => {
+      const k = Math.min(1, (now - t0) / duration);
+      const e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2; // ease in-out
+      const cur = { lat: start.lat + (target.lat - start.lat) * e, lng: start.lng + (target.lng - start.lng) * e };
+      marker.setLatLng([cur.lat, cur.lng]);
+      shownPos.current = cur;
+      animFrame.current = k < 1 ? requestAnimationFrame(step) : null;
+    };
+    animFrame.current = requestAnimationFrame(step);
+  }
+
+  // Road route for the current leg (rider -> shop before pickup, rider -> you after).
+  // Refetched when the rider has moved about 60 m, the leg changes, or every 25 seconds.
+  useEffect(() => {
+    if (done || !riderPos) return;
+    const headingToShop = status === "rider_assigned" && !!shop;
+    const to = headingToShop ? shop : dest;
+    if (!to) return;
+    const targetKey = `${to.lat.toFixed(5)},${to.lng.toFixed(5)}`;
+    const last = lastRouteFetch.current;
+    const movedKm = last ? distanceKm(last.from.lat, last.from.lng, riderPos.lat, riderPos.lng) : Infinity;
+    if (last && last.to === targetKey && movedKm < 0.06 && Date.now() - last.at < 25_000) return;
+    lastRouteFetch.current = { from: riderPos, to: targetKey, at: Date.now() };
+    let cancelled = false;
+    fetch(`/api/geo/route?from=${riderPos.lat},${riderPos.lng}&to=${to.lat},${to.lng}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { points?: [number, number][]; durationSec?: number } | null) => {
+        if (cancelled || !data?.points || data.points.length < 2) return;
+        setRoad({ points: data.points, sec: data.durationSec ?? 0, target: targetKey });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [riderPos, status, dest, shop, done]);
 
   useEffect(
     () => () => {
+      if (animFrame.current != null) cancelAnimationFrame(animFrame.current);
       mapRef.current?.remove();
       mapRef.current = null;
     },
@@ -178,12 +261,16 @@ export default function OrderTrackingHero({
     if (done || !dest) return null;
     const leg = (a: Point, b: Point) => ((distanceKm(a.lat, a.lng, b.lat, b.lng) * ROAD_FACTOR) / SPEED_KMH) * 60;
     let minutes: number;
-    if (status === "out_for_delivery" && riderPos) minutes = leg(riderPos, dest);
-    else if (status === "rider_assigned" && riderPos && shop) minutes = leg(riderPos, shop) + 3 + leg(shop, dest);
+    const destKey = `${dest.lat.toFixed(5)},${dest.lng.toFixed(5)}`;
+    const shopKey = shop ? `${shop.lat.toFixed(5)},${shop.lng.toFixed(5)}` : "";
+    const roadMin = road && road.sec > 0 ? road.sec / 60 : null;
+    if (status === "out_for_delivery" && riderPos) minutes = roadMin != null && road?.target === destKey ? roadMin : leg(riderPos, dest);
+    else if (status === "rider_assigned" && riderPos && shop)
+      minutes = (roadMin != null && road?.target === shopKey ? roadMin : leg(riderPos, shop)) + 3 + leg(shop, dest);
     else if (shop) minutes = PREP_MINUTES + leg(shop, dest);
     else return null;
     return Math.max(2, Math.round(minutes));
-  }, [status, riderPos, dest, shop, done]);
+  }, [status, riderPos, dest, shop, done, road]);
 
   const arrival = useMemo(() => {
     if (etaMinutes == null) return null;
