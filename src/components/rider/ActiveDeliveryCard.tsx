@@ -12,10 +12,10 @@ export default function ActiveDeliveryCard({
   t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between bg-blue-50 px-4 py-3">
-        <h2 className="text-sm font-semibold text-blue-900">{t("rider.active_delivery")}</h2>
-        <span className="text-sm font-semibold text-blue-700">{formatSAR(delivery.delivery_fee)}</span>
+    <div className="overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-lg shadow-blue-600/10">
+      <div className="flex items-center justify-between bg-gradient-to-r from-blue-700 to-blue-500 px-4 py-3 text-white">
+        <h2 className="flex items-center gap-2 text-sm font-bold"><span className="h-2 w-2 animate-pulse rounded-full bg-white" />{t("rider.active_delivery")}</h2>
+        <span className="rounded-full bg-white/20 px-3 py-0.5 text-sm font-extrabold">{formatSAR(delivery.delivery_fee)}</span>
       </div>
 
       <div className="px-4 pt-4">
@@ -36,7 +36,7 @@ export default function ActiveDeliveryCard({
 
       <Link
         href={`/rider/orders/${delivery.id}`}
-        className="block border-t border-neutral-100 px-4 py-3 text-center text-sm font-semibold text-blue-700 hover:bg-blue-50"
+        className="mx-4 mb-4 flex h-11 items-center justify-center rounded-full bg-blue-700 text-sm font-extrabold text-white shadow-md shadow-blue-700/25 active:scale-95"
       >
         {t("rider.view_delivery")}
       </Link>

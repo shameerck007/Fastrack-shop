@@ -42,7 +42,7 @@ export default function DeliveryActions({ orderId, status }: { orderId: string; 
       <button
         onClick={handlePickedUp}
         disabled={pending}
-        className="w-full rounded-full bg-blue-700 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+        className="h-12 w-full rounded-full bg-blue-700 text-base font-extrabold text-white shadow-lg shadow-blue-700/25 transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50"
       >
         {t("rider.mark_picked_up")}
       </button>
@@ -58,13 +58,13 @@ export default function DeliveryActions({ orderId, status }: { orderId: string; 
           onChange={(e) => setOtp(e.target.value)}
           maxLength={4}
           placeholder={t("rider.otp_placeholder")}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-center text-lg tracking-widest"
+          className="rounded-2xl border border-neutral-300 px-3 py-2.5 text-center text-xl font-bold tracking-[0.5em] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={pending || otp.length !== 4}
-          className="rounded-full bg-blue-700 py-2 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+          className="h-12 rounded-full bg-blue-700 text-base font-extrabold text-white shadow-lg shadow-blue-700/25 transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50"
         >
           {pending ? t("rider.verifying") : t("rider.complete_delivery")}
         </button>
