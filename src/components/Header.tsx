@@ -4,10 +4,13 @@ import Wordmark from "@/components/Wordmark";
 import UserHeaderActions from "@/components/UserHeaderActions";
 import DeliverToChip from "@/components/DeliverToChip";
 import CategoryNavBar from "@/components/CategoryNavBar";
+import MarketPill from "@/components/MarketPill";
 import { getCategoriesWithChildren } from "@/lib/catalog";
+import { getActiveTenants, getCurrentTenant } from "@/lib/tenant-server";
 
 export default async function Header() {
   const categories = await getCategoriesWithChildren();
+  const [tenants, currentTenant] = await Promise.all([getActiveTenants().catch(() => []), getCurrentTenant().catch(() => null)]);
 
   return (
     // Installed as a standalone PWA (see manifest.ts), the header sits right
@@ -26,7 +29,8 @@ export default async function Header() {
           <DeliverToChip variant="plain" className="ms-auto min-w-0 sm:hidden" />
           <DeliverToChip className="hidden sm:flex" />
 
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            {currentTenant && <MarketPill tenants={tenants} currentId={currentTenant.id} />}
             <UserHeaderActions />
           </div>
         </div>

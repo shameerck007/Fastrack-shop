@@ -1,12 +1,14 @@
 import Link from "next/link";
 import Wordmark from "@/components/Wordmark";
 import { getCompanySettings } from "@/lib/company-settings";
-import { getCurrentTenant } from "@/lib/tenant-server";
+import { getActiveTenants, getCurrentTenant } from "@/lib/tenant-server";
+import MarketPill from "@/components/MarketPill";
 import { findCountry } from "@/lib/countries";
 
 export default async function Footer() {
   const company = await getCompanySettings();
   const tenant = await getCurrentTenant().catch(() => null);
+  const tenants = await getActiveTenants().catch(() => []);
   const countryCode = tenant?.country_code ?? "SA";
   const isIndia = countryCode === "IN";
   const countryName = findCountry(countryCode).name;
@@ -59,6 +61,7 @@ export default async function Footer() {
 
         <div className="mt-10 flex flex-col items-center gap-3 border-t border-blue-100 pt-6 text-center">
           <Wordmark height={22} />
+          {tenant && <MarketPill tenants={tenants} currentId={tenant.id} variant="footer" />}
           <p className="max-w-md text-xs text-neutral-500">
             {company.trading_name}
             {company.cr_number ? ` · ${isIndia ? "PAN" : "CR"} ${company.cr_number}` : ""}
