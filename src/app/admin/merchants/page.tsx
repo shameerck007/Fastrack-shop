@@ -4,6 +4,8 @@ import MerchantsList, { type MerchantRow } from "@/components/admin/MerchantsLis
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { describeStatus, getOpenStatus } from "@/lib/store-hours";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { marketOffsetMinutes } from "@/lib/timezone";
 
 function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
   return (
@@ -36,10 +38,11 @@ export default async function AdminMerchantsPage() {
     if (p.store_id) productsByStore.set(p.store_id, (productsByStore.get(p.store_id) ?? 0) + 1);
   }
 
+  const offset = marketOffsetMinutes((await getCurrentTenant())?.country_code);
   const merchants: MerchantRow[] = (stores ?? []).map((s) => {
     const open =
       s.status === "approved"
-        ? describeStatus(getOpenStatus(s.opening_hours ?? null, s.accepting_orders ?? true), locale, t)
+        ? describeStatus(getOpenStatus(s.opening_hours ?? null, s.accepting_orders ?? true, new Date(), offset), locale, t)
         : null;
     return {
     id: s.id,

@@ -1,7 +1,9 @@
 // Opening hours for supplier stores. Weekday keys are "0" (Sunday) .. "6"
-// (Saturday); times are 24h "HH:MM" in Riyadh time (Saudi Arabia has no DST,
+// (Saturday); times are 24h "HH:MM" on the market's clock (Riyadh time in Saudi Arabia, IST in India) (Saudi Arabia has no DST,
 // so this is a fixed UTC+3). A close time earlier than the open time means
 // the shop runs past midnight (open 18:00, close 02:00).
+
+import { DEFAULT_OFFSET_MINUTES } from "@/lib/timezone";
 
 export interface Shift {
   open: string;
@@ -74,9 +76,9 @@ const toMinutes = (hhmm: string) => {
   return h * 60 + m;
 };
 
-/** Current weekday (0 = Sunday) and minutes since midnight in Riyadh. */
-export function riyadhNow(date: Date = new Date()): { day: number; minutes: number } {
-  const shifted = new Date(date.getTime() + 3 * 60 * 60 * 1000);
+/** Current weekday (0 = Sunday) and minutes since midnight on the market's clock (Riyadh by default). */
+export function marketNow(date: Date = new Date(), offsetMinutes: number = DEFAULT_OFFSET_MINUTES): { day: number; minutes: number } {
+  const shifted = new Date(date.getTime() + offsetMinutes * 60 * 1000);
   return { day: shifted.getUTCDay(), minutes: shifted.getUTCHours() * 60 + shifted.getUTCMinutes() };
 }
 
@@ -96,11 +98,11 @@ export interface OpenStatus {
   closesAt: string | null;
 }
 
-export function getOpenStatus(hours: OpeningHours, acceptingOrders: boolean, now: Date = new Date()): OpenStatus {
+export function getOpenStatus(hours: OpeningHours, acceptingOrders: boolean, now: Date = new Date(), offsetMinutes: number = DEFAULT_OFFSET_MINUTES): OpenStatus {
   if (!acceptingOrders) return { open: false, reason: "paused", next: null, closesAt: null };
   if (!hours) return { open: true, reason: null, next: null, closesAt: null };
 
-  const { day, minutes } = riyadhNow(now);
+  const { day, minutes } = marketNow(now, offsetMinutes);
 
   // Still inside one of yesterday's late-night shifts (e.g. 18:00 -> 02:00).
   for (const shift of shiftsOf(hours[String((day + 6) % 7)])) {

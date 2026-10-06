@@ -1,6 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useMarket } from "@/components/MoneyProvider";
+import { marketOffsetMinutes } from "@/lib/timezone";
 import { getOpenStatus, type OpenStatus, type OpeningHours } from "@/lib/store-hours";
 
 export interface StoreInfo {
@@ -56,7 +58,8 @@ export function useAllStores(): { stores: StoreInfo[]; tick: number } {
 export function useStoreInfo(storeId: string | null | undefined): { store: StoreInfo | null; status: OpenStatus | null } {
   const { stores, tick } = useContext(StoreDirectoryCtx);
   const store = storeId ? (stores.get(storeId) ?? null) : null;
+  const offset = marketOffsetMinutes(useMarket().countryCode);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const status = useMemo(() => (store ? getOpenStatus(store.opening_hours, store.accepting_orders) : null), [store, tick]);
+  const status = useMemo(() => (store ? getOpenStatus(store.opening_hours, store.accepting_orders, new Date(), offset) : null), [store, tick, offset]);
   return { store, status };
 }

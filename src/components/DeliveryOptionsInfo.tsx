@@ -2,6 +2,7 @@
 
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useMarket } from "@/components/MoneyProvider";
+import { marketOffsetMinutes } from "@/lib/timezone";
 import { useLocale } from "@/components/LocaleProvider";
 import { formatDeliveryDate, pricingFor, standardDeliveryDate } from "@/lib/delivery-methods";
 import { useMoney } from "@/components/MoneyProvider";
@@ -30,6 +31,7 @@ interface Offer {
 function OptionRows({ offer }: { offer: Offer }) {
   const money = useMoney();
   const { t, locale } = useLocale();
+  const offsetMin = marketOffsetMinutes(useMarket().countryCode);
   const pricing = pricingFor(useMarket().countryCode);
   const freeHint = t("delivery_info.free_over", { amount: money(pricing.freeOver) });
   return (
@@ -54,7 +56,7 @@ function OptionRows({ offer }: { offer: Offer }) {
         ok={offer.standard}
         detail={
           offer.standard
-            ? `${t("delivery_info.standard_by", { date: formatDeliveryDate(standardDeliveryDate(offer.standardDays), locale) })} · ${freeHint}`
+            ? `${t("delivery_info.standard_by", { date: formatDeliveryDate(standardDeliveryDate(offer.standardDays, new Date(), offsetMin), locale) })} · ${freeHint}`
             : t("delivery_info.standard_unavailable")
         }
         fee={money(pricing.standard)}

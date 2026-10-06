@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { marketOffsetMinutes } from "@/lib/timezone";
 import { formatNextOpening, getOpenStatus, type OpeningHours } from "@/lib/store-hours";
 
 export interface StoreDirectoryEntry {
@@ -34,10 +36,11 @@ export async function assertStoresOpen(storeIds: (string | null | undefined)[]):
   if (ids.length === 0) return;
 
   const directory = await getStoreDirectory();
+  const offset = marketOffsetMinutes((await getCurrentTenant())?.country_code);
   for (const id of ids) {
     const store = directory.find((s) => s.id === id);
     if (!store) continue;
-    const status = getOpenStatus(store.opening_hours, store.accepting_orders);
+    const status = getOpenStatus(store.opening_hours, store.accepting_orders, new Date(), offset);
     if (status.open) continue;
     if (status.reason === "paused") {
       throw new Error(`${store.name} isn't taking orders right now.`);

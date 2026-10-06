@@ -4,6 +4,8 @@ import { useMemo, useState, useEffect } from "react";
 import { useLocale } from "@/components/LocaleProvider";
 import { StatusPill, StoreCover, StoreLogo, useStatusText } from "@/components/StoreBadge";
 import type { StoreInfo } from "@/components/StoreDirectoryProvider";
+import { useMarket } from "@/components/MoneyProvider";
+import { marketOffsetMinutes } from "@/lib/timezone";
 import { DAY_KEYS, formatClock, getOpenStatus, shiftsOf } from "@/lib/store-hours";
 
 const WEEKDAY_ANCHOR = 2; // 2000-01-02 was a Sunday
@@ -17,8 +19,9 @@ export default function StoreHero({ store }: { store: StoreInfo }) {
     return () => clearInterval(timer);
   }, []);
 
+  const offset = marketOffsetMinutes(useMarket().countryCode);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const status = useMemo(() => getOpenStatus(store.opening_hours, store.accepting_orders), [store, tick]);
+  const status = useMemo(() => getOpenStatus(store.opening_hours, store.accepting_orders, new Date(), offset), [store, tick, offset]);
   const statusInfo = useStatusText(status);
 
   return (

@@ -7,6 +7,8 @@ import { getMyStoreProducts } from "@/lib/merchant";
 import StoreStatusActions from "@/components/admin/StoreStatusActions";
 import StoreProfileForm from "@/components/merchant/StoreProfileForm";
 import { describeStatus, getOpenStatus } from "@/lib/store-hours";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { marketOffsetMinutes } from "@/lib/timezone";
 
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -76,7 +78,7 @@ export default async function AdminMerchantDetailPage({
 
   const openInfo =
     store.status === "approved"
-      ? describeStatus(getOpenStatus(store.opening_hours ?? null, store.accepting_orders ?? true), locale, t)
+      ? describeStatus(getOpenStatus(store.opening_hours ?? null, store.accepting_orders ?? true, new Date(), marketOffsetMinutes((await getCurrentTenant())?.country_code)), locale, t)
       : null;
   const activeCount = products.filter((p) => p.is_active).length;
   const lowStock = products.filter((p) =>

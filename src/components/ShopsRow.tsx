@@ -6,21 +6,24 @@ import { useLocale } from "@/components/LocaleProvider";
 import { useAllStores } from "@/components/StoreDirectoryProvider";
 import { StoreCover, StoreLogo } from "@/components/StoreBadge";
 import { describeStatus, getOpenStatus } from "@/lib/store-hours";
+import { useMarket } from "@/components/MoneyProvider";
+import { marketOffsetMinutes } from "@/lib/timezone";
 
 /** Keeta-style row of partner shops: open ones first, closed ones greyed
  * out with when they open again. */
 export default function ShopsRow() {
   const { t, locale } = useLocale();
   const { stores, tick } = useAllStores();
+  const offset = marketOffsetMinutes(useMarket().countryCode);
 
   const shops = useMemo(() => {
     const rows = stores.map((store) => {
-      const status = getOpenStatus(store.opening_hours, store.accepting_orders);
+      const status = getOpenStatus(store.opening_hours, store.accepting_orders, new Date(), offset);
       return { store, info: describeStatus(status, locale, t) };
     });
     return rows.sort((a, b) => Number(b.info.open) - Number(a.info.open) || a.store.name.localeCompare(b.store.name));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stores, locale, tick]);
+  }, [stores, locale, tick, offset]);
 
   if (shops.length === 0) return null;
 

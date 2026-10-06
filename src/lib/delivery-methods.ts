@@ -8,6 +8,7 @@
 // A product is available when at least one of the two applies.
 
 import { distanceKm, type Coords } from "@/lib/delivery-geo";
+import { DEFAULT_OFFSET_MINUTES } from "@/lib/timezone";
 
 export interface DeliveryZone {
   lat: number | null;
@@ -90,9 +91,9 @@ export function combineMethods(list: DeliveryMethods[]): { express: boolean; sta
   };
 }
 
-/** Estimated Standard delivery date: today plus the warehouse's days (counted in Riyadh time). */
-export function standardDeliveryDate(days: number, now = new Date()): Date {
-  const riyadh = new Date(now.getTime() + 3 * 60 * 60 * 1000); // UTC+3
+/** Estimated Standard delivery date: today plus the warehouse's days (counted on the market's clock). */
+export function standardDeliveryDate(days: number, now = new Date(), offsetMinutes: number = DEFAULT_OFFSET_MINUTES): Date {
+  const riyadh = new Date(now.getTime() + offsetMinutes * 60 * 1000);
   riyadh.setUTCDate(riyadh.getUTCDate() + Math.max(0, days));
   return new Date(Date.UTC(riyadh.getUTCFullYear(), riyadh.getUTCMonth(), riyadh.getUTCDate(), 12));
 }

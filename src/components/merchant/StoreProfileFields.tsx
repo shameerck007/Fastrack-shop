@@ -1,6 +1,8 @@
 "use client";
 
 import ImageUploader from "@/components/ImageUploader";
+import { useMarket } from "@/components/MoneyProvider";
+import { marketClockName } from "@/lib/timezone";
 import {
   DAY_KEYS,
   DAY_NAMES,
@@ -31,6 +33,7 @@ export default function StoreProfileFields({
   value: StoreProfileValue;
   onChange: (next: StoreProfileValue) => void;
 }) {
+  const clockName = marketClockName(useMarket().countryCode);
   const set = (patch: Partial<StoreProfileValue>) => onChange({ ...value, ...patch });
 
   function setDay(key: string, patch: Partial<DayHours>) {
@@ -101,7 +104,7 @@ export default function StoreProfileFields({
           Set opening hours
         </label>
         <p className="mb-2 mt-0.5 text-xs text-neutral-400">
-          Customers can&apos;t order from your shop outside these hours (Riyadh time). Leave unchecked to be open all day, every day.
+          Customers can&apos;t order from your shop outside these hours ({clockName}). Leave unchecked to be open all day, every day.
         </p>
 
         {value.hours && (

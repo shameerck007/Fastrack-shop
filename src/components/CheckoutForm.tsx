@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useMarket } from "@/components/MoneyProvider";
+import { marketOffsetMinutes } from "@/lib/timezone";
 import AddressForm from "@/components/AddressForm";
 import { placeOrder } from "@/lib/actions/orders";
 import { useLocale } from "@/components/LocaleProvider";
@@ -50,6 +51,7 @@ export default function CheckoutForm({
 }) {
   const money = useMoney();
   const { t, locale } = useLocale();
+  const offsetMin = marketOffsetMinutes(useMarket().countryCode);
   const pricing = pricingFor(useMarket().countryCode);
   const FREE_DELIVERY_THRESHOLD = pricing.freeOver;
   const DELIVERY_OPTIONS = DELIVERY_OPTION_DEFS.map((d) => ({ ...d, fee: pricing[d.feeKey] }));
@@ -81,7 +83,7 @@ export default function CheckoutForm({
       : offered.express
         ? "express"
         : chosenDeliveryType;
-  const standardDate = formatDeliveryDate(standardDeliveryDate(offered.standardDays), locale);
+  const standardDate = formatDeliveryDate(standardDeliveryDate(offered.standardDays, new Date(), offsetMin), locale);
 
   const methodFee = DELIVERY_OPTIONS.find((d) => d.value === deliveryType)!.fee;
   const parcels = (groups.length > 0 ? groups : [{ key: "all", name: "", subtotal }]).map((g) => ({
