@@ -2,6 +2,8 @@
 
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 import { validatePhone } from "@/lib/countries";
+import { INDIAN_STATES, checkPinCode } from "@/lib/india";
+import { useMarket } from "@/components/MoneyProvider";
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -32,7 +34,11 @@ export default function AddressForm({
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState<AddressLabel>(existing?.label ?? "home");
   const [addressLine, setAddressLine] = useState(existing?.address_line ?? "");
-  const [city, setCity] = useState(existing?.city ?? "Riyadh");
+  const { countryCode } = useMarket();
+  const isIndia = countryCode === "IN";
+  const [city, setCity] = useState(existing?.city ?? (isIndia ? "" : "Riyadh"));
+  const [stateName, setStateName] = useState(existing?.state ?? "");
+  const [landmark, setLandmark] = useState(existing?.landmark ?? "");
   const [district, setDistrict] = useState(existing?.district ?? "");
   const [buildingNumber, setBuildingNumber] = useState(existing?.building_number ?? "");
   const [additionalNumber, setAdditionalNumber] = useState(existing?.additional_number ?? "");
@@ -92,6 +98,21 @@ export default function AddressForm({
       setError(t("addresses.add_address_description"));
       return;
     }
+    if (isIndia) {
+      if (!city.trim()) {
+        setError(t("address_in.enter_city"));
+        return;
+      }
+      if (!stateName) {
+        setError(t("address_in.choose_state"));
+        return;
+      }
+      const pin = checkPinCode(postalCode);
+      if (!pin.ok) {
+        setError(pin.error);
+        return;
+      }
+    }
     const input: AddressInput = {
       label,
       addressLine: addressLine.trim(),
@@ -101,6 +122,8 @@ export default function AddressForm({
       additionalNumber: additionalNumber.trim() || undefined,
       unitNumber: unitNumber.trim() || undefined,
       postalCode: postalCode.trim() || undefined,
+      state: stateName || undefined,
+      landmark: landmark.trim() || undefined,
       shortAddress: shortAddress.trim() || undefined,
       receiverName: receiverName.trim(),
       receiverPhone: receiverPhone.trim(),
@@ -135,6 +158,8 @@ export default function AddressForm({
           setAdditionalNumber("");
           setUnitNumber("");
           setPostalCode("");
+          setLandmark("");
+          if (isIndia) setStateName("");
           setShortAddress("");
           setReceiverName("");
           setReceiverPhone("");
@@ -191,7 +216,7 @@ export default function AddressForm({
           autoComplete="name"
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
-        <PhoneNumberInput value={receiverPhone} onChange={setReceiverPhone} placeholder={t("addresses.receiver_phone_placeholder")} />
+        <PhoneNumberInput value={receiverPhone} onChange={setReceiverPhone} placeholder={isIndia ? "98XXXXXXXX" : t("addresses.receiver_phone_placeholder")} />
       </div>
 
       <input
@@ -201,6 +226,59 @@ export default function AddressForm({
         className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
       />
 
+      {isIndia ? (
+        <>
+      <p className="text-xs font-medium text-neutral-500">{t("address_in.title")}</p>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <input
+          value={buildingNumber}
+          onChange={(e) => setBuildingNumber(e.target.value)}
+          placeholder={t("address_in.flat")}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        />
+        <input
+          value={district}
+          onChange={(e) => setDistrict(e.target.value)}
+          placeholder={t("address_in.area")}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        />
+        <input
+          value={landmark}
+          onChange={(e) => setLandmark(e.target.value)}
+          placeholder={t("address_in.landmark")}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm sm:col-span-2"
+        />
+        <input
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          placeholder={t("address_in.city")}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        />
+        <select
+          value={stateName}
+          onChange={(e) => setStateName(e.target.value)}
+          className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+        >
+          <option value="">{t("address_in.select_state")}</option>
+          {INDIAN_STATES.map((st) => (
+            <option key={st} value={st}>
+              {st}
+            </option>
+          ))}
+        </select>
+        <input
+          value={postalCode}
+          onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          placeholder={t("address_in.pin")}
+          inputMode="numeric"
+          maxLength={6}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        />
+      </div>
+
+        </>
+      ) : (
+        <>
       <p className="text-xs font-medium text-neutral-500">{t("addresses.national_address_hint")}</p>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <input
@@ -253,6 +331,9 @@ export default function AddressForm({
         maxLength={8}
         className="rounded-lg border border-neutral-300 px-3 py-2 text-sm uppercase"
       />
+
+        </>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="flex gap-2">

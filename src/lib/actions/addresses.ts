@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { AddressLabel } from "@/types/database";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { checkPinCode, isIndianState } from "@/lib/india";
+import { validatePhone } from "@/lib/countries";
 
 export interface AddressInput {
   label: AddressLabel;
@@ -16,6 +19,8 @@ export interface AddressInput {
   shortAddress?: string;
   receiverName?: string;
   receiverPhone?: string;
+  state?: string;
+  landmark?: string;
   lat?: number;
   lng?: number;
 }
@@ -33,10 +38,34 @@ function toRow(input: AddressInput) {
     short_address: input.shortAddress || null,
     receiver_name: input.receiverName || null,
     receiver_phone: input.receiverPhone || null,
+    state: input.state?.trim() || null,
+    landmark: input.landmark?.trim() || null,
     lat: input.lat ?? null,
     lng: input.lng ?? null,
   };
 }
+
+/** Market rules checked on the server too, so a tampered request can't save a bad address. */
+async function assertAddressValid(input: AddressInput) {
+  const country = (await getCurrentTenant())?.country_code ?? "SA";
+  if (country === "IN") {
+    if (!input.city?.trim()) throw new Error("Enter the town or city.");
+    if (!input.state || !isIndianState(input.state)) throw new Error("Choose the state.");
+    const pin = checkPinCode(input.postalCode ?? "");
+    if (!pin.ok) throw new Error(pin.error ?? "Check the PIN code.");
+  }
+  if (input.receiverPhone) {
+    const phone = validatePhone(input.receiverPhone);
+    if (!phone.ok) throw new Error(phone.error ?? "Enter a valid mobile number.");
+  }
+}
+
+/** Landmark/state columns come from migrations 0047/0048 — until applied, save without them. */
+function withoutNewColumns<T extends { state?: unknown; landmark?: unknown }>(row: T) {
+  const { state: _s, landmark: _l, ...rest } = row;
+  return rest;
+}
+
 
 export async function addAddress(input: AddressInput) {
   const supabase = await createClient();
@@ -45,7 +74,8 @@ export async function addAddress(input: AddressInput) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("You must be logged in.");
 
-  const { data, error } = await supabase
+  await assertAddressValid(input);
+  let { data, error } = await supabase
     .from("addresses")
     .insert({
       user_id: user.id,
@@ -53,8 +83,14 @@ export async function addAddress(input: AddressInput) {
     })
     .select("id")
     .single();
-
-  if (error) throw error;
+  if (error && (error.code === "42703" || error.code === "PGRST204")) {
+    ({ data, error } = await supabase
+      .from("addresses")
+      .insert({ user_id: user.id, ...withoutNewColumns(toRow(input)) })
+      .select("id")
+      .single());
+  }
+  if (error || !data) throw error ?? new Error("Could not save the address.");
   revalidatePath("/checkout");
   revalidatePath("/addresses");
   return data.id as string;
@@ -62,7 +98,11 @@ export async function addAddress(input: AddressInput) {
 
 export async function updateAddress(addressId: string, input: AddressInput) {
   const supabase = await createClient();
-  const { error } = await supabase.from("addresses").update(toRow(input)).eq("id", addressId);
+  await assertAddressValid(input);
+  let { error } = await supabase.from("addresses").update(toRow(input)).eq("id", addressId);
+  if (error && (error.code === "42703" || error.code === "PGRST204")) {
+    ({ error } = await supabase.from("addresses").update(withoutNewColumns(toRow(input))).eq("id", addressId));
+  }
   if (error) throw error;
   revalidatePath("/checkout");
   revalidatePath("/addresses");

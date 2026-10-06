@@ -67,6 +67,9 @@ export function findCountry(code: string): Country {
 export function validatePhone(value: string): { ok: boolean; error: string | null } {
   if (!value) return { ok: false, error: "Enter a mobile number." };
   if (!/^\+\d{8,15}$/.test(value)) return { ok: false, error: "Enter a valid mobile number." };
+  if (value.startsWith("+91") && !/^\+91[6-9]\d{9}$/.test(value)) {
+    return { ok: false, error: "Indian mobile numbers have 10 digits and start with 6, 7, 8 or 9." };
+  }
   if (value.startsWith("+966") && !/^\+9665\d{8}$/.test(value)) {
     return { ok: false, error: "Saudi mobile numbers have 9 digits and start with 5 (e.g. 5X XXX XXXX)." };
   }

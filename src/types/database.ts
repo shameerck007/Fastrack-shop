@@ -43,6 +43,9 @@ export interface Address {
   additional_number: string | null;
   unit_number: string | null;
   postal_code: string | null;
+  /** Indian addresses (migrations 0047 / 0048). */
+  state?: string | null;
+  landmark?: string | null;
   short_address: string | null;
   receiver_name: string | null;
   receiver_phone: string | null;

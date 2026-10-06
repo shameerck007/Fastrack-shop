@@ -19,6 +19,8 @@ import MoneyProvider from "@/components/MoneyProvider";
 import { getCurrentTenant, getMarketSuggestion } from "@/lib/tenant-server";
 import DefaultCountryProvider from "@/components/DefaultCountryProvider";
 import { getRequestCountryCode } from "@/lib/get-request-country";
+import { cookies } from "next/headers";
+import { TENANT_COOKIE } from "@/lib/tenant";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { dirFor } from "@/lib/i18n/config";
 import "./globals.css";
@@ -67,11 +69,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getServerLocale();
-  const countryCode = await getRequestCountryCode();
+  const ipCountry = await getRequestCountryCode();
   const marketSuggestion = await getMarketSuggestion().catch(() => null);
   const tenant = await getCurrentTenant().catch(() => null);
   const currency = tenant?.currency ?? "SAR";
   const marketCountry = tenant?.country_code ?? "SA";
+  // Phone fields start on the chosen market's country code; before a market is chosen, on the visitor's own country.
+  const marketChosen = !!(await cookies()).get(TENANT_COOKIE)?.value;
+  const countryCode = marketChosen ? marketCountry : ipCountry;
 
   return (
     <html lang={locale} dir={dirFor(locale)}>

@@ -102,7 +102,7 @@ export default async function OrderDetailPage({
                     .join(", ")}
                 </p>
               )}
-              <p>{[order.addresses.district, order.addresses.city].filter(Boolean).join(", ")}</p>
+              <p>{[order.addresses.district, order.addresses.city, order.addresses.state, order.addresses.state ? order.addresses.postal_code : null].filter(Boolean).join(", ")}</p>
               {order.addresses.receiver_phone && (
                 <a href={`tel:${order.addresses.receiver_phone}`} className="text-blue-600 hover:underline">
                   📞 {order.addresses.receiver_phone}

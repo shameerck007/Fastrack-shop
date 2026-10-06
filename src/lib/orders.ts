@@ -17,6 +17,8 @@ export interface OrderDetail extends Order {
     receiver_phone: string | null;
     lat: number | null;
     lng: number | null;
+    state?: string | null;
+    postal_code?: string | null;
   } | null;
   warehouses: { name: string; lat: number | null; lng: number | null } | null;
   payments: { method: string }[];
@@ -108,7 +110,7 @@ export async function getOrderDetail(orderId: string): Promise<OrderDetail | nul
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "*, order_items(*, product_variants!variant_id(products(image_url, name, name_ar))), order_status_history(*), addresses(address_line, label, city, district, building_number, unit_number, receiver_name, receiver_phone, lat, lng), warehouses(name, lat, lng), payments(method), delivery_assignments(id, rider_id, delivery_partners(current_lat, current_lng, profiles(full_name, phone)))"
+      "*, order_items(*, product_variants!variant_id(products(image_url, name, name_ar))), order_status_history(*), addresses(address_line, label, city, district, building_number, unit_number, receiver_name, receiver_phone, lat, lng, state, postal_code), warehouses(name, lat, lng), payments(method), delivery_assignments(id, rider_id, delivery_partners(current_lat, current_lng, profiles(full_name, phone)))"
     )
     .eq("id", orderId)
     .maybeSingle();

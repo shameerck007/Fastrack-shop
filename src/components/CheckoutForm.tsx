@@ -121,8 +121,11 @@ export default function CheckoutForm({
     [
       addr.building_number && `${t("addresses.bldg_short")} ${addr.building_number}`,
       addr.unit_number && `${t("addresses.unit_short")} ${addr.unit_number}`,
+      addr.landmark && `Near ${addr.landmark}`,
       addr.district,
       addr.city,
+      addr.state,
+      addr.state ? addr.postal_code : null,
     ]
       .filter(Boolean)
       .join(", ");
