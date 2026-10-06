@@ -59,7 +59,7 @@ export default async function CartPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
+    <div className="mx-auto max-w-6xl px-4 py-6 max-md:pb-32">
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>
           <div className="mb-2 flex items-end justify-between border-b border-neutral-200 pb-2">
@@ -86,7 +86,7 @@ export default async function CartPage() {
           </div>
         </div>
 
-        <div className="h-fit lg:sticky lg:top-20">
+        <div className="h-fit lg:sticky lg:top-20 max-md:hidden">
           <div className="rounded-xl border border-neutral-200 bg-white p-4">
             <p className="mb-1 text-sm">
               <span className="text-neutral-600">
@@ -102,6 +102,25 @@ export default async function CartPage() {
               {t("cart.proceed_to_checkout")}
             </Link>
           </div>
+        </div>
+      </div>
+
+      {/* Phones: the checkout button stays pinned to the bottom of the screen, never hidden under the tab bar. */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-100 bg-white px-4 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] md:hidden"
+        style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="min-w-0">
+            <p className="text-xs text-neutral-500">{t("cart.subtotal_items", { count: itemCount, plural: itemCount === 1 ? "" : "s" })}</p>
+            <p className="text-lg font-extrabold leading-tight text-neutral-900">{money(subtotal)}</p>
+          </div>
+          <Link
+            href="/checkout"
+            className="ms-auto flex h-12 flex-1 items-center justify-center rounded-full bg-blue-700 px-6 text-center font-extrabold text-white shadow-lg shadow-blue-700/25 hover:bg-blue-800"
+          >
+            {t("cart.proceed_to_checkout")}
+          </Link>
         </div>
       </div>
     </div>
