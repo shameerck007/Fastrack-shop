@@ -25,21 +25,6 @@ function Art({ code }: { code: string }) {
         </>
       );
     }
-    case "SA":
-      return (
-        <>
-          <rect width={W} height={H} fill="#006C35" />
-          <path
-            d="M9 11c2-2 3 1 5-1s3 2 5 0 3 1 5-1 2 1 3 0M9 14.5c2-2 3 1 5-1s3 2 5 0 3 1 5-1 2 1 3 0"
-            stroke="#fff"
-            strokeWidth={1.4}
-            fill="none"
-            strokeLinecap="round"
-          />
-          <path d="M8 20.5h20" stroke="#fff" strokeWidth={1.3} strokeLinecap="round" />
-          <path d="M8 20.5l-1.5-2v4z" fill="#fff" />
-        </>
-      );
     case "AE":
       return (
         <>
@@ -89,11 +74,22 @@ function Art({ code }: { code: string }) {
   }
 }
 
-const DRAWN = new Set(["IN", "SA", "AE", "KW", "QA", "BH", "OM"]);
+const DRAWN = new Set(["IN", "AE", "KW", "QA", "BH", "OM"]);
 
 /** The country's flag as a small rounded image. Size it with Tailwind (default 24 x 18 px). */
 export default function Flag({ code, className = "h-[18px] w-6" }: { code: string; className?: string }) {
   const c = (code ?? "").toUpperCase();
+  // Saudi Arabia: the official artwork (with the Arabic script and sword) as an image.
+  if (c === "SA") {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src="/flags/sa.png"
+        alt="Saudi Arabia flag"
+        className={`inline-block shrink-0 rounded-[3px] bg-[#006C35] object-contain shadow-[0_0_0_1px_rgba(0,0,0,0.12)] ${className}`}
+      />
+    );
+  }
   if (!DRAWN.has(c)) {
     return (
       <span className={`inline-flex items-center justify-center ${className}`} aria-hidden>
