@@ -14,15 +14,22 @@ import {
   checkAdult,
   checkIdNumber,
   checkNotExpired,
+  checkIndianLicence,
+  checkIndianPlate,
   checkPlate,
   needsVehicleDocs,
   type IdType,
 } from "@/lib/rider-validation";
 import { useLocale } from "@/components/LocaleProvider";
+import { useMarket } from "@/components/MoneyProvider";
+import CodeInput from "@/components/CodeInput";
+import IndianBankFields from "@/components/merchant/IndianBankFields";
+import { checkIndianBankDetails } from "@/lib/india-business";
 
 const STEPS = ["Personal", "ID", "Vehicle", "Payout", "Review"] as const;
 const inputClass = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
-const CITIES = ["Riyadh", "Jeddah", "Makkah", "Madinah", "Dammam", "Khobar", "Dhahran", "Taif", "Tabuk", "Abha", "Buraidah", "Other"];
+const CITIES_SA = ["Riyadh", "Jeddah", "Makkah", "Madinah", "Dammam", "Khobar", "Dhahran", "Taif", "Tabuk", "Abha", "Buraidah", "Other"];
+const CITIES_IN = ["Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Surat", "Kochi", "Other"];
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
@@ -36,17 +43,20 @@ function Field({ label, children, hint }: { label: string; children: React.React
 
 export default function RiderApplicationForm() {
   const { t } = useLocale();
+  const { countryCode } = useMarket();
+  const isIndia = countryCode === "IN";
+  const CITIES = isIndia ? CITIES_IN : CITIES_SA;
   const [step, setStep] = useState(0);
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("Riyadh");
+  const [city, setCity] = useState(isIndia ? "Mumbai" : "Riyadh");
   const [dateOfBirth, setDateOfBirth] = useState("");
-  const [nationality, setNationality] = useState("Saudi Arabia");
+  const [nationality, setNationality] = useState(isIndia ? "India" : "Saudi Arabia");
   const [emergencyName, setEmergencyName] = useState("");
   const [emergencyPhone, setEmergencyPhone] = useState("");
 
-  const [idType, setIdType] = useState<IdType>("national_id");
+  const [idType, setIdType] = useState<IdType>(isIndia ? "aadhaar" : "national_id");
   const [idNumber, setIdNumber] = useState("");
   const [idFrontPath, setIdFrontPath] = useState<string | null>(null);
   const [idBackPath, setIdBackPath] = useState<string | null>(null);
@@ -66,6 +76,7 @@ export default function RiderApplicationForm() {
   const [payoutMethod, setPayoutMethod] = useState<"bank" | "cash">("cash");
   const [bank, setBank] = useState({ bankName: "", iban: "" });
   const [accountHolder, setAccountHolder] = useState("");
+  const [inBank, setInBank] = useState({ bankName: "", accountHolder: "", accountNumber: "", ifsc: "" });
 
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,23 +98,30 @@ export default function RiderApplicationForm() {
     if (s === 1) {
       const id = checkIdNumber(idType, idNumber);
       if (!id.ok) return id.error;
-      if (!idFrontPath || !idBackPath) return "Upload the front and back of your ID.";
+      if (!idFrontPath || (idType !== "pan" && !idBackPath)) return idType === "pan" ? "Upload a photo of your PAN card." : "Upload the front and back of your ID.";
       if (!selfiePath) return "Upload a selfie.";
     }
     if (s === 2) {
-      if (!licenseNumber.trim()) return "Enter your driving licence number.";
+      if (isIndia) {
+        const lic = checkIndianLicence(licenseNumber);
+        if (!lic.ok) return lic.error;
+      } else if (!licenseNumber.trim()) return "Enter your driving licence number.";
       const lic = checkNotExpired(licenseExpiry, "driving licence");
       if (lic) return lic;
       if (!licenseDocumentPath) return t("become_rider.license_required");
       if (needsVehicleDocs(vehicleType)) {
-        const pl = checkPlate(plate);
+        const pl = isIndia ? checkIndianPlate(plate) : checkPlate(plate);
         if (pl) return pl;
-        if (!registrationPath) return "Upload the vehicle registration (Istimara).";
+        if (!registrationPath) return isIndia ? "Upload the vehicle registration certificate (RC)." : "Upload the vehicle registration (Istimara).";
         const reg = checkNotExpired(registrationExpiry, "vehicle registration");
         if (reg) return reg;
       }
     }
-    if (s === 3 && payoutMethod === "bank") {
+    if (s === 3 && payoutMethod === "bank" && isIndia) {
+      const bc = checkIndianBankDetails({ bankName: inBank.bankName, accountNumber: inBank.accountNumber, ifsc: inBank.ifsc, holder: inBank.accountHolder });
+      if (!bc.ok) return bc.error;
+    }
+    if (s === 3 && payoutMethod === "bank" && !isIndia) {
       const shape = checkSaudiIban(bank.iban);
       if (!shape.ok) return IBAN_PROBLEM_MESSAGES[shape.problem!];
       const bc = checkBankDetails(bank.bankName, bank.iban);
@@ -169,9 +187,11 @@ export default function RiderApplicationForm() {
           emergencyContactName: emergencyName,
           emergencyContactPhone: emergencyPhone,
           payoutMethod,
-          bankName: bank.bankName,
-          bankIban: bank.iban,
-          bankAccountHolder: accountHolder,
+          bankName: isIndia ? inBank.bankName : bank.bankName,
+          bankIban: isIndia ? undefined : bank.iban,
+          bankAccountHolder: isIndia ? inBank.accountHolder : accountHolder,
+          bankAccountNumber: isIndia ? inBank.accountNumber : undefined,
+          bankIfsc: isIndia ? inBank.ifsc : undefined,
           acceptedTerms: accepted,
         });
         router.refresh();
@@ -206,7 +226,7 @@ export default function RiderApplicationForm() {
               <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} />
             </Field>
             <Field label={t("become_rider.phone")}>
-              <PhoneNumberInput value={phone} onChange={setPhone} placeholder="5X XXX XXXX" />
+              <PhoneNumberInput value={phone} onChange={setPhone} placeholder={isIndia ? "98XXXXXXXX" : "5X XXX XXXX"} />
             </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Date of birth">
@@ -236,7 +256,7 @@ export default function RiderApplicationForm() {
                   <input value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} className={inputClass} />
                 </Field>
                 <Field label="Contact mobile number">
-                  <PhoneNumberInput value={emergencyPhone} onChange={setEmergencyPhone} placeholder="5X XXX XXXX" />
+                  <PhoneNumberInput value={emergencyPhone} onChange={setEmergencyPhone} placeholder={isIndia ? "98XXXXXXXX" : "5X XXX XXXX"} />
                 </Field>
               </div>
             </div>
@@ -248,15 +268,23 @@ export default function RiderApplicationForm() {
             <Field label="ID type">
               <div className="grid grid-cols-2 gap-2">
                 {(
-                  [
-                    ["national_id", "Saudi national ID"],
-                    ["iqama", "Iqama (resident)"],
-                  ] as const
+                  (isIndia
+                    ? [
+                        ["aadhaar", "Aadhaar card"],
+                        ["pan", "PAN card"],
+                      ]
+                    : [
+                        ["national_id", "Saudi national ID"],
+                        ["iqama", "Iqama (resident)"],
+                      ]) as [IdType, string][]
                 ).map(([value, label]) => (
                   <button
                     key={value}
                     type="button"
-                    onClick={() => setIdType(value)}
+                    onClick={() => {
+                      setIdType(value);
+                      setIdNumber("");
+                    }}
                     className={`rounded-lg border px-3 py-2 text-sm font-medium ${
                       idType === value ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-300 text-neutral-600"
                     }`}
@@ -267,16 +295,18 @@ export default function RiderApplicationForm() {
               </div>
             </Field>
             <Field label="ID number">
-              <TaxIdInput
-                value={idNumber}
-                onChange={setIdNumber}
-                check={(raw) => checkIdNumber(idType, raw)}
-                length={10}
-                placeholder="10 digits"
-              />
+              {idType === "pan" ? (
+                <CodeInput value={idNumber} maxLength={10} placeholder="ABCDE1234F" check={(raw) => checkIdNumber("pan", raw)} onChange={setIdNumber} />
+              ) : idType === "aadhaar" ? (
+                <TaxIdInput value={idNumber} onChange={setIdNumber} check={(raw) => checkIdNumber("aadhaar", raw)} length={12} placeholder="12 digits" />
+              ) : (
+                <TaxIdInput value={idNumber} onChange={setIdNumber} check={(raw) => checkIdNumber(idType, raw)} length={10} placeholder="10 digits" />
+              )}
             </Field>
             <RiderDocumentUploader prefix="id-front" label="ID — front" hint={docHint} value={idFrontPath} onChange={setIdFrontPath} />
-            <RiderDocumentUploader prefix="id-back" label="ID — back" hint={docHint} value={idBackPath} onChange={setIdBackPath} />
+            {idType !== "pan" && (
+              <RiderDocumentUploader prefix="id-back" label="ID — back" hint={docHint} value={idBackPath} onChange={setIdBackPath} />
+            )}
             <RiderDocumentUploader
               prefix="selfie"
               label="Selfie"
@@ -298,7 +328,7 @@ export default function RiderApplicationForm() {
             </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label={t("become_rider.license_number")}>
-                <input value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} className={inputClass} />
+                <input value={licenseNumber} onChange={(e) => setLicenseNumber(isIndia ? e.target.value.toUpperCase() : e.target.value)} placeholder={isIndia ? "DL0420110149646" : undefined} className={inputClass} />
               </Field>
               <Field label="Licence expiry">
                 <input type="date" value={licenseExpiry} onChange={(e) => setLicenseExpiry(e.target.value)} className={inputClass} />
@@ -315,7 +345,7 @@ export default function RiderApplicationForm() {
                 <p className="text-sm font-semibold">Vehicle details</p>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Plate number">
-                    <input value={plate} onChange={(e) => setPlate(e.target.value.toUpperCase())} placeholder="ABC 1234" className={inputClass} />
+                    <input value={plate} onChange={(e) => setPlate(e.target.value.toUpperCase())} placeholder={isIndia ? "MH12AB1234" : "ABC 1234"} className={inputClass} />
                   </Field>
                   <Field label="Year (optional)">
                     <input
@@ -333,7 +363,7 @@ export default function RiderApplicationForm() {
                 </Field>
                 <RiderDocumentUploader
                   prefix="registration"
-                  label="Vehicle registration (Istimara)"
+                  label={isIndia ? "Vehicle registration certificate (RC)" : "Vehicle registration (Istimara)"}
                   hint={docHint}
                   value={registrationPath}
                   onChange={setRegistrationPath}
@@ -377,7 +407,12 @@ export default function RiderApplicationForm() {
               ))}
             </div>
             <p className="text-[11px] text-neutral-400">You can change this later by contacting support.</p>
-            {payoutMethod === "bank" && (
+            {payoutMethod === "bank" && isIndia && (
+              <div className="border-t border-neutral-100 pt-3">
+                <IndianBankFields value={inBank} onChange={setInBank} />
+              </div>
+            )}
+            {payoutMethod === "bank" && !isIndia && (
               <div className="flex flex-col gap-3 border-t border-neutral-100 pt-3">
                 <BankFields value={bank} onChange={setBank} />
                 <Field label="Account holder name *" hint="Must match the name on your ID.">
@@ -395,7 +430,7 @@ export default function RiderApplicationForm() {
                 ["Name", fullName],
                 ["Mobile", phone],
                 ["City", city],
-                ["ID", `${idType === "iqama" ? "Iqama" : "National ID"} ${idNumber}`],
+                ["ID", `${({ iqama: "Iqama", national_id: "National ID", aadhaar: "Aadhaar", pan: "PAN" } as Record<string, string>)[idType]} ${idNumber}`],
                 ["Vehicle", `${vehicleType}${needsVehicleDocs(vehicleType) && plate ? ` · ${plate}` : ""}`],
                 ["Licence expiry", licenseExpiry],
                 ["Payout", payoutMethod === "bank" ? `Bank · ${bank.bankName}` : "Cash"],

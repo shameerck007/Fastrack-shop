@@ -3,7 +3,9 @@
 import { validatePhone } from "@/lib/countries";
 import { checkSaudiIban, IBAN_PROBLEM_MESSAGES } from "@/lib/iban";
 import { checkBankDetails } from "@/lib/saudi-banks";
-import { needsVehicleDocs, checkAdult, checkIdNumber, checkNotExpired, checkPlate, type IdType } from "@/lib/rider-validation";
+import { needsVehicleDocs, checkAdult, checkIdNumber, checkIndianLicence, checkIndianPlate, checkNotExpired, checkPlate, type IdType } from "@/lib/rider-validation";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { checkIndianBankDetails } from "@/lib/india-business";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyAdmins } from "@/lib/push";
@@ -36,6 +38,9 @@ export interface RiderApplicationInput {
   bankName?: string;
   bankIban?: string;
   bankAccountHolder?: string;
+  /** India: bank account number and IFSC (instead of an IBAN). */
+  bankAccountNumber?: string;
+  bankIfsc?: string;
   acceptedTerms: boolean;
 }
 
@@ -49,19 +54,27 @@ export async function applyAsRider(input: RiderApplicationInput) {
   if (!input.fullName.trim()) throw new Error("Enter your full name.");
   const phoneCheck = { ...validatePhone(input.phone.trim()), value: input.phone.trim() };
   if (!phoneCheck.ok) throw new Error(phoneCheck.error ?? "Enter a valid mobile number.");
+  const country = (await getCurrentTenant())?.country_code ?? "SA";
+  const isIndia = country === "IN";
+  if (isIndia ? !["aadhaar", "pan"].includes(input.idType) : !["national_id", "iqama"].includes(input.idType)) {
+    throw new Error("Choose a valid ID type for your country.");
+  }
   const idCheck = checkIdNumber(input.idType, input.idNumber);
   if (!idCheck.ok) throw new Error(idCheck.error ?? "Check the ID number.");
   const ageProblem = checkAdult(input.dateOfBirth);
   if (ageProblem) throw new Error(ageProblem);
-  if (!input.idFrontPath || !input.idBackPath) throw new Error("Upload the front and back of your ID.");
+  if (!input.idFrontPath || (input.idType !== "pan" && !input.idBackPath)) throw new Error("Upload the front and back of your ID.");
   if (!input.selfiePath) throw new Error("Upload a selfie.");
-  if (!input.licenseNumber.trim()) throw new Error("Enter your driving licence number.");
+  if (isIndia) {
+    const licence = checkIndianLicence(input.licenseNumber);
+    if (!licence.ok) throw new Error(licence.error ?? "Check the driving licence number.");
+  } else if (!input.licenseNumber.trim()) throw new Error("Enter your driving licence number.");
   const licenseProblem = checkNotExpired(input.licenseExpiry, "driving licence");
   if (licenseProblem) throw new Error(licenseProblem);
   if (!input.licenseDocumentPath) throw new Error("Please upload a photo of your driver's license.");
 
   if (needsVehicleDocs(input.vehicleType)) {
-    const plateProblem = checkPlate(input.vehiclePlate ?? "");
+    const plateProblem = isIndia ? checkIndianPlate(input.vehiclePlate ?? "") : checkPlate(input.vehiclePlate ?? "");
     if (plateProblem) throw new Error(plateProblem);
     if (!input.registrationPath) throw new Error("Upload the vehicle registration (Istimara).");
     const regProblem = checkNotExpired(input.registrationExpiry ?? "", "vehicle registration");
@@ -76,7 +89,22 @@ export async function applyAsRider(input: RiderApplicationInput) {
   let bankName: string | null = null;
   let bankIban: string | null = null;
   let bankHolder: string | null = null;
-  if (input.payoutMethod === "bank") {
+  let bankAccountNumber: string | null = null;
+  let bankIfsc: string | null = null;
+  if (input.payoutMethod === "bank" && isIndia) {
+    const bank = checkIndianBankDetails({
+      bankName: input.bankName ?? "",
+      accountNumber: input.bankAccountNumber ?? "",
+      ifsc: input.bankIfsc ?? "",
+      holder: input.bankAccountHolder ?? "",
+    });
+    if (!bank.ok) throw new Error(bank.error ?? "Check the bank details.");
+    bankName = input.bankName!.trim();
+    bankHolder = input.bankAccountHolder!.trim();
+    bankAccountNumber = bank.accountNumber;
+    bankIfsc = bank.ifsc;
+  }
+  if (input.payoutMethod === "bank" && !isIndia) {
     const ibanShape = checkSaudiIban(input.bankIban ?? "");
     if (!ibanShape.ok) throw new Error(IBAN_PROBLEM_MESSAGES[ibanShape.problem!]);
     const bankCheck = checkBankDetails(input.bankName?.trim() ?? "", input.bankIban ?? "");
@@ -129,6 +157,8 @@ export async function applyAsRider(input: RiderApplicationInput) {
     bank_name: bankName,
     bank_iban: bankIban,
     bank_account_holder: bankHolder,
+    bank_account_number: bankAccountNumber,
+    bank_ifsc: bankIfsc,
     terms_accepted_at: new Date().toISOString(),
   };
   let { error } = await supabase.from("delivery_partners").insert(fullRow);

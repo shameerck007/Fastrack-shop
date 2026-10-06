@@ -103,7 +103,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
   const name = profile?.full_name ?? "—";
   const legacy = !rider.id_number && !rider.selfie_path;
   const ibanOk = rider.bank_iban ? checkSaudiIban(rider.bank_iban).ok && checkBankDetails(rider.bank_name ?? "", rider.bank_iban).ok : false;
-  const idLabel = rider.id_type === "iqama" ? "Iqama" : rider.id_type === "national_id" ? "National ID" : null;
+  const idLabel = rider.id_type ? ({ iqama: "Iqama", national_id: "National ID", aadhaar: "Aadhaar", pan: "PAN" } as Record<string, string>)[rider.id_type] ?? null : null;
   const isImage = (p: string | null) => !!p && /\.(jpe?g|png|webp|gif|heic)$/i.test(p);
 
   return (
@@ -243,6 +243,16 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
             <>
               <Row label="Bank">{rider.bank_name}</Row>
               <Row label="Account holder">{rider.bank_account_holder}</Row>
+              {rider.bank_account_number && (
+                <Row label="Account number">
+                  <span className="font-mono">{rider.bank_account_number}</span>
+                </Row>
+              )}
+              {rider.bank_ifsc && (
+                <Row label="IFSC">
+                  <span className="font-mono">{rider.bank_ifsc}</span>
+                </Row>
+              )}
               <Row label="IBAN">
                 {rider.bank_iban ? (
                   <>

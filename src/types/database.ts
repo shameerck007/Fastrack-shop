@@ -250,7 +250,7 @@ export interface DeliveryPartner {
   license_number: string | null;
   license_document_path: string | null;
   // Added by migration 0041 (rider onboarding).
-  id_type: "national_id" | "iqama" | null;
+  id_type: "national_id" | "iqama" | "aadhaar" | "pan" | null;
   id_number: string | null;
   nationality: string | null;
   date_of_birth: string | null;
@@ -271,6 +271,8 @@ export interface DeliveryPartner {
   bank_name: string | null;
   bank_iban: string | null;
   bank_account_holder: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
   terms_accepted_at: string | null;
   created_at: string;
 }
