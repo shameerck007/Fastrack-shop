@@ -5,12 +5,17 @@ import UserHeaderActions from "@/components/UserHeaderActions";
 import DeliverToChip from "@/components/DeliverToChip";
 import CategoryNavBar from "@/components/CategoryNavBar";
 import MarketPill from "@/components/MarketPill";
+import LockedMarketPill from "@/components/LockedMarketPill";
 import { getCategoriesWithChildren } from "@/lib/catalog";
-import { getActiveTenants, getCurrentTenant } from "@/lib/tenant-server";
+import { getActiveTenants, getCurrentTenant, isMarketPinnedAccount } from "@/lib/tenant-server";
 
 export default async function Header() {
   const categories = await getCategoriesWithChildren();
-  const [tenants, currentTenant] = await Promise.all([getActiveTenants().catch(() => []), getCurrentTenant().catch(() => null)]);
+  const [tenants, currentTenant, pinned] = await Promise.all([
+    getActiveTenants().catch(() => []),
+    getCurrentTenant().catch(() => null),
+    isMarketPinnedAccount(),
+  ]);
 
   return (
     // Installed as a standalone PWA (see manifest.ts), the header sits right
@@ -30,7 +35,7 @@ export default async function Header() {
           <DeliverToChip className="hidden sm:flex" />
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            {currentTenant && <MarketPill tenants={tenants} currentId={currentTenant.id} />}
+            {currentTenant && tenants.length > 1 && (pinned ? <LockedMarketPill tenant={currentTenant} /> : <MarketPill tenants={tenants} currentId={currentTenant.id} />)}
             <UserHeaderActions />
           </div>
         </div>

@@ -34,3 +34,10 @@ export function readTenantCookie(): string | null {
   const value = match ? decodeURIComponent(match.slice(TENANT_COOKIE.length + 1)) : null;
   return isTenantId(value) ? value : null;
 }
+
+/** Roles the database pins to one market (see current_tenant_id): their country cannot be chosen from the shop. */
+export const MARKET_PINNED_ROLES = ["admin", "merchant", "rider", "store_staff"];
+
+export function isMarketPinnedRole(role: string | null | undefined): boolean {
+  return !!role && MARKET_PINNED_ROLES.includes(role);
+}

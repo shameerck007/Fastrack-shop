@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_CURRENCY, moneyFor, type MoneyFormatter } from "@/lib/money";
-import { TENANT_COOKIE, TENANT_SUGGESTION_COOKIE, isTenantId, type Tenant } from "@/lib/tenant";
+import { TENANT_COOKIE, TENANT_SUGGESTION_COOKIE, isMarketPinnedRole, isTenantId, type Tenant } from "@/lib/tenant";
 
 /** Active markets (tenants). The table is publicly readable; empty if migration 0044 hasn't run. */
 export async function getActiveTenants(): Promise<Tenant[]> {
@@ -53,4 +53,19 @@ export async function getCurrency(): Promise<string> {
 /** Server-side money formatter for the current market: `const money = await getMoney(); money(12.5)`. */
 export async function getMoney(): Promise<MoneyFormatter> {
   return moneyFor(await getCurrency());
+}
+
+/** True when the signed-in account is a supplier / rider / admin / warehouse account: those stay in one country. */
+export async function isMarketPinnedAccount(): Promise<boolean> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return false;
+    const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    return isMarketPinnedRole((data as { role?: string } | null)?.role);
+  } catch {
+    return false;
+  }
 }

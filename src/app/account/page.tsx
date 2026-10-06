@@ -5,6 +5,9 @@ import { signOut } from "@/lib/actions/auth";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import MarketSwitcher from "@/components/MarketSwitcher";
+import Flag from "@/components/Flag";
+import { findCountry } from "@/lib/countries";
+import { isMarketPinnedRole } from "@/lib/tenant";
 import { getActiveTenants, getCurrentTenant } from "@/lib/tenant-server";
 import LandingPreference from "@/components/LandingPreference";
 import { dashboardPathForRole } from "@/lib/landing";
@@ -93,7 +96,19 @@ export default async function AccountPage() {
         <LanguageToggle />
       </div>
 
-      {currentTenant && <MarketSwitcher tenants={tenants} currentId={currentTenant.id} />}
+      {currentTenant && tenants.length > 1 && (isMarketPinnedRole(profile?.role) ? (
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+          <Flag code={currentTenant.country_code} className="h-6 w-8" />
+          <span className="flex flex-col">
+            <span className="font-medium text-neutral-900">🔒 {findCountry(currentTenant.country_code).name}</span>
+            <span className="text-sm text-neutral-500">
+              Your account works in {findCountry(currentTenant.country_code).name}, so the country can&apos;t be changed. To shop in another country, use a customer login.
+            </span>
+          </span>
+        </div>
+      ) : (
+        <MarketSwitcher tenants={tenants} currentId={currentTenant.id} />
+      ))}
 
       {dashboardPathForRole(profile?.role) && (
         <LandingPreference initial={profile?.landing_page === "shop" ? "shop" : "portal"} portalLabel={t("account.dashboard_tile_title", { role: roleLabel })} />
