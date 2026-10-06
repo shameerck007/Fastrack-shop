@@ -390,7 +390,7 @@ export default function RiderApplicationForm() {
               {(
                 [
                   ["cash", "💵 Cash", "Collect your earnings in cash from the FasTrack office."],
-                  ["bank", "🏦 Bank transfer", "Paid to your Saudi bank account (IBAN)."],
+                  ["bank", "🏦 Bank transfer", isIndia ? "Paid to your bank account (account number + IFSC)." : "Paid to your Saudi bank account (IBAN)."],
                 ] as const
               ).map(([value, title, desc]) => (
                 <button
