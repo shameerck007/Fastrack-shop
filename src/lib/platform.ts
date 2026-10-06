@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 // Platform-owner analytics. The functions behind these (migration 0054) refuse anyone who is
@@ -132,9 +133,13 @@ export function fillDays(rows: SalesDay[], days: number, tz: "Asia/Riyadh" | "As
 }
 
 /** The markets to show for a ?market=slug filter (all of them when no/unknown slug). */
-export function pickMarkets(markets: MarketSummary[], slug: string | null | undefined): { shown: MarketSummary[]; current: string | null } {
-  const match = slug ? markets.find((m) => m.slug === slug) : undefined;
-  return match ? { shown: [match], current: match.slug } : { shown: markets, current: null };
+export const PLATFORM_MARKET_COOKIE = "fs_platform_market";
+
+/** The one market the platform owner is viewing (remembered in a cookie; first live market by default). Countries are never mixed. */
+export async function pickMarkets(markets: MarketSummary[]): Promise<{ shown: MarketSummary[]; current: string }> {
+  const slug = (await cookies()).get(PLATFORM_MARKET_COOKIE)?.value;
+  const match = markets.find((m) => m.slug === slug) ?? markets.find((m) => m.status === "active") ?? markets[0];
+  return { shown: match ? [match] : [], current: match?.slug ?? "" };
 }
 
 export interface LiveOrder {

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import PlatformHeader from "@/components/platform/PlatformHeader";
-import MarketFilter from "@/components/platform/MarketFilter";
 import LandingPreferenceCard from "@/components/LandingPreferenceCard";
 import RevenueTrendChart from "@/components/admin/charts/RevenueTrendChart";
 import BarList from "@/components/admin/charts/BarList";
@@ -236,9 +235,8 @@ const STATUS_PILL: Record<string, string> = {
   out_for_delivery: "bg-violet-50 text-violet-700",
 };
 
-export default async function PlatformOverviewPage({ searchParams }: { searchParams: Promise<{ market?: string }> }) {
-  const { market } = await searchParams;
-  const [allMarkets, sales, status, suppliers, attention, live] = await Promise.all([
+export default async function PlatformOverviewPage() {
+    const [allMarkets, sales, status, suppliers, attention, live] = await Promise.all([
     getMarketSummaries(),
     getSalesByDay(14),
     getStatusCounts(),
@@ -246,7 +244,7 @@ export default async function PlatformOverviewPage({ searchParams }: { searchPar
     getAttention(),
     getLiveOrders(40),
   ]);
-  const { shown, current } = pickMarkets(allMarkets, market);
+  const { shown, current } = await pickMarkets(allMarkets);
   const shownIds = new Set(shown.map((m) => m.tenant_id));
   const nameOf = (tenantId: string) => allMarkets.find((m) => m.tenant_id === tenantId)?.name ?? "—";
   const marketOf = (tenantId: string) => allMarkets.find((m) => m.tenant_id === tenantId);
@@ -269,9 +267,8 @@ export default async function PlatformOverviewPage({ searchParams }: { searchPar
 
   return (
     <div className="flex flex-col gap-5">
-      <PlatformHeader icon="📊" title="Platform overview" subtitle="Everything across your markets in one place. Money is always shown in each market's own currency.">
+      <PlatformHeader icon="📊" title="Platform overview" subtitle="Live numbers for the country selected in the header.">
         <div className="flex flex-col gap-4">
-          <MarketFilter markets={allMarkets} current={current} basePath="/platform" />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               ["Orders today", totals.ordersToday, "🧾"],

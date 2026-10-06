@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import PlatformHeader from "@/components/platform/PlatformHeader";
-import MarketFilter from "@/components/platform/MarketFilter";
 import { findCountry } from "@/lib/countries";
 import { moneyFor } from "@/lib/money";
 import { getMarketSummaries, getTopSuppliers, pickMarkets } from "@/lib/platform";
@@ -27,9 +26,8 @@ const STATUS_BADGE: Record<string, string> = {
   suspended: "bg-neutral-100 text-neutral-500",
 };
 
-export default async function PlatformSuppliersPage({ searchParams }: { searchParams: Promise<{ market?: string }> }) {
-  const { market } = await searchParams;
-  const supabase = await createClient();
+export default async function PlatformSuppliersPage() {
+    const supabase = await createClient();
   const [allMarkets, top, { data }] = await Promise.all([
     getMarketSummaries(),
     getTopSuppliers(30, 200),
@@ -38,14 +36,13 @@ export default async function PlatformSuppliersPage({ searchParams }: { searchPa
       .select("id, name, status, city, country, state, cr_number, vat_number, commission_rate, tenant_id, created_at")
       .order("created_at", { ascending: false }),
   ]);
-  const { shown, current } = pickMarkets(allMarkets, market);
+  const { shown, current } = await pickMarkets(allMarkets);
   const stores = (data ?? []) as unknown as StoreRow[];
   const salesByStore = new Map(top.map((t) => [t.store_id, t]));
 
   return (
     <div className="flex flex-col gap-5">
-      <PlatformHeader icon="🏪" title="Suppliers" subtitle="Every supplier in every market, with its sales over the last 30 days. Open one to review documents, edit its shop or record a payout.">
-        <MarketFilter markets={allMarkets} current={current} basePath="/platform/suppliers" />
+      <PlatformHeader icon="🏪" title="Suppliers" subtitle="Suppliers in the selected country, with sales over the last 30 days. Open one to review documents, edit its shop or record a payout.">
       </PlatformHeader>
 
       {shown.map((m) => {

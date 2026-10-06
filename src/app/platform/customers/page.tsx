@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import PlatformHeader from "@/components/platform/PlatformHeader";
-import MarketFilter from "@/components/platform/MarketFilter";
 import { findCountry } from "@/lib/countries";
 import { moneyFor } from "@/lib/money";
 import { getMarketSummaries, pickMarkets } from "@/lib/platform";
@@ -20,22 +19,20 @@ interface OrderRow {
   tenant_id: string;
 }
 
-export default async function PlatformCustomersPage({ searchParams }: { searchParams: Promise<{ market?: string }> }) {
-  const { market } = await searchParams;
-  const supabase = await createClient();
+export default async function PlatformCustomersPage() {
+    const supabase = await createClient();
   const [allMarkets, { data: profiles }, { data: orders }] = await Promise.all([
     getMarketSummaries(),
     supabase.from("profiles").select("id, full_name, phone, created_at, tenant_id").eq("role", "customer").order("created_at", { ascending: false }).limit(500),
     supabase.from("orders").select("user_id, total, status, tenant_id").neq("status", "cancelled").limit(10000),
   ]);
-  const { shown, current } = pickMarkets(allMarkets, market);
+  const { shown, current } = await pickMarkets(allMarkets);
   const customers = (profiles ?? []) as unknown as CustomerRow[];
   const orderRows = (orders ?? []) as unknown as OrderRow[];
 
   return (
     <div className="flex flex-col gap-5">
-      <PlatformHeader icon="👥" title="Customers" subtitle="Shoppers by market, with how many orders they placed and how much they spent in that market's currency.">
-        <MarketFilter markets={allMarkets} current={current} basePath="/platform/customers" />
+      <PlatformHeader icon="👥" title="Customers" subtitle="Shoppers in the selected country, with orders placed and amount spent.">
       </PlatformHeader>
 
       {shown.map((m) => {
