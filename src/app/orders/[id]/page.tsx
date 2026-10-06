@@ -15,7 +15,8 @@ import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getMoney } from "@/lib/tenant-server";
 import { moneyFor } from "@/lib/money";
-import { getCurrentTenant } from "@/lib/tenant-server";
+import { getActiveTenants, getCurrentTenant, isMarketPinnedAccount } from "@/lib/tenant-server";
+import OrderOtherCountry from "@/components/OrderOtherCountry";
 import { findCountry } from "@/lib/countries";
 import Flag from "@/components/Flag";
 
@@ -32,8 +33,19 @@ export default async function OrderDetailPage({
 
   if (!order) notFound();
   // An order keeps the currency it was placed in, whichever market the customer is browsing now.
-  const marketName = findCountry((await getCurrentTenant())?.country_code ?? "SA").name;
-  const sameMarket = !order.country_code || order.country_code === ((await getCurrentTenant())?.country_code ?? "SA");
+  const currentTenant = await getCurrentTenant();
+  const sameMarket = !order.country_code || order.country_code === (currentTenant?.country_code ?? "SA");
+  // An order from another country is not shown here at all: only a note and the way to switch to it.
+  if (!sameMarket && order.country_code) {
+    return (
+      <OrderOtherCountry
+        orderCountry={order.country_code}
+        tenants={await getActiveTenants()}
+        currentId={currentTenant?.id ?? null}
+        canSwitch={!(await isMarketPinnedAccount())}
+      />
+    );
+  }
   const orderMoney = order.currency ? moneyFor(order.currency) : money;
 
   const supabase = await createClient();
@@ -61,11 +73,6 @@ export default async function OrderDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      {!sameMarket && order.country_code && (
-        <p className="mb-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-sm text-blue-900">
-          <Flag code={order.country_code} className="me-1.5 h-3.5 w-[18px] align-[-2px]" /> This order was placed in {findCountry(order.country_code).name}. You are shopping in {marketName}.
-        </p>
-      )}
       {showTracking && (
         <OrderTrackingHero
           orderId={order.id}
