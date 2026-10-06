@@ -21,7 +21,7 @@ export default async function SellPage() {
       <PageHero
         icon="🏪"
         title="Sell on FasTrack Shop"
-        subtitle="Reach customers across Riyadh with same-day delivery, handled by FasTrack."
+        subtitle="Reach customers in your city with fast delivery, handled by FasTrack."
         chips={["Same-day delivery", "Your own shop page", "Fast payouts"]}
       />
 

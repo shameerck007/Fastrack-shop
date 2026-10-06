@@ -15,6 +15,7 @@ import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getMoney } from "@/lib/tenant-server";
 import { moneyFor } from "@/lib/money";
+import { getCurrentTenant } from "@/lib/tenant-server";
 
 export default async function OrderDetailPage({
   params,
@@ -29,6 +30,7 @@ export default async function OrderDetailPage({
 
   if (!order) notFound();
   // An order keeps the currency it was placed in, whichever market the customer is browsing now.
+  const sameMarket = !order.country_code || order.country_code === ((await getCurrentTenant())?.country_code ?? "SA");
   const orderMoney = order.currency ? moneyFor(order.currency) : money;
 
   const supabase = await createClient();
@@ -225,7 +227,7 @@ export default async function OrderDetailPage({
             </div>
           );
         })}
-        {order.status !== "cancelled" && (
+        {order.status !== "cancelled" && sameMarket && (
           <div className="p-4">
             <BuyItAgainButton orderId={order.id} itemCount={order.order_items.length} />
           </div>

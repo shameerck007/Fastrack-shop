@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "FasTrack Shop",
     short_name: "FasTrack",
-    description: "Quick-commerce grocery delivery for Riyadh, Saudi Arabia.",
+    description: "Quick-commerce grocery delivery to your door.",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

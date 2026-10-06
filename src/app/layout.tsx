@@ -47,7 +47,7 @@ const tajawal = Tajawal({
 
 export const metadata: Metadata = {
   title: "FasTrack Shop — Everything you need. Delivered.",
-  description: "Quick-commerce grocery delivery for Riyadh, Saudi Arabia.",
+  description: "Quick-commerce grocery delivery to your door.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

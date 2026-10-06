@@ -9,6 +9,8 @@ import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import type { OrderStatus } from "@/types/database";
 import { getMoney } from "@/lib/tenant-server";
 import { moneyFor } from "@/lib/money";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { findCountry } from "@/lib/countries";
 
 const ACTIVE_STATUSES: OrderStatus[] = [
   "pending",
@@ -54,6 +56,7 @@ export default async function OrdersPage({
   searchParams: Promise<{ filter?: string }>;
 }) {
   const money = await getMoney();
+  const marketCountry = (await getCurrentTenant())?.country_code ?? "SA";
   const { filter = "all" } = await searchParams;
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
@@ -110,6 +113,11 @@ export default async function OrdersPage({
                             {new Date(order.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
                           </span>
                         </span>
+                        {order.country_code && order.country_code !== marketCountry && (
+                          <span className="self-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                            {findCountry(order.country_code).flag} {findCountry(order.country_code).name}
+                          </span>
+                        )}
                         <span>
                           <span className="block text-neutral-400">{t("orders.total_label")}</span>
                           <span className="text-neutral-700">{(order.currency ? moneyFor(order.currency) : money)(order.total)}</span>
@@ -173,7 +181,7 @@ export default async function OrdersPage({
                       </Link>
 
                       <div className="flex w-full shrink-0 flex-col items-stretch gap-2 sm:w-48">
-                        {order.status !== "cancelled" && (
+                        {order.status !== "cancelled" && (!order.country_code || order.country_code === marketCountry) && (
                           <BuyItAgainButton orderId={order.id} itemCount={order.order_items.length} fullWidth />
                         )}
                         <Link
