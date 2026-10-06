@@ -52,3 +52,25 @@ export function checkPinCode(raw: string): { ok: boolean; error: string | null; 
 export function isIndianState(name: string): boolean {
   return INDIAN_STATES.includes(name);
 }
+
+/** Where each market delivers for now. India starts with Kerala; add states here as the service opens elsewhere. */
+export const SERVICE_STATES: Record<string, string[]> = { IN: ["Kerala"] };
+
+/** The states a market delivers to; null when the whole country is served. */
+export function serviceStatesFor(countryCode: string | null | undefined): string[] | null {
+  return SERVICE_STATES[(countryCode ?? "").toUpperCase()] ?? null;
+}
+
+/** Can an address in this state be delivered to? Markets without a restriction accept everything. */
+export function stateInServiceArea(countryCode: string | null | undefined, state: string | null | undefined): boolean {
+  const allowed = serviceStatesFor(countryCode);
+  return !allowed || (!!state && allowed.includes(state));
+}
+
+/** Kerala PIN codes start with 67, 68 or 69 (670001 - 695615). */
+export function pinMatchesState(state: string, pin: string): boolean {
+  if (state === "Kerala") return /^6[789]/.test(pin);
+  return true;
+}
+
+export const SERVICE_AREA_MESSAGE = "We currently deliver in Kerala only. More areas are coming soon.";

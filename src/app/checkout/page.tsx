@@ -5,6 +5,7 @@ import CheckoutForm from "@/components/CheckoutForm";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getAddresses } from "@/lib/addresses";
 import { checkProductsDeliverable } from "@/lib/delivery-zones";
+import { stateInServiceArea } from "@/lib/india";
 import { combineMethods } from "@/lib/delivery-methods";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -41,6 +42,8 @@ export default async function CheckoutPage() {
       const results = await checkProductsDeliverable(products, { lat: a.lat, lng: a.lng });
       const names = products.filter((p) => results.get(p.id)?.message).map((p) => p.name);
       if (names.length > 0) blockedByAddress[a.id] = names;
+      // Outside the states we serve (India: Kerala only for now): nothing in the cart can be delivered there.
+      if (!stateInServiceArea(tenant?.country_code, (a as { state?: string | null }).state)) blockedByAddress[a.id] = products.map((p) => p.name);
       methodsByAddress[a.id] = combineMethods([...results.values()].map((r) => r.methods));
     })
   );

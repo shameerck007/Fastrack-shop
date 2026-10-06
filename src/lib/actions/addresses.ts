@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { AddressLabel } from "@/types/database";
 import { getCurrentTenant } from "@/lib/tenant-server";
-import { checkPinCode, isIndianState } from "@/lib/india";
+import { SERVICE_AREA_MESSAGE, checkPinCode, isIndianState, pinMatchesState, stateInServiceArea } from "@/lib/india";
 import { validatePhone } from "@/lib/countries";
 
 export interface AddressInput {
@@ -51,8 +51,10 @@ async function assertAddressValid(input: AddressInput) {
   if (country === "IN") {
     if (!input.city?.trim()) throw new Error("Enter the town or city.");
     if (!input.state || !isIndianState(input.state)) throw new Error("Choose the state.");
+    if (!stateInServiceArea(country, input.state)) throw new Error(SERVICE_AREA_MESSAGE);
     const pin = checkPinCode(input.postalCode ?? "");
     if (!pin.ok) throw new Error(pin.error ?? "Check the PIN code.");
+    if (!pinMatchesState(input.state, pin.value)) throw new Error(`That PIN code doesn't look like a ${input.state} PIN code.`);
   }
   if (input.receiverPhone) {
     const phone = validatePhone(input.receiverPhone);

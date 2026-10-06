@@ -2,7 +2,7 @@
 
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 import { validatePhone } from "@/lib/countries";
-import { INDIAN_STATES, checkPinCode } from "@/lib/india";
+import { INDIAN_STATES, checkPinCode, pinMatchesState, serviceStatesFor, SERVICE_AREA_MESSAGE } from "@/lib/india";
 import { useMarket } from "@/components/MoneyProvider";
 
 import { useEffect, useState, useTransition } from "react";
@@ -37,7 +37,8 @@ export default function AddressForm({
   const { countryCode } = useMarket();
   const isIndia = countryCode === "IN";
   const [city, setCity] = useState(existing?.city ?? (isIndia ? "" : "Riyadh"));
-  const [stateName, setStateName] = useState(existing?.state ?? "");
+  const stateOptions = isIndia ? serviceStatesFor(countryCode) ?? INDIAN_STATES : INDIAN_STATES;
+  const [stateName, setStateName] = useState(existing?.state ?? (stateOptions.length === 1 ? stateOptions[0] : ""));
   const [landmark, setLandmark] = useState(existing?.landmark ?? "");
   const [district, setDistrict] = useState(existing?.district ?? "");
   const [buildingNumber, setBuildingNumber] = useState(existing?.building_number ?? "");
@@ -107,9 +108,17 @@ export default function AddressForm({
         setError(t("address_in.choose_state"));
         return;
       }
+      if (!stateOptions.includes(stateName)) {
+        setError(SERVICE_AREA_MESSAGE);
+        return;
+      }
       const pin = checkPinCode(postalCode);
       if (!pin.ok) {
         setError(pin.error);
+        return;
+      }
+      if (!pinMatchesState(stateName, pin.value)) {
+        setError(`That PIN code doesn't look like a ${stateName} PIN code.`);
         return;
       }
     }
@@ -159,7 +168,7 @@ export default function AddressForm({
           setUnitNumber("");
           setPostalCode("");
           setLandmark("");
-          if (isIndia) setStateName("");
+          if (isIndia) setStateName(stateOptions.length === 1 ? stateOptions[0] : "");
           setShortAddress("");
           setReceiverName("");
           setReceiverPhone("");
@@ -260,7 +269,7 @@ export default function AddressForm({
           className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
         >
           <option value="">{t("address_in.select_state")}</option>
-          {INDIAN_STATES.map((st) => (
+          {stateOptions.map((st) => (
             <option key={st} value={st}>
               {st}
             </option>

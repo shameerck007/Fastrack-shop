@@ -8,6 +8,7 @@ import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
 import { combineMethods, deliveryFee as deliveryFeeFor, pricingFor } from "@/lib/delivery-methods";
 import { getCurrentTenant } from "@/lib/tenant-server";
+import { SERVICE_AREA_MESSAGE, stateInServiceArea } from "@/lib/india";
 import { assertStoresOpen } from "@/lib/stores";
 import { addToCart } from "@/lib/actions/cart";
 import { notifyUsers } from "@/lib/push";
@@ -70,9 +71,12 @@ async function placeOrderOrThrow(input: {
   // boundary covers them), not a single fixed "default" warehouse.
   const { data: chosenAddress } = await supabase
     .from("addresses")
-    .select("lat, lng")
+    .select("lat, lng, state")
     .eq("id", input.addressId)
     .maybeSingle();
+  if (!stateInServiceArea(orderTenant?.country_code, (chosenAddress as { state?: string | null } | null)?.state)) {
+    throw new Error(SERVICE_AREA_MESSAGE);
+  }
   const coords = chosenAddress ? { lat: chosenAddress.lat, lng: chosenAddress.lng } : null;
 
   // Resolve which warehouse actually stocks each item. Merchant products
