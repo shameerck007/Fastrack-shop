@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "react";
 import type { Map as LeafletMap } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { TILE_URL, TILE_OPTIONS, DEFAULT_CENTER } from "@/lib/map-config";
+import { TILE_URL, TILE_OPTIONS, marketGeo } from "@/lib/map-config";
+import { useMarket } from "@/components/MoneyProvider";
 
 export interface OverviewZone {
   id: string;
@@ -28,6 +29,7 @@ export default function ZonesOverviewMap({
   zones: OverviewZone[];
   customerPoints: OverviewPoint[];
 }) {
+  const startCenter = marketGeo(useMarket().countryCode).center;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
 
@@ -35,7 +37,7 @@ export default function ZonesOverviewMap({
     let cancelled = false;
     import("leaflet").then((L) => {
       if (cancelled || !containerRef.current || mapRef.current) return;
-      const map = L.map(containerRef.current, { scrollWheelZoom: false }).setView(DEFAULT_CENTER, 10);
+      const map = L.map(containerRef.current, { scrollWheelZoom: false }).setView(startCenter, 10);
       L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
       L.control.scale({ imperial: false }).addTo(map);
 

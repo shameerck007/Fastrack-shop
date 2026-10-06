@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, Marker } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import PlaceSearch from "@/components/PlaceSearch";
-import { TILE_URL, TILE_OPTIONS, MARKER_ICON, DEFAULT_CENTER, type PlaceResult } from "@/lib/map-config";
+import { TILE_URL, TILE_OPTIONS, MARKER_ICON, marketGeo, type PlaceResult } from "@/lib/map-config";
+import { useMarket } from "@/components/MoneyProvider";
 import { useLocale } from "@/components/LocaleProvider";
 
 
@@ -18,6 +19,7 @@ export default function LocationPicker({
   onChange: (lat: number, lng: number) => void;
 }) {
   const { t } = useLocale();
+  const startCenter = marketGeo(useMarket().countryCode).center;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
@@ -33,7 +35,7 @@ export default function LocationPicker({
 
       const icon = L.icon(MARKER_ICON);
 
-      const start: [number, number] = lat != null && lng != null ? [lat, lng] : DEFAULT_CENTER;
+      const start: [number, number] = lat != null && lng != null ? [lat, lng] : startCenter;
       const map = L.map(containerRef.current).setView(start, lat != null && lng != null ? 15 : 11);
       L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
 

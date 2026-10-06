@@ -21,6 +21,13 @@ export const MARKER_ICON = {
 
 export const DEFAULT_CENTER: [number, number] = [24.7136, 46.6753]; // Riyadh
 
+/** Country code and starting map position per market (the map opens on the market's main city). */
+export function marketGeo(countryCode: string | null | undefined): { iso2: string; iso3: string; center: [number, number] } {
+  return (countryCode ?? "SA").toUpperCase() === "IN"
+    ? { iso2: "IN", iso3: "IND", center: [9.9312, 76.2673] } // Kochi, Kerala
+    : { iso2: "SA", iso3: "SAU", center: DEFAULT_CENTER };
+}
+
 export interface PlaceResult {
   label: string;
   detail: string;

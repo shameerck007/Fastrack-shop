@@ -10,11 +10,12 @@ import {
   TILE_URL,
   TILE_OPTIONS,
   MARKER_ICON,
-  DEFAULT_CENTER,
+  marketGeo,
   searchPlaces,
   type PlaceResult,
 } from "@/lib/map-config";
 import { useLocale } from "@/components/LocaleProvider";
+import { useMarket } from "@/components/MoneyProvider";
 
 const PRESETS = [1, 2, 3, 5, 8, 10, 15, 20];
 
@@ -32,6 +33,7 @@ export default function ZoneEditor({
   initialRadiusKm: number | null;
 }) {
   const { t } = useLocale();
+  const startCenter = marketGeo(useMarket().countryCode).center;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
@@ -54,7 +56,7 @@ export default function ZoneEditor({
     let cancelled = false;
     import("leaflet").then((L) => {
       if (cancelled || !containerRef.current || mapRef.current) return;
-      const start = centerRef.current ?? DEFAULT_CENTER;
+      const start = centerRef.current ?? startCenter;
       const map = L.map(containerRef.current, { scrollWheelZoom: true }).setView(start, centerRef.current ? 11 : 10);
       L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
       L.control.scale({ imperial: false }).addTo(map);
