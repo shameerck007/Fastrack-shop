@@ -37,3 +37,9 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Leaflet draws its panes and controls at z-index 200-1000. Without their own stacking context they paint
+   above the sticky header and any floating bars when the page scrolls, so every map is isolated. */
+.leaflet-container {
+  isolation: isolate;
+}
