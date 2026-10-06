@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { CategoryWithChildren } from "@/lib/catalog";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName } from "@/lib/i18n/localized";

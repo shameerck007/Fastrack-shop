@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import PlatformHeader from "@/components/platform/PlatformHeader";
 import LandingPreferenceCard from "@/components/LandingPreferenceCard";
 import RevenueTrendChart from "@/components/admin/charts/RevenueTrendChart";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { getMoney } from "@/lib/tenant-server";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { getMyOrders, type OrderListItem } from "@/lib/orders";
 
 import { localizedName } from "@/lib/i18n/localized";

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/Link";
 import { useMemo } from "react";
 import { useLocale } from "@/components/LocaleProvider";
 import { useAllStores } from "@/components/StoreDirectoryProvider";

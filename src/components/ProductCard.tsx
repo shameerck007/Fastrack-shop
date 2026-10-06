@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { ProductWithVariants } from "@/types/database";
 
 import { getCategoryTheme } from "@/lib/categoryTheme";

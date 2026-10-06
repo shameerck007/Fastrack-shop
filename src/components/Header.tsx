@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import SearchBar from "@/components/SearchBar";
 import Wordmark from "@/components/Wordmark";
 import UserHeaderActions from "@/components/UserHeaderActions";

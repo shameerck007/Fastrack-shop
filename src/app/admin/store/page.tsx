@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { getFastrackWarehouses } from "@/lib/fastrack-store";
 
 import AddFastrackStoreForm from "@/components/admin/AddFastrackStoreForm";

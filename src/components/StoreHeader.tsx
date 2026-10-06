@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/Link";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { ProductTopBar } from "@/components/MobileTopBar";
 import DeliverToChip from "@/components/DeliverToChip";

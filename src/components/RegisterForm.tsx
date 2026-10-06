@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/Link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { readTenantCookie } from "@/lib/tenant";
 import { createClient } from "@/lib/supabase/client";

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/Link";
 import { usePathname, useRouter } from "next/navigation";
 import { smartBack } from "@/lib/nav-history";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";

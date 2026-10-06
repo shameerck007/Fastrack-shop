@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import PlatformHeader from "@/components/platform/PlatformHeader";
 import { findCountry } from "@/lib/countries";
 import { moneyFor } from "@/lib/money";

@@ -1,5 +1,5 @@
 import LandingPreferenceCard from "@/components/LandingPreferenceCard";
-import Link from "next/link";
+import Link from "@/components/Link";
 import PageHero from "@/components/PageHero";
 import { getMyStore, getMyStoreProducts } from "@/lib/merchant";
 import { updateMerchantProductStock } from "@/lib/actions/merchant-products";

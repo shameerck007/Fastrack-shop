@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { MoneyFormatter } from "@/lib/money";
 import DeliveryProgressStepper from "@/components/rider/DeliveryProgressStepper";
 

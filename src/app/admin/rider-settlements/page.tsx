@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { getRiderSettlementOverview, type RiderSettlementOverviewRow } from "@/lib/rider-settlements";
 import { getMoney } from "@/lib/tenant-server";
 

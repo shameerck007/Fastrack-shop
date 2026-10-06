@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { requireRole } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
 import { getMyStore } from "@/lib/merchant";

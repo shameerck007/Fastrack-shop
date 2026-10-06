@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
 import OrdersKPIBar from "@/components/admin/OrdersKPIBar";

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/Link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import DeliverableProductList from "@/components/DeliverableProductList";
 import DeliveryGate from "@/components/DeliveryGate";

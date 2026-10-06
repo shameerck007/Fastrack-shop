@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import CartItemRow from "@/components/CartItemRow";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getAddresses } from "@/lib/addresses";

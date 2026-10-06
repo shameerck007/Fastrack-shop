@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import Wordmark from "@/components/Wordmark";
 import { getCompanySettings } from "@/lib/company-settings";
 import { getCurrentTenant } from "@/lib/tenant-server";

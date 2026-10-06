@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/Link";
 
 import type { AdminSettlementOverviewRow } from "@/lib/settlements";
 import { useLocale } from "@/components/LocaleProvider";

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/Link";
 import { useLocale } from "@/components/LocaleProvider";
 import { useStoreInfo, type StoreInfo } from "@/components/StoreDirectoryProvider";
 import { placeholderFor } from "@/lib/store-placeholder";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { createClient } from "@/lib/supabase/server";
 import PlatformHeader from "@/components/platform/PlatformHeader";
 import { findCountry } from "@/lib/countries";

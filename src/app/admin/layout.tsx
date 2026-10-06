@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { cookies } from "next/headers";
 import { findCountry } from "@/lib/countries";
 import { ADMIN_SCOPE_COOKIE } from "@/lib/platform-scope";

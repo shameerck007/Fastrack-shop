@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/Link";
 import { usePathname } from "next/navigation";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { useLocale } from "@/components/LocaleProvider";

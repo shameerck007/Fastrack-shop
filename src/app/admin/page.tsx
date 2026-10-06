@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import PageHero from "@/components/PageHero";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminAnalytics } from "@/lib/admin-analytics";

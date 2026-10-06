@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { checkSaudiIban, formatIban } from "@/lib/iban";
 import { checkBankDetails } from "@/lib/saudi-banks";
 import { notFound } from "next/navigation";

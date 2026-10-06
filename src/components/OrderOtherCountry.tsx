@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/Link";
 import Flag from "@/components/Flag";
 import MarketSwitchDialog from "@/components/MarketSwitchDialog";
 import { findCountry } from "@/lib/countries";

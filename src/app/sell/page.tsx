@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/Link";
 import PageHero from "@/components/PageHero";
 import { createClient } from "@/lib/supabase/server";
 import { getMyStore } from "@/lib/merchant";

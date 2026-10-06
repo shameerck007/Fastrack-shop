@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { getRiderTodayStats } from "@/lib/rider";
 import { signOut } from "@/lib/actions/auth";
 
