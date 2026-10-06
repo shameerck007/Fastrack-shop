@@ -3,14 +3,16 @@ import { requireRole } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
 import Wordmark from "@/components/Wordmark";
 import MarketSwitcher from "@/components/platform/MarketSwitcher";
-import { getMarketSummaries, pickMarkets } from "@/lib/platform";
+import { cookies } from "next/headers";
+import { getMarketSummaries, PLATFORM_MARKET_COOKIE } from "@/lib/platform";
 import PlatformNav from "@/components/platform/PlatformNav";
 
 /** The platform owner's control center: one country at a time, chosen in the header. */
 export default async function PlatformLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireRole("super_admin");
   const markets = await getMarketSummaries();
-  const { current } = await pickMarkets(markets);
+  const last = (await cookies()).get(PLATFORM_MARKET_COOKIE)?.value;
+  const current = (markets.find((m) => m.country_code.toLowerCase() === last) ?? markets.find((m) => m.status === "active") ?? markets[0])?.slug ?? "";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/70 via-neutral-50 to-neutral-50">

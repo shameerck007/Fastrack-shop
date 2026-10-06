@@ -11,13 +11,13 @@ function formatDay(day: string): string {
   return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 }
 
-export default async function PlatformSalesPage({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
+export default async function PlatformSalesPage({ params, searchParams }: { params: Promise<{ country: string }>; searchParams: Promise<{ days?: string }> }) {
+  const { country } = await params;
   const { days: raw } = await searchParams;
   const days = RANGES.includes(Number(raw)) ? Number(raw) : 30;
   const [allMarkets, sales] = await Promise.all([getMarketSummaries(), getSalesByDay(days)]);
-  const { shown: markets, current } = await pickMarkets(allMarkets);
-  const marketQuery = current ? `&market=${current}` : "";
-
+  const { shown: markets, current } = pickMarkets(allMarkets, country);
+  
   return (
     <div className="flex flex-col gap-5">
       <PlatformHeader icon="💰" title="Sales" subtitle="Sales per day for the selected country, cancelled orders excluded.">
@@ -28,14 +28,14 @@ export default async function PlatformSalesPage({ searchParams }: { searchParams
           {RANGES.map((r) => (
             <Link
               key={r}
-              href={`/platform/sales?days=${r}${marketQuery}`}
+              href={`/platform/${current}/sales?days=${r}`}
               className={`rounded-full px-4 py-1.5 text-sm font-semibold ${days === r ? "bg-blue-600 text-white shadow-md shadow-blue-600/25" : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-blue-50"}`}
             >
               {r} days
             </Link>
           ))}
         </div>
-        <a href={`/platform/sales/export?days=${days}${marketQuery}`} className="rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50">
+        <a href={`/platform/${current}/sales/export?days=${days}`} className="rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50">
           ⬇ Download CSV
         </a>
       </div>

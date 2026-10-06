@@ -13,8 +13,11 @@ export interface SwitcherMarket {
 /** Country selector in the platform header. Everything below it shows only the chosen country. */
 export default function MarketSwitcher({ markets, current }: { markets: SwitcherMarket[]; current: string }) {
   const pathname = usePathname() || "/platform";
-  const cur = markets.find((m) => m.slug === current) ?? markets[0];
+  const parts = pathname.split("/");
+  const code = parts[2] && parts[2] !== "markets" ? parts[2].toLowerCase() : "";
+  const cur = markets.find((m) => m.country_code.toLowerCase() === code) ?? (code ? undefined : markets.find((m) => m.slug === current)) ?? markets[0];
   if (!cur) return null;
+  const hrefFor = (cc: string) => (code ? ["", "platform", cc, ...parts.slice(3)].join("/") : `/platform/${cc}`);
   const c = findCountry(cur.country_code);
   return (
     <details className="group relative">
@@ -31,8 +34,7 @@ export default function MarketSwitcher({ markets, current }: { markets: Switcher
           return (
             <Link
               key={m.slug}
-              href={`/api/platform/market?slug=${m.slug}&next=${encodeURIComponent(pathname)}`}
-              prefetch={false}
+              href={hrefFor(m.country_code.toLowerCase())}
               className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold ${active ? "bg-blue-50 text-blue-700" : "text-neutral-700 hover:bg-neutral-50"}`}
             >
               <span className="text-lg">{mc.flag}</span>

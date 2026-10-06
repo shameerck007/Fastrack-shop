@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getMarketSummaries, getSalesByDay } from "@/lib/platform";
 
 /** Sales per market per day as a CSV, for the platform owner's spreadsheets. */
-export async function GET(request: Request) {
+export async function GET(request: Request, ctx: { params: Promise<{ country: string }> }) {
+  const { country } = await ctx.params;
   const supabase = await createClient();
   const {
     data: { user },
@@ -13,15 +14,16 @@ export async function GET(request: Request) {
 
   const params = new URL(request.url).searchParams;
   const raw = Number(params.get("days"));
-  const marketSlug = params.get("market");
-  const days = [7, 14, 30, 90].includes(raw) ? raw : 30;
+    const days = [7, 14, 30, 90].includes(raw) ? raw : 30;
   const [markets, sales] = await Promise.all([getMarketSummaries(), getSalesByDay(days)]);
   const marketOf = new Map(markets.map((m) => [m.tenant_id, m]));
-  const onlyTenant = marketSlug ? markets.find((m) => m.slug === marketSlug)?.tenant_id : undefined;
+  const onlyTenant = markets.find((m) => m.country_code.toLowerCase() === country.toLowerCase())?.tenant_id;
+
+  if (!onlyTenant) return NextResponse.json({ error: "Unknown country" }, { status: 404 });
 
   const csvCell = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
   const lines = [["market", "country", "currency", "date", "orders", "sales", "avg_order", "delivery_fees", "tax_inside"].join(",")];
-  for (const r of [...sales].filter((x) => !onlyTenant || x.tenant_id === onlyTenant).sort((a, b) => (a.day < b.day ? 1 : -1))) {
+  for (const r of [...sales].filter((x) => x.tenant_id === onlyTenant).sort((a, b) => (a.day < b.day ? 1 : -1))) {
     const m = marketOf.get(r.tenant_id);
     lines.push(
       [
@@ -40,7 +42,7 @@ export async function GET(request: Request) {
   return new NextResponse(lines.join("\n") + "\n", {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="fastrack-sales-${days}d.csv"`,
+      "Content-Disposition": `attachment; filename="fastrack-sales-${country.toLowerCase()}-${days}d.csv"`,
     },
   });
 }

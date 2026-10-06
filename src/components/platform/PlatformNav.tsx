@@ -9,23 +9,25 @@ interface Item {
   icon: string;
   /** Opens one of the existing market-admin screens (for the market you are viewing). */
   external?: boolean;
+  /** Not tied to a country (the address is used as written). */
+  fixed?: boolean;
 }
 
 const SECTIONS: { title: string; items: Item[] }[] = [
   {
     title: "Platform",
     items: [
-      { href: "/platform", label: "Overview", icon: "📊" },
-      { href: "/platform/markets", label: "Markets", icon: "🌍" },
+      { href: "", label: "Overview", icon: "📊" },
+      { href: "/platform/markets", label: "Markets", fixed: true, icon: "🌍" },
     ],
   },
   {
     title: "Business",
     items: [
-      { href: "/platform/sales", label: "Sales", icon: "💰" },
-      { href: "/platform/suppliers", label: "Suppliers", icon: "🏪" },
-      { href: "/platform/riders", label: "Riders", icon: "🛵" },
-      { href: "/platform/customers", label: "Customers", icon: "👥" },
+      { href: "/sales", label: "Sales", icon: "💰" },
+      { href: "/suppliers", label: "Suppliers", icon: "🏪" },
+      { href: "/riders", label: "Riders", icon: "🛵" },
+      { href: "/customers", label: "Customers", icon: "👥" },
     ],
   },
   {
@@ -42,8 +44,15 @@ const SECTIONS: { title: string; items: Item[] }[] = [
 ];
 
 export default function PlatformNav() {
-  const pathname = usePathname();
-  const isActive = (href: string) => (href === "/platform" ? pathname === href : pathname.startsWith(href));
+  const pathname = usePathname() || "";
+  const seg = pathname.split("/")[2] ?? "";
+  const country = seg && seg !== "markets" ? seg : "";
+  const link = (item: Item) => (item.external || item.fixed ? item.href : country ? `/platform/${country}${item.href}` : "/platform");
+  const isActive = (item: Item) => {
+    const href = link(item);
+    if (item.external) return false;
+    return item.href === "" ? pathname === href : pathname.startsWith(href);
+  };
 
   return (
     <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:block md:overflow-visible md:rounded-3xl md:border md:border-neutral-200 md:bg-white md:p-3 md:pb-3 md:shadow-sm [&::-webkit-scrollbar]:hidden">
@@ -52,11 +61,11 @@ export default function PlatformNav() {
           <p className="hidden px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 first:pt-1 md:block">{section.title}</p>
           <div className="flex gap-2 md:flex-col md:gap-0.5">
             {section.items.map((item) => {
-              const active = !item.external && isActive(item.href);
+              const active = isActive(item);
               return (
                 <Link
-                  key={item.href}
-                  href={item.href}
+                  key={item.label}
+                  href={link(item)}
                   className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition md:rounded-xl md:py-2.5 ${
                     active
                       ? "bg-blue-600 text-white shadow-md shadow-blue-600/25"

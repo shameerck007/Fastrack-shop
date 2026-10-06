@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/types/database";
 import { TENANT_COOKIE, tenantHeaders } from "@/lib/tenant";
+import { ADMIN_SCOPE_COOKIE, scopeHeaders } from "@/lib/platform-scope";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -10,7 +11,7 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      global: { headers: tenantHeaders(cookieStore.get(TENANT_COOKIE)?.value) },
+      global: { headers: { ...tenantHeaders(cookieStore.get(TENANT_COOKIE)?.value), ...scopeHeaders(cookieStore.get(ADMIN_SCOPE_COOKIE)?.value) } },
       cookies: {
         getAll() {
           return cookieStore.getAll();

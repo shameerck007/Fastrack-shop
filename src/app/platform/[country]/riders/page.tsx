@@ -30,7 +30,8 @@ const STATUS_BADGE: Record<string, string> = {
   suspended: "bg-neutral-100 text-neutral-500",
 };
 
-export default async function PlatformRidersPage() {
+export default async function PlatformRidersPage({ params }: { params: Promise<{ country: string }> }) {
+  const { country } = await params;
     const supabase = await createClient();
   const loose = supabase as unknown as { rpc: (fn: string) => Promise<{ data: Record<string, unknown>[] | null }> };
   const [allMarkets, { data }, balancesRaw] = await Promise.all([
@@ -38,7 +39,7 @@ export default async function PlatformRidersPage() {
     supabase.from("delivery_partners").select("id, status, is_available, vehicle_type, city, rating, payout_method, tenant_id, profiles(full_name, phone)"),
     loose.rpc("admin_rider_settlement_overview").then((r) => r.data ?? []),
   ]);
-  const { shown, current } = await pickMarkets(allMarkets);
+  const { shown, current } = pickMarkets(allMarkets, country);
   const riders = (data ?? []) as unknown as RiderRow[];
   const balances = new Map<string, Balance>(
     balancesRaw.map((b) => [String(b.rider_id), { rider_id: String(b.rider_id), delivered_count: Number(b.delivered_count), balance: Number(b.balance) }])

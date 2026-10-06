@@ -26,7 +26,8 @@ const STATUS_BADGE: Record<string, string> = {
   suspended: "bg-neutral-100 text-neutral-500",
 };
 
-export default async function PlatformSuppliersPage() {
+export default async function PlatformSuppliersPage({ params }: { params: Promise<{ country: string }> }) {
+  const { country } = await params;
     const supabase = await createClient();
   const [allMarkets, top, { data }] = await Promise.all([
     getMarketSummaries(),
@@ -36,7 +37,7 @@ export default async function PlatformSuppliersPage() {
       .select("id, name, status, city, country, state, cr_number, vat_number, commission_rate, tenant_id, created_at")
       .order("created_at", { ascending: false }),
   ]);
-  const { shown, current } = await pickMarkets(allMarkets);
+  const { shown, current } = pickMarkets(allMarkets, country);
   const stores = (data ?? []) as unknown as StoreRow[];
   const salesByStore = new Map(top.map((t) => [t.store_id, t]));
 

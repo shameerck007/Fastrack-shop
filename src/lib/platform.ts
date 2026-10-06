@@ -1,4 +1,5 @@
-import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
+import { PLATFORM_MARKET_COOKIE } from "@/lib/platform-scope";
 import { createClient } from "@/lib/supabase/server";
 
 // Platform-owner analytics. The functions behind these (migration 0054) refuse anyone who is
@@ -132,14 +133,13 @@ export function fillDays(rows: SalesDay[], days: number, tz: "Asia/Riyadh" | "As
   return out;
 }
 
-/** The markets to show for a ?market=slug filter (all of them when no/unknown slug). */
-export const PLATFORM_MARKET_COOKIE = "fs_platform_market";
+export { PLATFORM_MARKET_COOKIE };
 
-/** The one market the platform owner is viewing (remembered in a cookie; first live market by default). Countries are never mixed. */
-export async function pickMarkets(markets: MarketSummary[]): Promise<{ shown: MarketSummary[]; current: string }> {
-  const slug = (await cookies()).get(PLATFORM_MARKET_COOKIE)?.value;
-  const match = markets.find((m) => m.slug === slug) ?? markets.find((m) => m.status === "active") ?? markets[0];
-  return { shown: match ? [match] : [], current: match?.slug ?? "" };
+/** The one market named by the address (/platform/in/...). Countries are never mixed; an unknown code is a 404. */
+export function pickMarkets(markets: MarketSummary[], country: string): { shown: MarketSummary[]; current: string } {
+  const match = markets.find((m) => m.country_code.toLowerCase() === country.toLowerCase());
+  if (!match) notFound();
+  return { shown: [match], current: match.country_code.toLowerCase() };
 }
 
 export interface LiveOrder {

@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { findCountry } from "@/lib/countries";
+import { ADMIN_SCOPE_COOKIE } from "@/lib/platform-scope";
 import { requireRole } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
 import Wordmark from "@/components/Wordmark";
@@ -10,6 +13,7 @@ import { translate } from "@/lib/i18n/t";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireRole("admin");
+  const scopeCountry = (await cookies()).get(ADMIN_SCOPE_COOKIE)?.value ?? null;
   const locale = await getServerLocale();
   const t = (key: string) => translate(locale, key);
 
@@ -42,6 +46,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
         </div>
       </header>
+
+      {profile.role === "super_admin" && scopeCountry && (
+        <div className="border-b border-blue-100 bg-blue-50">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 text-sm text-blue-900">
+            <span>
+              {findCountry(scopeCountry.toUpperCase()).flag} Working in <b>{findCountry(scopeCountry.toUpperCase()).name}</b> only
+            </span>
+            <Link href={`/platform/${scopeCountry}`} className="font-semibold text-blue-700 hover:underline">
+              Switch country in Platform →
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 md:flex-row md:gap-6 md:py-6">
         <aside className="shrink-0 md:w-56">

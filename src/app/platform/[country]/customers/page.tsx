@@ -19,14 +19,15 @@ interface OrderRow {
   tenant_id: string;
 }
 
-export default async function PlatformCustomersPage() {
+export default async function PlatformCustomersPage({ params }: { params: Promise<{ country: string }> }) {
+  const { country } = await params;
     const supabase = await createClient();
   const [allMarkets, { data: profiles }, { data: orders }] = await Promise.all([
     getMarketSummaries(),
     supabase.from("profiles").select("id, full_name, phone, created_at, tenant_id").eq("role", "customer").order("created_at", { ascending: false }).limit(500),
     supabase.from("orders").select("user_id, total, status, tenant_id").neq("status", "cancelled").limit(10000),
   ]);
-  const { shown, current } = await pickMarkets(allMarkets);
+  const { shown, current } = pickMarkets(allMarkets, country);
   const customers = (profiles ?? []) as unknown as CustomerRow[];
   const orderRows = (orders ?? []) as unknown as OrderRow[];
 
