@@ -11,14 +11,17 @@ export async function GET(request: Request) {
   const { data: profile } = user ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle() : { data: null };
   if (profile?.role !== "super_admin") return NextResponse.json({ error: "Not allowed" }, { status: 403 });
 
-  const raw = Number(new URL(request.url).searchParams.get("days"));
+  const params = new URL(request.url).searchParams;
+  const raw = Number(params.get("days"));
+  const marketSlug = params.get("market");
   const days = [7, 14, 30, 90].includes(raw) ? raw : 30;
   const [markets, sales] = await Promise.all([getMarketSummaries(), getSalesByDay(days)]);
   const marketOf = new Map(markets.map((m) => [m.tenant_id, m]));
+  const onlyTenant = marketSlug ? markets.find((m) => m.slug === marketSlug)?.tenant_id : undefined;
 
   const csvCell = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
   const lines = [["market", "country", "currency", "date", "orders", "sales", "avg_order", "delivery_fees", "tax_inside"].join(",")];
-  for (const r of [...sales].sort((a, b) => (a.day < b.day ? 1 : -1))) {
+  for (const r of [...sales].filter((x) => !onlyTenant || x.tenant_id === onlyTenant).sort((a, b) => (a.day < b.day ? 1 : -1))) {
     const m = marketOf.get(r.tenant_id);
     lines.push(
       [

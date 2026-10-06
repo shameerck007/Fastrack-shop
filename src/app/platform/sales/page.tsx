@@ -1,8 +1,9 @@
 import Link from "next/link";
-import PageHero from "@/components/PageHero";
+import PlatformHeader from "@/components/platform/PlatformHeader";
+import MarketFilter from "@/components/platform/MarketFilter";
 import { findCountry } from "@/lib/countries";
 import { moneyFor } from "@/lib/money";
-import { getMarketSummaries, getSalesByDay } from "@/lib/platform";
+import { getMarketSummaries, getSalesByDay, pickMarkets } from "@/lib/platform";
 
 const RANGES = [7, 14, 30, 90];
 
@@ -11,28 +12,32 @@ function formatDay(day: string): string {
   return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 }
 
-export default async function PlatformSalesPage({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
-  const { days: raw } = await searchParams;
+export default async function PlatformSalesPage({ searchParams }: { searchParams: Promise<{ days?: string; market?: string }> }) {
+  const { days: raw, market } = await searchParams;
   const days = RANGES.includes(Number(raw)) ? Number(raw) : 30;
-  const [markets, sales] = await Promise.all([getMarketSummaries(), getSalesByDay(days)]);
+  const [allMarkets, sales] = await Promise.all([getMarketSummaries(), getSalesByDay(days)]);
+  const { shown: markets, current } = pickMarkets(allMarkets, market);
+  const marketQuery = current ? `&market=${current}` : "";
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHero icon="💰" title="Sales" subtitle="Sales per day for each market, cancelled orders excluded. Each table is in that market's own currency." />
+      <PlatformHeader icon="💰" title="Sales" subtitle="Sales per day for each market, cancelled orders excluded. Each table is in that market's own currency.">
+        <MarketFilter markets={allMarkets} current={current} basePath="/platform/sales" keep={{ days: String(days) }} />
+      </PlatformHeader>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-2">
           {RANGES.map((r) => (
             <Link
               key={r}
-              href={`/platform/sales?days=${r}`}
+              href={`/platform/sales?days=${r}${marketQuery}`}
               className={`rounded-full px-4 py-1.5 text-sm font-semibold ${days === r ? "bg-blue-600 text-white shadow-md shadow-blue-600/25" : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-blue-50"}`}
             >
               {r} days
             </Link>
           ))}
         </div>
-        <a href={`/platform/sales/export?days=${days}`} className="rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50">
+        <a href={`/platform/sales/export?days=${days}${marketQuery}`} className="rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50">
           ⬇ Download CSV
         </a>
       </div>

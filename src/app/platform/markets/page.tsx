@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import PageHero from "@/components/PageHero";
+import PlatformHeader from "@/components/platform/PlatformHeader";
 import { CreateMarketForm, MarketStatusButtons } from "@/components/platform/MarketControls";
 import { findCountry } from "@/lib/countries";
 import { moneyFor } from "@/lib/money";
@@ -22,7 +22,7 @@ export default async function PlatformMarketsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHero
+      <PlatformHeader
         icon="🌍"
         title="Markets"
         subtitle="Each market is an independent shop with its own customers, suppliers, riders, products, orders and money. Open a market when it is ready, hide it to pause new visitors."

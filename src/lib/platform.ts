@@ -130,3 +130,40 @@ export function fillDays(rows: SalesDay[], days: number, tz: "Asia/Riyadh" | "As
   }
   return out;
 }
+
+/** The markets to show for a ?market=slug filter (all of them when no/unknown slug). */
+export function pickMarkets(markets: MarketSummary[], slug: string | null | undefined): { shown: MarketSummary[]; current: string | null } {
+  const match = slug ? markets.find((m) => m.slug === slug) : undefined;
+  return match ? { shown: [match], current: match.slug } : { shown: markets, current: null };
+}
+
+export interface LiveOrder {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number;
+  currency: string;
+  created_at: string;
+  tenant_id: string;
+  delivery_type: string;
+}
+
+/** Orders still in progress across all markets, newest first. */
+export async function getLiveOrders(limit = 12): Promise<LiveOrder[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("orders")
+    .select("id, order_number, status, total, currency, created_at, tenant_id, delivery_type")
+    .not("status", "in", "(delivered,cancelled)")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return ((data ?? []) as unknown as LiveOrder[]).map((o) => ({ ...o, total: Number(o.total), currency: o.currency ?? "SAR" }));
+}
+
+/** "12 min", "3 h", "2 d" — how long ago, for the live board. */
+export function ageLabel(iso: string, now = Date.now()): string {
+  const minutes = Math.max(0, Math.round((now - new Date(iso).getTime()) / 60000));
+  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 60 * 48) return `${Math.round(minutes / 60)} h`;
+  return `${Math.round(minutes / 1440)} d`;
+}

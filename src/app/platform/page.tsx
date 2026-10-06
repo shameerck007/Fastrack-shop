@@ -1,17 +1,22 @@
 import Link from "next/link";
-import PageHero from "@/components/PageHero";
+import PlatformHeader from "@/components/platform/PlatformHeader";
+import MarketFilter from "@/components/platform/MarketFilter";
+import LandingPreferenceCard from "@/components/LandingPreferenceCard";
 import RevenueTrendChart from "@/components/admin/charts/RevenueTrendChart";
 import BarList from "@/components/admin/charts/BarList";
 import { findCountry } from "@/lib/countries";
 import { moneyFor } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/utils";
 import {
+  ageLabel,
   fillDays,
   getAttention,
+  getLiveOrders,
   getMarketSummaries,
   getSalesByDay,
   getStatusCounts,
   getTopSuppliers,
+  pickMarkets,
   type Attention,
   type MarketSummary,
   type SalesDay,
@@ -168,30 +173,123 @@ function MarketPanel({ m, sales, status, suppliers }: { m: MarketSummary; sales:
   );
 }
 
-export default async function PlatformOverviewPage() {
-  const [markets, sales, status, suppliers, attention] = await Promise.all([
+function GlanceTable({ markets }: { markets: MarketSummary[] }) {
+  return (
+    <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
+        <h2 className="text-base font-extrabold tracking-tight">Markets at a glance</h2>
+        <span className="text-xs text-neutral-400">money in each market&apos;s own currency</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[820px] text-sm">
+          <thead>
+            <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+              <th className="px-5 py-2.5">Market</th>
+              <th className="px-3 py-2.5 text-right">Sales today</th>
+              <th className="px-3 py-2.5 text-right">Sales · 30d</th>
+              <th className="px-3 py-2.5 text-right">Orders · 30d</th>
+              <th className="px-3 py-2.5 text-right">Avg order</th>
+              <th className="px-3 py-2.5 text-right">Delivered</th>
+              <th className="px-3 py-2.5 text-right">Suppliers</th>
+              <th className="px-5 py-2.5 text-right">Riders online</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-100">
+            {markets.map((m) => {
+              const money = moneyFor(m.currency);
+              const country = findCountry(m.country_code);
+              const rate = m.orders_30d > 0 ? Math.round((m.delivered_30d / m.orders_30d) * 100) : null;
+              return (
+                <tr key={m.tenant_id} className="hover:bg-neutral-50">
+                  <td className="px-5 py-3">
+                    <span className="flex items-center gap-2 font-semibold text-neutral-900">
+                      <span className="text-xl">{country.flag}</span>
+                      {m.name}
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_BADGE[m.status] ?? "bg-neutral-100"}`}>{m.status === "active" ? "Live" : m.status}</span>
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-right font-semibold text-neutral-900">{money(m.gmv_today)}</td>
+                  <td className="px-3 py-3 text-right text-neutral-700">{money(m.gmv_30d)}</td>
+                  <td className="px-3 py-3 text-right text-neutral-700">{m.orders_30d}</td>
+                  <td className="px-3 py-3 text-right text-neutral-700">{money(m.avg_order_30d)}</td>
+                  <td className={`px-3 py-3 text-right font-semibold ${rate !== null && rate >= 80 ? "text-emerald-600" : "text-neutral-700"}`}>{rate === null ? "—" : `${rate}%`}</td>
+                  <td className="px-3 py-3 text-right text-neutral-700">{m.suppliers_active}</td>
+                  <td className="px-5 py-3 text-right text-neutral-700">
+                    {m.riders_online}/{m.riders_approved}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+const STATUS_PILL: Record<string, string> = {
+  pending: "bg-neutral-100 text-neutral-700",
+  confirmed: "bg-blue-50 text-blue-700",
+  preparing: "bg-blue-50 text-blue-700",
+  ready_for_pickup: "bg-amber-50 text-amber-700",
+  rider_assigned: "bg-amber-50 text-amber-700",
+  out_for_delivery: "bg-violet-50 text-violet-700",
+};
+
+export default async function PlatformOverviewPage({ searchParams }: { searchParams: Promise<{ market?: string }> }) {
+  const { market } = await searchParams;
+  const [allMarkets, sales, status, suppliers, attention, live] = await Promise.all([
     getMarketSummaries(),
     getSalesByDay(14),
     getStatusCounts(),
     getTopSuppliers(30, 5),
     getAttention(),
+    getLiveOrders(40),
   ]);
-  const nameOf = (tenantId: string) => markets.find((m) => m.tenant_id === tenantId)?.name ?? "—";
+  const { shown, current } = pickMarkets(allMarkets, market);
+  const shownIds = new Set(shown.map((m) => m.tenant_id));
+  const nameOf = (tenantId: string) => allMarkets.find((m) => m.tenant_id === tenantId)?.name ?? "—";
+  const marketOf = (tenantId: string) => allMarkets.find((m) => m.tenant_id === tenantId);
 
+  const scopedAttention = attention.filter((a) => shownIds.has(a.tenant_id));
   const attentionKinds = (Object.keys(ATTENTION) as Attention["kind"][]).map((kind) => ({
     kind,
-    rows: attention.filter((a) => a.kind === kind && a.cnt > 0),
+    rows: scopedAttention.filter((a) => a.kind === kind && a.cnt > 0),
   }));
-  const attentionTotal = attention.reduce((n, a) => n + a.cnt, 0);
+  const attentionTotal = scopedAttention.reduce((n, a) => n + a.cnt, 0);
+  const liveOrders = live.filter((o) => shownIds.has(o.tenant_id)).slice(0, 10);
+  const now = Date.now();
+
+  const totals = {
+    ordersToday: shown.reduce((n, m) => n + m.orders_today, 0),
+    suppliers: shown.reduce((n, m) => n + m.suppliers_active, 0),
+    ridersOnline: shown.reduce((n, m) => n + m.riders_online, 0),
+    customers: shown.reduce((n, m) => n + m.customers_total, 0),
+  };
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHero
-        icon="🌍"
-        title="Platform overview"
-        subtitle="Every market side by side. Each market's money is shown in its own currency and never added to another's."
-        chips={markets.map((m) => `${findCountry(m.country_code).flag} ${m.name} · ${m.status === "active" ? "Live" : m.status}`)}
-      />
+      <PlatformHeader icon="📊" title="Platform overview" subtitle="Everything across your markets in one place. Money is always shown in each market's own currency.">
+        <div className="flex flex-col gap-4">
+          <MarketFilter markets={allMarkets} current={current} basePath="/platform" />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              ["Orders today", totals.ordersToday, "🧾"],
+              ["Live suppliers", totals.suppliers, "🏪"],
+              ["Riders online", totals.ridersOnline, "🛵"],
+              ["Customers", totals.customers, "👥"],
+            ].map(([label, value, icon]) => (
+              <div key={String(label)} className="flex items-center gap-3 rounded-2xl bg-neutral-50 px-4 py-3">
+                <span className="text-xl">{icon}</span>
+                <div>
+                  <p className="text-xl font-extrabold leading-tight text-neutral-900">{value}</p>
+                  <p className="text-[11px] text-neutral-500">{label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </PlatformHeader>
 
       <section className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
@@ -207,7 +305,7 @@ export default async function PlatformOverviewPage() {
             {attentionKinds
               .filter((k) => k.rows.length > 0)
               .map(({ kind, rows }) => (
-                <Link key={kind} href={ATTENTION[kind].href} className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 transition hover:shadow-md">
+                <Link key={kind} href={ATTENTION[kind].href} className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 transition hover:-translate-y-0.5 hover:shadow-md">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-xl shadow-sm">{ATTENTION[kind].icon}</span>
                   <span className="min-w-0">
                     <span className="block text-2xl font-extrabold leading-tight text-neutral-900">{rows.reduce((n, r) => n + r.cnt, 0)}</span>
@@ -220,7 +318,63 @@ export default async function PlatformOverviewPage() {
         )}
       </section>
 
-      {markets.map((m) => (
+      {shown.length > 1 && <GlanceTable markets={shown} />}
+
+      <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
+          <h2 className="flex items-center gap-2 text-base font-extrabold tracking-tight">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+            Live orders
+          </h2>
+          <Link href="/admin/orders" className="text-xs font-semibold text-blue-700 hover:underline">
+            Open the order board →
+          </Link>
+        </div>
+        {liveOrders.length === 0 ? (
+          <p className="p-5 text-sm text-neutral-500">No orders in progress right now.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead>
+                <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                  <th className="px-5 py-2.5">Order</th>
+                  <th className="px-3 py-2.5">Market</th>
+                  <th className="px-3 py-2.5">Status</th>
+                  <th className="px-3 py-2.5">Delivery</th>
+                  <th className="px-3 py-2.5 text-right">Total</th>
+                  <th className="px-5 py-2.5 text-right">Age</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {liveOrders.map((o) => {
+                  const m = marketOf(o.tenant_id);
+                  const old = now - new Date(o.created_at).getTime() > 30 * 60000;
+                  return (
+                    <tr key={o.id} className="hover:bg-neutral-50">
+                      <td className="px-5 py-2.5">
+                        <Link href={`/admin/orders/${o.id}`} className="font-semibold text-neutral-900 hover:text-blue-600">
+                          #{o.order_number}
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2.5 text-neutral-600">
+                        {m ? `${findCountry(m.country_code).flag} ${findCountry(m.country_code).name}` : "—"}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${STATUS_PILL[o.status] ?? "bg-neutral-100"}`}>{ORDER_STATUS_LABELS[o.status] ?? o.status}</span>
+                      </td>
+                      <td className="px-3 py-2.5 capitalize text-neutral-600">{o.delivery_type}</td>
+                      <td className="px-3 py-2.5 text-right font-semibold text-neutral-900">{moneyFor(o.currency)(o.total)}</td>
+                      <td className={`px-5 py-2.5 text-right text-xs font-semibold ${old ? "text-red-600" : "text-neutral-500"}`}>{ageLabel(o.created_at, now)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {shown.map((m) => (
         <MarketPanel
           key={m.tenant_id}
           m={m}
@@ -229,6 +383,8 @@ export default async function PlatformOverviewPage() {
           suppliers={suppliers.filter((s) => s.tenant_id === m.tenant_id)}
         />
       ))}
+
+      <LandingPreferenceCard />
     </div>
   );
 }

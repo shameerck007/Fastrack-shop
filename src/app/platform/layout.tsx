@@ -2,15 +2,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
 import Wordmark from "@/components/Wordmark";
-import PortalNav, { type PortalNavItem } from "@/components/PortalNav";
-
-const NAV: PortalNavItem[] = [
-  { href: "/platform", label: "Overview", icon: "📊" },
-  { href: "/platform/markets", label: "Markets", icon: "🌍" },
-  { href: "/platform/sales", label: "Sales", icon: "💰" },
-  { href: "/platform/suppliers", label: "Suppliers", icon: "🏪" },
-  { href: "/platform/riders", label: "Riders", icon: "🛵" },
-];
+import PlatformNav from "@/components/platform/PlatformNav";
 
 /** The platform owner's control center: every market side by side, each in its own currency. */
 export default async function PlatformLayout({ children }: { children: React.ReactNode }) {
@@ -41,8 +33,8 @@ export default async function PlatformLayout({ children }: { children: React.Rea
       </header>
 
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 md:flex-row md:gap-6 md:py-6">
-        <aside className="shrink-0 md:w-56">
-          <PortalNav items={NAV} rootHref="/platform" />
+        <aside className="shrink-0 md:sticky md:top-20 md:w-60 md:self-start">
+          <PlatformNav />
         </aside>
         <div className="min-w-0 flex-1">{children}</div>
       </div>

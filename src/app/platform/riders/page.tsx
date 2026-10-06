@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import PageHero from "@/components/PageHero";
+import PlatformHeader from "@/components/platform/PlatformHeader";
+import MarketFilter from "@/components/platform/MarketFilter";
 import { findCountry } from "@/lib/countries";
 import { moneyFor } from "@/lib/money";
-import { getMarketSummaries } from "@/lib/platform";
+import { getMarketSummaries, pickMarkets } from "@/lib/platform";
 
 interface RiderRow {
   id: string;
@@ -30,14 +31,16 @@ const STATUS_BADGE: Record<string, string> = {
   suspended: "bg-neutral-100 text-neutral-500",
 };
 
-export default async function PlatformRidersPage() {
+export default async function PlatformRidersPage({ searchParams }: { searchParams: Promise<{ market?: string }> }) {
+  const { market } = await searchParams;
   const supabase = await createClient();
   const loose = supabase as unknown as { rpc: (fn: string) => Promise<{ data: Record<string, unknown>[] | null }> };
-  const [markets, { data }, balancesRaw] = await Promise.all([
+  const [allMarkets, { data }, balancesRaw] = await Promise.all([
     getMarketSummaries(),
     supabase.from("delivery_partners").select("id, status, is_available, vehicle_type, city, rating, payout_method, tenant_id, profiles(full_name, phone)"),
     loose.rpc("admin_rider_settlement_overview").then((r) => r.data ?? []),
   ]);
+  const { shown, current } = pickMarkets(allMarkets, market);
   const riders = (data ?? []) as unknown as RiderRow[];
   const balances = new Map<string, Balance>(
     balancesRaw.map((b) => [String(b.rider_id), { rider_id: String(b.rider_id), delivered_count: Number(b.delivered_count), balance: Number(b.balance) }])
@@ -45,9 +48,11 @@ export default async function PlatformRidersPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHero icon="🛵" title="Riders" subtitle="Every rider in every market. A negative balance means the rider is holding cash-on-delivery money that FasTrack has not received yet." />
+      <PlatformHeader icon="🛵" title="Riders" subtitle="Every rider in every market. A negative balance means the rider is holding cash-on-delivery money that FasTrack has not received yet.">
+        <MarketFilter markets={allMarkets} current={current} basePath="/platform/riders" />
+      </PlatformHeader>
 
-      {markets.map((m) => {
+      {shown.map((m) => {
         const money = moneyFor(m.currency);
         const rows = riders.filter((r) => r.tenant_id === m.tenant_id);
         return (

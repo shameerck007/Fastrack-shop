@@ -29,7 +29,7 @@ export default async function LandingPreferenceCard() {
   return (
     <LandingPreference
       initial={profile?.landing_page === "shop" ? "shop" : "portal"}
-      portalLabel={t("account.dashboard_tile_title", { role: t(roleKey) })}
+      portalLabel={profile?.role === "super_admin" ? "Platform dashboard" : t("account.dashboard_tile_title", { role: t(roleKey) })}
     />
   );
 }
