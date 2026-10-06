@@ -1,5 +1,7 @@
 import { LegalPageShell, LegalSection } from "@/components/LegalPageShell";
 import { getCompanySettings } from "@/lib/company-settings";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import IndiaPrivacy from "@/components/legal/IndiaPrivacy";
 
 export const metadata = { title: "Privacy Notice — FasTrack Shop" };
 
@@ -22,6 +24,8 @@ const TOC = [
 
 export default async function PrivacyPage() {
   const company = await getCompanySettings();
+  // The legal text follows the market being used: India has its own terms and privacy notice.
+  if ((await getCurrentTenant())?.country_code === "IN") return <IndiaPrivacy company={company} />;
 
   return (
     <LegalPageShell
