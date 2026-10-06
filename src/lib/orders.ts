@@ -1,3 +1,4 @@
+import { getCurrentTenant } from "@/lib/tenant-server";
 import { createClient } from "@/lib/supabase/server";
 import type { DeliveryType, Order, OrderItem, OrderStatus, OrderStatusHistory, ProductWithVariants } from "@/types/database";
 
@@ -46,7 +47,9 @@ export interface OrderListItem extends Order {
   payments: { method: string }[];
 }
 
+/** Orders placed in the market being browsed. Order history is kept per country. */
 export async function getMyOrders(): Promise<OrderListItem[]> {
+  const country = (await getCurrentTenant())?.country_code ?? "SA";
   const supabase = await createClient();
   const {
     data: { user },
@@ -62,10 +65,25 @@ export async function getMyOrders(): Promise<OrderListItem[]> {
       "*, order_items(id, product_name, variant_label, ordered_quantity, variant_id, product_variants!variant_id(products(image_url, name, name_ar))), addresses(short_address, city, label), payments(method)"
     )
     .eq("user_id", user.id)
+    .eq("country_code", country)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
   return (data as unknown as OrderListItem[]) ?? [];
+}
+
+/** How many of the customer's orders sit in each other country (for the "view in India" hint). */
+export async function getOtherMarketOrderCounts(): Promise<{ countryCode: string; count: number }[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  const country = (await getCurrentTenant())?.country_code ?? "SA";
+  const { data } = await supabase.from("orders").select("country_code").eq("user_id", user.id).neq("country_code", country);
+  const counts = new Map<string, number>();
+  for (const row of (data ?? []) as { country_code: string }[]) counts.set(row.country_code, (counts.get(row.country_code) ?? 0) + 1);
+  return [...counts.entries()].map(([countryCode, count]) => ({ countryCode, count }));
 }
 
 export async function getBuyAgainProducts(limit = 10): Promise<ProductWithVariants[]> {

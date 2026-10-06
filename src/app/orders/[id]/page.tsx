@@ -16,6 +16,7 @@ import { translate } from "@/lib/i18n/t";
 import { getMoney } from "@/lib/tenant-server";
 import { moneyFor } from "@/lib/money";
 import { getCurrentTenant } from "@/lib/tenant-server";
+import { findCountry } from "@/lib/countries";
 
 export default async function OrderDetailPage({
   params,
@@ -30,6 +31,7 @@ export default async function OrderDetailPage({
 
   if (!order) notFound();
   // An order keeps the currency it was placed in, whichever market the customer is browsing now.
+  const marketName = findCountry((await getCurrentTenant())?.country_code ?? "SA").name;
   const sameMarket = !order.country_code || order.country_code === ((await getCurrentTenant())?.country_code ?? "SA");
   const orderMoney = order.currency ? moneyFor(order.currency) : money;
 
@@ -58,6 +60,11 @@ export default async function OrderDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
+      {!sameMarket && order.country_code && (
+        <p className="mb-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-sm text-blue-900">
+          {findCountry(order.country_code).flag} This order was placed in {findCountry(order.country_code).name}. You are shopping in {marketName}.
+        </p>
+      )}
       {showTracking && (
         <OrderTrackingHero
           orderId={order.id}

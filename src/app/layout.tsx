@@ -15,6 +15,7 @@ import LocaleProvider from "@/components/LocaleProvider";
 import StoreDirectoryProvider from "@/components/StoreDirectoryProvider";
 import CustomerStateProvider from "@/components/CustomerStateProvider";
 import MarketSuggestionBanner from "@/components/MarketSuggestionBanner";
+import MarketToast from "@/components/MarketToast";
 import MoneyProvider from "@/components/MoneyProvider";
 import { getCurrentTenant, getMarketSuggestion } from "@/lib/tenant-server";
 import DefaultCountryProvider from "@/components/DefaultCountryProvider";
@@ -84,6 +85,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${tajawal.variable} overscroll-none font-sans antialiased bg-neutral-50 text-neutral-900`}
       >
         <ChunkErrorReload />
+        <MarketToast />
         <LocaleProvider locale={locale}>
         <MoneyProvider currency={currency} countryCode={marketCountry}>
         <DefaultCountryProvider countryCode={countryCode}>

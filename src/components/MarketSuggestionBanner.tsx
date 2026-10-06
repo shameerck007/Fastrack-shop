@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { dismissMarketSuggestion, setMarket } from "@/lib/actions/tenant";
 import { findCountry } from "@/lib/countries";
+import { MARKET_TOAST_KEY } from "@/components/MarketSwitchDialog";
 import { useLocale } from "@/components/LocaleProvider";
 import type { Tenant } from "@/lib/tenant";
 
@@ -29,6 +30,9 @@ export default function MarketSuggestionBanner({ suggested }: { suggested: Tenan
               startTransition(async () => {
                 const res = await setMarket(suggested.id);
                 if (!res.error) {
+                  try {
+                    sessionStorage.setItem(MARKET_TOAST_KEY, JSON.stringify({ flag: country.flag, name: country.name }));
+                  } catch {}
                   setHidden(true);
                   window.location.reload();
                 }

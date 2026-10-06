@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getMyOrders, type OrderListItem } from "@/lib/orders";
+import { getMyOrders, getOtherMarketOrderCounts, type OrderListItem } from "@/lib/orders";
+import OtherMarketOrdersNote from "@/components/OtherMarketOrdersNote";
 
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
@@ -9,7 +10,7 @@ import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import type { OrderStatus } from "@/types/database";
 import { getMoney } from "@/lib/tenant-server";
 import { moneyFor } from "@/lib/money";
-import { getCurrentTenant } from "@/lib/tenant-server";
+import { getActiveTenants, getCurrentTenant } from "@/lib/tenant-server";
 import { findCountry } from "@/lib/countries";
 
 const ACTIVE_STATUSES: OrderStatus[] = [
@@ -56,16 +57,19 @@ export default async function OrdersPage({
   searchParams: Promise<{ filter?: string }>;
 }) {
   const money = await getMoney();
-  const marketCountry = (await getCurrentTenant())?.country_code ?? "SA";
+  const currentTenant = await getCurrentTenant();
+  const marketCountry = currentTenant?.country_code ?? "SA";
   const { filter = "all" } = await searchParams;
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
-  const orders = await getMyOrders();
+  const [orders, otherCounts, tenants] = await Promise.all([getMyOrders(), getOtherMarketOrderCounts(), getActiveTenants()]);
   const visible = orders.filter((o) => matchesFilter(o, filter));
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
       <h1 className="mb-4 text-xl font-semibold max-md:hidden">{t("orders.title")}</h1>
+
+      {currentTenant && <OtherMarketOrdersNote tenants={tenants} currentId={currentTenant.id} others={otherCounts} />}
 
       {orders.length === 0 ? (
         <p className="text-sm text-neutral-500">

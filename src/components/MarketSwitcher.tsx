@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { setMarket } from "@/lib/actions/tenant";
+import { useState } from "react";
+import MarketSwitchDialog from "@/components/MarketSwitchDialog";
 import { findCountry } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
 import type { Tenant } from "@/lib/tenant";
@@ -9,23 +9,15 @@ import type { Tenant } from "@/lib/tenant";
 /** "Shopping in 🇸🇦 Saudi Arabia — change": lets a customer move between markets. */
 export default function MarketSwitcher({ tenants, currentId }: { tenants: Tenant[]; currentId: string }) {
   const { t } = useLocale();
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   if (tenants.length < 2) return null;
 
+  const [target, setTarget] = useState<Tenant | null>(null);
+  const current = tenants.find((x) => x.id === currentId) ?? null;
+
   function choose(id: string) {
     if (id === currentId) return;
-    setError(null);
-    startTransition(async () => {
-      const res = await setMarket(id);
-      if (res.error) {
-        setError(res.error);
-        return;
-      }
-      // Cart, currency, delivery zones and header all depend on the market: start the page fresh.
-      window.location.reload();
-    });
+    setTarget(tenants.find((x) => x.id === id) ?? null);
   }
 
   return (
@@ -45,9 +37,8 @@ export default function MarketSwitcher({ tenants, currentId }: { tenants: Tenant
             <button
               key={tenant.id}
               type="button"
-              disabled={pending}
               onClick={() => choose(tenant.id)}
-              className={`flex items-center gap-3 rounded-xl border p-3 text-start transition disabled:opacity-60 ${
+              className={`flex items-center gap-3 rounded-xl border p-3 text-start transition ${
                 active ? "border-blue-600 bg-blue-50" : "border-neutral-300 hover:border-blue-300"
               }`}
             >
@@ -67,7 +58,7 @@ export default function MarketSwitcher({ tenants, currentId }: { tenants: Tenant
           );
         })}
       </div>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      <MarketSwitchDialog open={!!target} target={target} current={current} onClose={() => setTarget(null)} />
     </div>
   );
 }
