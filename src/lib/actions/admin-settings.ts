@@ -13,6 +13,7 @@ export async function updateCompanySettings(input: {
   postalCode?: string;
   phone?: string;
   email?: string;
+  state?: string;
 }) {
   const supabase = await createClient();
 
@@ -34,6 +35,7 @@ export async function updateCompanySettings(input: {
       postal_code: input.postalCode?.trim() || null,
       phone: input.phone?.trim() || null,
       email: input.email?.trim() || null,
+      state: input.state?.trim() || null,
       updated_at: new Date().toISOString(),
     })
     .eq("tenant_id", tenantId);

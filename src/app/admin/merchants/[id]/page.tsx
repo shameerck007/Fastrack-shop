@@ -163,10 +163,23 @@ export default async function AdminMerchantDetailPage({
           </Card>
 
           <Card title={t("merchant_detail.business_details")}>
-            <Row label={t("merchant_detail.cr_number")}>{store.cr_number}</Row>
-            {store.vat_number && <Row label={t("merchant_detail.vat_number")}>{store.vat_number}</Row>}
+            <Row label={store.country === "India" ? "PAN" : t("merchant_detail.cr_number")}>{store.cr_number}</Row>
+            {store.vat_number && <Row label={store.country === "India" ? "GSTIN" : t("merchant_detail.vat_number")}>{store.vat_number}</Row>}
+            {store.state && <Row label="State">{store.state}</Row>}
+            {store.fssai_number && <Row label="FSSAI">{store.fssai_number}</Row>}
             {store.contact_phone && <Row label={t("merchant_detail.contact_phone")}>{store.contact_phone}</Row>}
             {store.bank_name && <Row label={t("merchant_detail.bank")}>{store.bank_name}</Row>}
+            {store.bank_account_holder && <Row label="Account holder">{store.bank_account_holder}</Row>}
+            {store.bank_account_number && (
+              <Row label="Account number">
+                <span className="font-mono">{store.bank_account_number}</span>
+              </Row>
+            )}
+            {store.bank_ifsc && (
+              <Row label="IFSC">
+                <span className="font-mono">{store.bank_ifsc}</span>
+              </Row>
+            )}
             {store.bank_iban && (
               <Row label={t("merchant_detail.iban")}>
                 <span className="font-mono">{formatIban(store.bank_iban)}</span>{" "}

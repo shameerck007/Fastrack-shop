@@ -1,6 +1,8 @@
 "use client";
 
 import PhoneNumberInput from "@/components/PhoneNumberInput";
+import { useMarket } from "@/components/MoneyProvider";
+import { INDIAN_STATES } from "@/lib/india";
 
 import { useState, useTransition } from "react";
 import { updateCompanySettings } from "@/lib/actions/admin-settings";
@@ -18,6 +20,9 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
   const [postalCode, setPostalCode] = useState(settings.postal_code ?? "");
   const [phone, setPhone] = useState(settings.phone ?? "");
   const [email, setEmail] = useState(settings.email ?? "");
+  const [stateName, setStateName] = useState(settings.state ?? "");
+  const { countryCode } = useMarket();
+  const isIndia = countryCode === "IN";
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -38,6 +43,7 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
           postalCode,
           phone,
           email,
+          state: stateName,
         });
         setSaved(true);
       } catch (err) {
@@ -65,13 +71,26 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
             <input required value={tradingName} onChange={(e) => setTradingName(e.target.value)} className={`${field} w-full`} />
           </div>
           <div>
-            <label className={label}>{t("admin.cr_number")}</label>
+            <label className={label}>{isIndia ? "PAN" : t("admin.cr_number")}</label>
             <input value={crNumber} onChange={(e) => setCrNumber(e.target.value)} placeholder={t("admin.not_set_placeholder")} className={`${field} w-full`} />
           </div>
           <div>
-            <label className={label}>{t("admin.vat_number")}</label>
-            <input value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} placeholder={t("admin.vat_placeholder")} className={`${field} w-full`} />
+            <label className={label}>{isIndia ? "GSTIN" : t("admin.vat_number")}</label>
+            <input value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} placeholder={isIndia ? "27ABCDE1234F1Z5" : t("admin.vat_placeholder")} className={`${field} w-full`} />
           </div>
+          {isIndia && (
+            <div>
+              <label className={label}>State (decides CGST + SGST or IGST on invoices)</label>
+              <select value={stateName} onChange={(e) => setStateName(e.target.value)} className={`${field} w-full bg-white`}>
+                <option value="">Select state</option>
+                {INDIAN_STATES.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </section>
 

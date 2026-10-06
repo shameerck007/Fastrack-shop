@@ -13,8 +13,14 @@ import { validatePhone } from "@/lib/countries";
 import { checkBankDetails } from "@/lib/saudi-banks";
 import { checkSaudiIban, IBAN_PROBLEM_MESSAGES } from "@/lib/iban";
 import { defaultOpeningHours } from "@/lib/store-hours";
+import IndiaSupplierFields from "@/components/merchant/IndiaSupplierFields";
+import { EMPTY_INDIA_SUPPLIER, validateIndiaSupplier } from "@/lib/india-business";
+import { useMarket } from "@/components/MoneyProvider";
 
 export default function StoreApplicationForm() {
+  const { countryCode } = useMarket();
+  const isIndia = countryCode === "IN";
+  const [india, setIndia] = useState(EMPTY_INDIA_SUPPLIER);
   const [name, setName] = useState("");
   const [crNumber, setCrNumber] = useState("");
   const [vatNumber, setVatNumber] = useState("");
@@ -38,33 +44,45 @@ export default function StoreApplicationForm() {
     e.preventDefault();
     setError(null);
     if (!crDocumentPath) {
-      setError("Please upload a copy of your CR document.");
-      return;
-    }
-    const crCheck = checkCrNumber(crNumber);
-    if (!crCheck.ok) {
-      setError(crCheck.error);
-      return;
-    }
-    const vatCheck = checkVatNumber(vatNumber);
-    if (!vatCheck.ok) {
-      setError(vatCheck.error);
+      setError(isIndia ? "Please upload a copy of your GST registration certificate." : "Please upload a copy of your CR document.");
       return;
     }
     const phoneCheck = validatePhone(contactPhone);
-    if (!phoneCheck.ok) {
-      setError(phoneCheck.error);
-      return;
-    }
-    const shape = checkSaudiIban(bankIban);
-    if (!shape.ok) {
-      setError(IBAN_PROBLEM_MESSAGES[shape.problem!]);
-      return;
-    }
-    const bankCheck = checkBankDetails(bankName, bankIban);
-    if (!bankCheck.ok) {
-      setError(bankCheck.error);
-      return;
+    if (isIndia) {
+      const problem = validateIndiaSupplier(india);
+      if (problem) {
+        setError(problem);
+        return;
+      }
+      if (!phoneCheck.ok) {
+        setError(phoneCheck.error);
+        return;
+      }
+    } else {
+      const crCheck = checkCrNumber(crNumber);
+      if (!crCheck.ok) {
+        setError(crCheck.error);
+        return;
+      }
+      const vatCheck = checkVatNumber(vatNumber);
+      if (!vatCheck.ok) {
+        setError(vatCheck.error);
+        return;
+      }
+      if (!phoneCheck.ok) {
+        setError(phoneCheck.error);
+        return;
+      }
+      const shape = checkSaudiIban(bankIban);
+      if (!shape.ok) {
+        setError(IBAN_PROBLEM_MESSAGES[shape.problem!]);
+        return;
+      }
+      const bankCheck = checkBankDetails(bankName, bankIban);
+      if (!bankCheck.ok) {
+        setError(bankCheck.error);
+        return;
+      }
     }
     startTransition(async () => {
       try {
@@ -75,6 +93,7 @@ export default function StoreApplicationForm() {
           contactPhone,
           bankName,
           bankIban,
+          india: isIndia ? india : undefined,
           addressLine,
           crDocumentPath,
           vatDocumentPath: vatDocumentPath ?? undefined,
@@ -101,6 +120,10 @@ export default function StoreApplicationForm() {
           className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
       </div>
+      {isIndia ? (
+        <IndiaSupplierFields value={india} onChange={setIndia} />
+      ) : (
+        <>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="mb-1 block text-sm font-medium">CR number *</label>
@@ -111,9 +134,11 @@ export default function StoreApplicationForm() {
           <TaxIdInput value={vatNumber} onChange={setVatNumber} check={checkVatNumber} length={15} placeholder="15 digits (optional)" />
         </div>
       </div>
+        </>
+      )}
       <div>
         <label className="mb-1 block text-sm font-medium">Contact phone</label>
-        <PhoneNumberInput required value={contactPhone} onChange={setContactPhone} placeholder="5X XXX XXXX" />
+        <PhoneNumberInput required value={contactPhone} onChange={setContactPhone} placeholder={isIndia ? "98XXXXXXXX" : "5X XXX XXXX"} />
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium">Pickup address</label>
@@ -124,7 +149,9 @@ export default function StoreApplicationForm() {
           className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
         />
       </div>
-      <BankFields value={{ bankName, iban: bankIban }} onChange={(v) => { setBankName(v.bankName); setBankIban(v.iban); }} />
+      {!isIndia && (
+        <BankFields value={{ bankName, iban: bankIban }} onChange={(v) => { setBankName(v.bankName); setBankIban(v.iban); }} />
+      )}
 
       <div className="mt-2 border-t border-neutral-100 pt-4">
         <p className="mb-3 text-sm font-semibold">Your shop page</p>
@@ -133,13 +160,13 @@ export default function StoreApplicationForm() {
 
       <div className="grid grid-cols-2 gap-3">
         <DocumentUploader
-          label="CR document copy *"
+          label={isIndia ? "GST registration certificate *" : "CR document copy *"}
           kind="cr"
           value={crDocumentPath}
           onChange={setCrDocumentPath}
         />
         <DocumentUploader
-          label="VAT certificate copy"
+          label={isIndia ? "PAN card copy" : "VAT certificate copy"}
           kind="vat"
           value={vatDocumentPath}
           onChange={setVatDocumentPath}

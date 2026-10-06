@@ -20,6 +20,7 @@ export async function getOrderSeller(warehouseId: string | null): Promise<Compan
       address_line: string | null;
       city: string | null;
       contact_phone: string | null;
+      state?: string | null;
     } | null;
     if (row) {
       return {
@@ -32,6 +33,7 @@ export async function getOrderSeller(warehouseId: string | null): Promise<Compan
         postal_code: null,
         phone: row.contact_phone,
         email: null,
+        state: row.state ?? null,
       };
     }
   }

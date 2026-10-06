@@ -1,6 +1,15 @@
 "use server";
 
 import { checkCrNumber, checkVatNumber } from "@/lib/saudi-tax";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import {
+  checkFssai,
+  checkGstin,
+  checkIndianBankDetails,
+  checkPan,
+  validateIndiaSupplier,
+  type IndiaSupplierValue,
+} from "@/lib/india-business";
 import { validatePhone } from "@/lib/countries";
 import { checkSaudiIban, IBAN_PROBLEM_MESSAGES } from "@/lib/iban";
 import { checkBankDetails } from "@/lib/saudi-banks";
@@ -16,6 +25,8 @@ export async function applyForStore(input: {
   vatNumber?: string;
   bankName?: string;
   bankIban?: string;
+  /** India suppliers: GSTIN, PAN, FSSAI, state, city and bank account (checked here as well). */
+  india?: IndiaSupplierValue;
   contactPhone?: string;
   addressLine?: string;
   city?: string;
@@ -32,36 +43,88 @@ export async function applyForStore(input: {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("You must be logged in.");
 
-  if (!input.name.trim() || !input.crNumber.trim()) {
-    throw new Error("Store name and CR number are required.");
-  }
-  if (!input.crDocumentPath) {
-    throw new Error("Please upload a copy of your CR document.");
-  }
+  const country = (await getCurrentTenant())?.country_code ?? "SA";
+  const isIndia = country === "IN";
 
-  const crCheck = checkCrNumber(input.crNumber);
-  if (!crCheck.ok) throw new Error(crCheck.error ?? "Check the CR number.");
-  const vatCheck = checkVatNumber(input.vatNumber ?? "");
-  if (!vatCheck.ok) throw new Error(vatCheck.error ?? "Check the VAT number.");
+  if (!input.name.trim()) throw new Error("Store name is required.");
+  if (!input.crDocumentPath) {
+    throw new Error(isIndia ? "Please upload a copy of your GST registration certificate." : "Please upload a copy of your CR document.");
+  }
 
   // Payouts go to this account, so it is re-checked here, not just in the form.
   const phoneCheck = validatePhone(input.contactPhone?.trim() ?? "");
   if (!phoneCheck.ok) throw new Error(phoneCheck.error ?? "Enter a valid mobile number.");
-  const ibanShape = checkSaudiIban(input.bankIban ?? "");
-  if (!ibanShape.ok) throw new Error(IBAN_PROBLEM_MESSAGES[ibanShape.problem!]);
-  const bankCheck = checkBankDetails(input.bankName?.trim() ?? "", input.bankIban ?? "");
-  if (!bankCheck.ok) throw new Error(bankCheck.error ?? "Check the bank details.");
+
+  let identity: {
+    cr_number: string;
+    vat_number: string | null;
+    bank_iban: string | null;
+    bank_name: string | null;
+    city: string;
+    country: string;
+    state: string | null;
+    fssai_number: string | null;
+    bank_account_number: string | null;
+    bank_ifsc: string | null;
+    bank_account_holder: string | null;
+  };
+
+  if (isIndia) {
+    if (!input.india) throw new Error("Please fill in the GST, PAN and bank details.");
+    const problem = validateIndiaSupplier(input.india);
+    if (problem) throw new Error(problem);
+    const gstin = checkGstin(input.india.gstin);
+    const bank = checkIndianBankDetails({
+      bankName: input.india.bankName,
+      accountNumber: input.india.accountNumber,
+      ifsc: input.india.ifsc,
+      holder: input.india.accountHolder,
+    });
+    identity = {
+      // For Indian suppliers the PAN takes the place of the CR number and the GSTIN of the VAT number.
+      cr_number: checkPan(input.india.pan).value,
+      vat_number: gstin.value,
+      bank_iban: null,
+      bank_name: input.india.bankName.trim(),
+      city: input.india.city.trim(),
+      country: "India",
+      state: input.india.state,
+      fssai_number: input.india.fssai.trim() ? checkFssai(input.india.fssai).value : null,
+      bank_account_number: bank.accountNumber,
+      bank_ifsc: bank.ifsc,
+      bank_account_holder: input.india.accountHolder.trim(),
+    };
+  } else {
+    if (!input.crNumber.trim()) throw new Error("Store name and CR number are required.");
+    const crCheck = checkCrNumber(input.crNumber);
+    if (!crCheck.ok) throw new Error(crCheck.error ?? "Check the CR number.");
+    const vatCheck = checkVatNumber(input.vatNumber ?? "");
+    if (!vatCheck.ok) throw new Error(vatCheck.error ?? "Check the VAT number.");
+    const ibanShape = checkSaudiIban(input.bankIban ?? "");
+    if (!ibanShape.ok) throw new Error(IBAN_PROBLEM_MESSAGES[ibanShape.problem!]);
+    const bankCheck = checkBankDetails(input.bankName?.trim() ?? "", input.bankIban ?? "");
+    if (!bankCheck.ok) throw new Error(bankCheck.error ?? "Check the bank details.");
+    identity = {
+      cr_number: crCheck.value,
+      vat_number: vatCheck.value || null,
+      bank_iban: bankCheck.iban,
+      bank_name: input.bankName?.trim() || null,
+      city: input.city?.trim() || "Riyadh",
+      country: "Saudi Arabia",
+      state: null,
+      fssai_number: null,
+      bank_account_number: null,
+      bank_ifsc: null,
+      bank_account_holder: null,
+    };
+  }
 
   const row = {
     owner_id: user.id,
     name: input.name.trim(),
-    cr_number: crCheck.value,
-    vat_number: vatCheck.value || null,
-    bank_name: input.bankName?.trim() || null,
-    bank_iban: bankCheck.iban,
+    ...identity,
     contact_phone: input.contactPhone?.trim() || null,
     address_line: input.addressLine?.trim() || null,
-    city: input.city?.trim() || "Riyadh",
     cr_document_path: input.crDocumentPath,
     vat_document_path: input.vatDocumentPath ?? null,
     logo_url: input.logoUrl ?? null,
@@ -74,8 +137,12 @@ export async function applyForStore(input: {
   // Branding/hours columns arrive with a database migration — if it hasn't
   // been applied yet, still accept the application without them.
   if (error?.code === "42703" || error?.code === "PGRST204") {
-    const { logo_url, cover_url, tagline, opening_hours, ...basic } = row;
+    // Optional columns (branding, India fields) come from migrations; drop them if missing.
+    const {
+      logo_url, cover_url, tagline, opening_hours, state, fssai_number, bank_account_number, bank_ifsc, bank_account_holder, ...basic
+    } = row;
     void logo_url; void cover_url; void tagline; void opening_hours;
+    void state; void fssai_number; void bank_account_number; void bank_ifsc; void bank_account_holder;
     ({ error } = await supabase.from("stores").insert(basic));
   }
 
