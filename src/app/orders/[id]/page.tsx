@@ -14,6 +14,7 @@ import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getMoney } from "@/lib/tenant-server";
+import { moneyFor } from "@/lib/money";
 
 export default async function OrderDetailPage({
   params,
@@ -27,6 +28,8 @@ export default async function OrderDetailPage({
   const order = await getOrderDetail(id);
 
   if (!order) notFound();
+  // An order keeps the currency it was placed in, whichever market the customer is browsing now.
+  const orderMoney = order.currency ? moneyFor(order.currency) : money;
 
   const supabase = await createClient();
   const {
@@ -124,21 +127,21 @@ export default async function OrderDetailPage({
           <div className="space-y-0.5 text-sm">
             <div className="flex justify-between">
               <span className="text-neutral-500">{t("orders.item_subtotal")}</span>
-              <span>{money(order.subtotal)}</span>
+              <span>{orderMoney(order.subtotal)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
-              <span>{order.delivery_fee === 0 ? t("checkout.free") : money(order.delivery_fee)}</span>
+              <span>{order.delivery_fee === 0 ? t("checkout.free") : orderMoney(order.delivery_fee)}</span>
             </div>
             {order.discount > 0 && (
               <div className="flex justify-between text-blue-600">
                 <span>{t("orders.discount")}</span>
-                <span>-{money(order.discount)}</span>
+                <span>-{orderMoney(order.discount)}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-neutral-200 pt-1 font-semibold">
               <span>{t("checkout.total")}</span>
-              <span>{money(order.total)}</span>
+              <span>{orderMoney(order.total)}</span>
             </div>
           </div>
         </div>
@@ -218,7 +221,7 @@ export default async function OrderDetailPage({
                   )}
                 </p>
               </div>
-              <span className="font-medium">{money(item.line_total)}</span>
+              <span className="font-medium">{orderMoney(item.line_total)}</span>
             </div>
           );
         })}

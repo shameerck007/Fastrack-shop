@@ -8,6 +8,7 @@ import BuyItAgainButton from "@/components/BuyItAgainButton";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import type { OrderStatus } from "@/types/database";
 import { getMoney } from "@/lib/tenant-server";
+import { moneyFor } from "@/lib/money";
 
 const ACTIVE_STATUSES: OrderStatus[] = [
   "pending",
@@ -111,7 +112,7 @@ export default async function OrdersPage({
                         </span>
                         <span>
                           <span className="block text-neutral-400">{t("orders.total_label")}</span>
-                          <span className="text-neutral-700">{money(order.total)}</span>
+                          <span className="text-neutral-700">{(order.currency ? moneyFor(order.currency) : money)(order.total)}</span>
                         </span>
                         {shipTo && (
                           <span className="hidden sm:inline">
