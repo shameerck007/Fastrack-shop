@@ -5,6 +5,7 @@ import MarketSwitchDialog from "@/components/MarketSwitchDialog";
 import { findCountry } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
 import type { Tenant } from "@/lib/tenant";
+import Flag from "@/components/Flag";
 
 /** "Shopping in 🇸🇦 Saudi Arabia — change": lets a customer move between markets. */
 export default function MarketSwitcher({ tenants, currentId }: { tenants: Tenant[]; currentId: string }) {
@@ -42,7 +43,7 @@ export default function MarketSwitcher({ tenants, currentId }: { tenants: Tenant
                 active ? "border-blue-600 bg-blue-50" : "border-neutral-300 hover:border-blue-300"
               }`}
             >
-              <span className="text-2xl">{country.flag}</span>
+              <Flag code={tenant.country_code} className="h-6 w-8" />
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold text-neutral-900">{country.name}</span>
                 <span className="block text-xs text-neutral-500">{tenant.currency}</span>

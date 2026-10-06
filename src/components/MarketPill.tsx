@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import MarketSwitchDialog from "@/components/MarketSwitchDialog";
 import { findCountry } from "@/lib/countries";
 import type { Tenant } from "@/lib/tenant";
+import Flag from "@/components/Flag";
 
 /** Country switch for everyone, signed in or not: a flag in the header (and footer) with a small menu.
  * Choosing a country reloads the shop in that market (its stores, prices, currency and cart). */
@@ -39,7 +40,7 @@ export default function MarketPill({
             : "border border-blue-200 bg-white px-3.5 py-1.5 text-neutral-700 hover:bg-blue-50"
         }`}
       >
-        <span className="text-base leading-none">{flag.flag}</span>
+        <Flag code={current.country_code} className="h-4 w-[22px]" />
         <span className={variant === "header" ? "hidden lg:inline" : ""}>{flag.name}</span>
         <span className="text-[9px] opacity-60 transition group-open:rotate-180">▼</span>
       </summary>
@@ -61,7 +62,7 @@ export default function MarketPill({
                 active ? "bg-blue-50 text-blue-700" : "text-neutral-700 hover:bg-neutral-50"
               }`}
             >
-              <span className="text-lg">{c.flag}</span>
+              <Flag code={t.country_code} className="h-[18px] w-6" />
               <span className="flex-1">
                 {c.name}
                 <span className="block text-[11px] font-normal text-neutral-400">{t.currency}</span>

@@ -6,6 +6,7 @@ import { findCountry } from "@/lib/countries";
 import { MARKET_TOAST_KEY } from "@/components/MarketSwitchDialog";
 import { useLocale } from "@/components/LocaleProvider";
 import type { Tenant } from "@/lib/tenant";
+import Flag from "@/components/Flag";
 
 /** First visit from another country: "You seem to be in India — shop FasTrack India?" The visitor decides. */
 export default function MarketSuggestionBanner({ suggested }: { suggested: Tenant }) {
@@ -19,7 +20,7 @@ export default function MarketSuggestionBanner({ suggested }: { suggested: Tenan
     <div className="border-b border-blue-100 bg-blue-50 px-4 py-2.5">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         <span className="min-w-0 flex-1 text-blue-900">
-          <span className="me-1.5 text-lg">{country.flag}</span>
+          <Flag code={suggested.country_code} className="me-1.5 h-4 w-[22px] align-[-3px]" />
           {t("market.suggest", { country: country.name })}
         </span>
         <span className="flex gap-2">
@@ -31,7 +32,7 @@ export default function MarketSuggestionBanner({ suggested }: { suggested: Tenan
                 const res = await setMarket(suggested.id);
                 if (!res.error) {
                   try {
-                    sessionStorage.setItem(MARKET_TOAST_KEY, JSON.stringify({ flag: country.flag, name: country.name }));
+                    sessionStorage.setItem(MARKET_TOAST_KEY, JSON.stringify({ code: suggested.country_code, name: country.name }));
                   } catch {}
                   setHidden(true);
                   window.location.reload();

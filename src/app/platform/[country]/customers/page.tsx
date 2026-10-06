@@ -3,6 +3,7 @@ import PlatformHeader from "@/components/platform/PlatformHeader";
 import { findCountry } from "@/lib/countries";
 import { moneyFor } from "@/lib/money";
 import { getMarketSummaries, pickMarkets } from "@/lib/platform";
+import Flag from "@/components/Flag";
 
 interface CustomerRow {
   id: string;
@@ -51,7 +52,7 @@ export default async function PlatformCustomersPage({ params }: { params: Promis
           <section key={m.tenant_id} className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
             <div className="flex items-center justify-between gap-3 border-b border-neutral-100 px-5 py-4">
               <h2 className="flex items-center gap-2 text-base font-extrabold tracking-tight">
-                <span className="text-2xl">{findCountry(m.country_code).flag}</span>
+                <Flag code={m.country_code} className="h-6 w-8" />
                 {m.name}
               </h2>
               <span className="text-xs text-neutral-500">

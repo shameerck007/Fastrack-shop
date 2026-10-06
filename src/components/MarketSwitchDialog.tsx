@@ -5,6 +5,7 @@ import Modal from "@/components/Modal";
 import { setMarket } from "@/lib/actions/tenant";
 import { findCountry } from "@/lib/countries";
 import type { Tenant } from "@/lib/tenant";
+import Flag from "@/components/Flag";
 
 export const MARKET_TOAST_KEY = "fs_market_toast";
 
@@ -35,7 +36,7 @@ export default function MarketSwitchDialog({
         return;
       }
       try {
-        sessionStorage.setItem(MARKET_TOAST_KEY, JSON.stringify({ flag: to.flag, name: to.name }));
+        sessionStorage.setItem(MARKET_TOAST_KEY, JSON.stringify({ code: target!.country_code, name: to.name }));
       } catch {
         // storage can be blocked; the switch still works, only the confirmation toast is lost
       }
@@ -47,9 +48,9 @@ export default function MarketSwitchDialog({
     <Modal open={open} onClose={pending ? () => {} : onClose} size="md">
       <div className="text-center">
         <div className="mx-auto mb-3 flex items-center justify-center gap-3 text-4xl">
-          <span className="opacity-60">{from.flag}</span>
+          <span className="opacity-60"><Flag code={current.country_code} className="h-9 w-12" /></span>
           <span className="text-xl text-neutral-300">→</span>
-          <span>{to.flag}</span>
+          <span><Flag code={target.country_code} className="h-9 w-12" /></span>
         </div>
         <h2 className="text-lg font-extrabold tracking-tight text-neutral-900">Switch to {to.name}?</h2>
         <p className="mt-1 text-sm text-neutral-500">You stay signed in. Only the shop changes.</p>

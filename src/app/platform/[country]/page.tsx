@@ -6,6 +6,7 @@ import BarList from "@/components/admin/charts/BarList";
 import { findCountry } from "@/lib/countries";
 import { moneyFor } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/utils";
+import Flag from "@/components/Flag";
 import {
   ageLabel,
   fillDays,
@@ -83,7 +84,7 @@ function MarketPanel({ m, sales, status, suppliers }: { m: MarketSummary; sales:
     <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 bg-gradient-to-r from-blue-50 to-white px-5 py-4">
         <div className="flex items-center gap-3">
-          <span className="text-3xl">{country.flag}</span>
+          <Flag code={country.code} className="h-8 w-11" />
           <div>
             <h2 className="text-lg font-extrabold tracking-tight text-neutral-900">{m.name}</h2>
             <p className="text-xs text-neutral-500">
@@ -202,7 +203,7 @@ function GlanceTable({ markets }: { markets: MarketSummary[] }) {
                 <tr key={m.tenant_id} className="hover:bg-neutral-50">
                   <td className="px-5 py-3">
                     <span className="flex items-center gap-2 font-semibold text-neutral-900">
-                      <span className="text-xl">{country.flag}</span>
+                      <Flag code={country.code} className="h-6 w-8" />
                       {m.name}
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_BADGE[m.status] ?? "bg-neutral-100"}`}>{m.status === "active" ? "Live" : m.status}</span>
                     </span>
@@ -355,7 +356,7 @@ export default async function PlatformOverviewPage({ params }: { params: Promise
                         </Link>
                       </td>
                       <td className="px-3 py-2.5 text-neutral-600">
-                        {m ? `${findCountry(m.country_code).flag} ${findCountry(m.country_code).name}` : "—"}
+                        {m ? findCountry(m.country_code).name : "—"}
                       </td>
                       <td className="px-3 py-2.5">
                         <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${STATUS_PILL[o.status] ?? "bg-neutral-100"}`}>{ORDER_STATUS_LABELS[o.status] ?? o.status}</span>

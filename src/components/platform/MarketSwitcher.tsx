@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { findCountry } from "@/lib/countries";
+import Flag from "@/components/Flag";
 
 export interface SwitcherMarket {
   slug: string;
@@ -22,7 +23,7 @@ export default function MarketSwitcher({ markets, current }: { markets: Switcher
   return (
     <details className="group relative">
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full bg-blue-600 px-3.5 py-1.5 text-sm font-bold text-white shadow-md shadow-blue-600/25 [&::-webkit-details-marker]:hidden">
-        <span className="text-base">{c.flag}</span>
+        <Flag code={cur.country_code} className="h-4 w-[22px]" />
         <span>{c.name}</span>
         <span className="text-[10px] transition group-open:rotate-180">▼</span>
       </summary>
@@ -37,7 +38,7 @@ export default function MarketSwitcher({ markets, current }: { markets: Switcher
               href={hrefFor(m.country_code.toLowerCase())}
               className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold ${active ? "bg-blue-50 text-blue-700" : "text-neutral-700 hover:bg-neutral-50"}`}
             >
-              <span className="text-lg">{mc.flag}</span>
+              <Flag code={m.country_code} className="h-[18px] w-6" />
               <span className="flex-1">{mc.name}</span>
               {m.status !== "active" && <span className="rounded-full bg-amber-100 px-1.5 text-[10px] text-amber-700">{m.status}</span>}
               {active && <span>✓</span>}

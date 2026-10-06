@@ -17,6 +17,7 @@ import { getMoney } from "@/lib/tenant-server";
 import { moneyFor } from "@/lib/money";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { findCountry } from "@/lib/countries";
+import Flag from "@/components/Flag";
 
 export default async function OrderDetailPage({
   params,
@@ -62,7 +63,7 @@ export default async function OrderDetailPage({
     <div className="mx-auto max-w-4xl px-4 py-6">
       {!sameMarket && order.country_code && (
         <p className="mb-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-sm text-blue-900">
-          {findCountry(order.country_code).flag} This order was placed in {findCountry(order.country_code).name}. You are shopping in {marketName}.
+          <Flag code={order.country_code} className="me-1.5 h-3.5 w-[18px] align-[-2px]" /> This order was placed in {findCountry(order.country_code).name}. You are shopping in {marketName}.
         </p>
       )}
       {showTracking && (

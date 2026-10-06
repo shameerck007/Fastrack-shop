@@ -4,6 +4,7 @@ import { useState } from "react";
 import MarketSwitchDialog from "@/components/MarketSwitchDialog";
 import { findCountry } from "@/lib/countries";
 import type { Tenant } from "@/lib/tenant";
+import Flag from "@/components/Flag";
 
 /** Order history is kept per country. This points to the other country's orders and offers the switch. */
 export default function OtherMarketOrdersNote({
@@ -26,7 +27,7 @@ export default function OtherMarketOrdersNote({
         const tenant = tenants.find((t) => t.country_code === o.countryCode) ?? null;
         return (
           <div key={o.countryCode} className="flex flex-wrap items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-3">
-            <span className="text-2xl">{country.flag}</span>
+            <Flag code={o.countryCode} className="h-6 w-8" />
             <span className="min-w-0 flex-1 text-sm text-blue-950">
               <b>
                 {o.count} order{o.count === 1 ? "" : "s"}

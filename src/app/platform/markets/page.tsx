@@ -4,6 +4,7 @@ import { CreateMarketForm, MarketStatusButtons } from "@/components/platform/Mar
 import { findCountry } from "@/lib/countries";
 import { moneyFor } from "@/lib/money";
 import { getMarketSummaries } from "@/lib/platform";
+import Flag from "@/components/Flag";
 
 const STATUS_BADGE: Record<string, string> = {
   active: "bg-emerald-50 text-emerald-700",
@@ -38,7 +39,7 @@ export default async function PlatformMarketsPage() {
             <section key={m.tenant_id} className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-4xl">{country.flag}</span>
+                  <Flag code={m.country_code} className="h-9 w-12" />
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-extrabold tracking-tight">{m.name}</h2>

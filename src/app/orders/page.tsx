@@ -12,6 +12,7 @@ import { getMoney } from "@/lib/tenant-server";
 import { moneyFor } from "@/lib/money";
 import { getActiveTenants, getCurrentTenant } from "@/lib/tenant-server";
 import { findCountry } from "@/lib/countries";
+import Flag from "@/components/Flag";
 
 const ACTIVE_STATUSES: OrderStatus[] = [
   "pending",
@@ -119,7 +120,7 @@ export default async function OrdersPage({
                         </span>
                         {order.country_code && order.country_code !== marketCountry && (
                           <span className="self-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
-                            {findCountry(order.country_code).flag} {findCountry(order.country_code).name}
+                            <Flag code={order.country_code} className="me-1 h-3 w-4 align-[-1px]" /> {findCountry(order.country_code).name}
                           </span>
                         )}
                         <span>

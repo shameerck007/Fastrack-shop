@@ -10,6 +10,7 @@ import LanguageToggle from "@/components/LanguageToggle";
 import NotificationBell from "@/components/NotificationBell";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import Flag from "@/components/Flag";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireRole("admin");
@@ -51,7 +52,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="border-b border-blue-100 bg-blue-50">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 text-sm text-blue-900">
             <span>
-              {findCountry(scopeCountry.toUpperCase()).flag} Working in <b>{findCountry(scopeCountry.toUpperCase()).name}</b> only
+              <Flag code={scopeCountry} className="me-1.5 h-3.5 w-[18px] align-[-2px]" /> Working in <b>{findCountry(scopeCountry.toUpperCase()).name}</b> only
             </span>
             <Link href={`/platform/${scopeCountry}`} className="font-semibold text-blue-700 hover:underline">
               Switch country in Platform →
