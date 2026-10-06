@@ -7,7 +7,7 @@ import { MobileTitleBar } from "@/components/MobileTopBar";
 import { getProductsByCategory } from "@/lib/catalog";
 import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
-import { getCategoryTheme } from "@/lib/categoryTheme";
+import { categoryImageUrl, getCategoryTheme } from "@/lib/categoryTheme";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName } from "@/lib/i18n/localized";
@@ -60,9 +60,9 @@ export default async function CategoryPage({
                 className="group flex shrink-0 flex-col items-center gap-1.5"
               >
                 <div className="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow-sm ring-1 ring-neutral-200 transition group-hover:-translate-y-0.5 group-hover:shadow-md">
-                  {sub.image_url ? (
+                  {categoryImageUrl(sub) ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={sub.image_url} alt={localizedName(sub, locale)} className="h-full w-full object-cover" />
+                    <img src={categoryImageUrl(sub) as string} alt={localizedName(sub, locale)} className="h-full w-full object-cover" />
                   ) : (
                     <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br text-2xl ${theme.gradient}`}>
                       {sub.icon || theme.emoji}

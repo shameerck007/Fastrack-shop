@@ -29,3 +29,22 @@ export function getCategoryTheme(slug: string | null | undefined): CategoryTheme
   // India categories use an "in-" slug prefix (slugs are unique across markets); they share the same looks.
   return THEMES[slug.replace(/^in-/, "")] ?? DEFAULT_THEME;
 }
+
+// India's launch categories have real pictures that ship with the app (public/seed/kerala/cat-*.jpg),
+// so the "Shop by category" tiles show photos instead of emoji even before the database rows carry an image.
+const BUNDLED_CATEGORY_IMAGES = new Set([
+  "in-fruits-vegetables",
+  "in-staples",
+  "in-fish-meat",
+  "in-dairy",
+  "in-bakery",
+  "in-snacks",
+  "in-beverages",
+  "in-household",
+]);
+
+/** The category's picture: its own image if it has one, else the bundled photo for the India launch categories. */
+export function categoryImageUrl(category: { slug?: string | null; image_url?: string | null }): string | null {
+  if (category.image_url) return category.image_url;
+  return category.slug && BUNDLED_CATEGORY_IMAGES.has(category.slug) ? `/seed/kerala/cat-${category.slug}.jpg` : null;
+}

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import type { CategoryWithChildren } from "@/lib/catalog";
-import { getCategoryTheme } from "@/lib/categoryTheme";
+import { categoryImageUrl, getCategoryTheme } from "@/lib/categoryTheme";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName } from "@/lib/i18n/localized";
 
@@ -37,9 +37,9 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
           >
             <Link href={`/categories/${category.slug}`} className="group flex flex-col items-center gap-2">
               <div className="h-[4.5rem] w-[4.5rem] overflow-hidden rounded-full shadow-sm ring-2 ring-white transition group-hover:-translate-y-0.5 group-hover:shadow-md group-active:scale-95 sm:h-20 sm:w-20 md:mx-auto">
-                {category.image_url ? (
+                {categoryImageUrl(category) ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={category.image_url} alt={category.name} className="h-full w-full object-cover" />
+                  <img src={categoryImageUrl(category) as string} alt={category.name} className="h-full w-full object-cover" />
                 ) : (
                   <div
                     className={`flex h-full w-full items-center justify-center bg-gradient-to-br text-3xl sm:text-4xl ${theme.gradient}`}
