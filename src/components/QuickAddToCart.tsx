@@ -56,7 +56,6 @@ export default function QuickAddToCart({
       try {
         await updateCartItemQuantity(line.id, qty - 1);
         notifyCartChanged();
-        router.refresh();
       } catch {
         setOptimisticQty(null);
         setError(t("product.could_not_add"));
@@ -118,7 +117,6 @@ export default function QuickAddToCart({
         }
         notifyCartChanged();
         setJustAdded(true);
-        router.refresh();
       } catch (err) {
         const msg = err instanceof Error ? err.message : "";
         if (msg.toLowerCase().includes("logged in")) {

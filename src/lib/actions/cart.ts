@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getVariantStock } from "@/lib/inventory";
 import { checkProductsDeliverable, getCustomerLocation } from "@/lib/delivery-zones";
@@ -107,7 +106,6 @@ async function addToCartOrThrow(
     if (error) throw error;
   }
 
-  revalidatePath("/cart");
 }
 
 export async function updateCartItemQuantity(cartItemId: string, quantity: number) {
@@ -137,14 +135,12 @@ export async function updateCartItemQuantity(cartItemId: string, quantity: numbe
     if (error) throw error;
   }
 
-  revalidatePath("/cart");
 }
 
 export async function removeCartItem(cartItemId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("cart_items").delete().eq("id", cartItemId);
   if (error) throw error;
-  revalidatePath("/cart");
 }
 
 /** Why this returns a result instead of throwing: in production, Next.js

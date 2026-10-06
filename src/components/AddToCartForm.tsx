@@ -57,7 +57,6 @@ export default function AddToCartForm({
         }
         setMessage(t("product.added_to_cart"));
         notifyCartChanged();
-        router.refresh();
       } catch (err) {
         setMessage(err instanceof Error ? err.message : t("product.could_not_add"));
       }

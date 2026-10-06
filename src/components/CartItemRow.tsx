@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { updateCartItemQuantity, removeCartItem } from "@/lib/actions/cart";
-import { notifyCartChanged } from "@/lib/cart-events";
+import { notifyCartChanged, refreshSoon } from "@/lib/cart-events";
 
 import type { CartItemWithVariant } from "@/types/database";
 import { useLocale } from "@/components/LocaleProvider";
@@ -26,6 +26,11 @@ export default function CartItemRow({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  // Shown at once on tap; the real totals arrive with one refresh after the taps stop.
+  const [optimisticQty, setOptimisticQty] = useState<number | null>(null);
+  const [removed, setRemoved] = useState(false);
+  useEffect(() => setOptimisticQty(null), [item.quantity]);
+  const quantity = optimisticQty ?? item.quantity;
   const { t, locale } = useLocale();
   const variant = item.product_variants;
   const product = variant.products;
@@ -33,24 +38,35 @@ export default function CartItemRow({
 
   function updateQuantity(quantity: number) {
     setError(null);
+    if (quantity <= 0) setRemoved(true);
+    else setOptimisticQty(quantity);
     startTransition(async () => {
       try {
         await updateCartItemQuantity(item.id, quantity);
         notifyCartChanged();
-        router.refresh();
+        refreshSoon(() => router.refresh());
       } catch (err) {
+        setRemoved(false);
+        setOptimisticQty(null);
         setError(err instanceof Error ? err.message : t("cart.could_not_update_quantity"));
       }
     });
   }
 
   function remove() {
+    setRemoved(true);
     startTransition(async () => {
-      await removeCartItem(item.id);
-      notifyCartChanged();
-      router.refresh();
+      try {
+        await removeCartItem(item.id);
+        notifyCartChanged();
+        refreshSoon(() => router.refresh());
+      } catch {
+        setRemoved(false);
+      }
     });
   }
+
+  if (removed) return null;
 
   return (
     <div className="flex gap-4 border-b border-neutral-200 py-4 last:border-none">
@@ -82,15 +98,15 @@ export default function CartItemRow({
             <button
               className="px-3 py-1 text-base disabled:opacity-40"
               disabled={pending}
-              onClick={() => updateQuantity(item.quantity - 1)}
+              onClick={() => updateQuantity(quantity - 1)}
             >
               −
             </button>
-            <span className="w-8 text-center text-sm">{item.quantity}</span>
+            <span className="w-8 text-center text-sm">{quantity}</span>
             <button
               className="px-3 py-1 text-base disabled:opacity-40"
               disabled={pending}
-              onClick={() => updateQuantity(item.quantity + 1)}
+              onClick={() => updateQuantity(quantity + 1)}
             >
               +
             </button>
@@ -110,7 +126,7 @@ export default function CartItemRow({
       </div>
 
       <div className="shrink-0 text-end font-semibold text-neutral-900">
-        {money(item.quantity * variant.price)}
+        {money(quantity * variant.price)}
       </div>
     </div>
   );
