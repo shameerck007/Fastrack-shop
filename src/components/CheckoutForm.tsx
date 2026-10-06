@@ -6,6 +6,7 @@ import AddressForm from "@/components/AddressForm";
 import { placeOrder } from "@/lib/actions/orders";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
+import { extractTax } from "@/lib/tax";
 import { formatDeliveryDate, pricingFor, standardDeliveryDate } from "@/lib/delivery-methods";
 import type { Address, CartItemWithVariant, DeliveryType, PaymentMethod } from "@/types/database";
 import { useMoney } from "@/components/MoneyProvider";
@@ -32,6 +33,8 @@ export default function CheckoutForm({
   methodsByAddress = {},
   taxTotal = 0,
   taxLabel = "VAT",
+  groups = [],
+  deliveryTaxPercent = 0,
 }: {
   addresses: Address[];
   items: CartItemWithVariant[];
@@ -39,6 +42,10 @@ export default function CheckoutForm({
   blockedByAddress?: Record<string, string[]>;
   taxTotal?: number;
   taxLabel?: string;
+  /** GST inside the delivery fee (India), 0 where it isn't taxed separately. */
+  deliveryTaxPercent?: number;
+  /** One entry per supplier in the cart; each becomes its own order with its own delivery fee. */
+  groups?: { key: string; name: string; subtotal: number }[];
   methodsByAddress?: Record<string, { express: boolean; standard: boolean; standardDays: number }>;
 }) {
   const money = useMoney();
@@ -76,8 +83,13 @@ export default function CheckoutForm({
         : chosenDeliveryType;
   const standardDate = formatDeliveryDate(standardDeliveryDate(offered.standardDays), locale);
 
-  const deliveryFee =
-    subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_OPTIONS.find((d) => d.value === deliveryType)!.fee;
+  const methodFee = DELIVERY_OPTIONS.find((d) => d.value === deliveryType)!.fee;
+  const parcels = (groups.length > 0 ? groups : [{ key: "all", name: "", subtotal }]).map((g) => ({
+    ...g,
+    fee: g.subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : methodFee,
+  }));
+  const split = parcels.length > 1;
+  const deliveryFee = Math.round(parcels.reduce((sum, g) => sum + g.fee, 0) * 100) / 100;
   const total = Math.round((subtotal + deliveryFee) * 100) / 100;
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
@@ -353,8 +365,14 @@ export default function CheckoutForm({
           <div className={card}>
             <h2 className="mb-3 text-base font-extrabold tracking-tight">{t("checkout.order_summary")}</h2>
 
+            {split && (
+              <div className="mb-3 rounded-2xl bg-blue-50 px-3 py-2.5 text-xs text-blue-900">
+                <p className="font-bold">{t("checkout_ui.split_title", { count: String(parcels.length) })}</p>
+                <p className="mt-0.5 text-blue-800/80">{t("checkout_ui.split_hint")}</p>
+              </div>
+            )}
             <div
-              className={`mb-3 rounded-2xl px-3 py-2.5 text-xs font-bold ${
+              className={`${split ? "hidden " : ""}mb-3 rounded-2xl px-3 py-2.5 text-xs font-bold ${
                 freeLeft === 0 ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-800"
               }`}
             >
@@ -384,11 +402,18 @@ export default function CheckoutForm({
                   {deliveryFee === 0 ? t("checkout.free") : money(deliveryFee)}
                 </span>
               </div>
+              {split &&
+                parcels.map((g) => (
+                  <div key={g.key} className="flex justify-between text-xs text-neutral-400">
+                    <span>{t("checkout_ui.parcel_label", { shop: g.name })}</span>
+                    <span>{g.fee === 0 ? t("checkout.free") : money(g.fee)}</span>
+                  </div>
+                ))}
               <div className="flex justify-between border-t border-dashed border-neutral-200 pt-2 text-base font-extrabold">
                 <span>{t("checkout.total")}</span>
                 <span>{money(total)}</span>
               </div>
-              <p className="text-end text-[11px] text-neutral-400">{t("checkout_ui.vat_included", { label: taxLabel, amount: money(taxTotal) })}</p>
+              <p className="text-end text-[11px] text-neutral-400">{t("checkout_ui.vat_included", { label: taxLabel, amount: money(Math.round((taxTotal + parcels.reduce((n, g) => n + extractTax(g.fee, deliveryTaxPercent), 0)) * 100) / 100) })}</p>
             </div>
 
             {error && <p className="mt-3 hidden text-sm text-red-600 lg:block">{error}</p>}

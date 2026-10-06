@@ -26,5 +26,6 @@ const DEFAULT_THEME: CategoryTheme = {
 
 export function getCategoryTheme(slug: string | null | undefined): CategoryTheme {
   if (!slug) return DEFAULT_THEME;
-  return THEMES[slug] ?? DEFAULT_THEME;
+  // India categories use an "in-" slug prefix (slugs are unique across markets); they share the same looks.
+  return THEMES[slug.replace(/^in-/, "")] ?? DEFAULT_THEME;
 }

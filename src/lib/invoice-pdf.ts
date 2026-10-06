@@ -202,10 +202,14 @@ export async function buildInvoicePdf({
     y -= 14;
   };
   totalRow("Item(s) Subtotal", money(order.subtotal));
-  totalRow("Delivery fee", order.delivery_fee === 0 ? "Free" : money(order.delivery_fee));
+  // India: the delivery charge carries GST too. Its share is whatever tax the order holds beyond its items'.
+  const itemTax = order.order_items.reduce((sum, i) => sum + Number(i.tax_amount ?? 0), 0);
+  const deliveryTax = isGst ? Math.round((Number(order.vat) - itemTax) * 100) / 100 : 0;
+  totalRow(deliveryTax > 0.005 ? "Delivery fee (incl. GST)" : "Delivery fee", order.delivery_fee === 0 ? "Free" : money(order.delivery_fee));
   const taxedLines = order.order_items
     .filter((i) => i.tax_rate != null)
     .map((i) => ({ rate: Number(i.tax_rate), gross: Number(i.line_total), tax: Number(i.tax_amount ?? 0) }));
+  if (deliveryTax > 0.005) taxedLines.push({ rate: 18, gross: Number(order.delivery_fee), tax: deliveryTax });
   if (taxedLines.length > 0) {
     // One row per tax rate. GST is CGST + SGST when seller and buyer are in the same state, else IGST.
     const sameState =

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentTenant } from "@/lib/tenant-server";
-import { extractTax, productTaxRate, taxProfileFor } from "@/lib/tax";
+import { deliveryTaxRate, extractTax, productTaxRate, taxProfileFor } from "@/lib/tax";
 import CheckoutForm from "@/components/CheckoutForm";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getAddresses } from "@/lib/addresses";
@@ -8,6 +8,7 @@ import { checkProductsDeliverable } from "@/lib/delivery-zones";
 import { combineMethods } from "@/lib/delivery-methods";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getStoreDirectory } from "@/lib/stores";
 import { localizedName } from "@/lib/i18n/localized";
 
 export default async function CheckoutPage() {
@@ -44,10 +45,21 @@ export default async function CheckoutPage() {
     })
   );
 
+  // One order per supplier: group the cart so the summary can show each parcel and its delivery fee.
+  const storeName = new Map((await getStoreDirectory()).map((st) => [st.id, st.name]));
+  const groupMap = new Map<string, { key: string; name: string; subtotal: number }>();
+  for (const i of items) {
+    const sid = i.product_variants.products.store_id;
+    const key = sid ?? "own";
+    const g = groupMap.get(key) ?? { key, name: sid ? storeName.get(sid) ?? "Shop" : "FasTrack", subtotal: 0 };
+    g.subtotal = Math.round((g.subtotal + i.quantity * i.product_variants.price) * 100) / 100;
+    groupMap.set(key, g);
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 max-md:pb-44">
       <h1 className="mb-4 text-xl font-semibold max-md:hidden">{t("checkout.title")}</h1>
-      <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} methodsByAddress={methodsByAddress} taxTotal={taxTotal} taxLabel={taxProfile.label} />
+      <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} methodsByAddress={methodsByAddress} taxTotal={taxTotal} taxLabel={taxProfile.label} groups={[...groupMap.values()]} deliveryTaxPercent={deliveryTaxRate(tenant?.country_code)} />
     </div>
   );
 }

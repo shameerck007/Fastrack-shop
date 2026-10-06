@@ -18,6 +18,11 @@ export function taxProfileFor(countryCode: string | null | undefined): TaxProfil
   return PROFILES[(countryCode ?? "SA").toUpperCase()] ?? PROFILES.SA;
 }
 
+/** GST on the delivery charge (India: 18% service rate, included in the fee). Saudi delivery fees are unchanged. */
+export function deliveryTaxRate(countryCode: string | null | undefined): number {
+  return (countryCode ?? "SA").toUpperCase() === "IN" ? 18 : 0;
+}
+
 /** The tax portion inside a tax-inclusive amount. */
 export function extractTax(amountInclusive: number, ratePercent: number): number {
   if (!(ratePercent > 0)) return 0;

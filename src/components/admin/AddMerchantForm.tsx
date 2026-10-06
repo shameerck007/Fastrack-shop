@@ -9,11 +9,17 @@ import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { findUserByEmail, adminCreateMerchant, type FoundUser } from "@/lib/actions/admin-merchants";
 import { useLocale } from "@/components/LocaleProvider";
+import { useMarket } from "@/components/MoneyProvider";
+import IndiaSupplierFields from "@/components/merchant/IndiaSupplierFields";
+import { EMPTY_INDIA_SUPPLIER, validateIndiaSupplier } from "@/lib/india-business";
+import { validatePhone } from "@/lib/countries";
 
 const COUNTRIES = ["Saudi Arabia", "United Arab Emirates", "Kuwait", "Bahrain", "Qatar", "Oman", "India"];
 
 export default function AddMerchantForm() {
   const { t } = useLocale();
+  const isIndia = useMarket().countryCode === "IN";
+  const [india, setIndia] = useState(EMPTY_INDIA_SUPPLIER);
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [found, setFound] = useState<FoundUser | null | undefined>(undefined); // undefined = not searched yet
@@ -41,6 +47,7 @@ export default function AddMerchantForm() {
     setAddressLine("");
     setCity("Riyadh");
     setCountry("Saudi Arabia");
+    setIndia(EMPTY_INDIA_SUPPLIER);
   }
 
   function close() {
@@ -64,11 +71,18 @@ export default function AddMerchantForm() {
 
   function submit() {
     if (!found) return;
-    if (!name.trim() || !crNumber.trim()) {
+    if (isIndia) {
+      const problem = !name.trim() ? "Store name is required." : validateIndiaSupplier(india);
+      const phone = contactPhone.trim() ? validatePhone(contactPhone) : { ok: true as const, error: "" };
+      if (problem || !phone.ok) {
+        setError(problem ?? phone.error);
+        return;
+      }
+    } else if (!name.trim() || !crNumber.trim()) {
       setError(t("add_merchant.name_cr_required"));
       return;
     }
-    if (country.trim().toLowerCase() === "saudi arabia") {
+    if (!isIndia && country.trim().toLowerCase() === "saudi arabia") {
       const cr = checkCrNumber(crNumber);
       const vat = checkVatNumber(vatNumber);
       const problem = cr.error ?? vat.error;
@@ -88,7 +102,8 @@ export default function AddMerchantForm() {
           contactPhone: contactPhone.trim() || undefined,
           addressLine: addressLine.trim() || undefined,
           city: city.trim() || "Riyadh",
-          country,
+          country: isIndia ? "India" : country,
+          india: isIndia ? india : undefined,
         });
         close();
         router.push(`/admin/merchants/${storeId}`);
@@ -146,7 +161,8 @@ export default function AddMerchantForm() {
                 placeholder={t("add_merchant.store_name")}
                 className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               />
-              <div className="grid grid-cols-2 gap-2">
+              {isIndia && <IndiaSupplierFields value={india} onChange={setIndia} />}
+              <div className={isIndia ? "hidden" : "grid grid-cols-2 gap-2"}>
                 {country.trim().toLowerCase() === "saudi arabia" ? (
                   <>
                     <TaxIdInput value={crNumber} onChange={setCrNumber} check={checkCrNumber} length={10} placeholder={t("add_merchant.cr_number")} />
@@ -176,7 +192,7 @@ export default function AddMerchantForm() {
                 placeholder={t("add_merchant.address_optional")}
                 className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               />
-              <div className="grid grid-cols-2 gap-2">
+              <div className={isIndia ? "hidden" : "grid grid-cols-2 gap-2"}>
                 <input
                   value={city}
                   onChange={(e) => setCity(e.target.value)}

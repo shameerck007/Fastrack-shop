@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getCartItems, cartSubtotal } from "@/lib/cart";
+import { getCartItems } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
 import { combineMethods, deliveryFee as deliveryFeeFor, pricingFor } from "@/lib/delivery-methods";
@@ -13,7 +13,7 @@ import { addToCart } from "@/lib/actions/cart";
 import { notifyUsers } from "@/lib/push";
 import { sendOrderConfirmationEmail, sendNewOrderEmails } from "@/lib/email-notifications";
 import { generateOrderNumber, generateOtp } from "@/lib/utils";
-import { extractTax, productTaxRate } from "@/lib/tax";
+import { deliveryTaxRate, extractTax, productTaxRate } from "@/lib/tax";
 import type { DeliveryType, PaymentMethod } from "@/types/database";
 
 
@@ -53,10 +53,9 @@ async function placeOrderOrThrow(input: {
   // Product prices are VAT-inclusive (what's shown in the catalog is what
   // the item costs) — vat here is the tax portion already inside subtotal,
   // extracted for the receipt/ZATCA breakdown, not added on top.
-  const subtotal = cartSubtotal(items);
-  // Delivery fees are per market (SAR in Saudi Arabia, INR in India).
+  // Delivery fees are per market (SAR in Saudi Arabia, INR in India), charged per supplier order.
   const orderTenant = await getCurrentTenant();
-  const deliveryFee = deliveryFeeFor(input.deliveryType, subtotal, pricingFor(orderTenant?.country_code));
+  const pricing = pricingFor(orderTenant?.country_code);
   // Tax is computed per item from each product's own rate (GST slabs in India, VAT in Saudi).
   const taxCountry = orderTenant?.country_code ?? "SA";
   const itemTaxes = items.map((item) => {
@@ -64,8 +63,6 @@ async function placeOrderOrThrow(input: {
     const gross = Math.round(item.quantity * item.product_variants.price * 100) / 100;
     return { rate, tax: extractTax(gross, rate) };
   });
-  const vat = Math.round(itemTaxes.reduce((sum, t) => sum + t.tax, 0) * 100) / 100;
-  const total = Math.round((subtotal + deliveryFee) * 100) / 100;
 
   // Fetched before warehouse resolution — for FasTrack's own items (no
   // store_id), which of FasTrack's own locations fulfils the order now
@@ -127,123 +124,130 @@ async function placeOrderOrThrow(input: {
   const tenant = orderTenant;
   const orderCountry = tenant?.country_code ?? "SA";
 
-  const orderNumber = generateOrderNumber();
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      order_number: orderNumber,
-      user_id: user.id,
-      address_id: input.addressId,
-      // orders currently support a single pickup warehouse; for a cart
-      // spanning multiple sellers this records the first item's warehouse
-      // (rider pickup instructions reflect that one), since fulfillment
-      // splitting across sellers is intentionally out of scope for now.
-      warehouse_id: itemWarehouseIds[0] ?? null,
-      status: "pending",
-      currency: tenant?.currency ?? "SAR",
-      country_code: orderCountry,
-      tax_label: orderCountry === "IN" ? "GST" : "VAT",
-      delivery_type: input.deliveryType,
-      scheduled_for: input.deliveryType === "scheduled" ? input.scheduledFor : null,
-      subtotal,
-      delivery_fee: deliveryFee,
-      discount: 0,
-      vat,
-      total,
-      delivery_otp: generateOtp(),
-      notes: input.notes ?? null,
-    })
-    .select("id")
-    .single();
-
-  if (orderError) throw orderError;
-
-  const orderItems = items.map((item, idx) => ({
-    tax_rate: itemTaxes[idx].rate,
-    tax_amount: itemTaxes[idx].tax,
-    hsn_code: item.product_variants.products.hsn_code ?? null,
-    order_id: order.id,
-    variant_id: item.variant_id,
-    product_name: item.product_variants.products.name,
-    variant_label: item.product_variants.label,
-    ordered_quantity: item.quantity,
-    unit_price: item.product_variants.price,
-    line_total: Math.round(item.quantity * item.product_variants.price * 100) / 100,
-  }));
-
-  let { error: itemsError } = await supabase.from("order_items").insert(orderItems);
-  // Per-item tax columns arrive with migration 0047; until it's applied, save the lines without them.
-  if (itemsError && (itemsError.code === "42703" || itemsError.code === "PGRST204")) {
-    ({ error: itemsError } = await supabase
-      .from("order_items")
-      .insert(orderItems.map(({ tax_rate: _r, tax_amount: _a, hsn_code: _h, ...rest }) => rest)));
-  }
-  if (itemsError) throw itemsError;
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    const itemWarehouseId = itemWarehouseIds[i];
-    if (!itemWarehouseId) continue;
-    const { error: stockError } = await supabase.rpc("decrement_stock", {
-      p_variant_id: item.variant_id,
-      p_warehouse_id: itemWarehouseId,
-      p_qty: item.quantity,
-    });
-    if (stockError) {
-      throw new Error(
-        `${item.product_variants.products.name} sold out while placing your order. Please remove it and try again.`
-      );
-    }
-  }
-
-  await supabase.from("order_status_history").insert({ order_id: order.id, status: "pending" });
-
-  // Tell whoever needs to prep this order that it exists — the merchant(s)
-  // whose products are in it, and the FasTrack warehouse staff if any item
-  // is FasTrack's own (same single-warehouse simplification as
-  // itemWarehouseIds[0] above: one order, one own-warehouse notified).
-  const distinctStoreIds = [...new Set(productRefs.filter((p) => p.store_id).map((p) => p.store_id as string))];
-  if (distinctStoreIds.length > 0) {
-    const { data: storeOwners } = await supabase.from("stores").select("owner_id").in("id", distinctStoreIds);
-    const ownerIds = (storeOwners ?? []).map((s) => s.owner_id);
-    await notifyUsers(ownerIds, {
-      title: "New order received",
-      body: `Order #${orderNumber} needs confirmation.`,
-      url: "/merchant/orders",
-    });
-    await sendNewOrderEmails(ownerIds, orderNumber, "/merchant/orders");
-  }
-  const ownWarehouseIndex = productRefs.findIndex((p) => !p.store_id);
-  const ownWarehouseId = ownWarehouseIndex >= 0 ? itemWarehouseIds[ownWarehouseIndex] : null;
-  if (ownWarehouseId) {
-    const { data: staffRows } = await supabase.from("warehouse_staff").select("user_id").eq("warehouse_id", ownWarehouseId);
-    const staffIds = (staffRows ?? []).map((s) => s.user_id);
-    await notifyUsers(staffIds, {
-      title: "New order received",
-      body: `Order #${orderNumber} needs confirmation.`,
-      url: "/warehouse/orders",
-    });
-    await sendNewOrderEmails(staffIds, orderNumber, "/warehouse/orders");
-  }
-  await sendOrderConfirmationEmail(order.id);
-
-  await supabase.from("payments").insert({
-    order_id: order.id,
-    method: input.paymentMethod,
-    status: input.paymentMethod === "cash_on_delivery" ? "pending" : "authorized",
-    amount: total,
+  // One order per supplier: each shop prepares, invoices and hands over its own parcel, and gets
+  // its own rider, OTP, GST invoice and settlement. The delivery fee is charged per order.
+  const groups = new Map<string, number[]>();
+  items.forEach((item, idx) => {
+    const key = item.product_variants.products.store_id ?? "own";
+    groups.set(key, [...(groups.get(key) ?? []), idx]);
   });
 
-  const { data: cart } = await supabase
-    .from("carts")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (cart) {
-    await supabase.from("cart_items").delete().eq("cart_id", cart.id);
+  const placedIds: string[] = [];
+  try {
+    for (const idxs of groups.values()) {
+      const groupItems = idxs.map((i) => items[i]);
+      const groupSubtotal = Math.round(groupItems.reduce((sum, it) => sum + it.quantity * it.product_variants.price, 0) * 100) / 100;
+      const deliveryFee = deliveryFeeFor(input.deliveryType, groupSubtotal, pricing);
+      // Tax inside the order = the items' tax, plus GST inside the delivery charge where it applies (India).
+      const vat = Math.round((idxs.reduce((sum, i) => sum + itemTaxes[i].tax, 0) + extractTax(deliveryFee, deliveryTaxRate(taxCountry))) * 100) / 100;
+      const total = Math.round((groupSubtotal + deliveryFee) * 100) / 100;
+
+      const orderNumber = generateOrderNumber();
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          order_number: orderNumber,
+          user_id: user.id,
+          address_id: input.addressId,
+          // The single pickup warehouse of this supplier's parcel (rider pickup instructions).
+          warehouse_id: itemWarehouseIds[idxs[0]] ?? null,
+          status: "pending",
+          currency: tenant?.currency ?? "SAR",
+          country_code: orderCountry,
+          tax_label: orderCountry === "IN" ? "GST" : "VAT",
+          delivery_type: input.deliveryType,
+          scheduled_for: input.deliveryType === "scheduled" ? input.scheduledFor : null,
+          subtotal: groupSubtotal,
+          delivery_fee: deliveryFee,
+          discount: 0,
+          vat,
+          total,
+          delivery_otp: generateOtp(),
+          notes: input.notes ?? null,
+        })
+        .select("id")
+        .single();
+      if (orderError) throw orderError;
+      placedIds.push(order.id);
+
+      const orderItems = idxs.map((i) => {
+        const item = items[i];
+        return {
+          tax_rate: itemTaxes[i].rate,
+          tax_amount: itemTaxes[i].tax,
+          hsn_code: item.product_variants.products.hsn_code ?? null,
+          order_id: order.id,
+          variant_id: item.variant_id,
+          product_name: item.product_variants.products.name,
+          variant_label: item.product_variants.label,
+          ordered_quantity: item.quantity,
+          unit_price: item.product_variants.price,
+          line_total: Math.round(item.quantity * item.product_variants.price * 100) / 100,
+        };
+      });
+
+      let { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+      // Per-item tax columns arrive with migration 0047; until it's applied, save the lines without them.
+      if (itemsError && (itemsError.code === "42703" || itemsError.code === "PGRST204")) {
+        ({ error: itemsError } = await supabase
+          .from("order_items")
+          .insert(orderItems.map(({ tax_rate: _r, tax_amount: _a, hsn_code: _h, ...rest }) => rest)));
+      }
+      if (itemsError) throw itemsError;
+
+      for (const i of idxs) {
+        const item = items[i];
+        const { error: stockError } = await supabase.rpc("decrement_stock", {
+          p_variant_id: item.variant_id,
+          p_warehouse_id: itemWarehouseIds[i],
+          p_qty: item.quantity,
+        });
+        if (stockError) {
+          throw new Error(`${item.product_variants.products.name} sold out while placing your order. Please remove it and try again.`);
+        }
+      }
+
+      await supabase.from("order_status_history").insert({ order_id: order.id, status: "pending" });
+
+      // Tell whoever prepares this parcel: the supplier's owner, or FasTrack's warehouse staff.
+      const storeId = groupItems[0].product_variants.products.store_id;
+      if (storeId) {
+        const { data: storeOwners } = await supabase.from("stores").select("owner_id").eq("id", storeId);
+        const ownerIds = (storeOwners ?? []).map((s) => s.owner_id);
+        await notifyUsers(ownerIds, { title: "New order received", body: `Order #${orderNumber} needs confirmation.`, url: "/merchant/orders" });
+        await sendNewOrderEmails(ownerIds, orderNumber, "/merchant/orders");
+      } else {
+        const ownWarehouseId = itemWarehouseIds[idxs[0]];
+        const { data: staffRows } = await supabase.from("warehouse_staff").select("user_id").eq("warehouse_id", ownWarehouseId);
+        const staffIds = (staffRows ?? []).map((s) => s.user_id);
+        await notifyUsers(staffIds, { title: "New order received", body: `Order #${orderNumber} needs confirmation.`, url: "/warehouse/orders" });
+        await sendNewOrderEmails(staffIds, orderNumber, "/warehouse/orders");
+      }
+      await sendOrderConfirmationEmail(order.id);
+
+      await supabase.from("payments").insert({
+        order_id: order.id,
+        method: input.paymentMethod,
+        status: input.paymentMethod === "cash_on_delivery" ? "pending" : "authorized",
+        amount: total,
+      });
+
+      // This supplier's lines are ordered: take them out of the cart right away, so a failure
+      // on a later supplier never leaves already-placed items to be ordered twice.
+      await supabase.from("cart_items").delete().in("id", groupItems.map((it) => it.id));
+    }
+  } catch (err) {
+    const digest = (err as { digest?: string } | null)?.digest;
+    if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) throw err;
+    const message = err instanceof Error ? err.message : "Could not place your order.";
+    if (placedIds.length > 0) {
+      throw new Error(`${placedIds.length} of your ${groups.size} orders were placed (see My orders). The rest is still in your cart: ${message}`);
+    }
+    throw err;
   }
 
-  redirect(`/orders/${order.id}`);
+  // One supplier: straight to that order. Several: the orders list shows them all.
+  redirect(placedIds.length === 1 ? `/orders/${placedIds[0]}` : "/orders");
 }
 
 /** Amazon-style "Buy it again": re-adds every item from a past order to the

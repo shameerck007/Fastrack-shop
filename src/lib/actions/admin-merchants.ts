@@ -1,6 +1,8 @@
 "use server";
 
 import { checkCrNumber, checkVatNumber } from "@/lib/saudi-tax";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { checkFssai, checkGstin, checkIndianBankDetails, checkPan, validateIndiaSupplier, type IndiaSupplierValue } from "@/lib/india-business";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyUsers } from "@/lib/push";
@@ -171,15 +173,51 @@ export interface AdminCreateMerchantInput {
   addressLine?: string;
   city: string;
   country: string;
+  /** India (the admin's market): GSTIN, PAN, FSSAI, state, city and bank account. */
+  india?: IndiaSupplierValue;
 }
 
 /** Admin adding a merchant directly: skips the applicant flow and is approved immediately. */
 export async function adminCreateMerchant(input: AdminCreateMerchantInput) {
   const supabase = await createClient();
+  // The market being administered decides which business details apply.
+  const isIndia = ((await getCurrentTenant())?.country_code ?? "SA") === "IN";
 
-  if ((input.country || "Saudi Arabia").trim().toLowerCase() === "saudi arabia") {
-    const problem = checkCrNumber(input.crNumber).error ?? checkVatNumber(input.vatNumber ?? "").error;
+  let identity: Record<string, string | null>;
+  if (isIndia) {
+    if (!input.india) throw new Error("Please fill in the GST, PAN and bank details.");
+    const problem = validateIndiaSupplier(input.india);
     if (problem) throw new Error(problem);
+    const bank = checkIndianBankDetails({
+      bankName: input.india.bankName,
+      accountNumber: input.india.accountNumber,
+      ifsc: input.india.ifsc,
+      holder: input.india.accountHolder,
+    });
+    identity = {
+      // As in the supplier's own application: PAN in the CR slot, GSTIN in the VAT slot.
+      cr_number: checkPan(input.india.pan).value,
+      vat_number: checkGstin(input.india.gstin).value,
+      city: input.india.city.trim(),
+      country: "India",
+      state: input.india.state,
+      fssai_number: input.india.fssai.trim() ? checkFssai(input.india.fssai).value : null,
+      bank_name: input.india.bankName.trim(),
+      bank_account_number: bank.accountNumber,
+      bank_ifsc: bank.ifsc,
+      bank_account_holder: input.india.accountHolder.trim(),
+    };
+  } else {
+    if ((input.country || "Saudi Arabia").trim().toLowerCase() === "saudi arabia") {
+      const problem = checkCrNumber(input.crNumber).error ?? checkVatNumber(input.vatNumber ?? "").error;
+      if (problem) throw new Error(problem);
+    }
+    identity = {
+      cr_number: input.crNumber,
+      vat_number: input.vatNumber || null,
+      city: input.city || "Riyadh",
+      country: input.country || "Saudi Arabia",
+    };
   }
 
   const { data: existing } = await supabase
@@ -194,12 +232,9 @@ export async function adminCreateMerchant(input: AdminCreateMerchantInput) {
     .insert({
       owner_id: input.ownerId,
       name: input.name,
-      cr_number: input.crNumber,
-      vat_number: input.vatNumber || null,
+      ...identity,
       contact_phone: input.contactPhone || null,
       address_line: input.addressLine || null,
-      city: input.city || "Riyadh",
-      country: input.country || "Saudi Arabia",
       status: "pending",
     })
     .select("id, name, address_line, owner_id")
