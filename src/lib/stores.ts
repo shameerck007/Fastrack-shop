@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { marketOffsetMinutes } from "@/lib/timezone";
@@ -17,7 +18,7 @@ export interface StoreDirectoryEntry {
 /** Every approved store's public (storefront-safe) fields. Returns an empty
  * list if the function isn't there yet, so a not-yet-run migration degrades
  * to "everything open, no logos" rather than breaking the shop. */
-export async function getStoreDirectory(): Promise<StoreDirectoryEntry[]> {
+async function getStoreDirectoryImpl(): Promise<StoreDirectoryEntry[]> {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("public_store_directory");
@@ -49,3 +50,6 @@ export async function assertStoresOpen(storeIds: (string | null | undefined)[]):
     throw new Error(`${store.name} is closed right now.${when}`);
   }
 }
+
+/** One lookup per request: the layout, header, footer and page all ask for this. */
+export const getStoreDirectory = cache(getStoreDirectoryImpl);

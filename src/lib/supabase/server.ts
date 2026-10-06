@@ -1,10 +1,11 @@
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/types/database";
 import { TENANT_COOKIE, tenantHeaders } from "@/lib/tenant";
 import { ADMIN_SCOPE_COOKIE, scopeHeaders } from "@/lib/platform-scope";
 
-export async function createClient() {
+async function createClientImpl() {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
@@ -30,3 +31,6 @@ export async function createClient() {
     }
   );
 }
+
+/** One Supabase client per request: a page makes ~20 data calls, and building a client for each costs CPU time. */
+export const createClient = cache(createClientImpl);

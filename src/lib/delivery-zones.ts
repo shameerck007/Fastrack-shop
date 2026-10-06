@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { distanceKm, type Coords, type ZoneVerdict } from "@/lib/delivery-geo";
 import { DEFAULT_STANDARD_DAYS, methodsFor, type DeliveryMethods, type DeliveryZone } from "@/lib/delivery-methods";
@@ -27,7 +28,7 @@ export function verdictMessage(verdict: ZoneVerdict, itemName?: string): string 
   return `${subject} deliverable to your location (${verdict.distanceKm.toFixed(1)} km away, seller delivers within ${verdict.radiusKm} km).`;
 }
 
-export async function loadZones(): Promise<Map<string, WarehouseZone>> {
+async function loadZonesImpl(): Promise<Map<string, WarehouseZone>> {
   const supabase = await createClient();
   type Row = {
     id: string;
@@ -68,6 +69,9 @@ export async function loadZones(): Promise<Map<string, WarehouseZone>> {
   );
 }
 
+/** One query per request, however many addresses or products are checked. */
+export const loadZones = cache(loadZonesImpl);
+
 export function toDeliveryZone(zone: WarehouseZone | undefined): DeliveryZone | undefined {
   if (!zone) return undefined;
   return {
@@ -90,14 +94,27 @@ export function toDeliveryZone(zone: WarehouseZone | undefined): DeliveryZone | 
  * instead of a generic "unavailable". Falls back to the legacy "oldest
  * unowned warehouse" pick when there's no location yet, or no warehouse has
  * coordinates at all. */
-async function resolveFastrackWarehouse(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  coords: Coords | null
-): Promise<string | null> {
+/** The stores' warehouse ids and every active warehouse: the same for every address, so asked once per request. */
+const loadFastrackCandidates = cache(async () => {
+  const supabase = await createClient();
   const [{ data: stores }, { data: warehouses }] = await Promise.all([
     supabase.from("stores").select("warehouse_id"),
     supabase.from("warehouses").select("id, lat, lng, delivery_radius_km").eq("is_active", true),
   ]);
+  return { stores: stores ?? [], warehouses: warehouses ?? [] };
+});
+
+const loadStoreWarehouses = cache(async (key: string) => {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("get_store_warehouses", { target_store_ids: key.split(",") });
+  return (data ?? []) as { store_id: string; warehouse_id: string | null }[];
+});
+
+async function resolveFastrackWarehouse(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  coords: Coords | null
+): Promise<string | null> {
+  const { stores, warehouses } = await loadFastrackCandidates();
 
   const merchantWarehouseIds = new Set((stores ?? []).map((s) => s.warehouse_id).filter(Boolean));
   const own = (warehouses ?? []).filter((w) => !merchantWarehouseIds.has(w.id));
@@ -138,8 +155,7 @@ export async function resolveProductWarehouses(
 
   const storeWarehouse = new Map<string, string | null>();
   if (storeIds.length) {
-    const { data } = await supabase.rpc("get_store_warehouses", { target_store_ids: storeIds });
-    for (const row of (data ?? []) as { store_id: string; warehouse_id: string | null }[]) {
+    for (const row of await loadStoreWarehouses([...storeIds].sort().join(","))) {
       storeWarehouse.set(row.store_id, row.warehouse_id);
     }
   }

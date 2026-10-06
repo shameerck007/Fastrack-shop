@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Category, ProductWithVariants } from "@/types/database";
 
@@ -35,7 +36,7 @@ export interface CategoryWithChildren extends Category {
 // One query for the whole tree (rather than a per-category subcategory
 // fetch) — used wherever the nav needs to show subcategories on hover, like
 // Amazon/Noon's category flyout menus.
-export async function getCategoriesWithChildren(): Promise<CategoryWithChildren[]> {
+async function getCategoriesWithChildrenImpl(): Promise<CategoryWithChildren[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("categories").select("*").order("sort_order", { ascending: true });
   if (error) throw error;
@@ -186,3 +187,6 @@ export async function searchProducts(query: string): Promise<ProductWithVariants
   if (error) throw error;
   return (data as ProductWithVariants[]) ?? [];
 }
+
+/** One lookup per request: the layout, header, footer and page all ask for this. */
+export const getCategoriesWithChildren = cache(getCategoriesWithChildrenImpl);

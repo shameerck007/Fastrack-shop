@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export const COMPANY_SETTINGS_ID = "00000000-0000-0000-0000-000000000001";
@@ -28,7 +29,7 @@ const FALLBACK: CompanySettings = {
   email: null,
 };
 
-export async function getCompanySettings(): Promise<CompanySettings> {
+async function getCompanySettingsImpl(): Promise<CompanySettings> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("company_settings")
@@ -38,3 +39,6 @@ export async function getCompanySettings(): Promise<CompanySettings> {
     .maybeSingle();
   return data ?? FALLBACK;
 }
+
+/** One lookup per request: the layout, header, footer and page all ask for this. */
+export const getCompanySettings = cache(getCompanySettingsImpl);

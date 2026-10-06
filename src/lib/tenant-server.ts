@@ -1,10 +1,11 @@
+import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_CURRENCY, moneyFor, type MoneyFormatter } from "@/lib/money";
 import { TENANT_COOKIE, TENANT_SUGGESTION_COOKIE, isMarketPinnedRole, isTenantId, type Tenant } from "@/lib/tenant";
 
 /** Active markets (tenants). The table is publicly readable; empty if migration 0044 hasn't run. */
-export async function getActiveTenants(): Promise<Tenant[]> {
+async function getActiveTenantsImpl(): Promise<Tenant[]> {
   const supabase = await createClient();
   const loose = supabase as unknown as {
     from: (t: string) => {
@@ -18,7 +19,7 @@ export async function getActiveTenants(): Promise<Tenant[]> {
 
 /** The market this request is working in. Asks the database (same rule the security policies use):
  * staff are pinned to their own tenant, shoppers get the market they chose, else the default. */
-export async function getCurrentTenant(): Promise<Tenant | null> {
+async function getCurrentTenantImpl(): Promise<Tenant | null> {
   const tenants = await getActiveTenants();
   if (tenants.length === 0) return null;
   const supabase = await createClient();
@@ -31,7 +32,7 @@ export async function getCurrentTenant(): Promise<Tenant | null> {
 
 /** Suggest the market matching the visitor's country (Cloudflare's own header), if it differs from the current one.
  * Only a suggestion — the customer decides — and never repeated once they have answered. */
-export async function getMarketSuggestion(): Promise<{ current: Tenant; suggested: Tenant } | null> {
+async function getMarketSuggestionImpl(): Promise<{ current: Tenant; suggested: Tenant } | null> {
   const store = await cookies();
   if (store.get(TENANT_SUGGESTION_COOKIE)) return null;
   const tenants = await getActiveTenants();
@@ -56,7 +57,7 @@ export async function getMoney(): Promise<MoneyFormatter> {
 }
 
 /** True when the signed-in account is a supplier / rider / admin / warehouse account: those stay in one country. */
-export async function isMarketPinnedAccount(): Promise<boolean> {
+async function isMarketPinnedAccountImpl(): Promise<boolean> {
   try {
     const supabase = await createClient();
     const {
@@ -69,3 +70,15 @@ export async function isMarketPinnedAccount(): Promise<boolean> {
     return false;
   }
 }
+
+/** One lookup per request: the layout, header, footer and page all ask for this. */
+export const getActiveTenants = cache(getActiveTenantsImpl);
+
+/** One lookup per request: the layout, header, footer and page all ask for this. */
+export const getCurrentTenant = cache(getCurrentTenantImpl);
+
+/** One lookup per request: the layout, header, footer and page all ask for this. */
+export const getMarketSuggestion = cache(getMarketSuggestionImpl);
+
+/** One lookup per request: the layout, header, footer and page all ask for this. */
+export const isMarketPinnedAccount = cache(isMarketPinnedAccountImpl);
