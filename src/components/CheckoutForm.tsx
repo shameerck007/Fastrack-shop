@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useMarket } from "@/components/MoneyProvider";
 import AddressForm from "@/components/AddressForm";
 import { placeOrder } from "@/lib/actions/orders";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
-import { EXPRESS_FEE, STANDARD_FEE, formatDeliveryDate, standardDeliveryDate } from "@/lib/delivery-methods";
+import { formatDeliveryDate, pricingFor, standardDeliveryDate } from "@/lib/delivery-methods";
 import type { Address, CartItemWithVariant, DeliveryType, PaymentMethod } from "@/types/database";
 import { useMoney } from "@/components/MoneyProvider";
 
-const DELIVERY_OPTIONS: { value: DeliveryType; labelKey: string; hintKey: string; fee: number }[] = [
-  { value: "express", labelKey: "checkout.express", hintKey: "checkout.minutes_15_30", fee: EXPRESS_FEE },
-  { value: "standard", labelKey: "checkout.standard", hintKey: "checkout.minutes_30_60", fee: STANDARD_FEE },
-  { value: "scheduled", labelKey: "checkout.scheduled", hintKey: "checkout.choose_datetime", fee: STANDARD_FEE },
+const DELIVERY_OPTION_DEFS: { value: DeliveryType; labelKey: string; hintKey: string; feeKey: "express" | "standard" }[] = [
+  { value: "express", labelKey: "checkout.express", hintKey: "checkout.minutes_15_30", feeKey: "express" },
+  { value: "standard", labelKey: "checkout.standard", hintKey: "checkout.minutes_30_60", feeKey: "standard" },
+  { value: "scheduled", labelKey: "checkout.scheduled", hintKey: "checkout.choose_datetime", feeKey: "standard" },
 ];
 
 // Card/Apple Pay are modeled in the schema (see PaymentMethod) but there is
@@ -22,7 +23,6 @@ const DELIVERY_OPTIONS: { value: DeliveryType; labelKey: string; hintKey: string
 // offers Cash on Delivery; placeOrder() also enforces this server-side.
 const PAYMENT_OPTIONS: { value: PaymentMethod }[] = [{ value: "cash_on_delivery" }];
 
-const FREE_DELIVERY_THRESHOLD = 50;
 
 export default function CheckoutForm({
   addresses,
@@ -43,6 +43,9 @@ export default function CheckoutForm({
 }) {
   const money = useMoney();
   const { t, locale } = useLocale();
+  const pricing = pricingFor(useMarket().countryCode);
+  const FREE_DELIVERY_THRESHOLD = pricing.freeOver;
+  const DELIVERY_OPTIONS = DELIVERY_OPTION_DEFS.map((d) => ({ ...d, fee: pricing[d.feeKey] }));
   // null means "no explicit user selection yet" — fall back to the first
   // address, which also picks up addresses added after this component mounted
   // (the addresses prop refreshes via server-action revalidation).
@@ -121,7 +124,7 @@ export default function CheckoutForm({
     [
       addr.building_number && `${t("addresses.bldg_short")} ${addr.building_number}`,
       addr.unit_number && `${t("addresses.unit_short")} ${addr.unit_number}`,
-      addr.landmark && `Near ${addr.landmark}`,
+      addr.landmark,
       addr.district,
       addr.city,
       addr.state,

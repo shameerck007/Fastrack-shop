@@ -6,11 +6,9 @@ import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { useLocale } from "@/components/LocaleProvider";
 
 import { showsCartBar } from "@/lib/mobile-fullscreen";
-import { useMoney } from "@/components/MoneyProvider";
+import { useMarket, useMoney } from "@/components/MoneyProvider";
+import { pricingFor } from "@/lib/delivery-methods";
 
-// Mirrors checkout: free delivery from SAR 50, otherwise the standard fee.
-const FREE_DELIVERY_FROM = 50;
-const STANDARD_DELIVERY_FEE = 7;
 
 function CartIcon() {
   return (
@@ -31,12 +29,13 @@ export function PlaceOrderPill({ className = "", compact = false }: { className?
   const money = useMoney();
   const { cartCount, cartTotal, cartSavings } = useCustomerHeaderState();
   const { t } = useLocale();
+  const pricing = pricingFor(useMarket().countryCode);
 
   if (cartCount <= 0) return null;
 
-  const toFree = Math.max(0, FREE_DELIVERY_FROM - cartTotal);
+  const toFree = Math.max(0, pricing.freeOver - cartTotal);
   const delivery =
-    toFree === 0 ? t("cartbar.free_delivery") : t("cartbar.delivery_fee", { fee: money(STANDARD_DELIVERY_FEE) });
+    toFree === 0 ? t("cartbar.free_delivery") : t("cartbar.delivery_fee", { fee: money(pricing.standard) });
   const subline = cartSavings > 0 ? `${t("cartbar.saved", { amount: money(cartSavings) })} · ${delivery}` : delivery;
 
   return (

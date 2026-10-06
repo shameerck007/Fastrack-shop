@@ -101,11 +101,24 @@ export function formatDeliveryDate(date: Date, locale: string): string {
   return date.toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 }
 
-export const EXPRESS_FEE = 12;
-export const STANDARD_FEE = 7;
-export const FREE_DELIVERY_THRESHOLD = 50;
+/** Delivery fees per market, in that market's own currency. Free delivery applies from `freeOver`. */
+export interface DeliveryPricing {
+  express: number;
+  standard: number;
+  freeOver: number;
+}
 
-export function deliveryFee(method: "express" | "standard" | "scheduled", subtotal: number): number {
-  if (subtotal >= FREE_DELIVERY_THRESHOLD) return 0;
-  return method === "express" ? EXPRESS_FEE : STANDARD_FEE;
+const PRICING: Record<string, DeliveryPricing> = {
+  SA: { express: 12, standard: 7, freeOver: 50 },
+  // India: roughly the same money in rupees, rounded to typical local quick-commerce levels.
+  IN: { express: 49, standard: 29, freeOver: 499 },
+};
+
+export function pricingFor(countryCode: string | null | undefined): DeliveryPricing {
+  return PRICING[(countryCode ?? "SA").toUpperCase()] ?? PRICING.SA;
+}
+
+export function deliveryFee(method: "express" | "standard" | "scheduled", subtotal: number, pricing: DeliveryPricing): number {
+  if (subtotal >= pricing.freeOver) return 0;
+  return method === "express" ? pricing.express : pricing.standard;
 }

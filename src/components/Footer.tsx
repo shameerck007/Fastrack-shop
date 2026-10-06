@@ -1,9 +1,15 @@
 import Link from "next/link";
 import Wordmark from "@/components/Wordmark";
 import { getCompanySettings } from "@/lib/company-settings";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { findCountry } from "@/lib/countries";
 
 export default async function Footer() {
   const company = await getCompanySettings();
+  const tenant = await getCurrentTenant().catch(() => null);
+  const countryCode = tenant?.country_code ?? "SA";
+  const isIndia = countryCode === "IN";
+  const countryName = findCountry(countryCode).name;
   const year = new Date().getFullYear();
 
   const columns = [
@@ -55,9 +61,9 @@ export default async function Footer() {
           <Wordmark height={22} />
           <p className="max-w-md text-xs text-neutral-500">
             {company.trading_name}
-            {company.cr_number ? ` · CR ${company.cr_number}` : ""}
-            {company.vat_number ? ` · VAT ${company.vat_number}` : ""}
-            {company.city ? ` · ${company.city}, Saudi Arabia` : ""}
+            {company.cr_number ? ` · ${isIndia ? "PAN" : "CR"} ${company.cr_number}` : ""}
+            {company.vat_number ? ` · ${isIndia ? "GSTIN" : "VAT"} ${company.vat_number}` : ""}
+            {company.city ? ` · ${company.city}, ${countryName}` : ""}
           </p>
           <p className="text-xs text-neutral-400">&copy; {year} {company.trading_name}. All rights reserved.</p>
         </div>

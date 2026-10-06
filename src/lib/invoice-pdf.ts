@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { groupTaxByRate } from "@/lib/tax";
-import { moneyFor } from "@/lib/money";
+import { pdfMoneyFor } from "@/lib/money";
 import type { InvoiceData } from "@/lib/orders";
 import type { CompanySettings } from "@/lib/company-settings";
 import { ORDER_STATUS_LABELS } from "@/lib/utils";
@@ -30,7 +30,7 @@ export async function buildInvoicePdf({
 }): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Invoice ${order.order_number}`);
-  const money = moneyFor(order.currency ?? "SAR");
+  const money = pdfMoneyFor(order.currency ?? "SAR");
   const taxLabel = order.tax_label ?? "VAT";
   const isGst = taxLabel === "GST";
   const font = await pdf.embedFont(StandardFonts.Helvetica);

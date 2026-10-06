@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
-import { moneyFor } from "@/lib/money";
+import { pdfMoneyFor } from "@/lib/money";
 import type { LabelData } from "@/lib/orders";
 
 // Same pdf-lib approach as invoice-pdf.ts (pure JS, runs on Cloudflare
@@ -35,7 +35,7 @@ export async function buildLabelPdf({
 }): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`Delivery label ${order.order_number}`);
-  const money = moneyFor(order.currency ?? "SAR");
+  const money = pdfMoneyFor(order.currency ?? "SAR");
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
 

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
-import { combineMethods } from "@/lib/delivery-methods";
+import { combineMethods, deliveryFee as deliveryFeeFor, pricingFor } from "@/lib/delivery-methods";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { assertStoresOpen } from "@/lib/stores";
 import { addToCart } from "@/lib/actions/cart";
@@ -16,12 +16,6 @@ import { generateOrderNumber, generateOtp } from "@/lib/utils";
 import { extractTax, productTaxRate } from "@/lib/tax";
 import type { DeliveryType, PaymentMethod } from "@/types/database";
 
-const FREE_DELIVERY_THRESHOLD = 50;
-const DELIVERY_FEES: Record<DeliveryType, number> = {
-  express: 12,
-  standard: 7,
-  scheduled: 7,
-};
 
 async function placeOrderOrThrow(input: {
   addressId: string;
@@ -60,9 +54,11 @@ async function placeOrderOrThrow(input: {
   // the item costs) — vat here is the tax portion already inside subtotal,
   // extracted for the receipt/ZATCA breakdown, not added on top.
   const subtotal = cartSubtotal(items);
-  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEES[input.deliveryType];
+  // Delivery fees are per market (SAR in Saudi Arabia, INR in India).
+  const orderTenant = await getCurrentTenant();
+  const deliveryFee = deliveryFeeFor(input.deliveryType, subtotal, pricingFor(orderTenant?.country_code));
   // Tax is computed per item from each product's own rate (GST slabs in India, VAT in Saudi).
-  const taxCountry = (await getCurrentTenant())?.country_code ?? "SA";
+  const taxCountry = orderTenant?.country_code ?? "SA";
   const itemTaxes = items.map((item) => {
     const rate = productTaxRate(item.product_variants.products, taxCountry);
     const gross = Math.round(item.quantity * item.product_variants.price * 100) / 100;
@@ -128,7 +124,7 @@ async function placeOrderOrThrow(input: {
   }
 
   // The order records the market it was placed in, so receipts and reports stay correct per country.
-  const tenant = await getCurrentTenant();
+  const tenant = orderTenant;
   const orderCountry = tenant?.country_code ?? "SA";
 
   const orderNumber = generateOrderNumber();

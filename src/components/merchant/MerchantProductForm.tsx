@@ -11,6 +11,7 @@ import type { Category } from "@/types/database";
 import type { MerchantProduct } from "@/lib/merchant";
 import { orderedCategories } from "@/lib/category-tree";
 import { useLocale } from "@/components/LocaleProvider";
+import { useCurrency } from "@/components/MoneyProvider";
 import { localizedName } from "@/lib/i18n/localized";
 
 const UNITS = ["unit", "kg", "g", "L", "ml", "pack"];
@@ -25,6 +26,7 @@ export default function MerchantProductForm({
   onDone?: () => void;
 }) {
   const { t, locale } = useLocale();
+  const currency = useCurrency();
   const [open, setOpen] = useState(false);
   const existingVariant = existing?.product_variants[0];
 
@@ -349,7 +351,7 @@ export default function MerchantProductForm({
         <input
           type="number"
           step="0.01"
-          placeholder={t("product_form.price_sar")}
+          placeholder={t("product_form.price_sar", { currency })}
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"

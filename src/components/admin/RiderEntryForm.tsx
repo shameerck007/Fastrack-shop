@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { recordRiderSettlementEntry } from "@/lib/actions/admin-rider-settlements";
-import { useMoney } from "@/components/MoneyProvider";
+import { useCurrency, useMoney } from "@/components/MoneyProvider";
 
 
 const field = "rounded-lg border border-neutral-300 px-3 py-2 text-sm";
@@ -20,6 +20,7 @@ export default function RiderEntryForm({
   payoutMethod: "bank" | "cash";
 }) {
   const money = useMoney();
+  const currency = useCurrency();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<"payout" | "cash_deposit">("payout");
@@ -96,7 +97,7 @@ export default function RiderEntryForm({
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-xs font-medium text-neutral-500">Amount (SAR)</span>
+          <span className="text-xs font-medium text-neutral-500">Amount ({currency})</span>
           <input type="number" min={0.01} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} className={field} required />
         </label>
         <label className="flex flex-col gap-1 text-sm">
