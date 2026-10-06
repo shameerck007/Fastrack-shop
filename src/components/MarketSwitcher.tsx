@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { setMarket } from "@/lib/actions/tenant";
 import { findCountry } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
@@ -10,7 +9,6 @@ import type { Tenant } from "@/lib/tenant";
 /** "Shopping in 🇸🇦 Saudi Arabia — change": lets a customer move between markets. */
 export default function MarketSwitcher({ tenants, currentId }: { tenants: Tenant[]; currentId: string }) {
   const { t } = useLocale();
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +23,8 @@ export default function MarketSwitcher({ tenants, currentId }: { tenants: Tenant
         setError(res.error);
         return;
       }
-      router.refresh();
+      // Cart, currency, delivery zones and header all depend on the market: start the page fresh.
+      window.location.reload();
     });
   }
 

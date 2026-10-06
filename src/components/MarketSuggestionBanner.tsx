@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { dismissMarketSuggestion, setMarket } from "@/lib/actions/tenant";
 import { findCountry } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
@@ -10,7 +9,6 @@ import type { Tenant } from "@/lib/tenant";
 /** First visit from another country: "You seem to be in India — shop FasTrack India?" The visitor decides. */
 export default function MarketSuggestionBanner({ suggested }: { suggested: Tenant }) {
   const { t } = useLocale();
-  const router = useRouter();
   const [hidden, setHidden] = useState(false);
   const [pending, startTransition] = useTransition();
   if (hidden) return null;
@@ -32,7 +30,7 @@ export default function MarketSuggestionBanner({ suggested }: { suggested: Tenan
                 const res = await setMarket(suggested.id);
                 if (!res.error) {
                   setHidden(true);
-                  router.refresh();
+                  window.location.reload();
                 }
               })
             }
