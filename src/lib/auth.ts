@@ -16,7 +16,9 @@ export async function requireRole(role: Profile["role"]): Promise<Profile> {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (!profile || profile.role !== role) redirect("/");
+  // The platform owner (super_admin) can open everything a tenant admin can.
+  const allowed = profile && (profile.role === role || (role === "admin" && profile.role === "super_admin"));
+  if (!profile || !allowed) redirect("/");
 
   return profile;
 }

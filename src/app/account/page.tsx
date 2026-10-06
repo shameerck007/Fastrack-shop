@@ -55,7 +55,7 @@ export default async function AccountPage() {
     .maybeSingle();
 
   const dashboardHref =
-    profile?.role === "admin"
+    profile?.role === "admin" || profile?.role === "super_admin"
       ? "/admin"
       : profile?.role === "rider"
         ? "/rider"
@@ -63,7 +63,7 @@ export default async function AccountPage() {
           ? "/warehouse"
           : "/merchant";
   const roleLabel =
-    profile?.role === "admin"
+    profile?.role === "admin" || profile?.role === "super_admin"
       ? t("account.role_admin")
       : profile?.role === "rider"
         ? t("account.role_rider")
@@ -130,6 +130,7 @@ export default async function AccountPage() {
         />
 
         {(profile?.role === "admin" ||
+          profile?.role === "super_admin" ||
           profile?.role === "rider" ||
           profile?.role === "merchant" ||
           profile?.role === "store_staff") && (

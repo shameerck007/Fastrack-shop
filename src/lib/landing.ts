@@ -4,6 +4,7 @@ import type { UserRole } from "@/types/database";
 export function dashboardPathForRole(role: UserRole | string | null | undefined): string | null {
   switch (role) {
     case "admin":
+    case "super_admin":
       return "/admin";
     case "rider":
       return "/rider";

@@ -5,6 +5,7 @@ import LandingPreference from "@/components/LandingPreference";
 
 const ROLE_KEYS: Record<string, string> = {
   admin: "account.role_admin",
+  super_admin: "account.role_admin",
   rider: "account.role_rider",
   merchant: "account.role_merchant",
   store_staff: "account.role_store_staff",

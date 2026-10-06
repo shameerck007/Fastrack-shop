@@ -2,7 +2,7 @@
 // Regenerate with `supabase gen types typescript` once a live project exists,
 // and this file can be replaced wholesale.
 
-export type UserRole = "customer" | "admin" | "rider" | "merchant" | "store_staff";
+export type UserRole = "customer" | "admin" | "super_admin" | "rider" | "merchant" | "store_staff";
 export type StoreStatus = "pending" | "approved" | "rejected" | "suspended";
 export type RiderStatus = "pending" | "approved" | "rejected" | "suspended";
 export type AddressLabel = "home" | "office" | "other";
