@@ -77,7 +77,7 @@ export function PlaceOrderPill({ className = "", compact = false }: { className?
 export default function FloatingCartBar() {
   const pathname = usePathname();
   // Portals (admin/merchant/rider/warehouse) have their own chrome; shop pages (/store/...) keep the bar.
-  if (!showsCartBar(pathname) || ["/admin", "/merchant", "/rider", "/warehouse"].some((p) => pathname.startsWith(p))) return null;
+  if (!showsCartBar(pathname) || ["/admin", "/platform", "/merchant", "/rider", "/warehouse"].some((p) => pathname.startsWith(p))) return null;
 
   return (
     <PlaceOrderPill

@@ -55,9 +55,11 @@ export default async function AccountPage() {
     .maybeSingle();
 
   const dashboardHref =
-    profile?.role === "admin" || profile?.role === "super_admin"
-      ? "/admin"
-      : profile?.role === "rider"
+    profile?.role === "super_admin"
+      ? "/platform"
+      : profile?.role === "admin"
+        ? "/admin"
+        : profile?.role === "rider"
         ? "/rider"
         : profile?.role === "store_staff"
           ? "/warehouse"

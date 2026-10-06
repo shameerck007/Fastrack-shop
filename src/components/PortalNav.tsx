@@ -6,7 +6,10 @@ import { useLocale } from "@/components/LocaleProvider";
 
 export interface PortalNavItem {
   href: string;
-  labelKey: string;
+  /** Translated through the dictionary... */
+  labelKey?: string;
+  /** ...or shown as-is (for areas that are English only). */
+  label?: string;
   icon: string;
 }
 
@@ -35,7 +38,7 @@ export default function PortalNav({ items, rootHref }: { items: PortalNavItem[];
             >
               {item.icon}
             </span>
-            {t(item.labelKey)}
+            {item.label ?? t(item.labelKey ?? "")}
           </Link>
         );
       })}

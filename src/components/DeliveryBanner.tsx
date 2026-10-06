@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
 
-const HIDE_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse"];
+const HIDE_PREFIXES = ["/admin", "/platform", "/rider", "/merchant", "/store", "/warehouse"];
 
 export default function DeliveryBanner() {
   const pathname = usePathname();

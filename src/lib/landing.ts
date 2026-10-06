@@ -3,8 +3,9 @@ import type { UserRole } from "@/types/database";
 /** Roles that have a portal to land on. Customers only have the shop. */
 export function dashboardPathForRole(role: UserRole | string | null | undefined): string | null {
   switch (role) {
-    case "admin":
     case "super_admin":
+      return "/platform";
+    case "admin":
       return "/admin";
     case "rider":
       return "/rider";

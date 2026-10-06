@@ -29,7 +29,7 @@ function toZone(z: ZoneRow): DeliveryZone {
   };
 }
 
-const NO_PROMPT_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse", "/login", "/register", "/sell"];
+const NO_PROMPT_PREFIXES = ["/admin", "/platform", "/rider", "/merchant", "/store", "/warehouse", "/login", "/register", "/sell"];
 
 function readStored(): DeliveryLocation | null {
   try {

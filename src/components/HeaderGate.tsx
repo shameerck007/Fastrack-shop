@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { isFullscreenMobileRoute } from "@/lib/mobile-fullscreen";
 
-const HIDE_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse"];
+const HIDE_PREFIXES = ["/admin", "/platform", "/rider", "/merchant", "/store", "/warehouse"];
 
 export default function HeaderGate({
   children,

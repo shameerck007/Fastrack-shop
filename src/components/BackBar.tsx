@@ -10,7 +10,7 @@ import { nav, smartBack } from "@/lib/nav-history";
 // Portal sections (merchant/admin/rider) have their own chrome — a header
 // with a single explicit "Back to shop" exit and a sidebar nav — so this
 // generic bar would just be a second, redundant "back" control there.
-const HIDE_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse"];
+const HIDE_PREFIXES = ["/admin", "/platform", "/rider", "/merchant", "/store", "/warehouse"];
 
 // Page titles for the phone top bar (translation keys).
 const TITLE_KEYS: [string, string][] = [

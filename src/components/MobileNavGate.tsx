@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { showsCartBar } from "@/lib/mobile-fullscreen";
 
-const HIDE_PREFIXES = ["/admin", "/rider", "/merchant", "/store", "/warehouse"];
+const HIDE_PREFIXES = ["/admin", "/platform", "/rider", "/merchant", "/store", "/warehouse"];
 
 export default function MobileNavGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
