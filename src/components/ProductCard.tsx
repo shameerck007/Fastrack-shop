@@ -11,6 +11,12 @@ import { localizedName, localizedField } from "@/lib/i18n/localized";
 import QuickAddToCart from "@/components/QuickAddToCart";
 import { SoldBy, ClosedOverlay } from "@/components/StoreBadge";
 import { useStoreInfo } from "@/components/StoreDirectoryProvider";
+import { useMarket } from "@/components/MoneyProvider";
+import { useDeliveryLocation } from "@/components/delivery-location-context";
+import { marketUi } from "@/lib/market-ui";
+import { marketOffsetMinutes } from "@/lib/timezone";
+import { formatDeliveryDate, standardDeliveryDate } from "@/lib/delivery-methods";
+
 import { useMoney } from "@/components/MoneyProvider";
 
 export default function ProductCard({
@@ -34,6 +40,9 @@ export default function ProductCard({
       : null;
   const outOfStock = stock !== undefined && stock <= 0;
   const { status: storeStatus } = useStoreInfo(product.store_id);
+  const countryCode = useMarket().countryCode;
+  const ui = marketUi(countryCode);
+  const delivery = useDeliveryLocation().statusForStore(product.store_id ?? null);
   const storeClosed = !!storeStatus && !storeStatus.open;
   const name = locale === "ar" ? localizedName(product, "ar") : product.name;
 
@@ -78,7 +87,7 @@ export default function ProductCard({
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3.5">
-        {product.store_id && <SoldBy storeId={product.store_id} className="mb-0.5" />}
+        {product.store_id && ui.soldByOnCards && <SoldBy storeId={product.store_id} className="mb-0.5" />}
         <span className="text-xs text-neutral-500">{localizedField(product.brand, product.brand_ar, locale)}</span>
         <span className="line-clamp-2 text-sm font-semibold leading-snug text-neutral-900">{name}</span>
         {rating && rating.review_count > 0 && (
@@ -86,6 +95,13 @@ export default function ProductCard({
         )}
         {variant && (
           <span className="text-xs text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</span>
+        )}
+        {ui.deliveryBadges && delivery.state === "ok" && !outOfStock && (
+          <span className={`mt-0.5 inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${delivery.express ? "bg-blue-50 text-blue-700" : "bg-neutral-100 text-neutral-600"}`}>
+            {delivery.express
+              ? "⚡ Express"
+              : `📦 ${formatDeliveryDate(standardDeliveryDate(delivery.standardDays, new Date(), marketOffsetMinutes(countryCode)), locale)}`}
+          </span>
         )}
         <div className="mt-auto flex items-center justify-between pt-2">
           <div className="flex items-baseline gap-2">

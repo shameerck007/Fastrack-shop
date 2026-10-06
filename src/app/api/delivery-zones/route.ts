@@ -30,5 +30,5 @@ export async function GET() {
     })
   );
 
-  return NextResponse.json(rows, { headers: { "Cache-Control": "public, max-age=30" } });
+  return NextResponse.json(rows, { headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } });
 }

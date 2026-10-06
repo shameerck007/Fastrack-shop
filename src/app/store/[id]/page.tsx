@@ -1,4 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { getCurrentTenant } from "@/lib/tenant-server";
+import { marketUi } from "@/lib/market-ui";
 import StoreHeader from "@/components/StoreHeader";
 import StoreHero from "@/components/StoreHero";
 import DeliverableProductList from "@/components/DeliverableProductList";
@@ -13,6 +15,8 @@ export default async function StorePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  // India has no shop pages (the storefront is one catalogue by delivery location).
+  if (!marketUi((await getCurrentTenant())?.country_code).showShops) redirect("/");
   const profile = await getApprovedStoreById(id);
   if (!profile) notFound();
 

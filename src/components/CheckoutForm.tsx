@@ -407,7 +407,7 @@ export default function CheckoutForm({
               {split &&
                 parcels.map((g) => (
                   <div key={g.key} className="flex justify-between text-xs text-neutral-400">
-                    <span>{t("checkout_ui.parcel_label", { shop: g.name })}</span>
+                    <span>{g.name ? t("checkout_ui.parcel_label", { shop: g.name }) : `Delivery ${parcels.indexOf(g) + 1}`}</span>
                     <span>{g.fee === 0 ? t("checkout.free") : money(g.fee)}</span>
                   </div>
                 ))}

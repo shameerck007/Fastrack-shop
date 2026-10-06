@@ -8,6 +8,7 @@ import { getMyStaffWarehouse } from "@/lib/warehouse-staff";
 import CategoryGrid from "@/components/CategoryGrid";
 import HomeHero from "@/components/HomeHero";
 import ShopsRow from "@/components/ShopsRow";
+import { marketUi } from "@/lib/market-ui";
 import ProductSection from "@/components/ProductSection";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import BuyAgainSection from "@/components/BuyAgainSection";
@@ -83,7 +84,7 @@ export default async function HomePage() {
           <CategoryGrid categories={categories} />
         </section>
 
-        <ShopsRow />
+        {marketUi((await getCurrentTenant())?.country_code).showShops && <ShopsRow />}
 
         <BuyAgainSection />
         <ProductSection id="offers" promo title={t("home.offers")} products={offers} ratings={ratings} stock={stock} />

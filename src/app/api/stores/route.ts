@@ -6,5 +6,5 @@ import { getStoreDirectory } from "@/lib/stores";
 // logo and a Closed state without each page joining it in.
 export async function GET() {
   const stores = await getStoreDirectory();
-  return NextResponse.json(stores, { headers: { "Cache-Control": "public, max-age=30, s-maxage=30" } });
+  return NextResponse.json(stores, { headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } });
 }
