@@ -72,13 +72,12 @@ function popupHtml(z: OverviewZone): string {
 
 function markerHtml(z: OverviewZone): { html: string; size: [number, number]; anchor: [number, number] } {
   const hub = z.kind === "fastrack";
-  const label = `<div style="position:absolute;left:50%;top:${hub ? 52 : 40}px;transform:translateX(-50%);white-space:nowrap;background:${hub ? BRAND : "#fff"};color:${hub ? "#fff" : "#0f172a"};font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.25);border:${hub ? "0" : `2px solid ${z.color}`}">${esc(z.name)}</div>`;
   if (hub) {
     return {
       html: `<div style="position:relative;width:46px;height:46px">
         <span style="position:absolute;inset:-10px;border-radius:20px;background:rgba(37,99,235,.28);animation:ftpulse 2s ease-out infinite"></span>
         <div style="position:relative;width:46px;height:46px;border-radius:16px;background:#fff;border:3px solid #1d4ed8;box-shadow:0 6px 16px rgba(29,78,216,.55);display:flex;align-items:center;justify-content:center;overflow:hidden"><img src="/icon-192.png" alt="FasTrack" style="width:100%;height:100%;object-fit:cover"/></div>
-        ${label}</div>`,
+      </div>`,
       size: [46, 46],
       anchor: [23, 23],
     };
@@ -86,7 +85,7 @@ function markerHtml(z: OverviewZone): { html: string; size: [number, number]; an
   return {
     html: `<div style="position:relative;width:34px;height:34px">
       <div style="width:34px;height:34px;border-radius:999px;background:#fff;border:4px solid ${z.color};box-shadow:0 4px 12px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;font-size:16px">🏪</div>
-      ${label}</div>`,
+    </div>`,
     size: [34, 34],
     anchor: [17, 17],
   };
@@ -165,7 +164,20 @@ export default function ZonesOverviewMap({
           zIndexOffset: hub ? 1000 : 500,
         })
           .addTo(hub ? layers.hubs : layers.suppliers)
-          .bindPopup(popupHtml(z), { closeButton: true, maxWidth: 280, className: "ft-popup" });
+          .bindPopup(popupHtml(z), { closeButton: true, maxWidth: 280, className: "ft-popup", offset: [0, hub ? -14 : -8] });
+        // Names stay hidden; hovering previews the details card, clicking pins it open.
+        let pinned = false;
+        marker.on("mouseover", () => marker.openPopup());
+        marker.on("mouseout", () => {
+          if (!pinned) marker.closePopup();
+        });
+        marker.on("click", () => {
+          pinned = true;
+          marker.openPopup();
+        });
+        marker.on("popupclose", () => {
+          pinned = false;
+        });
         markersRef.current.set(z.id, marker);
       }
       for (const p of customerPoints) {
