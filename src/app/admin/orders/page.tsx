@@ -1,18 +1,11 @@
-import Link from "@/components/Link";
-import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
-import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
-import OrdersKPIBar from "@/components/admin/OrdersKPIBar";
-import OrdersQueueBoard from "@/components/admin/OrdersQueueBoard";
-import { PageHeader } from "@/components/admin/AdminUi";
-import ListFilter from "@/components/admin/ListFilter";
+import OrdersExplorer, { type ExplorerOrder } from "@/components/admin/OrdersExplorer";
 import OrdersLiveRefresher from "@/components/admin/OrdersLiveRefresher";
-import { getAdminOrders, getAdminOrdersQueue, getAdminOrderKPIs } from "@/lib/admin-orders";
+import { PageHeader } from "@/components/admin/AdminUi";
+import { getAdminOrders, getAdminOrderKPIs, type FulfillmentSummary } from "@/lib/admin-orders";
 import { PAYMENT_METHOD_LABELS } from "@/lib/utils";
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
-import type { OrderStatus } from "@/types/database";
-import { getMoney } from "@/lib/tenant-server";
 
 const DELIVERY_TYPE_KEY: Record<string, string> = {
   express: "admin.delivery_express",
@@ -20,169 +13,53 @@ const DELIVERY_TYPE_KEY: Record<string, string> = {
   scheduled: "admin.delivery_scheduled",
 };
 
-const STATUS_BADGE: Record<OrderStatus, string> = {
-  pending: "bg-amber-50 text-amber-700",
-  confirmed: "bg-blue-50 text-blue-700",
-  preparing: "bg-blue-50 text-blue-700",
-  ready_for_pickup: "bg-blue-50 text-blue-700",
-  rider_assigned: "bg-blue-50 text-blue-700",
-  out_for_delivery: "bg-blue-50 text-blue-700",
-  delivered: "bg-emerald-50 text-emerald-700",
-  cancelled: "bg-red-50 text-red-600",
-};
-
-// Filter chips group the eight statuses into the five an admin thinks in.
-function statusGroup(status: string): string {
-  if (["confirmed", "preparing", "ready_for_pickup", "rider_assigned"].includes(status)) return "preparing";
-  return status;
+function fulfilment(f: FulfillmentSummary, t: (k: string, v?: Record<string, string | number>) => string): ExplorerOrder["fulfilledBy"] {
+  if (!f.fromFastrack && f.merchantNames.length === 0) return { text: t("fulfillment.no_items"), tone: "none" };
+  if (f.fromFastrack && f.merchantNames.length === 0) return { text: t("fulfillment.fastrack"), tone: "fastrack" };
+  if (!f.fromFastrack && f.merchantNames.length === 1) return { text: t("fulfillment.merchant", { name: f.merchantNames[0] }), tone: "merchant" };
+  return { text: t("fulfillment.mixed", { count: f.merchantNames.length + (f.fromFastrack ? 1 : 0) }), tone: "mixed" };
 }
 
 export default async function AdminOrdersPage() {
-  const money = await getMoney();
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
-  const [kpis, queueOrders, orders] = await Promise.all([
-    getAdminOrderKPIs(),
-    getAdminOrdersQueue(),
-    getAdminOrders(50),
-  ]);
+  const [kpis, orders] = await Promise.all([getAdminOrderKPIs(), getAdminOrders(100)]);
+
+  const rows: ExplorerOrder[] = orders.map((order) => {
+    const payment = order.payments[0];
+    const names = order.order_items.map((i) => (i.product_variants?.products ? localizedName(i.product_variants.products, locale) : i.product_name));
+    return {
+      id: order.id,
+      number: order.order_number,
+      status: order.status,
+      createdAt: order.created_at,
+      customer: order.profiles?.full_name ?? t("admin.guest"),
+      phone: order.profiles?.phone ?? null,
+      itemCount: order.order_items.reduce((sum, i) => sum + Number(i.ordered_quantity), 0),
+      itemsText: names.join(locale === "ar" ? "، " : ", "),
+      thumbs: order.order_items.slice(0, 3).map((i) => i.product_variants?.products?.image_url ?? ""),
+      delivery: t(DELIVERY_TYPE_KEY[order.delivery_type] ?? "admin.delivery_standard"),
+      area: order.addresses ? [order.addresses.district, order.addresses.city].filter(Boolean).join(", ") || null : null,
+      payment: payment ? (payment.method === "cash_on_delivery" ? t("admin.cash_on_delivery") : (PAYMENT_METHOD_LABELS[payment.method] ?? payment.method)) : "—",
+      paid: payment?.status === "paid",
+      fulfilledBy: fulfilment(order.fulfillment, t),
+      total: Number(order.total),
+    };
+  });
 
   return (
     <div>
-      <PageHeader icon="🧾" title={t("admin.orders")} subtitle="Live order queue, today's numbers and recent orders." actions={<OrdersLiveRefresher />} />
-
-      <OrdersKPIBar kpis={kpis} t={t} money={money} />
-
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">📋 {t("admin.order_queue")}</p>
-      <OrdersQueueBoard orders={queueOrders} t={t} money={money} />
-
-      <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold text-neutral-700">🕓 {t("admin.recent_orders")}</h2>
-        <p className="text-xs text-neutral-400">{t("admin.most_recent", { count: orders.length })}</p>
-      </div>
-
-      <ListFilter
-        target="recent-orders"
-        placeholder="Search order no., customer, status…"
-        groups={[
-          { value: "pending", label: "Pending" },
-          { value: "preparing", label: "Confirmed / preparing" },
-          { value: "out_for_delivery", label: "Out for delivery" },
-          { value: "delivered", label: "Delivered" },
-          { value: "cancelled", label: "Cancelled" },
-        ]}
+      <PageHeader
+        icon="🧾"
+        title={t("admin.orders")}
+        subtitle="Every order in one place. Tap a stage to filter, search by order, customer or product, and change the status right from the list."
+        actions={<OrdersLiveRefresher />}
       />
-      <div id="recent-orders" className="flex flex-col gap-4">
-        {orders.map((order) => {
-          const payment = order.payments[0];
-          const itemCount = order.order_items.reduce((sum, i) => sum + Number(i.ordered_quantity), 0);
-          const thumbnails = order.order_items.slice(0, 4);
-          const extraCount = order.order_items.length - thumbnails.length;
-
-          return (
-            <div key={order.id} data-filter={`${order.order_number} ${order.status} ${order.profiles?.full_name ?? ""}`} data-group={statusGroup(order.status)} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-500 sm:text-sm">
-                <div className="flex flex-wrap gap-x-6 gap-y-1">
-                  <span>
-                    <span className="block text-neutral-400">{t("orders.placed_on")}</span>
-                    <span className="text-neutral-700">
-                      {new Date(order.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
-                    </span>
-                  </span>
-                  <span>
-                    <span className="block text-neutral-400">{t("admin.customer_col")}</span>
-                    <span className="text-neutral-700">{order.profiles?.full_name ?? "—"}</span>
-                    {order.profiles?.phone && <span className="block text-neutral-400">{order.profiles.phone}</span>}
-                  </span>
-                  <span className="hidden sm:inline">
-                    <span className="block text-neutral-400">{t("admin.fulfilled_by_col")}</span>
-                    <FulfillmentBadge fulfillment={order.fulfillment} />
-                  </span>
-                  <span className="hidden sm:inline">
-                    <span className="block text-neutral-400">{t("admin.delivery_col")}</span>
-                    <span className="text-neutral-700">
-                      {t(DELIVERY_TYPE_KEY[order.delivery_type] ?? "admin.delivery_standard")}
-                    </span>
-                    {order.addresses && (
-                      <span className="block text-neutral-400">
-                        {[order.addresses.district, order.addresses.city].filter(Boolean).join(", ")}
-                      </span>
-                    )}
-                  </span>
-                  <span className="hidden sm:inline">
-                    <span className="block text-neutral-400">{t("admin.payment_col")}</span>
-                    <span className="text-neutral-700">
-                      {payment
-                        ? payment.method === "cash_on_delivery"
-                          ? t("admin.cash_on_delivery")
-                          : (PAYMENT_METHOD_LABELS[payment.method] ?? payment.method)
-                        : "—"}
-                    </span>
-                  </span>
-                  <span>
-                    <span className="block text-neutral-400">{t("orders.total_label")}</span>
-                    <span className="font-medium text-neutral-700">{money(order.total)}</span>
-                  </span>
-                </div>
-                <div className="text-end">
-                  <span className="block text-neutral-400">
-                    {t("orders.order_hash", { number: order.order_number })}
-                  </span>
-                  <span className={`inline-block rounded-full px-2 py-0.5 font-medium ${STATUS_BADGE[order.status]}`}>
-                    {t(`order_status.${order.status}`)}
-                  </span>
-                </div>
-              </div>
-
-              <Link href={`/admin/orders/${order.id}`} className="flex items-center gap-3 p-4 hover:bg-neutral-50">
-                <div className="flex shrink-0 -space-x-2 rtl:space-x-reverse">
-                  {thumbnails.map((item) => {
-                    const product = item.product_variants?.products;
-                    const name = product ? localizedName(product, locale) : item.product_name;
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border-2 border-white bg-neutral-100 shadow-sm"
-                      >
-                        {product?.image_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={product.image_url} alt={name} className="h-full w-full object-cover" />
-                        ) : (
-                          <span className="text-xl">📦</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {extraCount > 0 && (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-lg border-2 border-white bg-neutral-800 text-xs font-medium text-white shadow-sm">
-                      {t("orders.more_items", { count: extraCount })}
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-neutral-700">
-                    {order.order_items
-                      .map((i) => (i.product_variants?.products ? localizedName(i.product_variants.products, locale) : i.product_name))
-                      .join(locale === "ar" ? "، " : ", ")}
-                  </p>
-                  <p className="text-xs text-neutral-400">
-                    {t("admin.lines", { count: order.order_items.length, plural: order.order_items.length === 1 ? "" : "s" })}
-                    {" · "}
-                    {t("admin.units", { count: itemCount })}
-                  </p>
-                </div>
-              </Link>
-
-              <div className="flex flex-wrap items-center gap-3 border-t border-neutral-100 px-4 py-3">
-                <OrderStatusSelect orderId={order.id} status={order.status} />
-                <Link href={`/admin/orders/${order.id}`} className="text-sm text-blue-600 hover:underline">
-                  {t("admin.view_details")}
-                </Link>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <OrdersExplorer
+        orders={rows}
+        counts={{ pending: kpis.queue.pending, preparing: kpis.queue.confirmedPreparing, ready: kpis.queue.readyForPickup, out: kpis.queue.outForDelivery }}
+        today={{ orders: kpis.today.totalOrders, delivered: kpis.today.delivered, cancelled: kpis.today.cancelled, revenue: kpis.today.revenue }}
+      />
     </div>
   );
 }
