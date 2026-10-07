@@ -1,5 +1,5 @@
 // Delivery time estimate, worked out from the distance between the store and the customer:
-//   preparation + rider travel + a small buffer, shown as a range rounded to 5 minutes.
+//   preparation + rider travel + a small buffer, shown as one time in minutes.
 // An estimate from straight-line distance, not live traffic or rider supply.
 
 export interface EtaSettings {
@@ -28,16 +28,16 @@ export function etaMinutes(distanceKm: number, s: EtaSettings = DEFAULT_ETA_SETT
   return s.prepMinutes + ((Math.max(distanceKm, 0) * ROAD_FACTOR) / speed) * 60 + s.bufferMinutes;
 }
 
-/** e.g. 19 min -> 15-20, 39 min -> 35-45. Null when it would be a silly Express promise. */
+/** One time, like Instamart or Swiggy Instamart: the estimate rounded to the nearest minute (never below 8). Null when it would be a silly Express promise. */
 export function etaRange(distanceKm: number, s: EtaSettings = DEFAULT_ETA_SETTINGS): EtaRange | null {
   const total = etaMinutes(distanceKm, s);
   if (total > MAX_SHOWN_MINUTES) return null;
-  const lo = Math.max(10, Math.floor(total / 5) * 5);
-  return { lo, hi: lo + (total < 30 ? 5 : 10) };
+  const minutes = Math.max(8, Math.round(total));
+  return { lo: minutes, hi: minutes };
 }
 
 export function formatEta(r: EtaRange): string {
-  return `${r.lo}–${r.hi} min`;
+  return r.lo === r.hi ? `${r.lo} min` : `${r.lo}–${r.hi} min`;
 }
 
 /** The slower of several stores (a cart with items from different stores arrives when the last one does). */

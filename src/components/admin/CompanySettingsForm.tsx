@@ -131,7 +131,7 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
       <section className="rounded-xl border border-neutral-200 bg-white p-4">
         <h2 className="mb-1 text-sm font-semibold text-neutral-700">Delivery time shown to customers</h2>
         <p className="mb-3 text-xs text-neutral-400">
-          Estimated time = packing time + rider travel (distance, at the speed below) + extra minutes. Shown as a range, for example 20–25 min.
+          Estimated time = packing time + rider travel (distance, at the speed below) + extra minutes. Shown as one time, for example 23 min.
         </p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
