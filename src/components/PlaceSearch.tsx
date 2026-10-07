@@ -89,7 +89,7 @@ export default function PlaceSearch({
       </div>
 
       {open && (results.length > 0 || error) && (
-        <div className="absolute z-[1000] mt-1 w-full overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg">
+        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-lg">
           {error && results.length === 0 && <p className="px-3 py-2 text-sm text-neutral-500">{error}</p>}
           {results.map((r, i) => (
             <button

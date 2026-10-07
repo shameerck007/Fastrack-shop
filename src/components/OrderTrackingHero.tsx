@@ -301,7 +301,7 @@ export default function OrderTrackingHero({
               : t("tracking.title_placed");
 
   return (
-    <section className="-mx-4 -mt-6 mb-6 md:mx-0 md:mt-0 md:overflow-hidden md:rounded-3xl md:border md:border-neutral-200 md:shadow-sm">
+    <section className="isolate -mx-4 -mt-6 mb-6 md:mx-0 md:mt-0 md:overflow-hidden md:rounded-3xl md:border md:border-neutral-200 md:shadow-sm">
       {hasMap && (
         <div className="relative">
           <div ref={containerRef} className="h-[46vh] min-h-[260px] w-full bg-blue-50 md:h-[380px] [&_.leaflet-bottom]:mb-7 md:[&_.leaflet-bottom]:mb-0 [&_.leaflet-control-attribution]:text-[9px]" />

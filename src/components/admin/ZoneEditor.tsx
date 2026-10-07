@@ -337,7 +337,7 @@ export default function ZoneEditor({
         ))}
       </div>
 
-      <div className="relative">
+      <div className="relative isolate z-0">
         <div ref={containerRef} className="h-80 w-full overflow-hidden rounded-lg border border-neutral-300 md:h-[26rem]" />
         <button
           type="button"

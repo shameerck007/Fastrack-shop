@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import ZonesList, { type ZoneCard } from "@/components/admin/ZonesList";
+import ZonesOverviewMap from "@/components/admin/ZonesOverviewMap";
 import ZonesCoverageButton from "@/components/admin/ZonesCoverageButton";
 import type { OverviewZone } from "@/components/admin/ZonesOverviewMap";
 import { parsePolygon, pointInPolygon } from "@/lib/geo-polygon";
@@ -150,20 +151,29 @@ export default async function AdminZonesPage() {
   }));
 
   const overviewZones: OverviewZone[] = cards
-    .filter((c) => c.zoned)
+    .filter((c) => c.w.lat != null && c.w.lng != null)
     .map((c) => ({
       id: c.w.id,
       name: c.displayName,
       lat: c.w.lat as number,
       lng: c.w.lng as number,
-      radiusKm: c.radius as number,
+      radiusKm: c.zoned ? (c.radius as number) : null,
       color: c.color,
       polygon: c.shape,
+      kind: c.store ? ("supplier" as const) : ("fastrack" as const),
+      orders: c.orderCount,
+      products: c.productCount,
+      customers: c.inside,
+      standardEnabled: c.w.standard_delivery_enabled ?? true,
+      standardRadiusKm: c.w.standard_radius_km == null ? null : Number(c.w.standard_radius_km),
+      standardDays: c.w.standard_delivery_days ?? 2,
+      address: c.store?.address_line ?? c.w.address_line ?? null,
     }));
+  const areaZones = overviewZones.filter((z) => z.radiusKm != null || (z.polygon && z.polygon.length >= 3));
 
   const zonedCount = cards.filter((c) => c.zoned).length;
   const uncovered = pins.filter(
-    (p) => overviewZones.length > 0 && !overviewZones.some((z) => (z.polygon ? pointInPolygon(p.lat, p.lng, z.polygon) : distanceKm(z.lat, z.lng, p.lat, p.lng) <= z.radiusKm))
+    (p) => areaZones.length > 0 && !areaZones.some((z) => (z.polygon ? pointInPolygon(p.lat, p.lng, z.polygon) : distanceKm(z.lat, z.lng, p.lat, p.lng) <= (z.radiusKm as number)))
   ).length;
   const anyUnrestricted = cards.some((c) => !c.zoned);
 
@@ -183,6 +193,10 @@ export default async function AdminZonesPage() {
           zones={overviewZones}
           customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}
         />
+      </div>
+
+      <div className="mb-5 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+        <ZonesOverviewMap zones={overviewZones} customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))} />
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -208,9 +222,9 @@ export default async function AdminZonesPage() {
         <Stat
           icon="⚠️"
           label={t("admin.outside_every_zone")}
-          value={overviewZones.length === 0 ? "—" : anyUnrestricted ? `${uncovered}*` : uncovered}
+          value={areaZones.length === 0 ? "—" : anyUnrestricted ? `${uncovered}*` : uncovered}
           hint={
-            overviewZones.length === 0
+            areaZones.length === 0
               ? t("admin.set_boundary_to_see")
               : anyUnrestricted
                 ? t("admin.unrestricted_still_reach")
