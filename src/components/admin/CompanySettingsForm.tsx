@@ -65,9 +65,17 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
+      <p className="-mt-3 text-sm text-neutral-500">
+        {isIndia
+          ? "FasTrack's own trading name, PAN, GSTIN, address and contact details, shown on every customer invoice."
+          : t("admin.business_settings_intro")}
+      </p>
+
       {!settings.vat_number && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          {t("admin.vat_not_set_warning")}
+          {isIndia
+            ? "GSTIN isn't set yet, so invoices go out without a GST registration number. Set it below before invoices go to real customers."
+            : t("admin.vat_not_set_warning")}
         </div>
       )}
 
