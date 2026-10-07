@@ -156,14 +156,17 @@ async function resolveFastrackWarehouse(
       return {
         id: w.id,
         distance,
-        covers: shape ? pointInPolygon(coords.lat as number, coords.lng as number, shape) : radius == null || distance <= radius,
+        covers: shape ? pointInPolygon(coords.lat as number, coords.lng as number, shape) : radius != null && distance <= radius,
+        hasArea: shape != null || radius != null,
       };
     })
     .sort((a, b) => a.distance - b.distance);
 
   const nearestCovering = withDistance.find((w) => w.covers);
   if (nearestCovering) return nearestCovering.id;
-  if (withDistance.length > 0) return withDistance[0].id;
+  // None covers: report against the nearest location that has an area set (a new one without an area isn't live yet).
+  const nearestLive = withDistance.find((w) => w.hasArea) ?? withDistance[0];
+  if (nearestLive) return nearestLive.id;
 
   return legacyDefault();
 }

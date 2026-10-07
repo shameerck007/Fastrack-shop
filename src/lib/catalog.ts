@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { getNotLiveStoreIds, liveProductsFilter } from "@/lib/store-live";
 import type { Category, ProductWithVariants } from "@/types/database";
 
 // Top-level only — this is what the header nav and the home page's "Shop by
@@ -52,9 +53,11 @@ async function getCategoriesWithChildrenImpl(): Promise<CategoryWithChildren[]> 
 
 export async function getFeaturedProducts(limit = 8): Promise<ProductWithVariants[]> {
   const supabase = await createClient();
+  const live = liveProductsFilter(await getNotLiveStoreIds());
   const { data, error } = await supabase
     .from("products")
     .select("*, category:categories(*), product_variants(*)")
+    .or(live)
     .eq("is_active", true)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -65,9 +68,11 @@ export async function getFeaturedProducts(limit = 8): Promise<ProductWithVariant
 
 export async function getFreshTodayProducts(limit = 8): Promise<ProductWithVariants[]> {
   const supabase = await createClient();
+  const live = liveProductsFilter(await getNotLiveStoreIds());
   const { data, error } = await supabase
     .from("products")
     .select("*, category:categories(*), product_variants(*)")
+    .or(live)
     .eq("is_active", true)
     .eq("is_fresh", true)
     .limit(limit);
@@ -78,11 +83,13 @@ export async function getFreshTodayProducts(limit = 8): Promise<ProductWithVaria
 
 export async function getOfferProducts(limit = 8): Promise<ProductWithVariants[]> {
   const supabase = await createClient();
+  const live = liveProductsFilter(await getNotLiveStoreIds());
   // product_variants.compare_at_price is only set on discounted variants, so an
   // inner join here naturally filters to products that currently have an offer.
   const { data, error } = await supabase
     .from("products")
     .select("*, category:categories(*), product_variants!inner(*)")
+    .or(live)
     .eq("is_active", true)
     .not("product_variants.compare_at_price", "is", null)
     .limit(limit);
@@ -98,6 +105,7 @@ export async function getProductsByCategory(slug: string): Promise<{
   products: ProductWithVariants[];
 }> {
   const supabase = await createClient();
+  const live = liveProductsFilter(await getNotLiveStoreIds());
 
   const { data: category } = await supabase
     .from("categories")
@@ -123,6 +131,7 @@ export async function getProductsByCategory(slug: string): Promise<{
     .from("products")
     .select("*, category:categories(*), product_variants(*)")
     .in("category_id", categoryIds)
+    .or(live)
     .eq("is_active", true);
 
   if (error) throw error;
@@ -138,7 +147,10 @@ export async function getProductById(id: string): Promise<ProductWithVariants | 
     .maybeSingle();
 
   if (error) throw error;
-  return (data as ProductWithVariants) ?? null;
+  const product = (data as ProductWithVariants) ?? null;
+  // A supplier's products stay hidden until an admin sets its delivery area.
+  if (product?.store_id && (await getNotLiveStoreIds()).includes(product.store_id)) return null;
+  return product;
 }
 
 export interface PublicStoreProfile {
@@ -160,6 +172,7 @@ export async function getApprovedStoreById(storeId: string): Promise<PublicStore
 }
 
 export async function getStoreProducts(storeId: string): Promise<ProductWithVariants[]> {
+  if ((await getNotLiveStoreIds()).includes(storeId)) return [];
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
@@ -174,6 +187,7 @@ export async function getStoreProducts(storeId: string): Promise<ProductWithVari
 
 export async function searchProducts(query: string): Promise<ProductWithVariants[]> {
   const supabase = await createClient();
+  const live = liveProductsFilter(await getNotLiveStoreIds());
   // Escape PostgREST filter syntax characters so the raw query can't alter the .or() clause.
   const safe = query.replace(/[%,()]/g, "").trim();
   if (!safe) return [];
@@ -181,6 +195,7 @@ export async function searchProducts(query: string): Promise<ProductWithVariants
   const { data, error } = await supabase
     .from("products")
     .select("*, category:categories(*), product_variants(*)")
+    .or(live)
     .eq("is_active", true)
     .or(`name.ilike.%${safe}%,name_ar.ilike.%${safe}%,brand.ilike.%${safe}%`);
 

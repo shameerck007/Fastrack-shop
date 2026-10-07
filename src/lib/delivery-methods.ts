@@ -1,6 +1,7 @@
 // Express vs Standard delivery, from a delivery boundary and the customer's location.
 // Pure functions shared by the server and the browser.
 //
+//   A shop with no delivery area set yet is not live: nothing is offered until an admin sets one.
 //   Express  - only inside the warehouse's express radius (the old "delivery radius").
 //   Standard - on by default with no distance limit; a radius can restrict it, or it
 //              can be switched off entirely.
@@ -45,6 +46,11 @@ export function methodsFor(zone: DeliveryZone | undefined, coords: Coords | null
   // No boundary information at all: unrestricted, both methods.
   if (!zone) {
     return { state: "known", express: true, standard: true, standardDays: DEFAULT_STANDARD_DAYS, distanceKm: null, expressRadiusKm: null, standardRadiusKm: null };
+  }
+
+  // A shop goes live only once an admin has set its delivery area (an Express radius or a drawn area): until then nothing is offered.
+  if (zone.expressRadiusKm == null && !(zone.polygon && zone.polygon.length >= 3)) {
+    return { state: "known", express: false, standard: false, standardDays: zone.standardDays, distanceKm: null, expressRadiusKm: null, standardRadiusKm: zone.standardRadiusKm };
   }
 
   const haveZonePoint = zone.lat != null && zone.lng != null;

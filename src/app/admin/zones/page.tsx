@@ -174,7 +174,8 @@ export default async function AdminZonesPage() {
   const uncovered = pins.filter(
     (p) => areaZones.length > 0 && !areaZones.some((z) => (z.polygon ? pointInPolygon(p.lat, p.lng, z.polygon) : distanceKm(z.lat, z.lng, p.lat, p.lng) <= (z.radiusKm as number)))
   ).length;
-  const anyUnrestricted = cards.some((c) => !c.zoned);
+  // A store with no area is not live, so it reaches nobody.
+  const anyUnrestricted = false;
 
   return (
     <div>

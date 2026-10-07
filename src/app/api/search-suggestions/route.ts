@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getNotLiveStoreIds, liveProductsFilter } from "@/lib/store-live";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -14,6 +15,7 @@ export async function GET(request: Request) {
     .from("products")
     .select("id, name, brand, image_url, category:categories(slug), product_variants(price, is_default)")
     .eq("is_active", true)
+    .or(liveProductsFilter(await getNotLiveStoreIds()))
     .or(`name.ilike.%${safe}%,name_ar.ilike.%${safe}%,brand.ilike.%${safe}%`)
     .limit(6);
 
