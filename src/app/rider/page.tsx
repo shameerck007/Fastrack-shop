@@ -120,8 +120,19 @@ export default async function RiderHomePage() {
   );
 }
 
+/** How urgent a Standard/Scheduled order is, for the rider: overdue, due today (within 24 h) or the promised date. */
+function dueBadge(dueAt: string | null): { text: string; tone: string } | null {
+  if (!dueAt) return null;
+  const ms = new Date(dueAt).getTime() - Date.now();
+  if (ms < 0) return { text: "⚠ Overdue", tone: "bg-blue-900 text-white" };
+  const hours = ms / 3600000;
+  if (hours < 24) return { text: `🕒 Due today · in ${Math.max(1, Math.round(hours))}h`, tone: "bg-sky-100 text-sky-900" };
+  return { text: `📅 Due ${new Date(dueAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}`, tone: "bg-neutral-100 text-neutral-600" };
+}
+
 function AvailableOrderCard({ order, t, money }: { money: MoneyFormatter; order: AvailableOrder; t: T }) {
   const express = order.delivery_type === "express";
+  const due = dueBadge(order.dueAt);
   return (
     <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
       <div className="flex items-start justify-between gap-3 p-4">
@@ -146,6 +157,7 @@ function AvailableOrderCard({ order, t, money }: { money: MoneyFormatter; order:
             {order.distanceKm != null && (
               <span className="rounded-full bg-sky-50 px-2.5 py-1 text-sky-700">🧭 {t("rider.km_away", { distance: order.distanceKm.toFixed(1) })}</span>
             )}
+            {due && <span className={`rounded-full px-2.5 py-1 ${due.tone}`}>{due.text}</span>}
             <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-neutral-600">
               📦 {order.item_count} {order.item_count === 1 ? "item" : "items"}
             </span>

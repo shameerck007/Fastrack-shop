@@ -63,9 +63,11 @@ export interface AvailableOrder {
   delivery_type: string;
   delivery_fee: number;
   created_at: string;
-  warehouses: { name: string; address_line: string | null; lat: number | null; lng: number | null } | null;
+  warehouses: { name: string; address_line: string | null; lat: number | null; lng: number | null; standard_delivery_days?: number | null } | null;
   item_count: number;
   distanceKm: number | null;
+  /** When the customer was promised delivery by (Standard: order time plus the shop's days; Scheduled: the chosen slot). Null for Express. */
+  dueAt: string | null;
 }
 
 // How far a rider is offered orders from, centred on their last live GPS
@@ -110,11 +112,19 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
   }
 
   const radiusKm = await getRiderMatchRadiusKm();
-  const { data: orders, error } = await supabase
-    .from("orders")
-    .select("id, order_number, delivery_type, delivery_fee, created_at, warehouses(name, address_line, lat, lng)")
-    .in("status", ["preparing", "ready_for_pickup"]);
-
+  const columns = "id, order_number, delivery_type, delivery_fee, created_at, scheduled_for, warehouses(name, address_line, lat, lng, standard_delivery_days)";
+  const first = await supabase.from("orders").select(columns).in("status", ["preparing", "ready_for_pickup"]);
+  let orders: unknown[] | null = first.data;
+  let error = first.error;
+  // Older databases may lack the Standard-days column; fall back to the default promise.
+  if (error && (error.code === "42703" || error.code === "PGRST200" || error.code === "PGRST204")) {
+    const retry = await supabase
+      .from("orders")
+      .select("id, order_number, delivery_type, delivery_fee, created_at, scheduled_for, warehouses(name, address_line, lat, lng)")
+      .in("status", ["preparing", "ready_for_pickup"]);
+    orders = retry.data;
+    error = retry.error;
+  }
   if (error) throw error;
   if (!orders || orders.length === 0) return { orders: [], hasLocation: true };
 
@@ -123,7 +133,7 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
     .select("order_id")
     .in(
       "order_id",
-      orders.map((o) => o.id)
+      (orders as { id: string }[]).map((o) => o.id)
     );
 
   const countByOrder = new Map<string, number>();
@@ -131,18 +141,32 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
     countByOrder.set(row.order_id, (countByOrder.get(row.order_id) ?? 0) + 1);
   }
 
-  const withDistance = (orders as unknown as Omit<AvailableOrder, "item_count" | "distanceKm">[]).map((o) => ({
+  const withDistance = (orders as unknown as (Omit<AvailableOrder, "item_count" | "distanceKm" | "dueAt"> & { scheduled_for: string | null })[]).map((o) => ({
     ...o,
     item_count: countByOrder.get(o.id) ?? 0,
+    dueAt:
+      o.delivery_type === "express"
+        ? null
+        : o.delivery_type === "scheduled" && o.scheduled_for
+          ? o.scheduled_for
+          : new Date(new Date(o.created_at).getTime() + (o.warehouses?.standard_delivery_days ?? 2) * 86400000).toISOString(),
     distanceKm:
       o.warehouses?.lat != null && o.warehouses?.lng != null
         ? distanceKm(myLat, myLng, o.warehouses.lat, o.warehouses.lng)
         : null,
   }));
 
+  // Order of the list: anything already overdue first, then Express (nearest first), then Standard/Scheduled by promised date.
+  const now = Date.now();
+  const rank = (o: { dueAt: string | null }) => (o.dueAt && new Date(o.dueAt).getTime() < now ? 0 : o.dueAt == null ? 1 : 2);
   const nearby = withDistance
     .filter((o) => o.distanceKm != null && o.distanceKm <= radiusKm)
-    .sort((a, b) => (a.distanceKm as number) - (b.distanceKm as number));
+    .sort((a, b) => {
+      const byRank = rank(a) - rank(b);
+      if (byRank !== 0) return byRank;
+      if (a.dueAt && b.dueAt) return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
+      return (a.distanceKm as number) - (b.distanceKm as number);
+    });
 
   return { orders: nearby, hasLocation: true };
 }
