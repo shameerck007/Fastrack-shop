@@ -18,6 +18,8 @@ import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getMoney } from "@/lib/tenant-server";
+import Link from "@/components/Link";
+import { getRiderWallet } from "@/lib/rider-wallet";
 
 const DELIVERY_TYPE_KEY: Record<string, string> = {
   express: "checkout.express",
@@ -32,7 +34,8 @@ export default async function RiderHomePage() {
   const rider = await getRiderProfile();
   const activeDelivery = await getActiveDelivery();
   const isMatching = rider?.deliveryPartner.is_available && !activeDelivery;
-  const [todayStats, lifetimeStats, weeklyEarnings, availableOrdersResult] = await Promise.all([
+  const [wallet, todayStats, lifetimeStats, weeklyEarnings, availableOrdersResult] = await Promise.all([
+    getRiderWallet().catch(() => null),
     getRiderTodayStats(),
     getRiderLifetimeStats(),
     getWeeklyEarnings(),
@@ -52,6 +55,26 @@ export default async function RiderHomePage() {
   return (
     <div className="flex flex-col gap-4">
       <RiderProfileCard profile={rider.profile} deliveryPartner={rider.deliveryPartner} t={t} locale={locale} />
+
+      {wallet && (
+        <Link
+          href="/rider/earnings"
+          className="flex items-center justify-between gap-3 rounded-3xl bg-gradient-to-br from-blue-700 to-sky-500 p-4 text-white shadow-lg shadow-blue-600/20 active:scale-[0.99]"
+        >
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
+              {wallet.summary.balance >= 0 ? "FasTrack owes you" : "You owe FasTrack"}
+            </p>
+            <p className="text-2xl font-extrabold">{money(Math.abs(wallet.summary.balance))}</p>
+            {wallet.cashInHand > 0 && (
+              <p className="mt-1 inline-block rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold">
+                💵 Cash to hand in {money(wallet.cashInHand)}
+              </p>
+            )}
+          </div>
+          <span className="rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold">Earnings →</span>
+        </Link>
+      )}
 
       <RiderStatsGrid
         money={money}

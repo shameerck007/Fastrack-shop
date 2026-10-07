@@ -28,6 +28,12 @@ export default async function RiderHeader() {
         </Link>
 
         <div className="flex shrink-0 items-center gap-3">
+          <Link href="/rider/earnings" className="hidden text-sm font-medium text-neutral-600 hover:text-blue-700 md:inline">
+            Earnings
+          </Link>
+          <Link href="/rider/history" className="hidden text-sm font-medium text-neutral-600 hover:text-blue-700 md:inline">
+            Trips
+          </Link>
           <span className="hidden text-xs text-neutral-500 sm:inline">
             {t("rider.today_stat", { count: stats.deliveries, earnings: money(stats.earnings) })}
           </span>
