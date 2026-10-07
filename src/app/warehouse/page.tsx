@@ -1,4 +1,3 @@
-import LandingPreferenceCard from "@/components/LandingPreferenceCard";
 import Link from "@/components/Link";
 import { redirect } from "next/navigation";
 import {
@@ -113,7 +112,6 @@ export default async function WarehouseDashboardPage() {
         </div>
       )}
       <div className="mt-6">
-        <LandingPreferenceCard />
       </div>
     </div>
   );

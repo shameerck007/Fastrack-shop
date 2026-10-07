@@ -1,4 +1,3 @@
-import LandingPreferenceCard from "@/components/LandingPreferenceCard";
 import type { MoneyFormatter } from "@/lib/money";
 import {
   getRiderProfile,
@@ -98,7 +97,6 @@ export default async function RiderHomePage() {
           )}
         </div>
       )}
-      <LandingPreferenceCard />
     </div>
   );
 }

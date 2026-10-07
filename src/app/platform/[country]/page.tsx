@@ -1,6 +1,5 @@
 import Link from "@/components/Link";
 import PlatformHeader from "@/components/platform/PlatformHeader";
-import LandingPreferenceCard from "@/components/LandingPreferenceCard";
 import RevenueTrendChart from "@/components/admin/charts/RevenueTrendChart";
 import BarList from "@/components/admin/charts/BarList";
 import { findCountry } from "@/lib/countries";
@@ -383,7 +382,6 @@ export default async function PlatformOverviewPage({ params }: { params: Promise
         />
       ))}
 
-      <LandingPreferenceCard />
     </div>
   );
 }
