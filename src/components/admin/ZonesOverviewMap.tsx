@@ -220,8 +220,8 @@ export default function ZonesOverviewMap({
         .ft-popup .leaflet-popup-content { margin: 14px; }
       `}</style>
 
-      <div className={`relative isolate z-0 ${fill ? "min-h-0 flex-1" : ""}`}>
-        <div ref={containerRef} className={`w-full overflow-hidden rounded-2xl border border-neutral-200 ${fill ? "h-full" : height}`} />
+      <div className={`relative isolate z-0 ${fill ? "min-h-[300px] flex-1" : ""}`}>
+        <div ref={containerRef} className={`w-full overflow-hidden rounded-2xl border border-neutral-200 ${fill ? "absolute inset-0" : height}`} />
 
         {/* layer switches */}
         <div className="absolute start-3 top-3 z-[1000] flex flex-wrap gap-1.5">
