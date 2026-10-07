@@ -67,7 +67,8 @@ export default function CheckoutForm({
       ? selectedAddressId
       : addresses[0]?.id ?? "";
   const blockedItems = blockedByAddress[addressId] ?? [];
-  const [chosenDeliveryType, setDeliveryType] = useState<DeliveryType>("standard");
+  // null until the shopper picks one; then Express is the default wherever it is offered (fastest first, like quick-commerce apps).
+  const [chosenDeliveryType, setDeliveryType] = useState<DeliveryType | null>(null);
   const [scheduledFor, setScheduledFor] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
   const [notes, setNotes] = useState("");
@@ -78,14 +79,9 @@ export default function CheckoutForm({
   // Express only inside the express radius; Standard (and Scheduled) wherever Standard applies.
   const offered = methodsByAddress[addressId] ?? { express: true, standard: true, standardDays: 2 };
   const optionAvailable = (type: DeliveryType) => (type === "express" ? offered.express : offered.standard);
-  // If the chosen method isn't offered at the selected address, fall back to one that is.
-  const deliveryType: DeliveryType = optionAvailable(chosenDeliveryType)
-    ? chosenDeliveryType
-    : offered.standard
-      ? "standard"
-      : offered.express
-        ? "express"
-        : chosenDeliveryType;
+  // Their pick if it is offered at the selected address; otherwise Express when available, else Standard.
+  const deliveryType: DeliveryType =
+    chosenDeliveryType && optionAvailable(chosenDeliveryType) ? chosenDeliveryType : offered.express ? "express" : offered.standard ? "standard" : "express";
   const { etaAt } = useDeliveryLocation();
   const chosenAddress = addresses.find((a) => a.id === addressId);
   const expressRange =
