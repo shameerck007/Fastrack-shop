@@ -6,12 +6,15 @@ import { deleteAddress, setDefaultAddress } from "@/lib/actions/addresses";
 import AddressForm from "@/components/AddressForm";
 import { useLocale } from "@/components/LocaleProvider";
 import type { Address } from "@/types/database";
+import { useMarket } from "@/components/MoneyProvider";
+import { stateInServiceArea } from "@/lib/india";
 
 export default function AddressCard({ address }: { address: Address }) {
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const { t } = useLocale();
+  const countryCode = useMarket().countryCode;
 
   if (editing) {
     return <AddressForm existing={address} onDone={() => setEditing(false)} />;
@@ -49,6 +52,9 @@ export default function AddressCard({ address }: { address: Address }) {
             </p>
           )}
           <p className="mt-1 text-sm">{address.address_line}</p>
+          {!stateInServiceArea(countryCode, (address as { state?: string | null }).state) && (
+            <p className="mt-1 text-xs font-medium text-red-600">We don&apos;t deliver here yet (Kerala only for now).</p>
+          )}
           {nationalParts.length > 0 && (
             <p className="text-xs text-neutral-500">{nationalParts.join(" · ")}</p>
           )}

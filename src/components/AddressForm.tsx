@@ -231,7 +231,7 @@ export default function AddressForm({
       <input
         value={addressLine}
         onChange={(e) => setAddressLine(e.target.value)}
-        placeholder={t("addresses.address_description_placeholder")}
+        placeholder={isIndia ? "Delivery note (e.g. Flat 4B, near the temple, gate code)" : t("addresses.address_description_placeholder")}
         className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
       />
 
