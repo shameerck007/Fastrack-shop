@@ -221,7 +221,10 @@ export default function ZonesOverviewMap({
       `}</style>
 
       <div className={`relative isolate z-0 ${fill ? "min-h-[300px] flex-1" : ""}`}>
-        <div ref={containerRef} className={`w-full overflow-hidden rounded-2xl border border-neutral-200 ${fill ? "absolute inset-0" : height}`} />
+        {/* Leaflet forces position:relative on its container, so when filling, an absolute wrapper gives it the size. */}
+        <div className={fill ? "absolute inset-0" : ""}>
+          <div ref={containerRef} className={`w-full overflow-hidden rounded-2xl border border-neutral-200 ${fill ? "h-full" : height}`} />
+        </div>
 
         {/* layer switches */}
         <div className="absolute start-3 top-3 z-[1000] flex flex-wrap gap-1.5">
