@@ -17,6 +17,8 @@ export default function MobileNavGate({ children }: { children: React.ReactNode 
     HIDE_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
     pathname.startsWith("/products/") ||
     pathname.startsWith("/checkout") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
     pathname === "/cart" ||
     (cartCount > 0 && showsCartBar(pathname));
   if (hide) return null;

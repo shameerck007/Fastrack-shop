@@ -212,32 +212,22 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
   }
 
   const inputClass =
-    "rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+    "h-12 rounded-xl border border-neutral-300 bg-white px-4 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100";
   const primaryButton =
-    "rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800 disabled:opacity-50";
+    "flex h-12 items-center justify-center rounded-full bg-blue-700 text-base font-extrabold text-white shadow-lg shadow-blue-700/20 transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50";
 
   return (
-    <div className="mx-auto flex max-w-sm flex-col items-center px-4 py-10">
-      <Link href="/" className="mb-6">
-        <Wordmark height={32} />
+    <div className="mx-auto flex max-w-sm flex-col items-center px-5 pb-10 pt-6 md:py-10">
+      <Link href="/" className="mb-5 md:mb-6">
+        <Wordmark height={34} />
       </Link>
 
-      <div className="w-full rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">
-            {mode === "password" && step === "phone-new" ? t("auth.new_here_heading") : t("auth.sign_in_title")}
+      <div className="w-full md:rounded-2xl md:border md:border-neutral-200 md:bg-white md:p-6 md:shadow-sm">
+        <div className="mb-5 text-center md:text-start">
+          <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900">
+            {mode === "password" && step === "phone-new" ? t("auth.new_here_heading") : t("auth.welcome_title")}
           </h1>
-          <button
-            type="button"
-            onClick={() => {
-              setMode(mode === "password" ? "otp" : "password");
-              setError(null);
-              setOtpError(null);
-            }}
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            {mode === "password" ? t("auth.sign_in_with_code") : t("auth.sign_in_with_password")}
-          </button>
+          <p className="mt-1 text-sm text-neutral-500">{t("auth.welcome_sub")}</p>
         </div>
 
         {mode === "password" ? (
@@ -259,23 +249,38 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
 
               {error && <p className="text-sm text-red-600">{error}</p>}
               {noAccountEmail && (
-                <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
-                  <p className="font-semibold">{t("auth.no_account_email")}</p>
-                  <p className="mt-0.5 text-xs text-blue-800/80">{t("auth.no_account_hint", { email: noAccountEmail })}</p>
+                <div className="rounded-2xl bg-blue-50 p-4 text-center">
+                  <span className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-white text-xl shadow-sm">👋</span>
+                  <p className="text-base font-extrabold text-blue-950">{t("auth.no_account_email")}</p>
+                  <p className="mt-1 break-all text-xs text-blue-900/70">{t("auth.no_account_hint", { email: noAccountEmail })}</p>
                   <Link
                     href={`/register?email=${encodeURIComponent(noAccountEmail)}${redirectTo !== "/" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""}`}
-                    className="mt-2 inline-block rounded-full bg-blue-700 px-4 py-1.5 text-xs font-extrabold text-white"
+                    className={`${primaryButton} mt-3`}
                   >
                     {t("auth.create_account_for_email")}
                   </Link>
                 </div>
               )}
 
-              <button type="submit" disabled={loading} className={primaryButton}>
-                {loading ? t("auth.checking") : t("auth.continue")}
+              {!noAccountEmail && (
+                <button type="submit" disabled={loading} className={primaryButton}>
+                  {loading ? t("auth.checking") : t("auth.continue")}
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("otp");
+                  setError(null);
+                  setOtpError(null);
+                }}
+                className="h-12 rounded-full border border-neutral-300 bg-white text-sm font-bold text-neutral-800 active:scale-[0.98]"
+              >
+                {t("auth.sign_in_with_code")}
               </button>
 
-              <p className="text-xs text-neutral-500">{t("auth.terms_notice")}</p>
+              <p className="text-center text-xs text-neutral-500">{t("auth.terms_notice")}</p>
             </form>
           ) : step === "password" ? (
             <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
@@ -448,20 +453,31 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
             </button>
           </form>
         )}
+
+        {mode === "otp" && (
+          <button
+            type="button"
+            onClick={() => {
+              setMode("password");
+              setError(null);
+              setOtpError(null);
+            }}
+            className="mt-4 w-full text-center text-sm font-bold text-blue-700 hover:underline"
+          >
+            {t("auth.sign_in_with_password")}
+          </button>
+        )}
       </div>
 
-      <div className="my-5 flex w-full items-center gap-3">
-        <span className="h-px flex-1 bg-neutral-200" />
-        <span className="text-xs text-neutral-400">{t("auth.new_to_fastrack")}</span>
-        <span className="h-px flex-1 bg-neutral-200" />
-      </div>
-
-      <Link
-        href={`/register${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
-        className="w-full rounded-full border border-neutral-300 bg-white py-2.5 text-center text-sm font-medium hover:bg-neutral-50"
-      >
-        {t("auth.create_account_button")}
-      </Link>
+      <p className="mt-6 text-center text-sm text-neutral-600">
+        {t("auth.new_to_fastrack")}{" "}
+        <Link
+          href={`/register${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
+          className="font-bold text-blue-700 hover:underline"
+        >
+          {t("auth.create_account_button")}
+        </Link>
+      </p>
     </div>
   );
 }
