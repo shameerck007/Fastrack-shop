@@ -117,3 +117,25 @@ export async function getRiderSettlementOverview(): Promise<RiderSettlementOverv
     balance: Number(r.balance),
   }));
 }
+
+/** Every ledger entry (payouts and cash handed in) for the market's riders; for the admin Collections page. */
+export async function getAllRiderSettlementEntries(): Promise<(RiderSettlementEntry & { riderId: string })[]> {
+  const supabase = (await createClient()) as unknown as {
+    from: (table: string) => { select: (cols: string) => { order: (col: string, o: object) => Result } };
+  };
+  const { data, error } = await supabase
+    .from("rider_settlement_entries")
+    .select("id, rider_id, kind, amount, method, reference, note, created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as Record<string, string | number | null>[]).map((r) => ({
+    id: String(r.id),
+    riderId: String(r.rider_id),
+    kind: r.kind as RiderSettlementEntry["kind"],
+    amount: Number(r.amount),
+    method: String(r.method),
+    reference: (r.reference as string | null) ?? null,
+    note: (r.note as string | null) ?? null,
+    createdAt: String(r.created_at),
+  }));
+}

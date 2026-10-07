@@ -2,6 +2,8 @@ import Link from "@/components/Link";
 import RiderEarningsChart from "@/components/rider/RiderEarningsChart";
 import { getRiderWallet, formatWhen, earningsByDay } from "@/lib/rider-wallet";
 import { getMoney } from "@/lib/tenant-server";
+import CollectionsPanel from "@/components/CollectionsPanel";
+import { buildPeriods, type PeriodMode } from "@/lib/finance-periods";
 
 export const metadata = { title: "Earnings · FasTrack Rider" };
 
@@ -29,7 +31,9 @@ function Row({ sign, label, hint, amount, width, color }: { sign: string; label:
   );
 }
 
-export default async function RiderEarningsPage() {
+export default async function RiderEarningsPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
+  const { view } = await searchParams;
+  const mode: PeriodMode = view === "monthly" ? "monthly" : "daily";
   const money = await getMoney();
   const wallet = await getRiderWallet();
 
@@ -101,6 +105,8 @@ export default async function RiderEarningsPage() {
           </div>
         ))}
       </div>
+
+      <CollectionsPanel rows={buildPeriods(orders, entries, mode, timeZone)} mode={mode} basePath="/rider/earnings" money={money} heading="My collections" />
 
       <RiderEarningsChart days={week} t={noT} money={money} />
 
