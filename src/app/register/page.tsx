@@ -1,7 +1,7 @@
 import RegisterForm from "@/components/RegisterForm";
-import { getRequestCountryCode } from "@/lib/get-request-country";
+import { getDefaultPhoneCountry } from "@/lib/get-request-country";
 
 export default async function RegisterPage() {
-  const defaultCountryCode = await getRequestCountryCode();
+  const defaultCountryCode = await getDefaultPhoneCountry();
   return <RegisterForm defaultCountryCode={defaultCountryCode} />;
 }
