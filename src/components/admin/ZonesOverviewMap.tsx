@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LayerGroup, Map as LeafletMap, Marker } from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -52,7 +53,7 @@ function popupHtml(z: OverviewZone): string {
   return `
   <div style="width:250px;font-family:inherit">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <div style="width:38px;height:38px;border-radius:12px;background:${hub ? "linear-gradient(135deg,#1d4ed8,#38bdf8)" : "#fff"};border:${hub ? "0" : `3px solid ${accent}`};display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 12px rgba(0,0,0,.18)">${hub ? "🏬" : "🏪"}</div>
+      <div style="width:38px;height:38px;border-radius:12px;background:#fff;border:3px solid ${accent};display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 12px rgba(0,0,0,.18);overflow:hidden">${hub ? '<img src="/fastrack-logo-mark.png" alt="FasTrack" style="width:24px;height:24px;object-fit:contain"/>' : "🏪"}</div>
       <div style="min-width:0">
         <div style="font-size:14px;font-weight:800;color:#0f172a;line-height:1.2">${esc(z.name)}</div>
         <div style="margin-top:3px"><span style="font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:${hub ? "#dbeafe" : "#fef3c7"};color:${hub ? "#1e40af" : "#92400e"}">${hub ? "FasTrack hub" : "Supplier shop"}</span>${z.status && z.status !== "approved" ? ` <span style="font-size:10px;font-weight:700;color:#b45309">${esc(z.status)}</span>` : ""}</div>
@@ -76,7 +77,7 @@ function markerHtml(z: OverviewZone): { html: string; size: [number, number]; an
     return {
       html: `<div style="position:relative;width:46px;height:46px">
         <span style="position:absolute;inset:-10px;border-radius:20px;background:rgba(37,99,235,.28);animation:ftpulse 2s ease-out infinite"></span>
-        <div style="position:relative;width:46px;height:46px;border-radius:16px;background:linear-gradient(135deg,#1d4ed8,#38bdf8);border:3px solid #fff;box-shadow:0 6px 16px rgba(29,78,216,.55);display:flex;align-items:center;justify-content:center;font-size:23px">🏬</div>
+        <div style="position:relative;width:46px;height:46px;border-radius:16px;background:#fff;border:3px solid #1d4ed8;box-shadow:0 6px 16px rgba(29,78,216,.55);display:flex;align-items:center;justify-content:center;overflow:hidden"><img src="/fastrack-logo-mark.png" alt="FasTrack" style="width:30px;height:30px;object-fit:contain"/></div>
         ${label}</div>`,
       size: [46, 46],
       anchor: [23, 23],
@@ -230,7 +231,7 @@ export default function ZonesOverviewMap({
         {/* layer switches */}
         <div className="absolute start-3 top-3 z-[1000] flex flex-wrap gap-1.5">
           <button type="button" onClick={() => setShow((s) => ({ ...s, hubs: !s.hubs }))} className={chip(show.hubs, BRAND)} style={show.hubs ? { background: BRAND } : undefined}>
-            🏬 FasTrack hubs <span className="rounded-full bg-white/25 px-1.5">{hubs.length}</span>
+            <img src="/fastrack-logo-mark.png" alt="" className="h-4 w-4 rounded bg-white object-contain p-px" /> FasTrack hubs <span className="rounded-full bg-white/25 px-1.5">{hubs.length}</span>
           </button>
           <button type="button" onClick={() => setShow((s) => ({ ...s, suppliers: !s.suppliers }))} className={chip(show.suppliers, "#d97706")} style={show.suppliers ? { background: "#d97706" } : undefined}>
             🏪 Suppliers <span className="rounded-full bg-white/25 px-1.5">{suppliers.length}</span>
@@ -247,7 +248,7 @@ export default function ZonesOverviewMap({
         <div className="pointer-events-none absolute bottom-3 start-3 z-[1000] rounded-2xl bg-white/92 p-3 text-[11px] shadow-lg backdrop-blur">
           <p className="mb-1.5 font-extrabold uppercase tracking-wider text-neutral-400">Legend</p>
           <div className="flex items-center gap-2 text-neutral-700">
-            <span className="flex h-5 w-5 items-center justify-center rounded-md text-[11px] text-white" style={{ background: "linear-gradient(135deg,#1d4ed8,#38bdf8)" }}>🏬</span>
+            <span className="flex h-5 w-5 items-center justify-center rounded-md border-2 border-blue-700 bg-white"><img src="/fastrack-logo-mark.png" alt="" className="h-3 w-3 object-contain" /></span>
             FasTrack hub · solid blue area
           </div>
           <div className="mt-1 flex items-center gap-2 text-neutral-700">
@@ -277,10 +278,10 @@ export default function ZonesOverviewMap({
                   }`}
                 >
                   <span
-                    className={`flex h-8 w-8 items-center justify-center rounded-xl text-base ${hub ? "text-white" : "border-[3px] bg-white"}`}
-                    style={hub ? { background: "linear-gradient(135deg,#1d4ed8,#38bdf8)" } : { borderColor: z.color }}
+                    className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl border-[3px] bg-white text-base"
+                    style={{ borderColor: hub ? BRAND : z.color }}
                   >
-                    {hub ? "🏬" : "🏪"}
+                    {hub ? <img src="/fastrack-logo-mark.png" alt="FasTrack" className="h-5 w-5 object-contain" /> : "🏪"}
                   </span>
                   <span className="min-w-0">
                     <span className="block max-w-[11rem] truncate text-xs font-extrabold text-neutral-900">{z.name}</span>
