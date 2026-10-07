@@ -11,13 +11,45 @@ export default function DeliverToChip({
   variant = "pill",
 }: {
   className?: string;
-  variant?: "pill" | "plain";
+  variant?: "pill" | "plain" | "stack";
 }) {
   const { location, serviceable, openPicker, ready, bestEta } = useDeliveryLocation();
   const { t } = useLocale();
   // Instamart-style markets show the delivery time worked out for this location.
   const range = marketUi(useMarket().countryCode).deliveryBadges ? bestEta() : null;
   const eta = range;
+
+  // Instamart-style: no box. The delivery time is the headline, the chosen place sits under it with a small arrow.
+  if (variant === "stack") {
+    return (
+      <button onClick={openPicker} className={`group flex max-w-full flex-col items-start text-start leading-tight ${className}`} aria-label={t("header.change_location")}>
+        <span className="flex items-center gap-1 text-[17px] font-extrabold tracking-tight text-neutral-900">
+          {ready && location && serviceable !== false && eta ? (
+            <>
+              <span aria-hidden className="text-blue-600">⚡</span> Delivery in {eta.lo === eta.hi ? `${eta.lo} minutes` : `${eta.lo}–${eta.hi} minutes`}
+            </>
+          ) : (
+            t("header.deliver_to")
+          )}
+        </span>
+        <span className="flex max-w-[16rem] items-center gap-1 text-[13px] text-neutral-600">
+          {!ready ? (
+            <span className="h-3.5 w-24 animate-pulse rounded bg-neutral-200" />
+          ) : (
+            <>
+              <span className="truncate font-medium group-hover:text-blue-700">{location?.label ?? t("header.choose_location")}</span>
+              <svg aria-hidden viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 shrink-0 text-blue-700">
+                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clipRule="evenodd" />
+              </svg>
+              {location && serviceable === false && (
+                <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-800">{t("header.not_serviceable")}</span>
+              )}
+            </>
+          )}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button
