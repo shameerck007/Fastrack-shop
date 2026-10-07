@@ -137,9 +137,6 @@ export default async function ProductPage({
                 {t("product.price_per_kg_note", { price: money(product.price_per_kg) })}
               </p>
             )}
-            <p className="mt-2 inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-              {t("product.get_it_in")}
-            </p>
           </div>
 
           <dl className="grid grid-cols-2 gap-2 text-sm text-neutral-600">
@@ -188,9 +185,6 @@ export default async function ProductPage({
                 {t("product.price_per_kg_note", { price: money(product.price_per_kg) })}
               </p>
             )}
-            <p className="mb-3 text-sm font-medium text-blue-700 max-md:hidden">
-              {t("product.get_it_in")}
-            </p>
 
             {product.product_variants.length > 0 ? (
               <ProductBuyBox

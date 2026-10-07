@@ -43,30 +43,20 @@ function OptionRows({ offer }: { offer: Offer }) {
   return (
     <section className="flex flex-col gap-2">
       <h3 className="text-sm font-extrabold tracking-tight text-neutral-900">{t("delivery_info.title")}</h3>
-      <Row
-        icon="🛵"
-        title={t("delivery_info.express")}
-        ok={offer.express}
-        detail={
-          offer.express
-            ? `${etaText ?? t("delivery_info.express_eta")} · ${freeHint}`
-            : offer.expressRadiusKm != null
-              ? `${t("delivery_info.express_unavailable")} — ${t("delivery_info.express_within", { radius: offer.expressRadiusKm })}`
-              : t("delivery_info.express_unavailable")
-        }
-        fee={money(pricing.express)}
-      />
-      <Row
-        icon="📦"
-        title={t("delivery_info.standard")}
-        ok={offer.standard}
-        detail={
-          offer.standard
-            ? `${t("delivery_info.standard_by", { date: formatDeliveryDate(standardDeliveryDate(offer.standardDays, new Date(), offsetMin), locale) })} · ${freeHint}`
-            : t("delivery_info.standard_unavailable")
-        }
-        fee={money(pricing.standard)}
-      />
+      {/* The system picks the method for this address, like other quick-commerce apps: one line, not a menu. */}
+      {offer.express ? (
+        <Row icon="🛵" title={t("delivery_info.express")} ok detail={`${etaText ?? t("delivery_info.express_eta")} · ${freeHint}`} fee={money(pricing.express)} />
+      ) : offer.standard ? (
+        <Row
+          icon="📦"
+          title={t("delivery_info.standard")}
+          ok
+          detail={`${t("delivery_info.standard_by", { date: formatDeliveryDate(standardDeliveryDate(offer.standardDays, new Date(), offsetMin), locale) })} · ${freeHint}`}
+          fee={money(pricing.standard)}
+        />
+      ) : (
+        <Row icon="📦" title={t("delivery_info.title")} ok={false} detail={t("delivery_info.standard_unavailable")} />
+      )}
     </section>
   );
 }
