@@ -15,6 +15,8 @@ export interface CompanySettings {
   email: string | null;
   /** State (for GST CGST/SGST vs IGST); column added by migration 0047. */
   state?: string | null;
+  /** How far from the pickup a rider is offered orders (km); column added by migration 0059. */
+  rider_pickup_radius_km?: number | null;
 }
 
 const FALLBACK: CompanySettings = {

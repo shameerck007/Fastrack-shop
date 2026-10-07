@@ -21,6 +21,7 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
   const [phone, setPhone] = useState(settings.phone ?? "");
   const [email, setEmail] = useState(settings.email ?? "");
   const [stateName, setStateName] = useState(settings.state ?? "");
+  const [riderRadius, setRiderRadius] = useState(String(settings.rider_pickup_radius_km ?? 20));
   const { countryCode } = useMarket();
   const isIndia = countryCode === "IN";
   const [saved, setSaved] = useState(false);
@@ -44,6 +45,7 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
           phone,
           email,
           state: stateName,
+          riderPickupRadiusKm: Number(riderRadius) || undefined,
         });
         setSaved(true);
       } catch (err) {
@@ -92,6 +94,24 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
             </div>
           )}
         </div>
+      </section>
+
+      <section className="rounded-xl border border-neutral-200 bg-white p-4">
+        <h2 className="mb-3 text-sm font-semibold text-neutral-700">Riders</h2>
+        <label className={label}>How far from the pickup point a rider is offered orders (km)</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={1}
+            max={200}
+            step={1}
+            value={riderRadius}
+            onChange={(e) => setRiderRadius(e.target.value)}
+            className={`${field} w-28`}
+          />
+          <span className="text-sm text-neutral-500">km (default 20)</span>
+        </div>
+        <p className="mt-1 text-xs text-neutral-400">A rider online within this distance of a shop or warehouse sees its new orders and gets a push notification.</p>
       </section>
 
       <section className="rounded-xl border border-neutral-200 bg-white p-4">

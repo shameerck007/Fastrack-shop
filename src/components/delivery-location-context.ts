@@ -20,6 +20,8 @@ export interface ZoneRow {
   standardEnabled: boolean;
   standardRadiusKm: number | null;
   standardDays: number;
+  /** Custom Express area drawn on the map; replaces the circle for Express when set. */
+  polygon?: [number, number][] | null;
 }
 
 export type DeliveryStatus =

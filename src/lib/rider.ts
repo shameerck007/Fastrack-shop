@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { distanceKm } from "@/lib/delivery-geo";
+import { getCompanySettings } from "@/lib/company-settings";
 import type { DeliveryPartner, Profile } from "@/types/database";
 
 export interface RiderProfile {
@@ -77,6 +78,12 @@ export interface AvailableOrder {
 // it's the oldest order in the system.
 export const RIDER_MATCH_RADIUS_KM = 20;
 
+/** The market's own setting (Admin > Business settings), falling back to the default. */
+export async function getRiderMatchRadiusKm(): Promise<number> {
+  const value = Number((await getCompanySettings()).rider_pickup_radius_km);
+  return Number.isFinite(value) && value > 0 ? value : RIDER_MATCH_RADIUS_KM;
+}
+
 export interface AvailableOrdersResult {
   orders: AvailableOrder[];
   hasLocation: boolean;
@@ -102,6 +109,7 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
     return { orders: [], hasLocation: false };
   }
 
+  const radiusKm = await getRiderMatchRadiusKm();
   const { data: orders, error } = await supabase
     .from("orders")
     .select("id, order_number, delivery_type, delivery_fee, created_at, warehouses(name, address_line, lat, lng)")
@@ -133,7 +141,7 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
   }));
 
   const nearby = withDistance
-    .filter((o) => o.distanceKm != null && o.distanceKm <= RIDER_MATCH_RADIUS_KM)
+    .filter((o) => o.distanceKm != null && o.distanceKm <= radiusKm)
     .sort((a, b) => (a.distanceKm as number) - (b.distanceKm as number));
 
   return { orders: nearby, hasLocation: true };

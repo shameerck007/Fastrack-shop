@@ -26,6 +26,7 @@ function toZone(z: ZoneRow): DeliveryZone {
     standardEnabled: z.standardEnabled,
     standardRadiusKm: z.standardRadiusKm,
     standardDays: z.standardDays,
+    polygon: z.polygon ?? null,
   };
 }
 

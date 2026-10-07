@@ -2,11 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { parsePolygon, polygonProblem, type LatLng } from "@/lib/geo-polygon";
 
 export async function updateWarehouseZone(
   warehouseId: string,
-  zone: { lat: number; lng: number; radiusKm: number } | null
+  zone: { lat: number; lng: number; radiusKm: number; /** Custom Express area; null/omitted = use the circle. */ polygon?: LatLng[] | null } | null
 ) {
+  const polygon = zone?.polygon ? parsePolygon(zone.polygon) : null;
+  if (zone?.polygon && !polygon) throw new Error("The drawn area is not valid.");
+  const problem = polygonProblem(polygon);
+  if (problem) throw new Error(problem);
+
   if (zone) {
     if (!Number.isFinite(zone.lat) || !Number.isFinite(zone.lng) || Math.abs(zone.lat) > 90 || Math.abs(zone.lng) > 180) {
       throw new Error("Pick a valid centre point on the map.");
@@ -23,8 +29,8 @@ export async function updateWarehouseZone(
   if (!user) throw new Error("Your session has expired — please sign in again and retry.");
 
   const payload = zone
-    ? { lat: zone.lat, lng: zone.lng, delivery_radius_km: zone.radiusKm }
-    : { delivery_radius_km: null };
+    ? { lat: zone.lat, lng: zone.lng, delivery_radius_km: zone.radiusKm, delivery_polygon: polygon }
+    : { delivery_radius_km: null, delivery_polygon: null };
 
   // RLS only lets admins update warehouses, so a non-admin update matches no
   // rows — but we've also seen a genuinely transient 0-row result here (a
@@ -36,6 +42,12 @@ export async function updateWarehouseZone(
   }
 
   let { data, error } = await attempt();
+  // The custom-area column arrives with migration 0059; until then only the circle can be saved.
+  if (error && (error.code === "42703" || error.code === "PGRST204")) {
+    if (polygon) throw new Error("Custom areas need the latest database update (migration 0059). Run it, then try again.");
+    const { delivery_polygon: _p, ...legacy } = payload;
+    ({ data, error } = await supabase.from("warehouses").update(legacy).eq("id", warehouseId).select("id"));
+  }
   if (!error && (!data || data.length === 0)) {
     ({ data, error } = await attempt());
   }

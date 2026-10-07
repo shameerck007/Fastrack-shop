@@ -15,6 +15,8 @@ export interface ZoneCard {
   color: string;
   zoned: boolean;
   radius: number | null;
+  /** Custom Express area drawn on the map, when there is one. */
+  polygon?: [number, number][] | null;
   lat: number | null;
   lng: number | null;
   productCount: number;
@@ -122,6 +124,7 @@ export default function ZonesList({ cards }: { cards: ZoneCard[] }) {
             initialLat={active.lat}
             initialLng={active.lng}
             initialRadiusKm={active.radius}
+            initialPolygon={active.polygon ?? null}
           />
         )}
       </Modal>

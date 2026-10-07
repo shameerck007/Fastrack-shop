@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { parsePolygon, pointInPolygon, type LatLng } from "@/lib/geo-polygon";
 import { createClient } from "@/lib/supabase/server";
 import { distanceKm, type Coords, type ZoneVerdict } from "@/lib/delivery-geo";
 import { DEFAULT_STANDARD_DAYS, methodsFor, type DeliveryMethods, type DeliveryZone } from "@/lib/delivery-methods";
@@ -17,6 +18,8 @@ export interface WarehouseZone {
   standardEnabled: boolean;
   standardRadiusKm: number | null;
   standardDays: number;
+  /** A custom Express area drawn on the map (replaces the circle for Express). */
+  polygon: LatLng[] | null;
 }
 
 export function verdictMessage(verdict: ZoneVerdict, itemName?: string): string | null {
@@ -39,11 +42,19 @@ async function loadZonesImpl(): Promise<Map<string, WarehouseZone>> {
     standard_delivery_enabled?: boolean;
     standard_radius_km?: number | null;
     standard_delivery_days?: number;
+    delivery_polygon?: unknown;
   };
   let { data, error } = await supabase
     .from("warehouses")
-    .select("id, name, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days, is_active")
+    .select("id, name, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days, delivery_polygon, is_active")
     .eq("is_active", true);
+  // The custom-area column arrives with migration 0059; until then read the shape without it.
+  if (error?.code === "42703") {
+    ({ data, error } = (await supabase
+      .from("warehouses")
+      .select("id, name, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days, is_active")
+      .eq("is_active", true)) as unknown as { data: typeof data; error: typeof error });
+  }
   // Standard-delivery columns arrive with migration 0043 — until it's applied, fall back to the old shape.
   if (error?.code === "42703") {
     ({ data, error } = (await supabase
@@ -64,6 +75,7 @@ async function loadZonesImpl(): Promise<Map<string, WarehouseZone>> {
         standardEnabled: w.standard_delivery_enabled ?? true,
         standardRadiusKm: w.standard_radius_km == null ? null : Number(w.standard_radius_km),
         standardDays: w.standard_delivery_days ?? DEFAULT_STANDARD_DAYS,
+        polygon: parsePolygon(w.delivery_polygon),
       },
     ])
   );
@@ -81,6 +93,7 @@ export function toDeliveryZone(zone: WarehouseZone | undefined): DeliveryZone | 
     standardEnabled: zone.standardEnabled,
     standardRadiusKm: zone.standardRadiusKm,
     standardDays: zone.standardDays,
+    polygon: zone.polygon,
   };
 }
 
@@ -97,10 +110,16 @@ export function toDeliveryZone(zone: WarehouseZone | undefined): DeliveryZone | 
 /** The stores' warehouse ids and every active warehouse: the same for every address, so asked once per request. */
 const loadFastrackCandidates = cache(async () => {
   const supabase = await createClient();
-  const [{ data: stores }, { data: warehouses }] = await Promise.all([
+  type W = { id: string; lat: number | null; lng: number | null; delivery_radius_km: number | null; delivery_polygon?: unknown };
+  const [{ data: stores }, withShape] = await Promise.all([
     supabase.from("stores").select("warehouse_id"),
-    supabase.from("warehouses").select("id, lat, lng, delivery_radius_km").eq("is_active", true),
+    supabase.from("warehouses").select("id, lat, lng, delivery_radius_km, delivery_polygon").eq("is_active", true),
   ]);
+  let warehouses = withShape.data as W[] | null;
+  // The custom-area column arrives with migration 0059.
+  if (withShape.error?.code === "42703") {
+    warehouses = (await supabase.from("warehouses").select("id, lat, lng, delivery_radius_km").eq("is_active", true)).data as W[] | null;
+  }
   return { stores: stores ?? [], warehouses: warehouses ?? [] };
 });
 
@@ -133,7 +152,12 @@ async function resolveFastrackWarehouse(
     .map((w) => {
       const distance = distanceKm(coords.lat as number, coords.lng as number, w.lat as number, w.lng as number);
       const radius = w.delivery_radius_km == null ? null : Number(w.delivery_radius_km);
-      return { id: w.id, distance, covers: radius == null || distance <= radius };
+      const shape = parsePolygon((w as { delivery_polygon?: unknown }).delivery_polygon);
+      return {
+        id: w.id,
+        distance,
+        covers: shape ? pointInPolygon(coords.lat as number, coords.lng as number, shape) : radius == null || distance <= radius,
+      };
     })
     .sort((a, b) => a.distance - b.distance);
 

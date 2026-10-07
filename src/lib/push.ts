@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { sendWebPush, type PushSubscriptionKeys, type VapidConfig } from "@/lib/web-push";
 import { distanceKm } from "@/lib/delivery-geo";
-import { RIDER_MATCH_RADIUS_KM } from "@/lib/rider";
+import { getRiderMatchRadiusKm } from "@/lib/rider";
 import type { OrderStatus } from "@/types/database";
 
 export interface PushPayload {
@@ -140,9 +140,10 @@ export async function notifyNearbyRidersOfNewOrder(orderId: string) {
     .not("orders.status", "in", "(delivered,cancelled)");
   const busyRiderIds = new Set(((activeAssignments ?? []) as { rider_id: string | null }[]).map((a) => a.rider_id));
 
+  const radiusKm = await getRiderMatchRadiusKm();
   const nearbyRiderIds = riders
     .filter((r) => !busyRiderIds.has(r.id) && r.current_lat != null && r.current_lng != null)
-    .filter((r) => distanceKm(r.current_lat as number, r.current_lng as number, warehouse.lat as number, warehouse.lng as number) <= RIDER_MATCH_RADIUS_KM)
+    .filter((r) => distanceKm(r.current_lat as number, r.current_lng as number, warehouse.lat as number, warehouse.lng as number) <= radiusKm)
     .map((r) => r.id);
 
   await notifyUsers(nearbyRiderIds, {

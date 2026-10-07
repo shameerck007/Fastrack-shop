@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import ZonesList, { type ZoneCard } from "@/components/admin/ZonesList";
 import ZonesCoverageButton from "@/components/admin/ZonesCoverageButton";
 import type { OverviewZone } from "@/components/admin/ZonesOverviewMap";
+import { parsePolygon, pointInPolygon } from "@/lib/geo-polygon";
 import { distanceKm } from "@/lib/delivery-geo";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -18,6 +19,7 @@ interface WarehouseRow {
   standard_delivery_enabled?: boolean;
   standard_radius_km?: number | null;
   standard_delivery_days?: number;
+  delivery_polygon?: unknown;
 }
 
 function Stat({
@@ -58,7 +60,7 @@ export default async function AdminZonesPage() {
     await Promise.all([
       supabase
         .from("warehouses")
-        .select("id, name, address_line, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days")
+        .select("id, name, address_line, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days, delivery_polygon")
         .eq("is_active", true)
         .order("created_at", { ascending: true }),
       supabase.from("stores").select("id, name, warehouse_id, contact_phone, address_line, status"),
@@ -68,6 +70,15 @@ export default async function AdminZonesPage() {
     ]);
 
   let warehouseRows = warehouses;
+  if (!warehouseRows) {
+    // The custom-area column arrives with migration 0059: read the shape without it first.
+    const { data: noShape } = await supabase
+      .from("warehouses")
+      .select("id, name, address_line, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days")
+      .eq("is_active", true)
+      .order("created_at", { ascending: true });
+    warehouseRows = noShape as typeof warehouses;
+  }
   if (!warehouseRows) {
     // Standard-delivery columns arrive with migration 0043; until then read the old shape.
     const { data: legacy } = await supabase
@@ -92,8 +103,10 @@ export default async function AdminZonesPage() {
     const store = storeByWarehouse.get(w.id);
     const zoned = w.delivery_radius_km != null && w.lat != null && w.lng != null;
     const radius = w.delivery_radius_km == null ? null : Number(w.delivery_radius_km);
-    const inside =
-      zoned && radius != null
+    const shape = parsePolygon(w.delivery_polygon);
+    const inside = shape
+      ? pins.filter((p) => pointInPolygon(p.lat, p.lng, shape)).length
+      : zoned && radius != null
         ? pins.filter((p) => distanceKm(w.lat as number, w.lng as number, p.lat, p.lng) <= radius).length
         : null;
     return {
@@ -101,6 +114,7 @@ export default async function AdminZonesPage() {
       store,
       zoned,
       radius,
+      shape,
       inside,
       color: COLORS[index % COLORS.length],
       productCount: store ? (productsByStore.get(store.id) ?? 0) : (productsByStore.get(null) ?? 0),
@@ -132,6 +146,7 @@ export default async function AdminZonesPage() {
     standardEnabled: c.w.standard_delivery_enabled ?? true,
     standardRadius: c.w.standard_radius_km == null ? null : Number(c.w.standard_radius_km),
     standardDays: c.w.standard_delivery_days ?? 2,
+    polygon: c.shape,
   }));
 
   const overviewZones: OverviewZone[] = cards
@@ -143,11 +158,12 @@ export default async function AdminZonesPage() {
       lng: c.w.lng as number,
       radiusKm: c.radius as number,
       color: c.color,
+      polygon: c.shape,
     }));
 
   const zonedCount = cards.filter((c) => c.zoned).length;
   const uncovered = pins.filter(
-    (p) => overviewZones.length > 0 && !overviewZones.some((z) => distanceKm(z.lat, z.lng, p.lat, p.lng) <= z.radiusKm)
+    (p) => overviewZones.length > 0 && !overviewZones.some((z) => (z.polygon ? pointInPolygon(p.lat, p.lng, z.polygon) : distanceKm(z.lat, z.lng, p.lat, p.lng) <= z.radiusKm))
   ).length;
   const anyUnrestricted = cards.some((c) => !c.zoned);
 

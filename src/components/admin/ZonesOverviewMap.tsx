@@ -13,6 +13,7 @@ export interface OverviewZone {
   lng: number;
   radiusKm: number;
   color: string;
+  polygon?: [number, number][] | null;
 }
 
 export interface OverviewPoint {
@@ -43,14 +44,12 @@ export default function ZonesOverviewMap({
 
       const bounds = L.latLngBounds([]);
       for (const z of zones) {
-        const circle = L.circle([z.lat, z.lng], {
-          radius: z.radiusKm * 1000,
-          color: z.color,
-          fillColor: z.color,
-          fillOpacity: 0.14,
-          weight: 2,
-        }).addTo(map);
-        circle.bindTooltip(`${z.name} — ${z.radiusKm} km`, { sticky: true });
+        const area =
+          z.polygon && z.polygon.length >= 3
+            ? L.polygon(z.polygon, { color: z.color, fillColor: z.color, fillOpacity: 0.14, weight: 2 })
+            : L.circle([z.lat, z.lng], { radius: z.radiusKm * 1000, color: z.color, fillColor: z.color, fillOpacity: 0.14, weight: 2 });
+        area.addTo(map);
+        area.bindTooltip(z.polygon && z.polygon.length >= 3 ? `${z.name} — custom area` : `${z.name} — ${z.radiusKm} km`, { sticky: true });
         L.circleMarker([z.lat, z.lng], {
           radius: 6,
           color: "#fff",
@@ -60,7 +59,7 @@ export default function ZonesOverviewMap({
         })
           .addTo(map)
           .bindTooltip(z.name, { permanent: true, direction: "top", offset: [0, -6]});
-        bounds.extend(circle.getBounds());
+        bounds.extend(area.getBounds());
       }
       for (const p of customerPoints) {
         L.circleMarker([p.lat, p.lng], {

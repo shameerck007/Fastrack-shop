@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { parsePolygon } from "@/lib/geo-polygon";
 
 // Public: one row per approved store (its warehouse's centre + radius) plus a
 // storeId-null row for FasTrack's own products. The browser uses this to tell
@@ -17,6 +18,7 @@ export async function GET() {
     standard_enabled?: boolean;
     standard_radius_km?: number | null;
     standard_days?: number;
+    polygon?: unknown;
   }[]).map(
     (r) => ({
       storeId: r.store_id,
@@ -27,6 +29,7 @@ export async function GET() {
       standardEnabled: r.standard_enabled ?? true,
       standardRadiusKm: r.standard_radius_km == null ? null : Number(r.standard_radius_km),
       standardDays: r.standard_days ?? 2,
+      polygon: parsePolygon(r.polygon),
     })
   );
 

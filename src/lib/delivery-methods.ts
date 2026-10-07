@@ -9,12 +9,15 @@
 
 import { distanceKm, type Coords } from "@/lib/delivery-geo";
 import { DEFAULT_OFFSET_MINUTES } from "@/lib/timezone";
+import { pointInPolygon, type LatLng } from "@/lib/geo-polygon";
 
 export interface DeliveryZone {
   lat: number | null;
   lng: number | null;
   /** Express radius; null = Express isn't limited by distance. */
   expressRadiusKm: number | null;
+  /** A custom Express area drawn on the map. When set it replaces the circle for Express. */
+  polygon?: LatLng[] | null;
   standardEnabled: boolean;
   /** Standard radius; null = no distance limit. */
   standardRadiusKm: number | null;
@@ -48,15 +51,16 @@ export function methodsFor(zone: DeliveryZone | undefined, coords: Coords | null
   const haveCustomer = !!coords && coords.lat != null && coords.lng != null;
   const distance = haveZonePoint && haveCustomer ? distanceKm(zone.lat as number, zone.lng as number, coords!.lat as number, coords!.lng as number) : null;
 
+  const hasPolygon = !!zone.polygon && zone.polygon.length >= 3;
   // A distance limit can't be evaluated without the customer's location.
-  const needsDistance = zone.expressRadiusKm != null || (zone.standardEnabled && zone.standardRadiusKm != null);
+  const needsDistance = hasPolygon || zone.expressRadiusKm != null || (zone.standardEnabled && zone.standardRadiusKm != null);
   if (needsDistance && haveZonePoint && !haveCustomer) {
     // Standard with no distance limit doesn't need the location to be shown and ordered; Express can't be confirmed without it.
     const standardOpen = zone.standardEnabled && zone.standardRadiusKm == null;
     if (!standardOpen) return { state: "no_location" };
     return {
       state: "known",
-      express: zone.expressRadiusKm == null,
+      express: !hasPolygon && zone.expressRadiusKm == null,
       standard: true,
       standardDays: zone.standardDays,
       distanceKm: null,
@@ -65,7 +69,9 @@ export function methodsFor(zone: DeliveryZone | undefined, coords: Coords | null
     };
   }
 
-  const express = zone.expressRadiusKm == null || !haveZonePoint || (distance !== null && distance <= zone.expressRadiusKm);
+  const express = hasPolygon
+    ? haveCustomer && pointInPolygon(coords!.lat as number, coords!.lng as number, zone.polygon as LatLng[])
+    : zone.expressRadiusKm == null || !haveZonePoint || (distance !== null && distance <= zone.expressRadiusKm);
   const standard =
     zone.standardEnabled && (zone.standardRadiusKm == null || !haveZonePoint || (distance !== null && distance <= zone.standardRadiusKm));
 
