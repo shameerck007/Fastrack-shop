@@ -35,7 +35,7 @@ export default function RiderLocationTracker() {
 
   if (!error) return null;
   return (
-    <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-amber-700">
+    <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
       📍 {error}
     </div>
   );
