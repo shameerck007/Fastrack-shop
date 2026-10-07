@@ -35,6 +35,12 @@ export default function UserHeaderActions() {
           "Hello, {name}" line was also the actual cause of the reported
           overflow: an unbounded-width greeting with no truncation could
           push past the viewport edge on a narrow phone. */}
+      {/* Phones: signed-out visitors get a compact Log in pill in the header (the bell above covers signed-in ones). */}
+      {loaded && !signedIn && (
+        <Link href="/login" className="rounded-full bg-blue-700 px-4 py-2 text-[13px] font-extrabold text-white shadow-sm active:scale-95 md:hidden">
+          {t("header.login")}
+        </Link>
+      )}
       {signedIn ? (
         <Link href="/account" className="hidden max-w-[150px] rounded-full px-3 py-1.5 leading-tight hover:bg-blue-50 hover:text-blue-700 md:block">
           <span className="block truncate text-[11px] text-neutral-500">

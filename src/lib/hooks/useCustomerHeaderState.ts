@@ -54,7 +54,8 @@ export function useFetchCustomerState(): CustomerHeaderState {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (cancelled) return;
       if (!user) {
-        setState(INITIAL_STATE);
+        // Signed out, but now known: lets the header show Log in without waiting for a user that will never come.
+        setState({ ...INITIAL_STATE, loaded: true });
         return;
       }
 
