@@ -8,6 +8,7 @@ import { formatDeliveryDate, pricingFor, standardDeliveryDate } from "@/lib/deli
 import { useMoney } from "@/components/MoneyProvider";
 import { formatEta } from "@/lib/eta";
 import { marketUi } from "@/lib/market-ui";
+import { useAllStores } from "@/components/StoreDirectoryProvider";
 
 
 function Row({ icon, title, detail, fee, ok }: { icon: string; title: string; detail: string; fee?: string; ok: boolean }) {
@@ -43,7 +44,7 @@ function OptionRows({ offer }: { offer: Offer }) {
     <section className="flex flex-col gap-2">
       <h3 className="text-sm font-extrabold tracking-tight text-neutral-900">{t("delivery_info.title")}</h3>
       <Row
-        icon="⚡"
+        icon="🛵"
         title={t("delivery_info.express")}
         ok={offer.express}
         detail={
@@ -87,11 +88,18 @@ export default function DeliveryOptionsInfo({ storeId }: { storeId: string | nul
   return <OptionRows offer={{ ...status, etaText: range ? formatEta(range) : null }} />;
 }
 
-/** Same, for a whole cart: a method is offered only if every seller in the cart offers it. */
+/** The cart: one delivery line per shipment (one per supplier), each with its own method, time and fee, so
+ * the shopper sees what arrives when before checkout. A single shipment keeps the compact Express / Standard rows. */
 export function CartDeliveryOptions({ storeIds }: { storeIds: (string | null)[] }) {
   const { statusForStore, location, etaAt } = useDeliveryLocation();
   const { t } = useLocale();
-  const calculated = marketUi(useMarket().countryCode).deliveryBadges;
+  const money = useMoney();
+  const market = useMarket();
+  const offsetMin = marketOffsetMinutes(market.countryCode);
+  const pricing = pricingFor(market.countryCode);
+  const { locale } = useLocale();
+  const { stores } = useAllStores();
+  const calculated = marketUi(market.countryCode).deliveryBadges;
   const unique = [...new Set(storeIds)];
   const statuses = unique.map((id) => statusForStore(id));
 
@@ -101,11 +109,43 @@ export function CartDeliveryOptions({ storeIds }: { storeIds: (string | null)[] 
   }
   const ok = statuses.filter((st): st is Extract<typeof st, { state: "ok" }> => st.state === "ok");
   if (ok.length === 0) return null;
+
+  if (unique.length > 1) {
+    return (
+      <section className="flex flex-col gap-2">
+        <p className="text-xs font-semibold text-neutral-500">{unique.length} separate deliveries, each with its own time</p>
+        {unique.map((id, i) => {
+          const st = statuses[i];
+          if (st.state !== "ok") return null;
+          const name = id ? stores.find((x) => x.id === id)?.name ?? "Shop" : "FasTrack";
+          const range = calculated && st.express ? etaAt(location.lat, location.lng, [id]) : null;
+          const express = st.express;
+          return (
+            <Row
+              key={id ?? "own"}
+              icon={express ? "🛵" : "📦"}
+              title={name}
+              ok={st.express || st.standard}
+              detail={
+                express
+                  ? `${t("checkout.express")} · ${range ? formatEta(range) : t("delivery_info.express_eta")}`
+                  : st.standard
+                    ? `${t("checkout.standard")} · ${t("delivery_info.standard_by", { date: formatDeliveryDate(standardDeliveryDate(st.standardDays, new Date(), offsetMin), locale) })}`
+                    : t("delivery_info.standard_unavailable")
+              }
+              fee={money(express ? pricing.express : pricing.standard)}
+            />
+          );
+        })}
+      </section>
+    );
+  }
+
   return (
     <OptionRows
       offer={{
-        express: ok.length === statuses.length && ok.every((st) => st.express),
-        standard: ok.length === statuses.length && ok.every((st) => st.standard),
+        express: ok.every((st) => st.express),
+        standard: ok.every((st) => st.standard),
         standardDays: Math.max(...ok.map((st) => st.standardDays)),
         expressRadiusKm: ok.find((st) => !st.express)?.expressRadiusKm ?? ok[0].expressRadiusKm,
         etaText: calculated ? (() => { const r = etaAt(location.lat, location.lng, unique); return r ? formatEta(r) : null; })() : null,

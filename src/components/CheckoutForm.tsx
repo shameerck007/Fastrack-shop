@@ -35,6 +35,7 @@ export default function CheckoutForm({
   subtotal,
   blockedByAddress = {},
   methodsByAddress = {},
+  shipmentMethods = {},
   taxTotal = 0,
   taxLabel = "VAT",
   groups = [],
@@ -49,8 +50,10 @@ export default function CheckoutForm({
   /** GST inside the delivery fee (India), 0 where it isn't taxed separately. */
   deliveryTaxPercent?: number;
   /** One entry per supplier in the cart; each becomes its own order with its own delivery fee. */
-  groups?: { key: string; name: string; subtotal: number }[];
+  groups?: { key: string; name: string; subtotal: number; storeId?: string | null }[];
   methodsByAddress?: Record<string, { express: boolean; standard: boolean; standardDays: number }>;
+  /** Per address, then per shipment key: which methods apply to that shipment. */
+  shipmentMethods?: Record<string, Record<string, { express: boolean; standard: boolean; standardDays: number }>>;
 }) {
   const money = useMoney();
   const { t, locale } = useLocale();
@@ -77,25 +80,32 @@ export default function CheckoutForm({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  // Express only inside the express radius; Standard (and Scheduled) wherever Standard applies.
   const offered = methodsByAddress[addressId] ?? { express: true, standard: true, standardDays: 2 };
-  // Express wherever the address is inside the shops' Express areas, otherwise Standard; "later" only where Standard applies.
-  const deliveryType: DeliveryType =
-    scheduleLater && offered.standard ? "scheduled" : offered.express ? "express" : offered.standard ? "standard" : "express";
   const { etaAt } = useDeliveryLocation();
   const chosenAddress = addresses.find((a) => a.id === addressId);
-  const expressRange =
-    marketUi(useMarket().countryCode).deliveryBadges && chosenAddress?.lat != null && chosenAddress?.lng != null
-      ? etaAt(chosenAddress.lat, chosenAddress.lng, items.map((i) => i.product_variants.products.store_id ?? null))
-      : null;
-  const expressEtaText = expressRange ? formatEta(expressRange) : null;
-  const standardDate = formatDeliveryDate(standardDeliveryDate(offered.standardDays, new Date(), offsetMin), locale);
-
-  const methodFee = DELIVERY_OPTIONS.find((d) => d.value === deliveryType)!.fee;
-  const parcels = (groups.length > 0 ? groups : [{ key: "all", name: "", subtotal }]).map((g) => ({
-    ...g,
-    fee: g.subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : methodFee,
-  }));
+  const showTimes = marketUi(useMarket().countryCode).deliveryBadges;
+  // Each shipment (one per supplier) gets its own method and time from where it is going: Express where its shop's
+  // Express area reaches the address, otherwise Standard. "Later" is the only thing the shopper picks.
+  const parcels = (groups.length > 0 ? groups : [{ key: "all", name: "", subtotal, storeId: undefined as string | null | undefined }]).map((g) => {
+    const m = shipmentMethods[addressId]?.[g.key] ?? offered;
+    const type: DeliveryType = scheduleLater && m.standard ? "scheduled" : m.express ? "express" : m.standard ? "standard" : "express";
+    const range =
+      showTimes && type === "express" && chosenAddress?.lat != null && chosenAddress?.lng != null
+        ? etaAt(chosenAddress.lat, chosenAddress.lng, g.storeId !== undefined ? [g.storeId] : items.map((i) => i.product_variants.products.store_id ?? null))
+        : null;
+    const baseFee = type === "express" ? pricing.express : pricing.standard;
+    return {
+      ...g,
+      type,
+      available: m.express || m.standard,
+      etaText: range ? formatEta(range) : null,
+      date: formatDeliveryDate(standardDeliveryDate(m.standardDays, new Date(), offsetMin), locale),
+      fee: g.subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : baseFee,
+    };
+  });
+  const deliveryType: DeliveryType = parcels[0]?.type ?? "express";
+  const anyStandardAvailable = parcels.every((p) => (shipmentMethods[addressId]?.[p.key] ?? offered).standard);
+  const allDeliverable = parcels.every((p) => p.available);
   const split = parcels.length > 1;
   const deliveryFee = Math.round(parcels.reduce((sum, g) => sum + g.fee, 0) * 100) / 100;
   const total = Math.round((subtotal + deliveryFee) * 100) / 100;
@@ -107,7 +117,7 @@ export default function CheckoutForm({
       setError(t("checkout.select_address_error"));
       return;
     }
-    if (!offered.express && !offered.standard) {
+    if (!allDeliverable) {
       setError(t("delivery_info.standard_unavailable"));
       return;
     }
@@ -119,8 +129,9 @@ export default function CheckoutForm({
       try {
         const result = await placeOrder({
           addressId,
-          deliveryType,
-          scheduledFor: deliveryType === "scheduled" ? scheduledFor : undefined,
+          // Express/Standard are decided per shipment on the server; only "scheduled" is the shopper's choice.
+          deliveryType: scheduleLater ? "scheduled" : deliveryType,
+          scheduledFor: scheduleLater ? scheduledFor : undefined,
           paymentMethod,
           notes: notes.trim() || undefined,
         });
@@ -246,41 +257,46 @@ export default function CheckoutForm({
             </div>
           </section>
 
-          {/* delivery: chosen by the system from the address, not by the shopper */}
+          {/* delivery: chosen by the system per shipment from the address, not by the shopper */}
           <section className={card}>
-            <h2 className="mb-3 text-base font-extrabold tracking-tight">{t("checkout.delivery_time")}</h2>
-            {!offered.express && !offered.standard ? (
+            <h2 className="mb-1 text-base font-extrabold tracking-tight">{t("checkout.delivery_time")}</h2>
+            <p className="mb-3 text-xs text-neutral-500">{t("checkout.auto_delivery_hint")}</p>
+            {!allDeliverable ? (
               <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-semibold text-blue-900">{t("delivery_info.not_available_here")}</div>
             ) : (
-              <div className="flex items-center gap-3 rounded-2xl border border-blue-600 bg-blue-50 p-3.5 ring-1 ring-blue-600">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl shadow-sm">
-                  {deliveryType === "express" ? "⚡" : deliveryType === "standard" ? "📦" : "🗓️"}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-extrabold text-blue-900">
-                    {deliveryType === "express"
-                      ? `${t("checkout.express")} · ${expressEtaText ?? t("delivery_info.express_eta")}`
-                      : deliveryType === "standard"
-                        ? `${t("checkout.standard")} · ${t("delivery_info.standard_by", { date: standardDate })}`
-                        : t("checkout.scheduled")}
-                  </p>
-                  <p className="text-xs text-blue-800/70">{t("checkout.auto_delivery_hint")}</p>
-                </div>
-                <span className={`shrink-0 text-sm font-extrabold ${subtotal >= FREE_DELIVERY_THRESHOLD ? "text-emerald-600" : "text-neutral-900"}`}>
-                  {subtotal >= FREE_DELIVERY_THRESHOLD ? t("checkout.free") : money(methodFee)}
-                </span>
+              <div className="flex flex-col gap-2">
+                {parcels.map((p, idx) => (
+                  <div key={p.key} className="flex items-center gap-3 rounded-2xl border border-blue-600 bg-blue-50 p-3.5 ring-1 ring-blue-600">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl shadow-sm">
+                      {p.type === "express" ? "🛵" : p.type === "standard" ? "📦" : "🗓️"}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      {split && (
+                        <p className="truncate text-[11px] font-bold uppercase tracking-wide text-blue-800/70">
+                          {p.name ? p.name : "Delivery " + (idx + 1)}
+                        </p>
+                      )}
+                      <p className="text-sm font-extrabold text-blue-900">
+                        {p.type === "express"
+                          ? `${t("checkout.express")} · ${p.etaText ?? t("delivery_info.express_eta")}`
+                          : p.type === "standard"
+                            ? `${t("checkout.standard")} · ${t("delivery_info.standard_by", { date: p.date })}`
+                            : t("checkout.scheduled")}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 text-sm font-extrabold ${p.fee === 0 ? "text-emerald-600" : "text-neutral-900"}`}>
+                      {p.fee === 0 ? t("checkout.free") : money(p.fee)}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
-            {offered.standard && (
-              <button
-                type="button"
-                onClick={() => setScheduleLater((v) => !v)}
-                className="mt-3 text-sm font-bold text-blue-700 hover:underline"
-              >
+            {anyStandardAvailable && (
+              <button type="button" onClick={() => setScheduleLater((v) => !v)} className="mt-3 text-sm font-bold text-blue-700 hover:underline">
                 {scheduleLater ? t("checkout.deliver_now") : t("checkout.schedule_later")}
               </button>
             )}
-            {deliveryType === "scheduled" && (
+            {scheduleLater && (
               <input
                 type="datetime-local"
                 value={scheduledFor}

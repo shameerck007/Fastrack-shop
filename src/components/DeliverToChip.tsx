@@ -34,7 +34,6 @@ export default function DeliverToChip({
           <span className="flex max-w-full items-center gap-1 text-[15px] font-extrabold tracking-tight text-neutral-900 sm:text-[17px]">
             {ready && location && serviceable !== false && eta ? (
               <span className="truncate">
-                <span aria-hidden className="text-blue-600">⚡ </span>
                 Delivery in {eta.lo === eta.hi ? eta.lo : `${eta.lo}–${eta.hi}`} <span className="sm:hidden">min</span>
                 <span className="hidden sm:inline">minutes</span>
               </span>
@@ -94,7 +93,7 @@ export default function DeliverToChip({
           </span>
         )}
         {ready && location && serviceable !== false && eta && (
-          <span className="text-[11px] font-semibold leading-tight text-blue-700">⚡ {formatEta(eta)}</span>
+          <span className="text-[11px] font-semibold leading-tight text-blue-700">{formatEta(eta)}</span>
         )}
       </span>
       <svg

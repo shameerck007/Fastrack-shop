@@ -102,7 +102,7 @@ export default function ProductCard({
         {ui.deliveryBadges && delivery.state === "ok" && !outOfStock && (
           <span className={`mt-0.5 inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${delivery.express ? "bg-blue-50 text-blue-700" : "bg-neutral-100 text-neutral-600"}`}>
             {delivery.express
-              ? `⚡ ${etaRangeForCard ? formatEta(etaRangeForCard) : "Express"}`
+              ? `${etaRangeForCard ? formatEta(etaRangeForCard) : "Express"}`
               : `📦 ${formatDeliveryDate(standardDeliveryDate(delivery.standardDays, new Date(), marketOffsetMinutes(countryCode)), locale)}`}
           </span>
         )}

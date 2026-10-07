@@ -114,15 +114,11 @@ async function placeOrderOrThrow(input: {
     );
   }
 
-  // The chosen delivery method must be offered for every item at this address: Express only
-  // inside the express radius, Standard (and Scheduled, which is a Standard slot) where Standard applies.
-  const offered = combineMethods([...deliverability.values()].map((d) => d.methods));
-  if (input.deliveryType === "express" && !offered.express) {
-    throw new Error("Express delivery isn't available for this address. Please choose Standard delivery.");
-  }
-  if (input.deliveryType !== "express" && !offered.standard) {
-    throw new Error("Standard delivery isn't available for this address. Please choose Express delivery or another address.");
-  }
+  // Each shipment (one per supplier) gets its own delivery method, decided here from where it is going:
+  // Express when every item in that shipment is inside its shop's Express area, otherwise Standard.
+  // The shopper's only input is "scheduled" (a Standard slot). Anything else is decided by the system.
+  const methodsOfItems = (idxs: number[]) =>
+    combineMethods(idxs.map((i) => deliverability.get(items[i].product_variants.products.id)?.methods).filter((m): m is NonNullable<typeof m> => !!m));
 
   // The order records the market it was placed in, so receipts and reports stay correct per country.
   const tenant = orderTenant;
@@ -136,12 +132,29 @@ async function placeOrderOrThrow(input: {
     groups.set(key, [...(groups.get(key) ?? []), idx]);
   });
 
+  // Check every shipment can go before anything is placed, so an order is never half-created for a method problem.
+  const typeByGroup = new Map<string, DeliveryType>();
+  for (const [key, idxs] of groups) {
+    const m = methodsOfItems(idxs);
+    if (input.deliveryType === "scheduled") {
+      if (!m.standard) throw new Error("Scheduled delivery isn't available for part of your cart at this address. Choose delivery as soon as possible or another address.");
+      typeByGroup.set(key, "scheduled");
+    } else if (m.express) {
+      typeByGroup.set(key, "express");
+    } else if (m.standard) {
+      typeByGroup.set(key, "standard");
+    } else {
+      throw new Error("We can't deliver part of your cart to this address. Please remove those items or choose another address.");
+    }
+  }
+
   const placedIds: string[] = [];
   try {
-    for (const idxs of groups.values()) {
+    for (const [groupKey, idxs] of groups) {
+      const groupType = typeByGroup.get(groupKey) ?? "standard";
       const groupItems = idxs.map((i) => items[i]);
       const groupSubtotal = Math.round(groupItems.reduce((sum, it) => sum + it.quantity * it.product_variants.price, 0) * 100) / 100;
-      const deliveryFee = deliveryFeeFor(input.deliveryType, groupSubtotal, pricing);
+      const deliveryFee = deliveryFeeFor(groupType, groupSubtotal, pricing);
       // Tax inside the order = the items' tax, plus GST inside the delivery charge where it applies (India).
       const vat = Math.round((idxs.reduce((sum, i) => sum + itemTaxes[i].tax, 0) + extractTax(deliveryFee, deliveryTaxRate(taxCountry))) * 100) / 100;
       const total = Math.round((groupSubtotal + deliveryFee) * 100) / 100;
@@ -159,8 +172,8 @@ async function placeOrderOrThrow(input: {
           currency: tenant?.currency ?? "SAR",
           country_code: orderCountry,
           tax_label: orderCountry === "IN" ? "GST" : "VAT",
-          delivery_type: input.deliveryType,
-          scheduled_for: input.deliveryType === "scheduled" ? input.scheduledFor : null,
+          delivery_type: groupType,
+          scheduled_for: groupType === "scheduled" ? input.scheduledFor : null,
           subtotal: groupSubtotal,
           delivery_fee: deliveryFee,
           discount: 0,

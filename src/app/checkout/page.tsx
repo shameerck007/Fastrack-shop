@@ -38,6 +38,8 @@ export default async function CheckoutPage() {
   const blockedByAddress: Record<string, string[]> = {};
   // Which delivery methods (Express / Standard) apply at each address, across every item in the cart.
   const methodsByAddress: Record<string, { express: boolean; standard: boolean; standardDays: number }> = {};
+  // The same, per shipment (one per supplier): each one gets its own method and delivery time.
+  const shipmentMethods: Record<string, Record<string, { express: boolean; standard: boolean; standardDays: number }>> = {};
   await Promise.all(
     addresses.map(async (a) => {
       const results = await checkProductsDeliverable(products, { lat: a.lat, lng: a.lng });
@@ -46,17 +48,25 @@ export default async function CheckoutPage() {
       // Outside the states we serve (India: Kerala only for now): nothing in the cart can be delivered there.
       if (!stateInServiceArea(tenant?.country_code, (a as { state?: string | null }).state)) blockedByAddress[a.id] = products.map((p) => p.name);
       methodsByAddress[a.id] = combineMethods([...results.values()].map((r) => r.methods));
+      const perShipment: Record<string, { express: boolean; standard: boolean; standardDays: number }> = {};
+      const byKey = new Map<string, string[]>();
+      for (const i of items) {
+        const key = i.product_variants.products.store_id ?? "own";
+        byKey.set(key, [...(byKey.get(key) ?? []), i.product_variants.products.id]);
+      }
+      for (const [key, ids] of byKey) perShipment[key] = combineMethods(ids.map((id) => results.get(id)?.methods).filter((m): m is NonNullable<typeof m> => !!m));
+      shipmentMethods[a.id] = perShipment;
     })
   );
 
   // One order per supplier: group the cart so the summary can show each parcel and its delivery fee.
   const storeName = new Map((await getStoreDirectory()).map((st) => [st.id, st.name]));
   const genericParcels = marketUi(tenant?.country_code).genericParcels;
-  const groupMap = new Map<string, { key: string; name: string; subtotal: number }>();
+  const groupMap = new Map<string, { key: string; name: string; subtotal: number; storeId: string | null }>();
   for (const i of items) {
     const sid = i.product_variants.products.store_id;
     const key = sid ?? "own";
-    const g = groupMap.get(key) ?? { key, name: genericParcels ? "" : sid ? storeName.get(sid) ?? "Shop" : "FasTrack", subtotal: 0 };
+    const g = groupMap.get(key) ?? { key, name: genericParcels ? "" : sid ? storeName.get(sid) ?? "Shop" : "FasTrack", subtotal: 0, storeId: sid ?? null };
     g.subtotal = Math.round((g.subtotal + i.quantity * i.product_variants.price) * 100) / 100;
     groupMap.set(key, g);
   }
@@ -64,7 +74,7 @@ export default async function CheckoutPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 max-md:pb-44">
       <h1 className="mb-4 text-xl font-semibold max-md:hidden">{t("checkout.title")}</h1>
-      <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} methodsByAddress={methodsByAddress} taxTotal={taxTotal} taxLabel={taxProfile.label} groups={[...groupMap.values()]} deliveryTaxPercent={deliveryTaxRate(tenant?.country_code)} />
+      <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} methodsByAddress={methodsByAddress} shipmentMethods={shipmentMethods} taxTotal={taxTotal} taxLabel={taxProfile.label} groups={[...groupMap.values()]} deliveryTaxPercent={deliveryTaxRate(tenant?.country_code)} />
     </div>
   );
 }
