@@ -1,3 +1,4 @@
+import ListFilter from "@/components/admin/ListFilter";
 import Link from "@/components/Link";
 import { getRiderSettlementOverview, type RiderSettlementOverviewRow } from "@/lib/rider-settlements";
 import { getMoney } from "@/lib/tenant-server";
@@ -58,6 +59,7 @@ export default async function AdminRiderSettlementsPage() {
             <Stat icon="💵" label="Riders owe us (cash held)" value={money(owedByRiders)} accent="#dc2626" />
           </div>
 
+          <ListFilter target="rider-settlement-rows" placeholder="Search riders…" />
           <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             {rows.length === 0 ? (
               <p className="p-6 text-sm text-neutral-500">No approved riders yet.</p>
@@ -75,9 +77,9 @@ export default async function AdminRiderSettlementsPage() {
                       <th className="px-5 py-2.5" />
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-100">
+                  <tbody id="rider-settlement-rows" className="divide-y divide-neutral-100">
                     {rows.map((r) => (
-                      <tr key={r.riderId} className="transition hover:bg-neutral-50">
+                      <tr key={r.riderId} data-filter={r.riderName} className="transition hover:bg-neutral-50">
                         <td className="px-5 py-3">
                           <Link href={`/admin/rider-settlements/${r.riderId}`} className="font-medium text-neutral-900 hover:text-blue-600">
                             {r.riderName}

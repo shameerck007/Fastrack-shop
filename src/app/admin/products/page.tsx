@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAdminProducts } from "@/lib/admin-products";
+import { PageHeader } from "@/components/admin/AdminUi";
 import ProductForm from "@/components/admin/ProductForm";
 import AdminProductSearch from "@/components/admin/AdminProductSearch";
 import type { Category, Warehouse } from "@/types/database";
@@ -21,14 +22,12 @@ export default async function AdminProductsPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">{t("admin.products")}</h1>
-          <p className="text-sm text-neutral-500">{t("admin.products_count", { count: products.length, plural: products.length === 1 ? "" : "s" })}</p>
-          <p className="text-xs text-neutral-400">{t("admin.products_catalog_hint")}</p>
-        </div>
-        <ProductForm categories={categoryList} warehouses={warehouseList} />
-      </div>
+      <PageHeader
+        icon="📦"
+        title={t("admin.products")}
+        subtitle={`${t("admin.products_count", { count: products.length, plural: products.length === 1 ? "" : "s" })} · ${t("admin.products_catalog_hint")}`}
+        actions={<ProductForm categories={categoryList} warehouses={warehouseList} />}
+      />
 
       {products.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center">

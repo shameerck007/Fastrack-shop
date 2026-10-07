@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "@/components/Link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
@@ -11,6 +12,8 @@ export interface PortalNavItem {
   /** ...or shown as-is (for areas that are English only). */
   label?: string;
   icon: string;
+  /** Optional section heading shown (on desktop) above the first item of each group. */
+  section?: string;
 }
 
 /** Side navigation on desktop, a swipeable pill row on phones. `rootHref` is only
@@ -21,11 +24,15 @@ export default function PortalNav({ items, rootHref }: { items: PortalNavItem[];
 
   return (
     <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-col md:gap-1 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
-      {items.map((item) => {
+      {items.map((item, i) => {
+        const showSection = item.section && item.section !== items[i - 1]?.section;
         const active = item.href === rootHref ? pathname === item.href : pathname.startsWith(item.href);
         return (
+          <Fragment key={item.href}>
+          {showSection && (
+            <span className="hidden px-3.5 pb-1 pt-3 text-[10px] font-bold uppercase tracking-wider text-neutral-400 first:pt-0 md:block">{item.section}</span>
+          )}
           <Link
-            key={item.href}
             href={item.href}
             className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition md:rounded-xl md:py-2.5 ${
               active
@@ -40,6 +47,7 @@ export default function PortalNav({ items, rootHref }: { items: PortalNavItem[];
             </span>
             {item.label ?? t(item.labelKey ?? "")}
           </Link>
+          </Fragment>
         );
       })}
     </nav>

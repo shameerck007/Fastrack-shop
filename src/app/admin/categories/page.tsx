@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import ListFilter from "@/components/admin/ListFilter";
+import { PageHeader } from "@/components/admin/AdminUi";
 import CategoryForm from "@/components/admin/CategoryForm";
 import CategoryRow from "@/components/admin/CategoryRow";
 import type { Category } from "@/types/database";
@@ -20,21 +22,19 @@ export default async function AdminCategoriesPage() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">{t("admin.categories_title")}</h1>
-          <p className="text-sm text-neutral-500">
-            {t("admin.categories_subtitle", { count: all.length, plural: all.length === 1 ? "y" : "ies" })}
-          </p>
-        </div>
-        <CategoryForm parentOptions={topLevel} />
-      </div>
+      <PageHeader
+        icon="🗂️"
+        title={t("admin.categories_title")}
+        subtitle={t("admin.categories_subtitle", { count: all.length, plural: all.length === 1 ? "y" : "ies" })}
+        actions={<CategoryForm parentOptions={topLevel} />}
+      />
 
-      <div className="flex flex-col gap-3">
+      <ListFilter target="category-list" placeholder="Search categories…" />
+      <div id="category-list" className="flex flex-col gap-3">
         {topLevel.map((category) => {
           const children = childrenByParent.get(category.id) ?? [];
           return (
-            <div key={category.id} className="flex flex-col gap-1.5">
+            <div key={category.id} data-filter={[category.name, ...children.map((c) => c.name)].join(" ")} className="flex flex-col gap-1.5">
               <CategoryRow category={category} parentOptions={topLevel} />
               {children.map((child) => (
                 <CategoryRow key={child.id} category={child} parentOptions={topLevel} indent />

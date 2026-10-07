@@ -37,13 +37,29 @@ function initials(name: string): string {
 export default function RidersList({ riders }: { riders: RiderRow[] }) {
   const { t } = useLocale();
   const [status, setStatus] = useState("all");
+  const [q, setQ] = useState("");
 
-  const filtered = riders.filter((r) => status === "all" || r.status === status);
+  const needle = q.trim().toLowerCase();
+  const filtered = riders.filter(
+    (r) =>
+      (status === "all" || r.status === status) &&
+      (!needle || [r.fullName, r.phone, r.licenseNumber, r.vehicleType].some((f) => f?.toLowerCase().includes(needle)))
+  );
 
   return (
     <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-5 py-3">
-        <h2 className="text-sm font-semibold text-neutral-700">{t("riders_list.riders")}</h2>
+        <h2 className="text-sm font-semibold text-neutral-700">
+          {t("riders_list.riders")} <span className="font-normal text-neutral-400">({filtered.length})</span>
+        </h2>
+        <div className="flex flex-wrap gap-2">
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="🔍 Search by name, phone, number…"
+          className="w-full rounded-full border border-neutral-300 px-4 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-64"
+        />
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
@@ -55,6 +71,7 @@ export default function RidersList({ riders }: { riders: RiderRow[] }) {
           <option value="rejected">{t("merchants_list.status_rejected")}</option>
           <option value="suspended">{t("merchants_list.status_suspended")}</option>
         </select>
+        </div>
       </div>
 
       {filtered.length === 0 ? (

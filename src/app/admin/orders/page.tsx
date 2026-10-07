@@ -3,6 +3,8 @@ import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
 import OrdersKPIBar from "@/components/admin/OrdersKPIBar";
 import OrdersQueueBoard from "@/components/admin/OrdersQueueBoard";
+import { PageHeader } from "@/components/admin/AdminUi";
+import ListFilter from "@/components/admin/ListFilter";
 import OrdersLiveRefresher from "@/components/admin/OrdersLiveRefresher";
 import { getAdminOrders, getAdminOrdersQueue, getAdminOrderKPIs } from "@/lib/admin-orders";
 import { PAYMENT_METHOD_LABELS } from "@/lib/utils";
@@ -29,6 +31,12 @@ const STATUS_BADGE: Record<OrderStatus, string> = {
   cancelled: "bg-red-50 text-red-600",
 };
 
+// Filter chips group the eight statuses into the five an admin thinks in.
+function statusGroup(status: string): string {
+  if (["confirmed", "preparing", "ready_for_pickup", "rider_assigned"].includes(status)) return "preparing";
+  return status;
+}
+
 export default async function AdminOrdersPage() {
   const money = await getMoney();
   const locale = await getServerLocale();
@@ -41,12 +49,7 @@ export default async function AdminOrdersPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-baseline justify-between">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-semibold">{t("admin.orders")}</h1>
-          <OrdersLiveRefresher />
-        </div>
-      </div>
+      <PageHeader icon="🧾" title={t("admin.orders")} subtitle="Live order queue, today's numbers and recent orders." actions={<OrdersLiveRefresher />} />
 
       <OrdersKPIBar kpis={kpis} t={t} money={money} />
 
@@ -58,7 +61,18 @@ export default async function AdminOrdersPage() {
         <p className="text-xs text-neutral-400">{t("admin.most_recent", { count: orders.length })}</p>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <ListFilter
+        target="recent-orders"
+        placeholder="Search order no., customer, status…"
+        groups={[
+          { value: "pending", label: "Pending" },
+          { value: "preparing", label: "Confirmed / preparing" },
+          { value: "out_for_delivery", label: "Out for delivery" },
+          { value: "delivered", label: "Delivered" },
+          { value: "cancelled", label: "Cancelled" },
+        ]}
+      />
+      <div id="recent-orders" className="flex flex-col gap-4">
         {orders.map((order) => {
           const payment = order.payments[0];
           const itemCount = order.order_items.reduce((sum, i) => sum + Number(i.ordered_quantity), 0);
@@ -66,7 +80,7 @@ export default async function AdminOrdersPage() {
           const extraCount = order.order_items.length - thumbnails.length;
 
           return (
-            <div key={order.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+            <div key={order.id} data-filter={`${order.order_number} ${order.status} ${order.profiles?.full_name ?? ""}`} data-group={statusGroup(order.status)} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-500 sm:text-sm">
                 <div className="flex flex-wrap gap-x-6 gap-y-1">
                   <span>

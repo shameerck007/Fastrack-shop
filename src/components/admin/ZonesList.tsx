@@ -35,6 +35,9 @@ function initials(name: string): string {
 export default function ZonesList({ cards }: { cards: ZoneCard[] }) {
   const { t } = useLocale();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+  const needle = q.trim().toLowerCase();
+  const shownCards = cards.filter((c) => !needle || [c.displayName, c.warehouseName, c.storeAddress, c.contactPhone].some((f) => f?.toLowerCase().includes(needle)));
   const active = cards.find((c) => c.warehouseId === activeId) ?? null;
 
   return (
@@ -42,14 +45,23 @@ export default function ZonesList({ cards }: { cards: ZoneCard[] }) {
       <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-3">
           <h2 className="text-sm font-semibold text-neutral-700">{t("zones_list.stores")}</h2>
-          <span className="text-xs text-neutral-400">{t("zones_list.total_count", { count: cards.length })}</span>
+          <div className="flex items-center gap-3">
+            <input
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="🔍 Search stores…"
+              className="w-40 rounded-full border border-neutral-300 px-3.5 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-60"
+            />
+            <span className="hidden text-xs text-neutral-400 sm:inline">{t("zones_list.total_count", { count: shownCards.length })}</span>
+          </div>
         </div>
 
-        {cards.length === 0 ? (
-          <p className="p-6 text-sm text-neutral-500">{t("zones_list.no_warehouses")}</p>
+        {shownCards.length === 0 ? (
+          <p className="p-6 text-sm text-neutral-500">{cards.length === 0 ? t("zones_list.no_warehouses") : "No stores match your search."}</p>
         ) : (
           <ul className="divide-y divide-neutral-100">
-            {cards.map((c) => (
+            {shownCards.map((c) => (
               <li
                 key={c.warehouseId}
                 className="group flex flex-wrap items-center gap-4 px-5 py-4 transition hover:bg-neutral-50"

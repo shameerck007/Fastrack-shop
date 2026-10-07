@@ -43,18 +43,33 @@ export default function MerchantsList({ merchants }: { merchants: MerchantRow[] 
   const { t } = useLocale();
   const [country, setCountry] = useState("all");
   const [status, setStatus] = useState("all");
+  const [q, setQ] = useState("");
 
   const countries = useMemo(() => Array.from(new Set(merchants.map((m) => m.country))).sort(), [merchants]);
 
+  const needle = q.trim().toLowerCase();
   const filtered = merchants.filter(
-    (m) => (country === "all" || m.country === country) && (status === "all" || m.status === status)
+    (m) =>
+      (country === "all" || m.country === country) &&
+      (status === "all" || m.status === status) &&
+      (!needle || [m.name, m.crNumber, m.contactPhone, m.city, m.country].some((f) => f?.toLowerCase().includes(needle)))
   );
 
   return (
     <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-5 py-3">
-        <h2 className="text-sm font-semibold text-neutral-700">{t("merchants_list.merchants")}</h2>
+        <h2 className="text-sm font-semibold text-neutral-700">
+          {t("merchants_list.merchants")} <span className="font-normal text-neutral-400">({filtered.length})</span>
+        </h2>
         <div className="flex flex-wrap gap-2">
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="🔍 Search by name, phone, number…"
+          className="w-full rounded-full border border-neutral-300 px-4 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-64"
+        />
+
           <select
             value={country}
             onChange={(e) => setCountry(e.target.value)}

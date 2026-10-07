@@ -1,3 +1,4 @@
+import ListFilter from "@/components/admin/ListFilter";
 import Link from "@/components/Link";
 import { getFastrackWarehouses } from "@/lib/fastrack-store";
 
@@ -61,16 +62,17 @@ export default async function AdminFastrackStoresPage() {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-        <div className="border-b border-neutral-100 px-5 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-5 py-3">
           <h2 className="text-sm font-semibold text-neutral-700">{t("fastrack_stores.locations")}</h2>
+          <ListFilter target="store-list" placeholder="Search locations…" />
         </div>
 
         {warehouses.length === 0 ? (
           <p className="p-6 text-sm text-neutral-500">{t("fastrack_stores.no_stores_yet")}</p>
         ) : (
-          <ul className="divide-y divide-neutral-100">
+          <ul id="store-list" className="divide-y divide-neutral-100">
             {warehouses.map((w) => (
-              <li key={w.id}>
+              <li key={w.id} data-filter={`${w.name} ${w.address_line ?? ""}`}>
                 <Link
                   href={`/admin/store/${w.id}`}
                   className="flex flex-wrap items-center gap-4 px-5 py-4 transition hover:bg-neutral-50"

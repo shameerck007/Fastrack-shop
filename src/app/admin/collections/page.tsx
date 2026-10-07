@@ -1,3 +1,4 @@
+import ListFilter from "@/components/admin/ListFilter";
 import CollectionsPanel from "@/components/CollectionsPanel";
 import {
   getRiderSettlementOverview,
@@ -73,10 +74,9 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
           <CollectionsPanel rows={rows} mode={mode} basePath="/admin/collections" money={money} heading="All riders" />
 
           <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-            <div className="border-b border-neutral-100 px-4 py-3">
-              <h2 className="text-sm font-bold text-neutral-800">
-                By rider · {current.label}
-              </h2>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-4 py-3">
+              <h2 className="text-sm font-bold text-neutral-800">By rider · {current.label}</h2>
+              <ListFilter target="collections-by-rider" placeholder="Search riders…" />
             </div>
             {perRider.length === 0 ? (
               <p className="p-5 text-sm text-neutral-500">No rider activity in this {mode === "daily" ? "day" : "month"} yet.</p>
@@ -93,9 +93,9 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
                       <th className="px-4 py-2.5 text-end">Cash with rider</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-100">
+                  <tbody id="collections-by-rider" className="divide-y divide-neutral-100">
                     {perRider.map((x) => (
-                      <tr key={x.r.riderId}>
+                      <tr key={x.r.riderId} data-filter={x.r.riderName}>
                         <td className="px-4 py-2.5 font-semibold">{x.r.riderName}</td>
                         <td className="px-3 py-2.5 text-end">{x.deliveries}</td>
                         <td className="px-3 py-2.5 text-end font-semibold">{money(x.cashCollected)}</td>
