@@ -260,13 +260,13 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
               {error && <p className="text-sm text-red-600">{error}</p>}
               {noAccountEmail && (
                 <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
-                  <p className="font-semibold">{t("auth.no_account_email", { email: noAccountEmail })}</p>
-                  <p className="mt-0.5 text-xs text-blue-800/80">{t("auth.no_account_hint")}</p>
+                  <p className="font-semibold">{t("auth.no_account_email")}</p>
+                  <p className="mt-0.5 text-xs text-blue-800/80">{t("auth.no_account_hint", { email: noAccountEmail })}</p>
                   <Link
                     href={`/register?email=${encodeURIComponent(noAccountEmail)}${redirectTo !== "/" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""}`}
                     className="mt-2 inline-block rounded-full bg-blue-700 px-4 py-1.5 text-xs font-extrabold text-white"
                   >
-                    {t("auth.proceed_create_account")}
+                    {t("auth.create_account_for_email")}
                   </Link>
                 </div>
               )}
