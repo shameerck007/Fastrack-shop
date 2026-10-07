@@ -20,8 +20,14 @@ export async function updateCompanySettings(input: {
   prepMinutes?: number;
   riderSpeedKmh?: number;
   etaBufferMinutes?: number;
+  /** Quick delivery auto-dispatch (migration 0063). */
+  expressAutoDispatch?: boolean;
+  expressRiderRadiusKm?: number;
+  expressOfferSeconds?: number;
 }) {
-  const { prepMinutes, riderSpeedKmh, etaBufferMinutes } = input;
+  const { prepMinutes, riderSpeedKmh, etaBufferMinutes, expressAutoDispatch, expressRiderRadiusKm, expressOfferSeconds } = input;
+  if (expressRiderRadiusKm != null && !(expressRiderRadiusKm > 0 && expressRiderRadiusKm <= 200)) throw new Error("The Express rider distance must be between 0.5 and 200 km.");
+  if (expressOfferSeconds != null && !(expressOfferSeconds >= 10 && expressOfferSeconds <= 300)) throw new Error("The offer time must be between 10 and 300 seconds.");
   if (prepMinutes != null && !(prepMinutes >= 0 && prepMinutes <= 120)) throw new Error("Preparation time must be between 0 and 120 minutes.");
   if (riderSpeedKmh != null && !(riderSpeedKmh >= 5 && riderSpeedKmh <= 80)) throw new Error("Rider speed must be between 5 and 80 km/h.");
   if (etaBufferMinutes != null && !(etaBufferMinutes >= 0 && etaBufferMinutes <= 60)) throw new Error("The extra minutes must be between 0 and 60.");
@@ -50,12 +56,18 @@ export async function updateCompanySettings(input: {
       ...(prepMinutes != null ? { prep_minutes: Math.round(prepMinutes) } : {}),
       ...(riderSpeedKmh != null ? { rider_speed_kmh: riderSpeedKmh } : {}),
       ...(etaBufferMinutes != null ? { eta_buffer_minutes: Math.round(etaBufferMinutes) } : {}),
+      ...(expressAutoDispatch != null ? { express_auto_dispatch: expressAutoDispatch } : {}),
+      ...(expressRiderRadiusKm != null ? { express_rider_radius_km: expressRiderRadiusKm } : {}),
+      ...(expressOfferSeconds != null ? { express_offer_seconds: Math.round(expressOfferSeconds) } : {}),
       updated_at: new Date().toISOString(),
     };
   let { error } = await supabase.from("company_settings").update(row).eq("tenant_id", tenantId);
   // The rider-distance column arrives with migration 0059; until then save everything else.
   if (error && (error.code === "42703" || error.code === "PGRST204")) {
-    const { rider_pickup_radius_km: _r, prep_minutes: _p, rider_speed_kmh: _s, eta_buffer_minutes: _b, ...rest } = row as typeof row & {
+    const { rider_pickup_radius_km: _r, prep_minutes: _p, rider_speed_kmh: _s, eta_buffer_minutes: _b, express_auto_dispatch: _ea, express_rider_radius_km: _er, express_offer_seconds: _eo, ...rest } = row as typeof row & {
+      express_auto_dispatch?: boolean;
+      express_rider_radius_km?: number;
+      express_offer_seconds?: number;
       rider_pickup_radius_km?: number;
       prep_minutes?: number;
       rider_speed_kmh?: number;

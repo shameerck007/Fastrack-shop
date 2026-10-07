@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyOrderStatusChange, notifyNearbyRidersOfNewOrder } from "@/lib/push";
+import { dispatchExpressOrder } from "@/lib/dispatch";
 import { sendOrderStatusEmail } from "@/lib/email-notifications";
 import type { OrderStatus } from "@/types/database";
 
@@ -42,6 +43,8 @@ export async function advanceWarehouseOrderStatus(orderId: string, currentStatus
   await notifyOrderStatusChange(orderId, next);
   await sendOrderStatusEmail(orderId, next);
   if (next === "ready_for_pickup") await notifyNearbyRidersOfNewOrder(orderId);
+  // Express: start offering to riders as soon as packing begins, so one is close by when it is ready.
+  else if (next === "preparing") await dispatchExpressOrder(orderId);
 
   revalidatePath("/warehouse/orders");
   revalidatePath(`/orders/${orderId}`);

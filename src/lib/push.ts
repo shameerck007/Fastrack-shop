@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { sendWebPush, type PushSubscriptionKeys, type VapidConfig } from "@/lib/web-push";
 import { distanceKm } from "@/lib/delivery-geo";
 import { getRiderMatchRadiusKm } from "@/lib/rider";
+import { getCompanySettings } from "@/lib/company-settings";
 import type { OrderStatus } from "@/types/database";
 
 export interface PushPayload {
@@ -19,14 +20,16 @@ function getVapidConfig(): VapidConfig | null {
 
 type SubRow = { user_id: string; endpoint: string; p256dh: string; auth: string };
 
-async function sendToSubscriptions(subs: SubRow[], payload: PushPayload) {
+type Db = Awaited<ReturnType<typeof createClient>>;
+
+async function sendToSubscriptions(subs: SubRow[], payload: PushPayload, db?: Db) {
   if (subs.length === 0) return;
   const vapid = getVapidConfig();
   // Push isn't configured yet (no VAPID keys set) — never break the
   // order/status flow that triggered this; just skip sending silently.
   if (!vapid) return;
 
-  const supabase = await createClient();
+  const supabase = db ?? (await createClient());
   await Promise.all(
     subs.map(async (sub) => {
       const keys: PushSubscriptionKeys = { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth };
@@ -43,9 +46,9 @@ async function sendToSubscriptions(subs: SubRow[], payload: PushPayload) {
   );
 }
 
-async function writeNotifications(userIds: string[], payload: PushPayload) {
+async function writeNotifications(userIds: string[], payload: PushPayload, db?: Db) {
   if (userIds.length === 0) return;
-  const supabase = await createClient();
+  const supabase = db ?? (await createClient());
   await supabase.rpc("create_notifications", {
     target_user_ids: userIds,
     p_title: payload.title,
@@ -58,15 +61,16 @@ async function writeNotifications(userIds: string[], payload: PushPayload) {
  * always gets written, plus a push to every subscribed device. The bell
  * is the fallback for push not being enabled, denied, or (iOS Safari)
  * simply unsupported until the app is installed. */
-export async function notifyUsers(userIds: string[], payload: PushPayload) {
+export async function notifyUsers(userIds: string[], payload: PushPayload, db?: Db) {
   const ids = [...new Set(userIds)].filter(Boolean);
   if (ids.length === 0) return;
-  const supabase = await createClient();
+  // `db` lets a background job (no signed-in user) send with the service-role client.
+  const supabase = db ?? (await createClient());
   const [{ data: subs }] = await Promise.all([
     supabase.rpc("push_subscriptions_for_users", { target_user_ids: ids }),
-    writeNotifications(ids, payload),
+    writeNotifications(ids, payload, db),
   ]);
-  await sendToSubscriptions((subs ?? []) as SubRow[], payload);
+  await sendToSubscriptions((subs ?? []) as SubRow[], payload, db);
 }
 
 /** Notifies every admin — in-app bell + push, same as notifyUsers. */
@@ -119,6 +123,14 @@ export async function notifyOrderStatusChange(orderId: string, status: OrderStat
  * available to riders (transitions to "ready_for_pickup"). */
 export async function notifyNearbyRidersOfNewOrder(orderId: string) {
   const supabase = await createClient();
+  // Express orders are not broadcast: with automatic dispatch on, the nearest free rider gets a timed offer instead
+  // (see lib/dispatch.ts). Standard orders still go to every nearby rider.
+  const { data: kind } = await supabase.from("orders").select("delivery_type").eq("id", orderId).maybeSingle();
+  if (kind?.delivery_type === "express" && (await getCompanySettings()).express_auto_dispatch === true) {
+    const { dispatchExpressOrder } = await import("@/lib/dispatch");
+    await dispatchExpressOrder(orderId);
+    return;
+  }
   const { data: order } = await supabase
     .from("orders")
     .select("order_number, warehouses(lat, lng)")

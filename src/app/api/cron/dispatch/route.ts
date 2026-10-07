@@ -1,0 +1,48 @@
+import { NextResponse } from "next/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import { notifyUsers } from "@/lib/push";
+
+// Called every minute by the cron worker (cron-worker/). Moves quick-delivery offers along: expires old ones, offers
+// waiting Express orders to the next nearest rider, and alerts the market's admins about an order nobody could take.
+// Protected by a shared secret; without CRON_SECRET configured it refuses every request.
+function authorised(request: Request): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  const given = request.headers.get("authorization") ?? "";
+  const expected = `Bearer ${secret}`;
+  if (given.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= given.charCodeAt(i) ^ expected.charCodeAt(i);
+  return diff === 0;
+}
+
+export async function POST(request: Request) {
+  if (!authorised(request)) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  const db = createServiceClient();
+  const { data, error } = await db.rpc("sweep_express_dispatch");
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const rows = (data ?? []) as { out_order_id: string; out_rider_id: string | null; out_order_number: string; out_alert: boolean }[];
+  let offered = 0;
+  let alerted = 0;
+  for (const r of rows) {
+    if (r.out_rider_id) {
+      offered++;
+      await notifyUsers([r.out_rider_id], { title: "New Express order", body: `Order #${r.out_order_number} is waiting. Accept it now.`, url: "/rider" }, db);
+    } else if (r.out_alert) {
+      alerted++;
+      const { data: order } = await db.from("orders").select("tenant_id").eq("id", r.out_order_id).maybeSingle();
+      const { data: admins } = await db
+        .from("profiles")
+        .select("id")
+        .eq("role", "admin")
+        .eq("tenant_id", (order as { tenant_id: string } | null)?.tenant_id ?? "");
+      await notifyUsers(
+        ((admins ?? []) as { id: string }[]).map((a) => a.id),
+        { title: "Express order needs a rider", body: `Order #${r.out_order_number} has no rider in range yet.`, url: "/admin/orders" },
+        db
+      );
+    }
+  }
+  return NextResponse.json({ ok: true, offered, alerted });
+}

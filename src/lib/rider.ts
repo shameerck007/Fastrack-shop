@@ -112,6 +112,8 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
   }
 
   const radiusKm = await getRiderMatchRadiusKm();
+  // With automatic quick-delivery dispatch on, Express orders reach a rider as an offer, not through this open list.
+  const autoExpress = (await getCompanySettings()).express_auto_dispatch === true;
   const columns = "id, order_number, delivery_type, delivery_fee, created_at, scheduled_for, warehouses(name, address_line, lat, lng, standard_delivery_days)";
   const first = await supabase.from("orders").select(columns).in("status", ["preparing", "ready_for_pickup"]);
   let orders: unknown[] | null = first.data;
@@ -160,6 +162,7 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
   const now = Date.now();
   const rank = (o: { dueAt: string | null }) => (o.dueAt && new Date(o.dueAt).getTime() < now ? 0 : o.dueAt == null ? 1 : 2);
   const nearby = withDistance
+    .filter((o) => !(autoExpress && o.delivery_type === "express"))
     .filter((o) => o.distanceKm != null && o.distanceKm <= radiusKm)
     .sort((a, b) => {
       const byRank = rank(a) - rank(b);
@@ -322,4 +325,55 @@ export async function getWeeklyEarnings(): Promise<DayEarnings[]> {
     });
   }
   return days;
+}
+
+export interface LiveOffer {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  expiresAt: string;
+  secondsLeft: number;
+  distanceKm: number | null;
+  deliveryFee: number;
+  itemCount: number;
+  shopName: string | null;
+  shopAddress: string | null;
+}
+
+/** The Express offer waiting for this rider right now, if any (none until migration 0063 is applied). */
+export async function getMyLiveOffer(): Promise<LiveOffer | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data, error } = await supabase
+    .from("delivery_offers" as never)
+    .select("id, order_id, expires_at, distance_km, orders(order_number, delivery_fee, warehouses(name, address_line), order_items(id))")
+    .eq("rider_id", user.id)
+    .eq("status", "offered")
+    .gt("expires_at", new Date().toISOString())
+    .order("offered_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  const row = data as unknown as {
+    id: string;
+    order_id: string;
+    expires_at: string;
+    distance_km: number | null;
+    orders: { order_number: string; delivery_fee: number; warehouses: { name: string; address_line: string | null } | null; order_items: { id: string }[] } | null;
+  };
+  return {
+    id: row.id,
+    orderId: row.order_id,
+    orderNumber: row.orders?.order_number ?? "",
+    expiresAt: row.expires_at,
+    secondsLeft: Math.max(0, Math.round((new Date(row.expires_at).getTime() - Date.now()) / 1000)),
+    distanceKm: row.distance_km == null ? null : Number(row.distance_km),
+    deliveryFee: Number(row.orders?.delivery_fee ?? 0),
+    itemCount: row.orders?.order_items?.length ?? 0,
+    shopName: row.orders?.warehouses?.name ?? null,
+    shopAddress: row.orders?.warehouses?.address_line ?? null,
+  };
 }

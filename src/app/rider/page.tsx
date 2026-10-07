@@ -1,10 +1,12 @@
 import Link from "@/components/Link";
 import type { MoneyFormatter } from "@/lib/money";
-import { getRiderProfile, getAvailableOrders, getActiveDelivery, getRiderTodayStats, type AvailableOrder } from "@/lib/rider";
+import { getRiderProfile, getAvailableOrders, getActiveDelivery, getRiderTodayStats, getMyLiveOffer, type AvailableOrder } from "@/lib/rider";
 
 import AcceptOrderButton from "@/components/rider/AcceptOrderButton";
 import AvailabilityToggle from "@/components/rider/AvailabilityToggle";
 import ActiveDeliveryCard from "@/components/rider/ActiveDeliveryCard";
+import ExpressOfferCard from "@/components/rider/ExpressOfferCard";
+import OffersPoller from "@/components/rider/OffersPoller";
 import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -27,8 +29,9 @@ export default async function RiderHomePage() {
   const rider = await getRiderProfile();
   const activeDelivery = await getActiveDelivery();
   const isMatching = rider?.deliveryPartner.is_available && !activeDelivery;
-  const [todayStats, availableOrdersResult] = await Promise.all([
+  const [todayStats, liveOffer, availableOrdersResult] = await Promise.all([
     getRiderTodayStats(),
+    isMatching ? getMyLiveOffer() : Promise.resolve(null),
     isMatching ? getAvailableOrders() : Promise.resolve({ orders: [], hasLocation: false }),
   ]);
   const { orders: availableOrders, hasLocation } = availableOrdersResult;
@@ -70,6 +73,9 @@ export default async function RiderHomePage() {
           <span className="text-xs font-bold">Earnings →</span>
         </Link>
       </div>
+
+      {isMatching && <OffersPoller />}
+      {liveOffer && <ExpressOfferCard key={liveOffer.id} offer={liveOffer} />}
 
       {activeDelivery && <ActiveDeliveryCard delivery={activeDelivery} t={t} money={money} />}
 

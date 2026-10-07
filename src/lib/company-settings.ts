@@ -21,6 +21,10 @@ export interface CompanySettings {
   prep_minutes?: number | null;
   rider_speed_kmh?: number | null;
   eta_buffer_minutes?: number | null;
+  /** Quick delivery auto-dispatch (migration 0063). */
+  express_auto_dispatch?: boolean | null;
+  express_rider_radius_km?: number | null;
+  express_offer_seconds?: number | null;
 }
 
 const FALLBACK: CompanySettings = {

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyOrderStatusChange, notifyUsers, notifyNearbyRidersOfNewOrder } from "@/lib/push";
+import { dispatchExpressOrder } from "@/lib/dispatch";
 import { sendOrderStatusEmail, sendOrderCancelledSellerEmails, sendRefundEmail } from "@/lib/email-notifications";
 import type { OrderStatus } from "@/types/database";
 
@@ -26,6 +27,7 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
     await restockCancelledOrder(orderId);
   }
   if (status === "ready_for_pickup") await notifyNearbyRidersOfNewOrder(orderId);
+  else if (status === "preparing") await dispatchExpressOrder(orderId);
 
   revalidatePath("/admin/orders");
   revalidatePath(`/orders/${orderId}`);

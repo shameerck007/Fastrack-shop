@@ -25,6 +25,9 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
   const [prepMinutes, setPrepMinutes] = useState(String(settings.prep_minutes ?? 10));
   const [riderSpeed, setRiderSpeed] = useState(String(settings.rider_speed_kmh ?? 20));
   const [etaBuffer, setEtaBuffer] = useState(String(settings.eta_buffer_minutes ?? 5));
+  const [autoDispatch, setAutoDispatch] = useState(settings.express_auto_dispatch ?? true);
+  const [expressRadius, setExpressRadius] = useState(String(settings.express_rider_radius_km ?? 5));
+  const [offerSeconds, setOfferSeconds] = useState(String(settings.express_offer_seconds ?? 30));
   const { countryCode } = useMarket();
   const isIndia = countryCode === "IN";
   const [saved, setSaved] = useState(false);
@@ -52,6 +55,9 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
           prepMinutes: prepMinutes === "" ? undefined : Number(prepMinutes),
           riderSpeedKmh: Number(riderSpeed) || undefined,
           etaBufferMinutes: etaBuffer === "" ? undefined : Number(etaBuffer),
+          expressAutoDispatch: autoDispatch,
+          expressRiderRadiusKm: Number(expressRadius) || undefined,
+          expressOfferSeconds: Number(offerSeconds) || undefined,
         });
         setSaved(true);
       } catch (err) {
@@ -126,6 +132,27 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
           <span className="text-sm text-neutral-500">km (default 20)</span>
         </div>
         <p className="mt-1 text-xs text-neutral-400">A rider online within this distance of a shop or warehouse sees its new orders and gets a push notification.</p>
+      </section>
+
+      <section className="rounded-xl border border-neutral-200 bg-white p-4">
+        <h2 className="mb-1 text-sm font-semibold text-neutral-700">Quick delivery: automatic rider offers</h2>
+        <p className="mb-3 text-xs text-neutral-400">
+          Express orders are offered to one rider at a time: the nearest free rider inside the distance below. If they decline or the time runs out, the next nearest rider is offered, and the distance grows a little each time up to the general rider distance above.
+        </p>
+        <label className="mb-3 flex items-center gap-2 text-sm font-medium text-neutral-700">
+          <input type="checkbox" checked={autoDispatch} onChange={(e) => setAutoDispatch(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+          Offer Express orders automatically
+        </label>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className={label}>First offered to riders within (km)</label>
+            <input type="number" min={0.5} max={200} step={0.5} value={expressRadius} onChange={(e) => setExpressRadius(e.target.value)} className={`${field} w-full`} />
+          </div>
+          <div>
+            <label className={label}>Time to accept an offer (seconds)</label>
+            <input type="number" min={10} max={300} value={offerSeconds} onChange={(e) => setOfferSeconds(e.target.value)} className={`${field} w-full`} />
+          </div>
+        </div>
       </section>
 
       <section className="rounded-xl border border-neutral-200 bg-white p-4">

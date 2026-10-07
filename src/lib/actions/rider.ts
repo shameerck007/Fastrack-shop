@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { updateOrderStatus } from "@/lib/actions/admin-orders";
+import { dispatchExpressOrder } from "@/lib/dispatch";
 
 export async function toggleAvailability(isAvailable: boolean) {
   const supabase = await createClient();
@@ -84,4 +85,23 @@ export async function completeDelivery(orderId: string, otp: string) {
 
   revalidatePath("/rider");
   revalidatePath(`/orders/${orderId}`);
+}
+
+/** Accept a quick-delivery offer. The database checks it is still live and yours, and creates the assignment. */
+export async function acceptExpressOffer(offerId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("accept_express_offer", { p_offer_id: offerId });
+  if (error) throw new Error(error.message || "This offer is not available any more.");
+  const orderId = data as unknown as string;
+  await updateOrderStatus(orderId, "rider_assigned");
+  revalidatePath("/rider");
+}
+
+/** Decline (or let run out) an offer; the next nearest rider is offered the order straight away. */
+export async function declineExpressOffer(offerId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("decline_express_offer", { p_offer_id: offerId });
+  const orderId = data as unknown as string | null;
+  if (orderId) await dispatchExpressOrder(orderId);
+  revalidatePath("/rider");
 }

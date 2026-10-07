@@ -1,0 +1,8 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "fastrack-cron",
+  "main": "index.js",
+  "compatibility_date": "2026-09-25",
+  "vars": { "SHOP_URL": "https://shop.fastrack.cloud" },
+  "triggers": { "crons": ["* * * * *"] }
+}
