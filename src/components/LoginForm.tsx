@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "@/components/Link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { resolveLoginEmail } from "@/lib/actions/auth";
+import { emailHasAccount, resolveLoginEmail } from "@/lib/actions/auth";
 import Wordmark from "@/components/Wordmark";
 import { COUNTRIES, findCountry } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
@@ -46,6 +46,7 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
   const [phoneEmail, setPhoneEmail] = useState("");
   const [phoneCode, setPhoneCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [noAccountEmail, setNoAccountEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   // standalone "Sign in with a code" (email) mode
@@ -60,6 +61,20 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
     setError(null);
 
     if (identifier.includes("@")) {
+      const email = identifier.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setError(t("auth.invalid_email"));
+        return;
+      }
+      setLoading(true);
+      const exists = await emailHasAccount(email);
+      setLoading(false);
+      // false = definitely no account; null = could not check, so carry on to the password as before.
+      if (exists === false) {
+        setNoAccountEmail(email);
+        return;
+      }
+      setNoAccountEmail(null);
       setStep("password");
       return;
     }
@@ -233,13 +248,28 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
                 <input
                   required
                   value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  onChange={(e) => {
+                    setIdentifier(e.target.value);
+                    setNoAccountEmail(null);
+                  }}
                   placeholder={t("auth.email_or_mobile_placeholder")}
                   className={inputClass}
                 />
               </label>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
+              {noAccountEmail && (
+                <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
+                  <p className="font-semibold">{t("auth.no_account_email", { email: noAccountEmail })}</p>
+                  <p className="mt-0.5 text-xs text-blue-800/80">{t("auth.no_account_hint")}</p>
+                  <Link
+                    href={`/register?email=${encodeURIComponent(noAccountEmail)}${redirectTo !== "/" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""}`}
+                    className="mt-2 inline-block rounded-full bg-blue-700 px-4 py-1.5 text-xs font-extrabold text-white"
+                  >
+                    {t("auth.proceed_create_account")}
+                  </Link>
+                </div>
+              )}
 
               <button type="submit" disabled={loading} className={primaryButton}>
                 {loading ? t("auth.checking") : t("auth.continue")}

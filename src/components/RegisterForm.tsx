@@ -16,7 +16,7 @@ function RegisterFormInner({ defaultCountryCode }: { defaultCountryCode: string 
   const redirectTo = searchParams.get("redirect") || "/";
 
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(searchParams.get("email") ?? "");
   const [phone, setPhone] = useState(searchParams.get("phone") ?? "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
