@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: light;
   --background: #fafaf9;
   --foreground: #171717;
   --brand: #2563eb;
@@ -64,4 +65,10 @@ a, button, [role="button"], summary, label, select {
 }
 a:active, button:not(:disabled):active {
   opacity: 0.85;
+}
+
+/* The page background is set on <html> too, so overscroll, the moment before the body paints and dark-mode webviews
+   never show black. */
+html {
+  background-color: #ffffff;
 }
