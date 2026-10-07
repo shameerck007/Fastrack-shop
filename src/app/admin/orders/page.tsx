@@ -41,7 +41,8 @@ export default async function AdminOrdersPage() {
       delivery: t(DELIVERY_TYPE_KEY[order.delivery_type] ?? "admin.delivery_standard"),
       area: order.addresses ? [order.addresses.district, order.addresses.city].filter(Boolean).join(", ") || null : null,
       payment: payment ? (payment.method === "cash_on_delivery" ? t("admin.cash_on_delivery") : (PAYMENT_METHOD_LABELS[payment.method] ?? payment.method)) : "—",
-      paid: payment?.status === "paid",
+      // Cash on delivery is settled when the rider hands it over, which is when the order is delivered.
+      paid: payment?.status === "paid" || (payment?.method === "cash_on_delivery" && order.status === "delivered"),
       fulfilledBy: fulfilment(order.fulfillment, t),
       total: Number(order.total),
     };

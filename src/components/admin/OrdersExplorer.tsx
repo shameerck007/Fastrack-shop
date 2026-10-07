@@ -72,6 +72,18 @@ const FULFIL_TONE = {
   none: "bg-neutral-100 text-neutral-500",
 };
 
+function FulfilBadge({ f }: { f: ExplorerOrder["fulfilledBy"] }) {
+  if (f.tone === "fastrack") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1" title={f.text}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/fastrack-logo-wordmark.png" alt="FasTrack" className="h-3 w-auto" />
+      </span>
+    );
+  }
+  return <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${FULFIL_TONE[f.tone]}`}>{f.text}</span>;
+}
+
 function age(iso: string): { label: string; tone: string } {
   const minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
   const label =
@@ -222,14 +234,13 @@ export default function OrdersExplorer({
       ) : (
         <>
           {/* desktop table */}
-          <div className="hidden overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm md:block">
+          <div className="hidden overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-neutral-100 bg-neutral-50 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
                   <th className="px-4 py-2.5 text-start">Order</th>
                   <th className="px-3 py-2.5 text-start">Customer</th>
-                  <th className="px-3 py-2.5 text-start">Items</th>
-                  <th className="px-3 py-2.5 text-start">Delivery · Payment</th>
+                  <th className="px-3 py-2.5 text-start">Items and delivery</th>
                   <th className="px-3 py-2.5 text-end">Total</th>
                   <th className="px-4 py-2.5 text-start">Status</th>
                 </tr>
@@ -253,22 +264,20 @@ export default function OrdersExplorer({
                       <td className="px-3 py-3">
                         <Link href={`/admin/orders/${o.id}`} className="flex items-center gap-2.5">
                           <Thumbs thumbs={o.thumbs} extra={Math.max(o.itemCount - o.thumbs.length, 0)} />
-                          <span className="min-w-0 max-w-[14rem]">
-                            <span className="block truncate text-neutral-700">{o.itemsText}</span>
+                          <span className="min-w-0">
+                            <span className="block max-w-[15rem] truncate text-neutral-700">{o.itemsText}</span>
                             <span className="text-[11px] text-neutral-400">
                               {o.itemCount} {o.itemCount === 1 ? "item" : "items"}
                             </span>
                           </span>
                         </Link>
-                        <span className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${FULFIL_TONE[o.fulfilledBy.tone]}`}>{o.fulfilledBy.text}</span>
-                      </td>
-                      <td className="px-3 py-3 text-xs">
-                        <p className="font-semibold text-neutral-700">{o.delivery}</p>
-                        {o.area && <p className="text-neutral-400">{o.area}</p>}
-                        <p className="mt-1 text-neutral-600">
-                          {o.payment}{" "}
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+                          <FulfilBadge f={o.fulfilledBy} />
+                          <span className="rounded-full bg-neutral-100 px-2 py-0.5 font-semibold text-neutral-600">{o.delivery}</span>
+                          {o.area && <span className="text-neutral-400">{o.area}</span>}
+                          <span className="rounded-full bg-neutral-100 px-2 py-0.5 font-semibold text-neutral-600">{o.payment}</span>
                           <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${o.paid ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{o.paid ? "Paid" : "Unpaid"}</span>
-                        </p>
+                        </div>
                       </td>
                       <td className="px-3 py-3 text-end font-extrabold text-neutral-900">{money(o.total)}</td>
                       <td className="px-4 py-3">
@@ -314,7 +323,7 @@ export default function OrdersExplorer({
                     <span className="shrink-0 text-base font-extrabold text-neutral-900">{money(o.total)}</span>
                   </Link>
                   <div className="flex items-center justify-between gap-2 border-t border-neutral-100 bg-neutral-50 px-3.5 py-2.5">
-                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${FULFIL_TONE[o.fulfilledBy.tone]}`}>{o.fulfilledBy.text}</span>
+                    <FulfilBadge f={o.fulfilledBy} />
                     <OrderStatusSelect orderId={o.id} status={o.status} />
                   </div>
                 </li>
