@@ -67,8 +67,9 @@ export default function CheckoutForm({
       ? selectedAddressId
       : addresses[0]?.id ?? "";
   const blockedItems = blockedByAddress[addressId] ?? [];
-  // null until the shopper picks one; then Express is the default wherever it is offered (fastest first, like quick-commerce apps).
-  const [chosenDeliveryType, setDeliveryType] = useState<DeliveryType | null>(null);
+  // The shopper does not pick Express or Standard: the system does, from where the order is going (like Instamart or Keeta).
+  // The only choice left is to schedule the order for later.
+  const [scheduleLater, setScheduleLater] = useState(false);
   const [scheduledFor, setScheduledFor] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
   const [notes, setNotes] = useState("");
@@ -78,10 +79,9 @@ export default function CheckoutForm({
 
   // Express only inside the express radius; Standard (and Scheduled) wherever Standard applies.
   const offered = methodsByAddress[addressId] ?? { express: true, standard: true, standardDays: 2 };
-  const optionAvailable = (type: DeliveryType) => (type === "express" ? offered.express : offered.standard);
-  // Their pick if it is offered at the selected address; otherwise Express when available, else Standard.
+  // Express wherever the address is inside the shops' Express areas, otherwise Standard; "later" only where Standard applies.
   const deliveryType: DeliveryType =
-    chosenDeliveryType && optionAvailable(chosenDeliveryType) ? chosenDeliveryType : offered.express ? "express" : offered.standard ? "standard" : "express";
+    scheduleLater && offered.standard ? "scheduled" : offered.express ? "express" : offered.standard ? "standard" : "express";
   const { etaAt } = useDeliveryLocation();
   const chosenAddress = addresses.find((a) => a.id === addressId);
   const expressRange =
@@ -246,53 +246,46 @@ export default function CheckoutForm({
             </div>
           </section>
 
-          {/* delivery speed */}
+          {/* delivery: chosen by the system from the address, not by the shopper */}
           <section className={card}>
             <h2 className="mb-3 text-base font-extrabold tracking-tight">{t("checkout.delivery_time")}</h2>
-            <div className="grid grid-cols-3 gap-2">
-              {DELIVERY_OPTIONS.map((opt) => {
-                const active = deliveryType === opt.value;
-                const available = optionAvailable(opt.value);
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    disabled={!available}
-                    onClick={() => setDeliveryType(opt.value)}
-                    className={`flex flex-col items-center gap-0.5 rounded-2xl border p-3 text-center transition ${
-                      !available
-                        ? "cursor-not-allowed border-neutral-200 bg-neutral-50 opacity-60"
-                        : active
-                          ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600 active:scale-95"
-                          : "border-neutral-200 active:scale-95"
-                    }`}
-                  >
-                    <span className={`text-xl ${available ? "" : "grayscale"}`}>{opt.value === "express" ? "⚡" : opt.value === "standard" ? "📦" : "🗓️"}</span>
-                    <span className={`text-sm font-bold ${active ? "text-blue-800" : "text-neutral-900"}`}>{t(opt.labelKey)}</span>
-                    <span className="text-[11px] leading-tight text-neutral-500">
-                      {!available
-                        ? t("delivery_info.not_available_here")
-                        : opt.value === "express"
-                          ? expressEtaText ?? t("delivery_info.express_eta")
-                          : opt.value === "standard"
-                            ? t("delivery_info.standard_by", { date: standardDate })
-                            : t(opt.hintKey)}
-                    </span>
-                    {available && (
-                      <span className={`mt-1 text-xs font-extrabold ${subtotal >= FREE_DELIVERY_THRESHOLD ? "text-emerald-600" : "text-neutral-800"}`}>
-                        {subtotal >= FREE_DELIVERY_THRESHOLD ? t("checkout.free") : money(opt.fee)}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            {!offered.express && !offered.standard ? (
+              <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-semibold text-blue-900">{t("delivery_info.not_available_here")}</div>
+            ) : (
+              <div className="flex items-center gap-3 rounded-2xl border border-blue-600 bg-blue-50 p-3.5 ring-1 ring-blue-600">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl shadow-sm">
+                  {deliveryType === "express" ? "⚡" : deliveryType === "standard" ? "📦" : "🗓️"}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-extrabold text-blue-900">
+                    {deliveryType === "express"
+                      ? `${t("checkout.express")} · ${expressEtaText ?? t("delivery_info.express_eta")}`
+                      : deliveryType === "standard"
+                        ? `${t("checkout.standard")} · ${t("delivery_info.standard_by", { date: standardDate })}`
+                        : t("checkout.scheduled")}
+                  </p>
+                  <p className="text-xs text-blue-800/70">{t("checkout.auto_delivery_hint")}</p>
+                </div>
+                <span className={`shrink-0 text-sm font-extrabold ${subtotal >= FREE_DELIVERY_THRESHOLD ? "text-emerald-600" : "text-neutral-900"}`}>
+                  {subtotal >= FREE_DELIVERY_THRESHOLD ? t("checkout.free") : money(methodFee)}
+                </span>
+              </div>
+            )}
+            {offered.standard && (
+              <button
+                type="button"
+                onClick={() => setScheduleLater((v) => !v)}
+                className="mt-3 text-sm font-bold text-blue-700 hover:underline"
+              >
+                {scheduleLater ? t("checkout.deliver_now") : t("checkout.schedule_later")}
+              </button>
+            )}
             {deliveryType === "scheduled" && (
               <input
                 type="datetime-local"
                 value={scheduledFor}
                 onChange={(e) => setScheduledFor(e.target.value)}
-                className="mt-3 w-full rounded-2xl border border-neutral-300 px-3 py-2.5 text-sm"
+                className="mt-3 w-full rounded-2xl border border-neutral-300 px-3 py-2.5 text-base"
               />
             )}
           </section>
