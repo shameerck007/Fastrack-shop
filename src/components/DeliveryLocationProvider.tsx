@@ -19,6 +19,9 @@ import {
 const STORAGE_KEY = "fastrack:delivery-location";
 const SKIPPED_KEY = "fastrack:delivery-location-skipped";
 const GPS_REFRESHED_KEY = "fastrack:gps-refreshed";
+const NEARBY_CHECKED_KEY = "fastrack:nearby-checked";
+// Far enough from the saved spot to be worth asking about (normal GPS drift is well under this).
+const NEARBY_MIN_KM = 0.5;
 // Pages where prompting a shopper for a delivery location makes no sense.
 function toZone(z: ZoneRow): DeliveryZone {
   return {
@@ -51,6 +54,9 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
   const [ready, setReady] = useState(false);
   const [zones, setZones] = useState<ZoneRow[] | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Device position that differs from the saved address, offered to the shopper (Keeta/Noon style) but never applied silently.
+  const [nearby, setNearby] = useState<{ lat: number; lng: number; label: string | null; mode: "differs" | "ask" } | null>(null);
+  const [locating, setLocating] = useState(false);
 
   // Restore the saved choice; if there is none but the shopper is signed in
   // with a pinned default address, start from that (like Instamart reusing
@@ -210,11 +216,14 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
     } catch {
       return;
     }
-    if (!navigator.geolocation || !navigator.permissions?.query) return;
+    if (!navigator.geolocation) return;
 
     let cancelled = false;
-    navigator.permissions
-      .query({ name: "geolocation" as PermissionName })
+    // Safari (iOS) has no Permissions API for geolocation: the shopper chose GPS before, so just ask the browser (it remembers a grant).
+    const permission: Promise<{ state: string }> = navigator.permissions?.query
+      ? navigator.permissions.query({ name: "geolocation" as PermissionName })
+      : Promise.resolve({ state: "granted" });
+    permission
       .then((status) => {
         if (cancelled || status.state !== "granted") return;
         navigator.geolocation.getCurrentPosition(
@@ -232,6 +241,77 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
       cancelled = true;
     };
   }, [ready, location?.source, setLocation]);
+
+  // App opened with an address already saved (a default address or a place picked earlier): the shopper may be somewhere
+  // else now. If the device already shared its position, offer to deliver there when it differs; if it was never asked,
+  // offer a one-tap "use my location" (a tap also satisfies iOS, which wants a gesture). Once per visit, never automatic.
+  useEffect(() => {
+    if (!ready || !location || location.source === "gps") return;
+    if (NO_PROMPT_PREFIXES.some((p) => pathname.startsWith(p))) return;
+    try {
+      if (sessionStorage.getItem(NEARBY_CHECKED_KEY)) return;
+      sessionStorage.setItem(NEARBY_CHECKED_KEY, "1");
+    } catch {
+      return;
+    }
+    if (!navigator.geolocation) return;
+    let cancelled = false;
+    const askMode = () => {
+      if (!cancelled) setNearby({ lat: 0, lng: 0, label: null, mode: "ask" });
+    };
+    const check = () =>
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          if (cancelled || !location) return;
+          const away = kmBetween(location.lat, location.lng, pos.coords.latitude, pos.coords.longitude);
+          if (away < NEARBY_MIN_KM) return;
+          const label = await reverseAreaName(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy).catch(() => null);
+          if (!cancelled) setNearby({ lat: pos.coords.latitude, lng: pos.coords.longitude, label, mode: "differs" });
+        },
+        () => {},
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 }
+      );
+    if (!navigator.permissions?.query) {
+      askMode();
+      return () => {
+        cancelled = true;
+      };
+    }
+    navigator.permissions
+      .query({ name: "geolocation" as PermissionName })
+      .then((status) => {
+        if (cancelled) return;
+        if (status.state === "granted") check();
+        else if (status.state === "prompt") askMode();
+      })
+      .catch(askMode);
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, location, pathname]);
+
+  function applyDevicePosition() {
+    if (!nearby) return;
+    if (nearby.mode === "differs") {
+      setLocation({ lat: nearby.lat, lng: nearby.lng, label: nearby.label ?? "Current location", source: "gps" });
+      setNearby(null);
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const label = await reverseAreaName(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy).catch(() => null);
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, label: label ?? "Current location", source: "gps" });
+        setLocating(false);
+        setNearby(null);
+      },
+      () => {
+        setLocating(false);
+        setNearby(null);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
 
   // Visibility rule: a seller's products are shown when Express OR Standard reaches the
   // shopper. The radius only decides Express; Standard is on by default with no distance limit.
@@ -351,6 +431,36 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
     <DeliveryCtx.Provider value={value}>
       {children}
       <DeliveryLocationModal open={pickerOpen} onClose={closePicker} />
+      {nearby && (
+        <div className="fixed inset-x-3 bottom-24 z-[45] mx-auto max-w-md rounded-2xl border border-blue-100 bg-white p-3.5 shadow-2xl shadow-blue-900/15 md:bottom-5 md:start-5 md:inset-x-auto">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-lg">📍</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-extrabold text-neutral-900">
+                {nearby.mode === "differs" ? "Deliver to your current location?" : "Use your current location?"}
+              </p>
+              <p className="mt-0.5 text-xs text-neutral-500">
+                {nearby.mode === "differs"
+                  ? `You seem to be at ${nearby.label ?? "a different place"}, not ${location?.label ?? "your saved address"}.`
+                  : "We find the shops and delivery time for where you are right now."}
+              </p>
+              <div className="mt-2.5 flex gap-2">
+                <button
+                  type="button"
+                  onClick={applyDevicePosition}
+                  disabled={locating}
+                  className="h-9 rounded-full bg-blue-700 px-4 text-xs font-extrabold text-white shadow active:scale-95 disabled:opacity-60"
+                >
+                  {locating ? "Finding you…" : nearby.mode === "differs" ? "Yes, deliver here" : "Use my location"}
+                </button>
+                <button type="button" onClick={() => setNearby(null)} className="h-9 rounded-full border border-neutral-300 px-4 text-xs font-bold text-neutral-700 active:scale-95">
+                  {nearby.mode === "differs" ? `Keep ${location?.label ?? "saved"}` : "Not now"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DeliveryCtx.Provider>
   );
 }
