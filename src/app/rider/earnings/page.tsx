@@ -65,10 +65,10 @@ export default async function RiderEarningsPage() {
       {/* balance */}
       <div
         className={`overflow-hidden rounded-3xl p-5 text-white shadow-lg ${
-          owed ? "bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 shadow-blue-600/25" : "bg-gradient-to-br from-amber-600 to-orange-500 shadow-amber-600/25"
+          owed ? "bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 shadow-blue-600/25" : "bg-gradient-to-br from-blue-950 via-blue-900 to-blue-700 shadow-blue-900/30"
         }`}
       >
-        <p className="text-xs font-semibold uppercase tracking-wider text-white/80">{owed ? "FasTrack owes you" : "You owe FasTrack"}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-white/80">{owed ? "FasTrack owes you" : "⚠ You owe FasTrack"}</p>
         <p className="mt-1 text-4xl font-extrabold tracking-tight">{money(Math.abs(s.balance))}</p>
         <p className="mt-2 text-sm text-white/85">
           {owed
@@ -111,14 +111,14 @@ export default async function RiderEarningsPage() {
           Nothing hidden: every number below comes from your delivered orders and the payments recorded by FasTrack.
         </p>
         <div className="flex flex-col gap-4">
-          <Row sign="+" label="Delivery fees earned" hint={`${s.deliveredCount} delivered orders`} amount={money(s.earned)} width={pct(s.earned)} color="#16a34a" />
-          <Row sign="−" label="Cash you collected" hint="Cash-on-delivery money you took from customers" amount={money(s.cashCollected)} width={pct(s.cashCollected)} color="#f59e0b" />
-          <Row sign="+" label="Cash you handed in" hint="Deposits recorded by FasTrack" amount={money(s.cashDeposited)} width={pct(s.cashDeposited)} color="#0ea5e9" />
-          <Row sign="−" label="Payouts you received" hint="Bank or cash payments from FasTrack" amount={money(s.paidOut)} width={pct(s.paidOut)} color="#7c3aed" />
+          <Row sign="+" label="Delivery fees earned" hint={`${s.deliveredCount} delivered orders`} amount={money(s.earned)} width={pct(s.earned)} color="#1d4ed8" />
+          <Row sign="−" label="Cash you collected" hint="Cash-on-delivery money you took from customers" amount={money(s.cashCollected)} width={pct(s.cashCollected)} color="#38bdf8" />
+          <Row sign="+" label="Cash you handed in" hint="Deposits recorded by FasTrack" amount={money(s.cashDeposited)} width={pct(s.cashDeposited)} color="#0369a1" />
+          <Row sign="−" label="Payouts you received" hint="Bank or cash payments from FasTrack" amount={money(s.paidOut)} width={pct(s.paidOut)} color="#1e3a8a" />
         </div>
         <div className="mt-4 flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5 text-sm">
           <span className="font-semibold text-neutral-700">= Balance</span>
-          <span className={`font-extrabold ${owed ? "text-blue-700" : "text-amber-600"}`}>
+          <span className={`font-extrabold ${owed ? "text-blue-700" : "text-blue-900"}`}>
             {owed ? "" : "−"}
             {money(Math.abs(s.balance))}
           </span>
@@ -129,10 +129,10 @@ export default async function RiderEarningsPage() {
       <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-neutral-800">💵 Cash in your hand</h2>
-          <span className={`text-lg font-extrabold ${cashInHand > 0 ? "text-amber-600" : "text-emerald-600"}`}>{money(cashInHand)}</span>
+          <span className={`text-lg font-extrabold ${cashInHand > 0 ? "text-blue-900" : "text-blue-700"}`}>{money(cashInHand)}</span>
         </div>
-        <div className="mt-3 h-3 overflow-hidden rounded-full bg-amber-100">
-          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${depositedPct}%` }} />
+        <div className="mt-3 h-3 overflow-hidden rounded-full bg-sky-100">
+          <div className="h-full rounded-full bg-blue-600" style={{ width: `${depositedPct}%` }} />
         </div>
         <div className="mt-1.5 flex justify-between text-[11px] text-neutral-500">
           <span>Handed in {money(s.cashDeposited)}</span>
@@ -155,7 +155,7 @@ export default async function RiderEarningsPage() {
             {entries.map((e) => (
               <li key={e.id} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${e.kind === "payout" ? "bg-violet-100" : "bg-sky-100"}`}>
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${e.kind === "payout" ? "bg-blue-100" : "bg-sky-100"}`}>
                     {e.kind === "payout" ? "💸" : "🤝"}
                   </span>
                   <div className="min-w-0">
@@ -167,7 +167,7 @@ export default async function RiderEarningsPage() {
                     </p>
                   </div>
                 </div>
-                <span className={`shrink-0 text-sm font-bold ${e.kind === "payout" ? "text-violet-700" : "text-sky-700"}`}>{money(e.amount)}</span>
+                <span className={`shrink-0 text-sm font-bold ${e.kind === "payout" ? "text-blue-800" : "text-sky-700"}`}>{money(e.amount)}</span>
               </li>
             ))}
           </ul>
@@ -192,7 +192,7 @@ export default async function RiderEarningsPage() {
                   <p className="font-semibold text-neutral-900">#{o.orderNumber}</p>
                   <p className="text-xs text-neutral-500">{formatWhen(o.deliveredAt, timeZone)}</p>
                 </div>
-                <span className="font-bold text-emerald-600">+{money(o.deliveryFee)}</span>
+                <span className="font-bold text-blue-700">+{money(o.deliveryFee)}</span>
               </li>
             ))}
           </ul>

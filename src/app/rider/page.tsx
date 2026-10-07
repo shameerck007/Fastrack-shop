@@ -93,10 +93,10 @@ export default async function RiderHomePage() {
             )}
           </div>
           {!hasLocation ? (
-            <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-amber-300 bg-amber-50 p-6 text-center">
+            <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-sky-300 bg-sky-50 p-6 text-center">
               <span className="text-3xl">📍</span>
-              <p className="text-sm font-semibold text-amber-800">{t("rider.share_location_title")}</p>
-              <p className="text-xs text-amber-700">{t("rider.share_location_hint")}</p>
+              <p className="text-sm font-semibold text-sky-900">{t("rider.share_location_title")}</p>
+              <p className="text-xs text-sky-700">{t("rider.share_location_hint")}</p>
             </div>
           ) : availableOrders.length === 0 ? (
             <div className="flex flex-col items-center gap-2 rounded-3xl border border-neutral-200 bg-white p-8 text-center">
@@ -151,9 +151,9 @@ function AvailableOrderCard({ order, t, money }: { money: MoneyFormatter; order:
             </span>
           </div>
         </div>
-        <div className="shrink-0 rounded-2xl bg-emerald-50 px-3 py-2 text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700">You earn</p>
-          <p className="text-lg font-extrabold text-emerald-700">{money(order.delivery_fee)}</p>
+        <div className="shrink-0 rounded-2xl bg-blue-50 px-3 py-2 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-700">You earn</p>
+          <p className="text-lg font-extrabold text-blue-700">{money(order.delivery_fee)}</p>
         </div>
       </div>
       <div className="border-t border-neutral-100 bg-neutral-50 p-3">

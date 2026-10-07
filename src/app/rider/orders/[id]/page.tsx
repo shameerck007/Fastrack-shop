@@ -123,19 +123,19 @@ export default async function RiderOrderPage({
       {isActive && (
         <div
           className={`mb-4 flex items-center gap-3 rounded-3xl border p-4 ${
-            collectCash ? "border-amber-300 bg-amber-50" : "border-emerald-200 bg-emerald-50"
+            collectCash ? "border-blue-300 bg-blue-50" : "border-sky-200 bg-sky-50"
           }`}
         >
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">{collectCash ? "💵" : "✅"}</span>
           <div className="min-w-0 flex-1">
-            <p className={`text-sm font-bold ${collectCash ? "text-amber-900" : "text-emerald-800"}`}>
+            <p className={`text-sm font-bold ${collectCash ? "text-blue-900" : "text-sky-900"}`}>
               {collectCash ? t("rider_task.collect_cash") : t("rider_task.paid_online")}
             </p>
-            <p className={`text-xs ${collectCash ? "text-amber-700" : "text-emerald-700"}`}>
+            <p className={`text-xs ${collectCash ? "text-blue-700" : "text-sky-700"}`}>
               {collectCash ? t("rider_task.collect_cash_hint") : t("rider_task.paid_online_hint")}
             </p>
           </div>
-          {collectCash && <p className="shrink-0 text-xl font-extrabold text-amber-900">{money(order.total)}</p>}
+          {collectCash && <p className="shrink-0 text-xl font-extrabold text-blue-900">{money(order.total)}</p>}
         </div>
       )}
 

@@ -45,16 +45,16 @@ export default async function RiderHistoryPage() {
                   <p className="text-xs text-neutral-500">{formatWhen(o.deliveredAt, tz)}</p>
                 </div>
                 <div className="text-end">
-                  <p className="text-lg font-extrabold text-emerald-600">+{money(o.deliveryFee)}</p>
+                  <p className="text-lg font-extrabold text-blue-700">+{money(o.deliveryFee)}</p>
                   <p className="text-[11px] text-neutral-400">your earning</p>
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold">
                 <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-neutral-600">Order value {money(o.orderTotal)}</span>
                 {o.cashCollected > 0 ? (
-                  <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-700">💵 Cash collected {money(o.cashCollected)}</span>
+                  <span className="rounded-full bg-sky-100 px-2.5 py-1 text-sky-700">💵 Cash collected {money(o.cashCollected)}</span>
                 ) : (
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">✓ Paid online</span>
+                  <span className="rounded-full bg-blue-100 px-2.5 py-1 text-blue-700">✓ Paid online</span>
                 )}
               </div>
             </li>
