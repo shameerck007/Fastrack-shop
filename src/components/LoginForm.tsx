@@ -469,15 +469,6 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
         )}
       </div>
 
-      <p className="mt-6 text-center text-sm text-neutral-600">
-        {t("auth.new_to_fastrack")}{" "}
-        <Link
-          href={`/register${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
-          className="font-bold text-blue-700 hover:underline"
-        >
-          {t("auth.create_account_button")}
-        </Link>
-      </p>
     </div>
   );
 }
