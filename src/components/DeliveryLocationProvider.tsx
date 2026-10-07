@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { methodsFor, type DeliveryZone } from "@/lib/delivery-methods";
+import { DEFAULT_ETA_SETTINGS, etaRange, fastestEta, slowestEta, type EtaRange, type EtaSettings } from "@/lib/eta";
+import { distanceKm as kmBetween } from "@/lib/delivery-geo";
 import { reverseAreaName } from "@/lib/map-config";
 import DeliveryLocationModal from "@/components/DeliveryLocationModal";
 import {
@@ -43,7 +45,7 @@ function readStored(): DeliveryLocation | null {
   }
 }
 
-export default function DeliveryLocationProvider({ children }: { children: React.ReactNode }) {
+export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_SETTINGS }: { children: React.ReactNode; eta?: EtaSettings }) {
   const pathname = usePathname();
   const [location, setLocationState] = useState<DeliveryLocation | null>(null);
   const [ready, setReady] = useState(false);
@@ -296,8 +298,44 @@ export default function DeliveryLocationProvider({ children }: { children: React
     });
   }, [zones, location]);
 
+  // Express time for one seller at some coordinates: the nearest of its zones that offers Express there.
+  const etaAtCoords = useCallback(
+    (storeId: string | null, lat: number, lng: number): EtaRange | null => {
+      if (!zones) return null;
+      let best: number | null = null;
+      for (const zone of zones.filter((z) => z.storeId === storeId)) {
+        const m = methodsFor(toZone(zone), { lat, lng });
+        if (m.state !== "known" || !m.express || zone.lat == null || zone.lng == null) continue;
+        const d = kmBetween(zone.lat, zone.lng, lat, lng);
+        if (best == null || d < best) best = d;
+      }
+      return best == null ? null : etaRange(best, eta);
+    },
+    [zones, eta]
+  );
+
+  const etaForStore = useCallback(
+    (storeId: string | null): EtaRange | null => (location ? etaAtCoords(storeId, location.lat, location.lng) : null),
+    [etaAtCoords, location]
+  );
+
+  const bestEta = useCallback((): EtaRange | null => {
+    if (!zones || !location) return null;
+    const ids = [...new Set(zones.map((z) => z.storeId))];
+    return fastestEta(ids.map((id) => etaAtCoords(id, location.lat, location.lng)));
+  }, [zones, location, etaAtCoords]);
+
+  const etaAt = useCallback(
+    (lat: number, lng: number, storeIds: (string | null)[]): EtaRange | null =>
+      slowestEta([...new Set(storeIds)].map((id) => etaAtCoords(id, lat, lng))),
+    [etaAtCoords]
+  );
+
   const value = useMemo<Ctx>(
     () => ({
+      etaForStore,
+      bestEta,
+      etaAt,
       location,
       ready,
       serviceable,
@@ -306,7 +344,7 @@ export default function DeliveryLocationProvider({ children }: { children: React
       setLocation,
       openPicker: () => setPickerOpen(true),
     }),
-    [location, ready, serviceable, statusForStore, serviceableAt, setLocation]
+    [location, ready, serviceable, statusForStore, serviceableAt, setLocation, etaForStore, bestEta, etaAt]
   );
 
   return (

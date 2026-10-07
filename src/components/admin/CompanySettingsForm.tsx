@@ -22,6 +22,9 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
   const [email, setEmail] = useState(settings.email ?? "");
   const [stateName, setStateName] = useState(settings.state ?? "");
   const [riderRadius, setRiderRadius] = useState(String(settings.rider_pickup_radius_km ?? 20));
+  const [prepMinutes, setPrepMinutes] = useState(String(settings.prep_minutes ?? 10));
+  const [riderSpeed, setRiderSpeed] = useState(String(settings.rider_speed_kmh ?? 20));
+  const [etaBuffer, setEtaBuffer] = useState(String(settings.eta_buffer_minutes ?? 5));
   const { countryCode } = useMarket();
   const isIndia = countryCode === "IN";
   const [saved, setSaved] = useState(false);
@@ -46,6 +49,9 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
           email,
           state: stateName,
           riderPickupRadiusKm: Number(riderRadius) || undefined,
+          prepMinutes: prepMinutes === "" ? undefined : Number(prepMinutes),
+          riderSpeedKmh: Number(riderSpeed) || undefined,
+          etaBufferMinutes: etaBuffer === "" ? undefined : Number(etaBuffer),
         });
         setSaved(true);
       } catch (err) {
@@ -112,6 +118,27 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
           <span className="text-sm text-neutral-500">km (default 20)</span>
         </div>
         <p className="mt-1 text-xs text-neutral-400">A rider online within this distance of a shop or warehouse sees its new orders and gets a push notification.</p>
+      </section>
+
+      <section className="rounded-xl border border-neutral-200 bg-white p-4">
+        <h2 className="mb-1 text-sm font-semibold text-neutral-700">Delivery time shown to customers</h2>
+        <p className="mb-3 text-xs text-neutral-400">
+          Estimated time = packing time + rider travel (distance, at the speed below) + extra minutes. Shown as a range, for example 20–25 min.
+        </p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div>
+            <label className={label}>Packing time (minutes)</label>
+            <input type="number" min={0} max={120} value={prepMinutes} onChange={(e) => setPrepMinutes(e.target.value)} className={`${field} w-full`} />
+          </div>
+          <div>
+            <label className={label}>Average rider speed (km/h)</label>
+            <input type="number" min={5} max={80} value={riderSpeed} onChange={(e) => setRiderSpeed(e.target.value)} className={`${field} w-full`} />
+          </div>
+          <div>
+            <label className={label}>Extra minutes (rider reaches the store)</label>
+            <input type="number" min={0} max={60} value={etaBuffer} onChange={(e) => setEtaBuffer(e.target.value)} className={`${field} w-full`} />
+          </div>
+        </div>
       </section>
 
       <section className="rounded-xl border border-neutral-200 bg-white p-4">

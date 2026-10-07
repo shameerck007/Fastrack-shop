@@ -17,6 +17,10 @@ export interface CompanySettings {
   state?: string | null;
   /** How far from the pickup a rider is offered orders (km); column added by migration 0059. */
   rider_pickup_radius_km?: number | null;
+  /** Delivery time estimate (migration 0060). */
+  prep_minutes?: number | null;
+  rider_speed_kmh?: number | null;
+  eta_buffer_minutes?: number | null;
 }
 
 const FALLBACK: CompanySettings = {

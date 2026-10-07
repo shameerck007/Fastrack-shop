@@ -8,6 +8,9 @@ import { placeOrder } from "@/lib/actions/orders";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
 import { extractTax } from "@/lib/tax";
+import { useDeliveryLocation } from "@/components/delivery-location-context";
+import { marketUi } from "@/lib/market-ui";
+import { formatEta } from "@/lib/eta";
 import { formatDeliveryDate, pricingFor, standardDeliveryDate } from "@/lib/delivery-methods";
 import type { Address, CartItemWithVariant, DeliveryType, PaymentMethod } from "@/types/database";
 import { useMoney } from "@/components/MoneyProvider";
@@ -83,6 +86,13 @@ export default function CheckoutForm({
       : offered.express
         ? "express"
         : chosenDeliveryType;
+  const { etaAt } = useDeliveryLocation();
+  const chosenAddress = addresses.find((a) => a.id === addressId);
+  const expressRange =
+    marketUi(useMarket().countryCode).deliveryBadges && chosenAddress?.lat != null && chosenAddress?.lng != null
+      ? etaAt(chosenAddress.lat, chosenAddress.lng, items.map((i) => i.product_variants.products.store_id ?? null))
+      : null;
+  const expressEtaText = expressRange ? formatEta(expressRange) : null;
   const standardDate = formatDeliveryDate(standardDeliveryDate(offered.standardDays, new Date(), offsetMin), locale);
 
   const methodFee = DELIVERY_OPTIONS.find((d) => d.value === deliveryType)!.fee;
@@ -267,7 +277,7 @@ export default function CheckoutForm({
                       {!available
                         ? t("delivery_info.not_available_here")
                         : opt.value === "express"
-                          ? t("delivery_info.express_eta")
+                          ? expressEtaText ?? t("delivery_info.express_eta")
                           : opt.value === "standard"
                             ? t("delivery_info.standard_by", { date: standardDate })
                             : t(opt.hintKey)}

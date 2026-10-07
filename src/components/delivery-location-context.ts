@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { EtaRange } from "@/lib/eta";
 
 export interface DeliveryLocation {
   lat: number;
@@ -49,6 +50,12 @@ export interface Ctx {
   serviceableAt: (lat: number, lng: number) => boolean | null;
   setLocation: (loc: DeliveryLocation) => void;
   openPicker: () => void;
+  /** Express delivery time for this seller at the shopper's location (null when Express does not reach them). */
+  etaForStore: (storeId: string | null) => EtaRange | null;
+  /** The fastest Express time among all sellers at the shopper's location. */
+  bestEta: () => EtaRange | null;
+  /** Express time at these coordinates for a set of sellers (the slowest one decides). */
+  etaAt: (lat: number, lng: number, storeIds: (string | null)[]) => EtaRange | null;
 }
 
 export const DeliveryCtx = createContext<Ctx | null>(null);

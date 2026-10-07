@@ -2,6 +2,9 @@
 
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
+import { useMarket } from "@/components/MoneyProvider";
+import { formatEta } from "@/lib/eta";
+import { marketUi } from "@/lib/market-ui";
 
 export default function DeliverToChip({
   className = "",
@@ -10,8 +13,11 @@ export default function DeliverToChip({
   className?: string;
   variant?: "pill" | "plain";
 }) {
-  const { location, serviceable, openPicker, ready } = useDeliveryLocation();
+  const { location, serviceable, openPicker, ready, bestEta } = useDeliveryLocation();
   const { t } = useLocale();
+  // Instamart-style markets show the delivery time worked out for this location.
+  const range = marketUi(useMarket().countryCode).deliveryBadges ? bestEta() : null;
+  const eta = range;
 
   return (
     <button
@@ -43,6 +49,9 @@ export default function DeliverToChip({
           <span className="max-w-[13rem] truncate text-sm font-bold text-neutral-900 sm:max-w-[14rem]">
             {location?.label ?? t("header.choose_location")}
           </span>
+        )}
+        {ready && location && serviceable !== false && eta && (
+          <span className="text-[11px] font-semibold leading-tight text-blue-700">⚡ {formatEta(eta)}</span>
         )}
       </span>
       <svg

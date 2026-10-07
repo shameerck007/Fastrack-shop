@@ -16,7 +16,15 @@ export async function updateCompanySettings(input: {
   state?: string;
   /** Rider pickup radius in km (1-200). */
   riderPickupRadiusKm?: number;
+  /** Delivery time estimate (migration 0060). */
+  prepMinutes?: number;
+  riderSpeedKmh?: number;
+  etaBufferMinutes?: number;
 }) {
+  const { prepMinutes, riderSpeedKmh, etaBufferMinutes } = input;
+  if (prepMinutes != null && !(prepMinutes >= 0 && prepMinutes <= 120)) throw new Error("Preparation time must be between 0 and 120 minutes.");
+  if (riderSpeedKmh != null && !(riderSpeedKmh >= 5 && riderSpeedKmh <= 80)) throw new Error("Rider speed must be between 5 and 80 km/h.");
+  if (etaBufferMinutes != null && !(etaBufferMinutes >= 0 && etaBufferMinutes <= 60)) throw new Error("The extra minutes must be between 0 and 60.");
   const radius = input.riderPickupRadiusKm;
   if (radius != null && !(radius >= 1 && radius <= 200)) throw new Error("The rider pickup distance must be between 1 and 200 km.");
   const supabase = await createClient();
@@ -39,12 +47,20 @@ export async function updateCompanySettings(input: {
       email: input.email?.trim() || null,
       state: input.state?.trim() || null,
       ...(radius != null ? { rider_pickup_radius_km: radius } : {}),
+      ...(prepMinutes != null ? { prep_minutes: Math.round(prepMinutes) } : {}),
+      ...(riderSpeedKmh != null ? { rider_speed_kmh: riderSpeedKmh } : {}),
+      ...(etaBufferMinutes != null ? { eta_buffer_minutes: Math.round(etaBufferMinutes) } : {}),
       updated_at: new Date().toISOString(),
     };
   let { error } = await supabase.from("company_settings").update(row).eq("tenant_id", tenantId);
   // The rider-distance column arrives with migration 0059; until then save everything else.
   if (error && (error.code === "42703" || error.code === "PGRST204")) {
-    const { rider_pickup_radius_km: _r, ...rest } = row as typeof row & { rider_pickup_radius_km?: number };
+    const { rider_pickup_radius_km: _r, prep_minutes: _p, rider_speed_kmh: _s, eta_buffer_minutes: _b, ...rest } = row as typeof row & {
+      rider_pickup_radius_km?: number;
+      prep_minutes?: number;
+      rider_speed_kmh?: number;
+      eta_buffer_minutes?: number;
+    };
     ({ error } = await supabase.from("company_settings").update(rest).eq("tenant_id", tenantId));
   }
   if (error) throw error;

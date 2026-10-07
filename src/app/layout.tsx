@@ -16,6 +16,8 @@ import StoreDirectoryProvider from "@/components/StoreDirectoryProvider";
 import CustomerStateProvider from "@/components/CustomerStateProvider";
 import MarketSuggestionBanner from "@/components/MarketSuggestionBanner";
 import MarketToast from "@/components/MarketToast";
+import { getCompanySettings } from "@/lib/company-settings";
+import { DEFAULT_ETA_SETTINGS } from "@/lib/eta";
 import MoneyProvider from "@/components/MoneyProvider";
 import { getCurrentTenant, getMarketSuggestion } from "@/lib/tenant-server";
 import DefaultCountryProvider from "@/components/DefaultCountryProvider";
@@ -75,6 +77,12 @@ export default async function RootLayout({
   const tenant = await getCurrentTenant().catch(() => null);
   const currency = tenant?.currency ?? "SAR";
   const marketCountry = tenant?.country_code ?? "SA";
+  const company = await getCompanySettings().catch(() => null);
+  const etaSettings = {
+    prepMinutes: Number(company?.prep_minutes ?? DEFAULT_ETA_SETTINGS.prepMinutes),
+    speedKmh: Number(company?.rider_speed_kmh ?? DEFAULT_ETA_SETTINGS.speedKmh),
+    bufferMinutes: Number(company?.eta_buffer_minutes ?? DEFAULT_ETA_SETTINGS.bufferMinutes),
+  };
   // Phone fields start on the chosen market's country code; before a market is chosen, on the visitor's own country.
   const marketChosen = !!(await cookies()).get(TENANT_COOKIE)?.value;
   const countryCode = marketChosen ? marketCountry : ipCountry;
@@ -91,7 +99,7 @@ export default async function RootLayout({
         <DefaultCountryProvider countryCode={countryCode}>
         <CustomerStateProvider>
         <StoreDirectoryProvider>
-        <DeliveryLocationProvider>
+        <DeliveryLocationProvider eta={etaSettings}>
         <HeaderGate hideOnMobileFullscreen>
           {marketSuggestion && <MarketSuggestionBanner suggested={marketSuggestion.suggested} />}
           <Header />

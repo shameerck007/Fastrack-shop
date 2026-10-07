@@ -6,6 +6,8 @@ import { marketOffsetMinutes } from "@/lib/timezone";
 import { useLocale } from "@/components/LocaleProvider";
 import { formatDeliveryDate, pricingFor, standardDeliveryDate } from "@/lib/delivery-methods";
 import { useMoney } from "@/components/MoneyProvider";
+import { formatEta } from "@/lib/eta";
+import { marketUi } from "@/lib/market-ui";
 
 
 function Row({ icon, title, detail, fee, ok }: { icon: string; title: string; detail: string; fee?: string; ok: boolean }) {
@@ -26,9 +28,12 @@ interface Offer {
   standard: boolean;
   standardDays: number;
   expressRadiusKm: number | null;
+  /** Express time worked out for this location (e.g. "20–25 min"); the fixed wording is used when absent. */
+  etaText?: string | null;
 }
 
 function OptionRows({ offer }: { offer: Offer }) {
+  const etaText = offer.etaText ?? null;
   const money = useMoney();
   const { t, locale } = useLocale();
   const offsetMin = marketOffsetMinutes(useMarket().countryCode);
@@ -43,7 +48,7 @@ function OptionRows({ offer }: { offer: Offer }) {
         ok={offer.express}
         detail={
           offer.express
-            ? `${t("delivery_info.express_eta")} · ${freeHint}`
+            ? `${etaText ?? t("delivery_info.express_eta")} · ${freeHint}`
             : offer.expressRadiusKm != null
               ? `${t("delivery_info.express_unavailable")} — ${t("delivery_info.express_within", { radius: offer.expressRadiusKm })}`
               : t("delivery_info.express_unavailable")
@@ -68,8 +73,9 @@ function OptionRows({ offer }: { offer: Offer }) {
 /** Which delivery methods apply to this seller at the shopper's location: Express (inside the
  * radius) and Standard (with an estimated date), each with its fee. */
 export default function DeliveryOptionsInfo({ storeId }: { storeId: string | null }) {
-  const { statusForStore, location } = useDeliveryLocation();
+  const { statusForStore, location, etaForStore } = useDeliveryLocation();
   const { t } = useLocale();
+  const market = useMarket();
   const status = statusForStore(storeId);
 
   if (status.state === "loading") return null;
@@ -77,13 +83,15 @@ export default function DeliveryOptionsInfo({ storeId }: { storeId: string | nul
     return <p className="rounded-2xl bg-blue-50 px-3 py-2.5 text-xs font-medium text-blue-800">📍 {t("delivery_info.set_location")}</p>;
   }
   if (status.state === "outside") return null;
-  return <OptionRows offer={status} />;
+  const range = marketUi(market.countryCode).deliveryBadges ? etaForStore(storeId) : null;
+  return <OptionRows offer={{ ...status, etaText: range ? formatEta(range) : null }} />;
 }
 
 /** Same, for a whole cart: a method is offered only if every seller in the cart offers it. */
 export function CartDeliveryOptions({ storeIds }: { storeIds: (string | null)[] }) {
-  const { statusForStore, location } = useDeliveryLocation();
+  const { statusForStore, location, etaAt } = useDeliveryLocation();
   const { t } = useLocale();
+  const calculated = marketUi(useMarket().countryCode).deliveryBadges;
   const unique = [...new Set(storeIds)];
   const statuses = unique.map((id) => statusForStore(id));
 
@@ -100,6 +108,7 @@ export function CartDeliveryOptions({ storeIds }: { storeIds: (string | null)[] 
         standard: ok.length === statuses.length && ok.every((st) => st.standard),
         standardDays: Math.max(...ok.map((st) => st.standardDays)),
         expressRadiusKm: ok.find((st) => !st.express)?.expressRadiusKm ?? ok[0].expressRadiusKm,
+        etaText: calculated ? (() => { const r = etaAt(location.lat, location.lng, unique); return r ? formatEta(r) : null; })() : null,
       }}
     />
   );

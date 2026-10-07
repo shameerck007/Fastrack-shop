@@ -14,6 +14,7 @@ import { useStoreInfo } from "@/components/StoreDirectoryProvider";
 import { useMarket } from "@/components/MoneyProvider";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { marketUi } from "@/lib/market-ui";
+import { formatEta } from "@/lib/eta";
 import { marketOffsetMinutes } from "@/lib/timezone";
 import { formatDeliveryDate, standardDeliveryDate } from "@/lib/delivery-methods";
 
@@ -42,7 +43,9 @@ export default function ProductCard({
   const { status: storeStatus } = useStoreInfo(product.store_id);
   const countryCode = useMarket().countryCode;
   const ui = marketUi(countryCode);
-  const delivery = useDeliveryLocation().statusForStore(product.store_id ?? null);
+  const deliveryCtx = useDeliveryLocation();
+  const delivery = deliveryCtx.statusForStore(product.store_id ?? null);
+  const etaRangeForCard = deliveryCtx.etaForStore(product.store_id ?? null);
   const storeClosed = !!storeStatus && !storeStatus.open;
   const name = locale === "ar" ? localizedName(product, "ar") : product.name;
 
@@ -99,7 +102,7 @@ export default function ProductCard({
         {ui.deliveryBadges && delivery.state === "ok" && !outOfStock && (
           <span className={`mt-0.5 inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${delivery.express ? "bg-blue-50 text-blue-700" : "bg-neutral-100 text-neutral-600"}`}>
             {delivery.express
-              ? "⚡ Express"
+              ? `⚡ ${etaRangeForCard ? formatEta(etaRangeForCard) : "Express"}`
               : `📦 ${formatDeliveryDate(standardDeliveryDate(delivery.standardDays, new Date(), marketOffsetMinutes(countryCode)), locale)}`}
           </span>
         )}
