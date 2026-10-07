@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { acceptOrder } from "@/lib/actions/rider";
 import { useLocale } from "@/components/LocaleProvider";
 
-export default function AcceptOrderButton({ orderId }: { orderId: string }) {
+export default function AcceptOrderButton({ orderId, full = false }: { orderId: string; full?: boolean }) {
   const { t } = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -24,11 +24,11 @@ export default function AcceptOrderButton({ orderId }: { orderId: string }) {
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className={`flex flex-col gap-1 ${full ? "w-full items-stretch" : "items-end"}`}>
       <button
         onClick={handleAccept}
         disabled={pending}
-        className="rounded-full bg-blue-700 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-800 disabled:opacity-50"
+        className={`rounded-full bg-blue-700 text-sm font-extrabold text-white shadow-md shadow-blue-700/25 transition active:scale-95 hover:bg-blue-800 disabled:opacity-50 ${full ? "h-12 w-full" : "px-5 py-2"}`}
       >
         {pending ? t("rider.accepting") : t("rider.accept")}
       </button>

@@ -1,25 +1,14 @@
+import Link from "@/components/Link";
 import type { MoneyFormatter } from "@/lib/money";
-import {
-  getRiderProfile,
-  getAvailableOrders,
-  getActiveDelivery,
-  getRiderTodayStats,
-  getRiderLifetimeStats,
-  getWeeklyEarnings,
-  type AvailableOrder,
-} from "@/lib/rider";
+import { getRiderProfile, getAvailableOrders, getActiveDelivery, getRiderTodayStats, type AvailableOrder } from "@/lib/rider";
 
 import AcceptOrderButton from "@/components/rider/AcceptOrderButton";
-import RiderProfileCard from "@/components/rider/RiderProfileCard";
-import RiderStatsGrid from "@/components/rider/RiderStatsGrid";
-import RiderEarningsChart from "@/components/rider/RiderEarningsChart";
+import AvailabilityToggle from "@/components/rider/AvailabilityToggle";
 import ActiveDeliveryCard from "@/components/rider/ActiveDeliveryCard";
 import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getMoney } from "@/lib/tenant-server";
-import Link from "@/components/Link";
-import { getRiderWallet } from "@/lib/rider-wallet";
 
 const DELIVERY_TYPE_KEY: Record<string, string> = {
   express: "checkout.express",
@@ -27,18 +16,19 @@ const DELIVERY_TYPE_KEY: Record<string, string> = {
   scheduled: "checkout.scheduled",
 };
 
+type T = (key: string, vars?: Record<string, string | number>) => string;
+
+// The rider home is the work screen: online switch, the delivery in progress, and the orders waiting nearby.
+// Earnings, payments and history live on their own pages (bottom tabs).
 export default async function RiderHomePage() {
   const locale = await getServerLocale();
-  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
+  const t: T = (key, vars) => translate(locale, key, vars);
   const money = await getMoney();
   const rider = await getRiderProfile();
   const activeDelivery = await getActiveDelivery();
   const isMatching = rider?.deliveryPartner.is_available && !activeDelivery;
-  const [wallet, todayStats, lifetimeStats, weeklyEarnings, availableOrdersResult] = await Promise.all([
-    getRiderWallet().catch(() => null),
+  const [todayStats, availableOrdersResult] = await Promise.all([
     getRiderTodayStats(),
-    getRiderLifetimeStats(),
-    getWeeklyEarnings(),
     isMatching ? getAvailableOrders() : Promise.resolve({ orders: [], hasLocation: false }),
   ]);
   const { orders: availableOrders, hasLocation } = availableOrdersResult;
@@ -52,65 +42,71 @@ export default async function RiderHomePage() {
     );
   }
 
+  const online = rider.deliveryPartner.is_available;
+  const firstName = (rider.profile.full_name ?? "").trim().split(/\s+/)[0] || t("rider.rider");
+
   return (
     <div className="flex flex-col gap-4">
-      <RiderProfileCard profile={rider.profile} deliveryPartner={rider.deliveryPartner} t={t} locale={locale} />
-
-      {wallet && (
-        <Link
-          href="/rider/earnings"
-          className="flex items-center justify-between gap-3 rounded-3xl bg-gradient-to-br from-blue-700 to-sky-500 p-4 text-white shadow-lg shadow-blue-600/20 active:scale-[0.99]"
-        >
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
-              {wallet.summary.balance >= 0 ? "FasTrack owes you" : "You owe FasTrack"}
-            </p>
-            <p className="text-2xl font-extrabold">{money(Math.abs(wallet.summary.balance))}</p>
-            {wallet.cashInHand > 0 && (
-              <p className="mt-1 inline-block rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold">
-                💵 Cash to hand in {money(wallet.cashInHand)}
-              </p>
-            )}
+      {/* status bar */}
+      <div className={`rounded-3xl p-4 text-white shadow-lg ${online ? "bg-gradient-to-br from-blue-700 to-sky-500 shadow-blue-600/20" : "bg-gradient-to-br from-neutral-700 to-neutral-500 shadow-neutral-600/20"}`}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-lg font-extrabold">Hi, {firstName} 👋</p>
+            <p className="text-xs text-white/80">{online ? "You are online and getting orders" : "You are offline. Go online to get orders"}</p>
           </div>
-          <span className="rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold">Earnings →</span>
-        </Link>
-      )}
-
-      <RiderStatsGrid
-        money={money}
-        todayDeliveries={todayStats.deliveries}
-        todayEarnings={todayStats.earnings}
-        totalDeliveries={lifetimeStats?.totalDeliveries ?? 0}
-        rating={lifetimeStats?.rating ?? null}
-        t={t}
-      />
-
-      <RiderEarningsChart days={weeklyEarnings} t={t} money={money} />
-
-      {!rider.deliveryPartner.is_available && !activeDelivery && (
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-white py-12 text-center">
-          <span className="text-4xl">😴</span>
-          <p className="font-medium">{t("rider.youre_offline")}</p>
-          <p className="text-sm text-neutral-500">{t("rider.go_online_hint")}</p>
+          <AvailabilityToggle isAvailable={online} size="lg" />
         </div>
-      )}
+        <Link href="/rider/earnings" className="mt-3 flex items-center justify-between rounded-2xl bg-white/15 px-3 py-2.5 text-sm active:scale-[0.99]">
+          <span className="flex items-center gap-4">
+            <span>
+              <span className="block text-[10px] font-semibold uppercase tracking-wide text-white/70">Today</span>
+              <span className="font-extrabold">{money(todayStats.earnings)}</span>
+            </span>
+            <span>
+              <span className="block text-[10px] font-semibold uppercase tracking-wide text-white/70">Deliveries</span>
+              <span className="font-extrabold">{todayStats.deliveries}</span>
+            </span>
+          </span>
+          <span className="text-xs font-bold">Earnings →</span>
+        </Link>
+      </div>
 
       {activeDelivery && <ActiveDeliveryCard delivery={activeDelivery} t={t} money={money} />}
 
+      {!online && !activeDelivery && (
+        <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-neutral-300 bg-white py-12 text-center">
+          <span className="text-4xl">😴</span>
+          <p className="font-semibold">{t("rider.youre_offline")}</p>
+          <p className="px-6 text-sm text-neutral-500">{t("rider.go_online_hint")}</p>
+        </div>
+      )}
+
       {isMatching && (
-        <div>
+        <section>
           <RiderLocationTracker />
-          <h2 className="mb-3 text-sm font-semibold text-neutral-700">{t("rider.nearby_orders")}</h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-base font-extrabold text-neutral-900">{t("rider.nearby_orders")}</h2>
+            {hasLocation && (
+              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">
+                {availableOrders.length} {availableOrders.length === 1 ? "order" : "orders"}
+              </span>
+            )}
+          </div>
           {!hasLocation ? (
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-amber-300 bg-amber-50 p-6 text-center">
-              <span className="text-2xl">📍</span>
-              <p className="text-sm font-medium text-amber-800">{t("rider.share_location_title")}</p>
+            <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-amber-300 bg-amber-50 p-6 text-center">
+              <span className="text-3xl">📍</span>
+              <p className="text-sm font-semibold text-amber-800">{t("rider.share_location_title")}</p>
               <p className="text-xs text-amber-700">{t("rider.share_location_hint")}</p>
             </div>
           ) : availableOrders.length === 0 ? (
-            <p className="rounded-xl border border-neutral-200 bg-white p-6 text-center text-sm text-neutral-500">
-              {t("rider.no_orders_available")}
-            </p>
+            <div className="flex flex-col items-center gap-2 rounded-3xl border border-neutral-200 bg-white p-8 text-center">
+              <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-2xl">
+                <span className="absolute inset-0 animate-ping rounded-full bg-blue-100" />
+                <span className="relative">🛵</span>
+              </span>
+              <p className="font-semibold text-neutral-800">Looking for orders near you</p>
+              <p className="text-sm text-neutral-500">{t("rider.no_orders_available")}</p>
+            </div>
           ) : (
             <div className="flex flex-col gap-3">
               {availableOrders.map((order) => (
@@ -118,46 +114,50 @@ export default async function RiderHomePage() {
               ))}
             </div>
           )}
-        </div>
+        </section>
       )}
     </div>
   );
 }
 
-function AvailableOrderCard({
-  order,
-  t,
-  money,
-}: {
-  money: MoneyFormatter;
-  order: AvailableOrder;
-  t: (key: string, vars?: Record<string, string | number>) => string;
-}) {
+function AvailableOrderCard({ order, t, money }: { money: MoneyFormatter; order: AvailableOrder; t: T }) {
+  const express = order.delivery_type === "express";
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="font-medium">#{order.order_number}</p>
-          <p className="text-sm text-neutral-500">
-            {t("rider.items_and_type", {
-              count: order.item_count,
-              plural: order.item_count === 1 ? "" : "s",
-              type: t(DELIVERY_TYPE_KEY[order.delivery_type] ?? "checkout.standard"),
-            })}
-          </p>
+    <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
+      <div className="flex items-start justify-between gap-3 p-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="font-extrabold text-neutral-900">#{order.order_number}</span>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${express ? "bg-blue-100 text-blue-700" : "bg-neutral-100 text-neutral-600"}`}>
+              {express ? "⚡ " : ""}
+              {t(DELIVERY_TYPE_KEY[order.delivery_type] ?? "checkout.standard")}
+            </span>
+          </div>
           {order.warehouses && (
-            <p className="mt-1 text-sm text-neutral-600">📍 {order.warehouses.name}</p>
-          )}
-          {order.distanceKm != null && (
-            <p className="mt-0.5 text-xs font-medium text-blue-600">
-              {t("rider.km_away", { distance: order.distanceKm.toFixed(1) })}
+            <p className="mt-2 flex items-start gap-1.5 text-sm text-neutral-700">
+              <span>📍</span>
+              <span className="min-w-0">
+                <span className="block font-semibold">{order.warehouses.name}</span>
+                {order.warehouses.address_line && <span className="block truncate text-xs text-neutral-500">{order.warehouses.address_line}</span>}
+              </span>
             </p>
           )}
+          <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold">
+            {order.distanceKm != null && (
+              <span className="rounded-full bg-sky-50 px-2.5 py-1 text-sky-700">🧭 {t("rider.km_away", { distance: order.distanceKm.toFixed(1) })}</span>
+            )}
+            <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-neutral-600">
+              📦 {order.item_count} {order.item_count === 1 ? "item" : "items"}
+            </span>
+          </div>
         </div>
-        <div className="text-right">
-          <p className="mb-1 font-semibold text-blue-700">{money(order.delivery_fee)}</p>
-          <AcceptOrderButton orderId={order.id} />
+        <div className="shrink-0 rounded-2xl bg-emerald-50 px-3 py-2 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700">You earn</p>
+          <p className="text-lg font-extrabold text-emerald-700">{money(order.delivery_fee)}</p>
         </div>
+      </div>
+      <div className="border-t border-neutral-100 bg-neutral-50 p-3">
+        <AcceptOrderButton orderId={order.id} full />
       </div>
     </div>
   );

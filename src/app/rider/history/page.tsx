@@ -1,31 +1,35 @@
-import { getRiderWallet, formatWhen } from "@/lib/rider-wallet";
+import { getRiderWallet, formatWhen, earningsByDay } from "@/lib/rider-wallet";
+import { getRiderLifetimeStats } from "@/lib/rider";
+import RiderStatsGrid from "@/components/rider/RiderStatsGrid";
 import { getMoney } from "@/lib/tenant-server";
 
 export const metadata = { title: "Trips · FasTrack Rider" };
+
+const STAT_LABELS: Record<string, string> = {
+  "rider.today_earnings": "Earned today",
+  "rider.today_deliveries": "Deliveries today",
+  "rider.total_deliveries": "All deliveries",
+  "rider.rating_label": "Your rating",
+};
 
 export default async function RiderHistoryPage() {
   const money = await getMoney();
   const wallet = await getRiderWallet();
   const orders = wallet?.orders ?? [];
   const tz = wallet?.timeZone ?? "Asia/Riyadh";
-  const total = orders.reduce((a, o) => a + o.deliveryFee, 0);
-  const cashOrders = orders.filter((o) => o.cashCollected > 0).length;
+  const lifetime = await getRiderLifetimeStats().catch(() => null);
+  const today = earningsByDay(orders, tz, 1)[0];
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { icon: "📦", label: "Deliveries", value: String(orders.length) },
-          { icon: "💰", label: "Earned", value: money(total) },
-          { icon: "💵", label: "Cash orders", value: String(cashOrders) },
-        ].map((x) => (
-          <div key={x.label} className="rounded-2xl border border-neutral-200 bg-white p-3 text-center shadow-sm">
-            <p className="text-xl">{x.icon}</p>
-            <p className="mt-1 truncate text-base font-extrabold text-neutral-900">{x.value}</p>
-            <p className="text-[11px] font-medium text-neutral-500">{x.label}</p>
-          </div>
-        ))}
-      </div>
+      <RiderStatsGrid
+        money={money}
+        todayDeliveries={today.deliveries}
+        todayEarnings={today.earnings}
+        totalDeliveries={lifetime?.totalDeliveries ?? orders.length}
+        rating={lifetime?.rating ?? null}
+        t={(k) => STAT_LABELS[k] ?? k}
+      />
 
       {orders.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center text-sm text-neutral-500">
