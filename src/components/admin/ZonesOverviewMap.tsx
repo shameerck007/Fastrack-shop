@@ -116,11 +116,18 @@ export default function ZonesOverviewMap({
 
   useEffect(() => {
     let cancelled = false;
+    let resizeObs: ResizeObserver | null = null;
     import("leaflet").then((L) => {
       if (cancelled || !containerRef.current || mapRef.current) return;
-      const map = L.map(containerRef.current, { scrollWheelZoom: false, zoomControl: true }).setView(startCenter, 10);
+      const map = L.map(containerRef.current, { scrollWheelZoom: false, zoomControl: false }).setView(startCenter, 10);
       L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
-      L.control.scale({ imperial: false }).addTo(map);
+      L.control.zoom({ position: "bottomright" }).addTo(map);
+      L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
+      // The map lives in a pop-up that can be maximised, so follow its size.
+      if (typeof ResizeObserver !== "undefined") {
+        resizeObs = new ResizeObserver(() => map.invalidateSize());
+        resizeObs.observe(containerRef.current);
+      }
 
       const layers = {
         areas: L.layerGroup().addTo(map),
@@ -166,6 +173,7 @@ export default function ZonesOverviewMap({
     });
     return () => {
       cancelled = true;
+      resizeObs?.disconnect();
       mapRef.current?.remove();
       mapRef.current = null;
       markersRef.current.clear();
@@ -229,7 +237,7 @@ export default function ZonesOverviewMap({
         </div>
 
         {/* legend */}
-        <div className="pointer-events-none absolute bottom-6 start-3 z-[1000] rounded-2xl bg-white/92 p-3 text-[11px] shadow-lg backdrop-blur">
+        <div className="pointer-events-none absolute bottom-3 start-3 z-[1000] rounded-2xl bg-white/92 p-3 text-[11px] shadow-lg backdrop-blur">
           <p className="mb-1.5 font-extrabold uppercase tracking-wider text-neutral-400">Legend</p>
           <div className="flex items-center gap-2 text-neutral-700">
             <span className="flex h-5 w-5 items-center justify-center rounded-md text-[11px] text-white" style={{ background: "linear-gradient(135deg,#1d4ed8,#38bdf8)" }}>🏬</span>

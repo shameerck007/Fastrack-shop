@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import ZonesList, { type ZoneCard } from "@/components/admin/ZonesList";
-import ZonesOverviewMap from "@/components/admin/ZonesOverviewMap";
 import ZonesCoverageButton from "@/components/admin/ZonesCoverageButton";
 import type { OverviewZone } from "@/components/admin/ZonesOverviewMap";
 import { parsePolygon, pointInPolygon } from "@/lib/geo-polygon";
@@ -193,10 +192,6 @@ export default async function AdminZonesPage() {
           zones={overviewZones}
           customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}
         />
-      </div>
-
-      <div className="mb-5 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-        <ZonesOverviewMap zones={overviewZones} customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))} />
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
