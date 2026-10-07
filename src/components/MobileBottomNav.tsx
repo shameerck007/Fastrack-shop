@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "@/components/Link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 
@@ -19,6 +20,9 @@ const ITEMS: NavItem[] = [
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
+  // The tapped tab lights up immediately, before the new page has arrived.
+  const [tapped, setTapped] = useState<string | null>(null);
+  useEffect(() => setTapped(null), [pathname]);
   const { signedIn, cartCount } = useCustomerHeaderState();
 
   const accountItem: NavItem = signedIn
@@ -34,11 +38,14 @@ export default function MobileBottomNav() {
     >
       <div className="grid grid-cols-4">
         {items.map((item) => {
-          const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+          const current = tapped ?? pathname;
+          const isActive = item.exact ? current === item.href : current.startsWith(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
+              prefetch
+              onClick={() => setTapped(item.href)}
               className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold ${
                 isActive ? "text-blue-700" : "text-neutral-500"
               }`}

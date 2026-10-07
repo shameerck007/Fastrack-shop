@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Tajawal } from "next/font/google";
 import Header from "@/components/Header";
@@ -16,6 +17,7 @@ import StoreDirectoryProvider from "@/components/StoreDirectoryProvider";
 import CustomerStateProvider from "@/components/CustomerStateProvider";
 import MarketSuggestionBanner from "@/components/MarketSuggestionBanner";
 import MarketToast from "@/components/MarketToast";
+import NavProgress from "@/components/NavProgress";
 import { getCompanySettings } from "@/lib/company-settings";
 import { DEFAULT_ETA_SETTINGS } from "@/lib/eta";
 import MoneyProvider from "@/components/MoneyProvider";
@@ -94,6 +96,9 @@ export default async function RootLayout({
       >
         <ChunkErrorReload />
         <MarketToast />
+        <Suspense fallback={null}>
+          <NavProgress />
+        </Suspense>
         <LocaleProvider locale={locale}>
         <MoneyProvider currency={currency} countryCode={marketCountry}>
         <DefaultCountryProvider countryCode={countryCode}>
