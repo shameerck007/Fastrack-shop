@@ -97,10 +97,13 @@ export default function ZonesOverviewMap({
   zones,
   customerPoints,
   height = "h-96 md:h-[30rem]",
+  fill = false,
 }: {
   zones: OverviewZone[];
   customerPoints: OverviewPoint[];
   height?: string;
+  /** Fill the parent (which must have a height) instead of using a fixed height. */
+  fill?: boolean;
 }) {
   const startCenter = marketGeo(useMarket().countryCode).center;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -210,15 +213,15 @@ export default function ZonesOverviewMap({
     }`;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={`flex flex-col gap-3 ${fill ? "h-full min-h-0" : ""}`}>
       <style>{`
         @keyframes ftpulse { 0% { transform: scale(.7); opacity: .9 } 100% { transform: scale(1.5); opacity: 0 } }
         .ft-popup .leaflet-popup-content-wrapper { border-radius: 18px; box-shadow: 0 12px 32px rgba(15,23,42,.25); }
         .ft-popup .leaflet-popup-content { margin: 14px; }
       `}</style>
 
-      <div className="relative isolate z-0">
-        <div ref={containerRef} className={`w-full overflow-hidden rounded-2xl border border-neutral-200 ${height}`} />
+      <div className={`relative isolate z-0 ${fill ? "min-h-0 flex-1" : ""}`}>
+        <div ref={containerRef} className={`w-full overflow-hidden rounded-2xl border border-neutral-200 ${fill ? "h-full" : height}`} />
 
         {/* layer switches */}
         <div className="absolute start-3 top-3 z-[1000] flex flex-wrap gap-1.5">

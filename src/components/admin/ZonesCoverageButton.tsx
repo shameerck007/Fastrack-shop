@@ -71,11 +71,12 @@ export default function ZonesCoverageButton({
                 </button>
               </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            <div className={`min-h-0 flex-1 p-4 ${maximized ? "overflow-hidden" : "overflow-y-auto"}`}>
               <ZonesOverviewMap
                 zones={zones}
                 customerPoints={customerPoints}
-                height={maximized ? "h-[calc(100vh-13rem)]" : "h-[55vh] md:h-[30rem]"}
+                fill={maximized}
+                height="h-[55vh] md:h-[30rem]"
               />
             </div>
           </div>
