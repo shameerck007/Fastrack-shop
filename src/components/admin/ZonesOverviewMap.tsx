@@ -122,8 +122,8 @@ export default function ZonesOverviewMap({
     let resizeObs: ResizeObserver | null = null;
     import("leaflet").then((L) => {
       if (cancelled || !containerRef.current || mapRef.current) return;
-      const map = L.map(containerRef.current, { scrollWheelZoom: false, zoomControl: false }).setView(startCenter, 10);
-      L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
+      const map = L.map(containerRef.current, { scrollWheelZoom: false, zoomControl: false, attributionControl: false }).setView(startCenter, 10);
+      L.tileLayer(TILE_URL, { ...TILE_OPTIONS, attribution: "" }).addTo(map);
       L.control.zoom({ position: "bottomright" }).addTo(map);
       L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
       // The map lives in a pop-up that can be maximised, so follow its size.
@@ -221,9 +221,10 @@ export default function ZonesOverviewMap({
       `}</style>
 
       <div className={`relative isolate z-0 ${fill ? "min-h-[300px] flex-1" : ""}`}>
-        {/* Leaflet forces position:relative on its container, so when filling, an absolute wrapper gives it the size. */}
-        <div className={fill ? "absolute inset-0" : ""}>
-          <div ref={containerRef} className={`w-full overflow-hidden rounded-2xl border border-neutral-200 ${fill ? "h-full" : height}`} />
+        {/* The container's own className must never change: React would overwrite the classes Leaflet adds to it.
+            Sizing lives on this wrapper instead (absolute when filling, since Leaflet forces position:relative). */}
+        <div className={fill ? "absolute inset-0" : height}>
+          <div ref={containerRef} className="h-full w-full overflow-hidden rounded-2xl border border-neutral-200" />
         </div>
 
         {/* layer switches */}

@@ -43,3 +43,8 @@ body {
 .leaflet-container {
   isolation: isolate;
 }
+
+/* No attribution banner on any map. */
+.leaflet-control-attribution {
+  display: none !important;
+}
