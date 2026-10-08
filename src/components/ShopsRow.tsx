@@ -31,7 +31,7 @@ export default function ShopsRow() {
   return (
     <section className="mb-8">
       <h2 className="mb-3 text-xl font-extrabold tracking-tight">{t("store.shops_title")}</h2>
-      <ScrollRow className="-mx-4 md:mx-0" innerClassName="gap-3 px-4 pb-2 md:px-1">
+      <ScrollRow nudge className="-mx-4 md:mx-0" innerClassName="gap-3 px-4 pb-2 md:px-1">
         {shops.map(({ store, info }) => (
           <Link
             key={store.id}

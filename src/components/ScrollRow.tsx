@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
  * One horizontal line that can be moved: swipe on a phone, drag with the mouse or use the arrow buttons on a computer.
  * Nothing wraps onto a second line; the row simply scrolls.
  */
-export default function ScrollRow({ children, className = "", innerClassName = "" }: { children: ReactNode; className?: string; innerClassName?: string }) {
+export default function ScrollRow({ children, className = "", innerClassName = "", nudge = false }: { children: ReactNode; className?: string; innerClassName?: string; /** Slides a little once when the row first shows, so it is clear that it moves. */ nudge?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
   const [edges, setEdges] = useState({ start: false, end: false });
@@ -27,6 +27,42 @@ export default function ScrollRow({ children, className = "", innerClassName = "
     ro.observe(el);
     return () => ro.disconnect();
   }, [measure, children]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!nudge || !el || typeof IntersectionObserver === "undefined") return;
+    try {
+      if (sessionStorage.getItem("fastrack-row-nudged")) return;
+    } catch {
+      /* private mode: just nudge */
+    }
+    let t1: ReturnType<typeof setTimeout>;
+    let t2: ReturnType<typeof setTimeout>;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        io.disconnect();
+        if (el.scrollWidth <= el.clientWidth + 8) return;
+        const dir = getComputedStyle(el).direction === "rtl" ? -1 : 1;
+        t1 = setTimeout(() => {
+          el.scrollTo({ left: dir * 72, behavior: "smooth" });
+          t2 = setTimeout(() => el.scrollTo({ left: 0, behavior: "smooth" }), 650);
+        }, 500);
+        try {
+          sessionStorage.setItem("fastrack-row-nudged", "1");
+        } catch {
+          /* ignore */
+        }
+      },
+      { threshold: 0.8 }
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [nudge]);
 
   function scrollBy(dir: 1 | -1) {
     const el = ref.current;
@@ -75,10 +111,11 @@ export default function ScrollRow({ children, className = "", innerClassName = "
         onPointerLeave={() => {
           drag.current = null;
         }}
-        className={`no-scrollbar flex snap-x scroll-px-4 flex-nowrap overflow-x-auto md:cursor-grab md:active:cursor-grabbing ${innerClassName}`}
+        className={`no-scrollbar flex touch-pan-x snap-x scroll-px-4 flex-nowrap overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] md:cursor-grab md:active:cursor-grabbing ${innerClassName}`}
       >
         {children}
       </div>
+      {edges.end && <span aria-hidden className="pointer-events-none absolute inset-y-0 end-0 z-[5] w-10 bg-gradient-to-l from-white/90 to-transparent rtl:bg-gradient-to-r" />}
       {edges.end && (
         <button type="button" aria-label="Scroll forward" onClick={() => scrollBy(1)} className={`${arrow} end-1`}>
           ›

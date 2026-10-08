@@ -31,7 +31,7 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
   }
 
   return (
-    <ScrollRow className="-mx-4 md:mx-0" innerClassName="gap-4 px-4 pb-1 md:gap-5 md:px-1">
+    <ScrollRow nudge className="-mx-4 md:mx-0" innerClassName="gap-4 px-4 pb-1 md:gap-5 md:px-1">
       {categories.map((category) => {
         const theme = getCategoryTheme(category.slug);
         const hasChildren = category.children.length > 0;
