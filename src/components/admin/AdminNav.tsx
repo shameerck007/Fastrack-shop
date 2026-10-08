@@ -6,6 +6,7 @@ const NAV: PortalNavItem[] = [
   { href: "/admin", labelKey: "portal.dashboard", icon: "📊", section: "Overview" },
   { href: "/admin/store", labelKey: "admin.fastrack_stores", icon: "🏬", section: "Catalog & stores" },
   { href: "/admin/products", labelKey: "admin.products", icon: "📦", section: "Catalog & stores" },
+  { href: "/admin/catalog", label: "Master catalog", icon: "📚", section: "Catalog & stores" },
   { href: "/admin/categories", labelKey: "admin.categories", icon: "🗂️", section: "Catalog & stores" },
   { href: "/admin/merchants", labelKey: "admin.merchants", icon: "🏪", section: "Catalog & stores" },
   { href: "/admin/orders", labelKey: "admin.orders", icon: "🧾", section: "Operations" },

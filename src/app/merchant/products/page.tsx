@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "@/components/Link";
 import { getMyStore, getMyStoreProducts } from "@/lib/merchant";
 import { createClient } from "@/lib/supabase/server";
 import MerchantProductForm from "@/components/merchant/MerchantProductForm";
@@ -27,7 +28,12 @@ export default async function MerchantProductsPage() {
           <h1 className="text-xl font-semibold">{t("merchant.products")}</h1>
           <p className="text-sm text-neutral-500">{t("merchant.products_count_own", { count: products.length, plural: products.length === 1 ? "" : "s" })}</p>
         </div>
-        <MerchantProductForm categories={categoryList} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href="/merchant/catalog" className="rounded-full bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">
+            + Add from catalog
+          </Link>
+          <MerchantProductForm categories={categoryList} />
+        </div>
       </div>
 
       {products.length === 0 ? (

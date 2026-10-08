@@ -1,0 +1,43 @@
+import CatalogManager from "@/components/admin/CatalogManager";
+import { PageHeader, StatGrid, StatTile } from "@/components/admin/AdminUi";
+import { getMasterCatalog } from "@/lib/master-catalog";
+import { createClient } from "@/lib/supabase/server";
+
+export const metadata = { title: "Master catalog" };
+
+export default async function AdminCatalogPage() {
+  const supabase = await createClient();
+  const [products, { data: categories }] = await Promise.all([getMasterCatalog(), supabase.from("categories").select("id, name, parent_id").order("sort_order")]);
+
+  if (products === null) {
+    return (
+      <div>
+        <PageHeader icon="📚" title="Master catalog" subtitle="One shared list of products. Suppliers sell them by adding their price and stock." />
+        <p className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+          The master catalog isn&apos;t set up in the database yet. Run migration <b>0067_master_catalog.sql</b> in the Supabase SQL editor, then reload this page.
+        </p>
+      </div>
+    );
+  }
+
+  const approved = products.filter((p) => p.status === "approved");
+  const pending = products.filter((p) => p.status === "pending");
+  const offers = approved.reduce((n, p) => n + p.offers, 0);
+
+  return (
+    <div>
+      <PageHeader
+        icon="📚"
+        title="Master catalog"
+        subtitle="FasTrack owns the product details (name, brand, photo, category, barcode, tax). Suppliers add their own price and stock, so the same product is never listed twice."
+      />
+      <StatGrid>
+        <StatTile icon="📚" label="Catalog products" value={approved.length} accent="#2563eb" />
+        <StatTile icon="📭" label="Requests to review" value={pending.length} accent="#0369a1" hint={pending.length > 0 ? "Suppliers are waiting" : undefined} />
+        <StatTile icon="🏪" label="Supplier listings" value={offers} accent="#1e40af" hint="Offers linked to catalog products" />
+        <StatTile icon="🔗" label="Average suppliers per product" value={approved.length ? (offers / approved.length).toFixed(1) : "0"} accent="#0ea5e9" />
+      </StatGrid>
+      <CatalogManager products={products} categories={(categories ?? []) as { id: string; name: string; parent_id: string | null }[]} />
+    </div>
+  );
+}

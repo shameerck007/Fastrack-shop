@@ -135,6 +135,23 @@ export async function updateMerchantProduct(
     throw new Error("You can only edit your own products.");
   }
 
+  // A product linked to the master catalog keeps its shared details (name, brand, photo, category, tax): only the price
+  // is the supplier's to change here. (The column exists after migration 0067; before it, every product is free-form.)
+  const { data: linkRow } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { master_id: string | null } | null; error: unknown }> } } } })
+    .from("products")
+    .select("master_id")
+    .eq("id", productId)
+    .maybeSingle();
+  if (linkRow?.master_id) {
+    const { error: priceError } = await supabase
+      .from("product_variants")
+      .update({ price: input.price, compare_at_price: input.compareAtPrice ?? null })
+      .eq("id", variantId);
+    if (priceError) throw priceError;
+    revalidatePath("/merchant/products");
+    return;
+  }
+
   const { error: productError } = await supabase
     .from("products")
     .update({
