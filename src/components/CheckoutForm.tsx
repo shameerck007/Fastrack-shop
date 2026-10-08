@@ -270,7 +270,7 @@ export default function CheckoutForm({
                 {parcels.map((p, idx) => (
                   <div key={p.key} className="flex items-center gap-3 rounded-2xl border border-blue-600 bg-blue-50 p-3.5 ring-1 ring-blue-600">
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl shadow-sm">
-                      {p.type === "express" ? "🛵" : p.type === "standard" ? "📦" : "🗓️"}
+                      {p.type === "scheduled" ? "🗓️" : "🕒"}
                     </span>
                     <div className="min-w-0 flex-1">
                       {split && (
@@ -280,9 +280,9 @@ export default function CheckoutForm({
                       )}
                       <p className="text-sm font-extrabold text-blue-900">
                         {p.type === "express"
-                          ? `${t("checkout.express")} · ${p.etaText ?? t("delivery_info.express_eta")}`
+                          ? t("checkout.arrives_in", { eta: p.etaText ?? t("delivery_info.express_eta") })
                           : p.type === "standard"
-                            ? `${t("checkout.standard")} · ${t("delivery_info.standard_by", { date: p.date })}`
+                            ? t("checkout.arrives_by", { date: p.date })
                             : t("checkout.scheduled")}
                       </p>
                     </div>

@@ -45,13 +45,13 @@ function OptionRows({ offer }: { offer: Offer }) {
       <h3 className="text-sm font-extrabold tracking-tight text-neutral-900">{t("delivery_info.title")}</h3>
       {/* The system picks the method for this address, like other quick-commerce apps: one line, not a menu. */}
       {offer.express ? (
-        <Row icon="🛵" title={t("delivery_info.express")} ok detail={`${etaText ?? t("delivery_info.express_eta")} · ${freeHint}`} fee={money(pricing.express)} />
+        <Row icon="🕒" title={t("checkout.arrives_in", { eta: etaText ?? t("delivery_info.express_eta") })} ok detail={freeHint} fee={money(pricing.express)} />
       ) : offer.standard ? (
         <Row
-          icon="📦"
-          title={t("delivery_info.standard")}
+          icon="🕒"
+          title={t("checkout.arrives_by", { date: formatDeliveryDate(standardDeliveryDate(offer.standardDays, new Date(), offsetMin), locale) })}
           ok
-          detail={`${t("delivery_info.standard_by", { date: formatDeliveryDate(standardDeliveryDate(offer.standardDays, new Date(), offsetMin), locale) })} · ${freeHint}`}
+          detail={freeHint}
           fee={money(pricing.standard)}
         />
       ) : (
@@ -113,14 +113,14 @@ export function CartDeliveryOptions({ storeIds }: { storeIds: (string | null)[] 
           return (
             <Row
               key={id ?? "own"}
-              icon={express ? "🛵" : "📦"}
+              icon="🕒"
               title={name}
               ok={st.express || st.standard}
               detail={
                 express
-                  ? `${t("checkout.express")} · ${range ? formatEta(range) : t("delivery_info.express_eta")}`
+                  ? t("checkout.arrives_in", { eta: range ? formatEta(range) : t("delivery_info.express_eta") })
                   : st.standard
-                    ? `${t("checkout.standard")} · ${t("delivery_info.standard_by", { date: formatDeliveryDate(standardDeliveryDate(st.standardDays, new Date(), offsetMin), locale) })}`
+                    ? t("checkout.arrives_by", { date: formatDeliveryDate(standardDeliveryDate(st.standardDays, new Date(), offsetMin), locale) })
                     : t("delivery_info.standard_unavailable")
               }
             />
