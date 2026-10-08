@@ -213,7 +213,7 @@ export async function getActiveDelivery(): Promise<ActiveDelivery | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data, error } = await supabase
+  const { data: raw, error } = await supabase
     .from("delivery_assignments")
     .select(
       (await riderPayCols()) + "orders!inner(id, order_number, status, delivery_fee, total, delivery_otp, warehouses(name, address_line, lat, lng), addresses(address_line, label, lat, lng), order_items(id))"
@@ -225,9 +225,11 @@ export async function getActiveDelivery(): Promise<ActiveDelivery | null> {
     .maybeSingle();
 
   if (error) throw error;
+  // The select list is built at run time (rider_pay exists only after migration 0064), so type the row by hand.
+  const data = raw as unknown as { rider_pay?: number | null; orders?: unknown } | null;
   if (!data?.orders) return null;
   const order = data.orders as unknown as ActiveDelivery & { order_items: { id: string }[] };
-  const pay = (data as unknown as { rider_pay: number | null }).rider_pay;
+  const pay = data.rider_pay;
   return { ...order, delivery_fee: Number(pay ?? order.delivery_fee), item_count: order.order_items?.length ?? 0 };
 }
 
