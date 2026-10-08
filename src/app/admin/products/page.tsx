@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAdminProducts } from "@/lib/admin-products";
 import { PageHeader } from "@/components/admin/AdminUi";
-import ProductForm from "@/components/admin/ProductForm";
+import Link from "@/components/Link";
 import AdminProductSearch from "@/components/admin/AdminProductSearch";
 import type { Category, Warehouse } from "@/types/database";
 import { getServerLocale } from "@/lib/i18n/get-locale";
@@ -26,7 +26,11 @@ export default async function AdminProductsPage() {
         icon="📦"
         title="Listings & stock"
         subtitle={`${products.length} products on sale. Each shows its price and stock, for FasTrack and for every supplier. The product details (name, photo, category) come from the Product catalog.`}
-        actions={<ProductForm categories={categoryList} warehouses={warehouseList} />}
+        actions={
+          <Link href="/admin/catalog" className="rounded-full bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">
+            + Add from the Product catalog
+          </Link>
+        }
       />
 
       {products.length === 0 ? (

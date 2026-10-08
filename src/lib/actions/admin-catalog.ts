@@ -278,3 +278,83 @@ export async function buildCatalogFromProducts(): Promise<{ error?: string; crea
     return { error: e instanceof Error ? e.message : "Could not build the catalog." };
   }
 }
+
+export interface FastrackOfferInput {
+  masterVariantId: string;
+  price: number;
+  compareAtPrice?: number;
+  stock: number;
+}
+
+/**
+ * FasTrack sells a catalog product itself: creates FasTrack's own product (no supplier), linked to the catalog entry, with
+ * the price and the opening stock in the chosen FasTrack location (the other FasTrack locations start at 0, as new ones do).
+ */
+export async function addMasterToFastrack(masterId: string, warehouseId: string, offers: FastrackOfferInput[]): Promise<{ error?: string }> {
+  try {
+    const chosen = offers.filter((o) => o.price > 0);
+    if (chosen.length === 0) return { error: "Enter a price for at least one pack size." };
+    if (!warehouseId) return { error: "Choose the FasTrack location that holds the stock." };
+    const supabase = await createClient();
+    const loose = supabase as unknown as {
+      from: (t: string) => {
+        select: (c: string) => { eq: (c: string, v: string) => { is: (c: string, v: null) => { limit: (n: number) => Promise<{ data: unknown[] | null }> }; maybeSingle: () => Promise<{ data: unknown }> } };
+      };
+    };
+    const { data: already } = await loose.from("products").select("id").eq("master_id", masterId).is("store_id", null).limit(1);
+    if ((already ?? []).length > 0) return { error: "FasTrack already sells this product." };
+    const { data: m } = await loose
+      .from("master_products")
+      .select("id, name, name_ar, brand, brand_ar, description, description_ar, category_id, image_url, barcode, hsn_code, tax_rate, status, master_variants(id, label, label_ar, unit, quantity, is_default)")
+      .eq("id", masterId)
+      .maybeSingle();
+    const master = m as {
+      id: string; name: string; name_ar: string | null; brand: string | null; brand_ar: string | null; description: string | null; description_ar: string | null;
+      category_id: string | null; image_url: string | null; barcode: string | null; hsn_code: string | null; tax_rate: number | null; status: string;
+      master_variants: { id: string; label: string; label_ar: string | null; unit: string; quantity: number; is_default: boolean }[];
+    } | null;
+    if (!master || master.status !== "approved") return { error: "This product is not in the catalog." };
+
+    const { data: product, error: pErr } = await supabase
+      .from("products")
+      .insert({
+        category_id: master.category_id, master_id: master.id, name: master.name, name_ar: master.name_ar, brand: master.brand, brand_ar: master.brand_ar,
+        description: master.description, description_ar: master.description_ar, image_url: master.image_url, barcode: master.barcode, tax_rate: master.tax_rate, hsn_code: master.hsn_code,
+      } as never)
+      .select("id")
+      .single();
+    if (pErr) return { error: pErr.message };
+
+    // FasTrack's own locations = warehouses no supplier owns.
+    const { data: stores } = await supabase.from("stores").select("warehouse_id");
+    const supplierWarehouses = new Set((stores ?? []).map((x) => x.warehouse_id).filter(Boolean));
+    const { data: whs } = await supabase.from("warehouses").select("id").eq("is_active", true);
+    const ownWarehouseIds = (whs ?? []).map((w) => w.id).filter((id) => !supplierWarehouses.has(id));
+    if (!ownWarehouseIds.includes(warehouseId)) ownWarehouseIds.push(warehouseId);
+
+    const byId = new Map(master.master_variants.map((v) => [v.id, v]));
+    const defaultId = chosen.find((o) => byId.get(o.masterVariantId)?.is_default)?.masterVariantId ?? chosen[0].masterVariantId;
+    for (const o of chosen) {
+      const mv = byId.get(o.masterVariantId);
+      if (!mv) continue;
+      const { data: variant, error: vErr } = await supabase
+        .from("product_variants")
+        .insert({
+          product_id: product.id, master_variant_id: mv.id, label: mv.label, label_ar: mv.label_ar, unit: mv.unit, quantity: mv.quantity,
+          price: o.price, compare_at_price: o.compareAtPrice && o.compareAtPrice > o.price ? o.compareAtPrice : null, is_default: o.masterVariantId === defaultId,
+        } as never)
+        .select("id")
+        .single();
+      if (vErr) return { error: vErr.message };
+      const { error: iErr } = await supabase
+        .from("inventory")
+        .insert(ownWarehouseIds.map((wid) => ({ variant_id: variant.id, warehouse_id: wid, stock: wid === warehouseId ? Math.max(0, o.stock || 0) : 0 })));
+      if (iErr) return { error: iErr.message };
+    }
+    revalidatePath("/admin/products");
+    revalidatePath("/admin/catalog");
+    return {};
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Could not add this product." };
+  }
+}

@@ -7,7 +7,16 @@ export const metadata = { title: "Master catalog" };
 
 export default async function AdminCatalogPage() {
   const supabase = await createClient();
-  const [products, { data: categories }] = await Promise.all([getMasterCatalog(), supabase.from("categories").select("id, name, parent_id").order("sort_order")]);
+  const [products, { data: categories }, { data: warehouses }, { data: stores }, { data: ownProducts }] = await Promise.all([
+    getMasterCatalog(),
+    supabase.from("categories").select("id, name, parent_id").order("sort_order"),
+    supabase.from("warehouses").select("id, name").eq("is_active", true).order("created_at"),
+    supabase.from("stores").select("warehouse_id"),
+    supabase.from("products").select("master_id").is("store_id", null).not("master_id" as never, "is", null),
+  ]);
+  const supplierWarehouses = new Set((stores ?? []).map((s) => s.warehouse_id).filter(Boolean));
+  const fastrackLocations = (warehouses ?? []).filter((w) => !supplierWarehouses.has(w.id)) as { id: string; name: string }[];
+  const fastrackIds = ((ownProducts ?? []) as unknown as { master_id: string }[]).map((p) => p.master_id);
 
   if (products === null) {
     return (
@@ -37,7 +46,7 @@ export default async function AdminCatalogPage() {
         <StatTile icon="🏪" label="Supplier listings" value={offers} accent="#1e40af" hint="Offers linked to catalog products" />
         <StatTile icon="🔗" label="Average suppliers per product" value={approved.length ? (offers / approved.length).toFixed(1) : "0"} accent="#0ea5e9" />
       </StatGrid>
-      <CatalogManager products={products} categories={(categories ?? []) as { id: string; name: string; parent_id: string | null }[]} />
+      <CatalogManager products={products} categories={(categories ?? []) as { id: string; name: string; parent_id: string | null }[]} fastrackLocations={fastrackLocations} fastrackIds={fastrackIds} />
     </div>
   );
 }

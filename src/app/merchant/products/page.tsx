@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "@/components/Link";
 import { getMyStore, getMyStoreProducts } from "@/lib/merchant";
 import { createClient } from "@/lib/supabase/server";
-import MerchantProductForm from "@/components/merchant/MerchantProductForm";
 import MerchantProductSearch from "@/components/merchant/MerchantProductSearch";
 import type { Category } from "@/types/database";
 import { getServerLocale } from "@/lib/i18n/get-locale";
@@ -32,7 +31,6 @@ export default async function MerchantProductsPage() {
           <Link href="/merchant/catalog" className="rounded-full bg-blue-700 px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">
             + Add from catalog
           </Link>
-          <MerchantProductForm categories={categoryList} />
         </div>
       </div>
 

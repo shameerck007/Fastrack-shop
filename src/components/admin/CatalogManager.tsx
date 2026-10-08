@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import MasterProductForm from "@/components/admin/MasterProductForm";
-import { approveMasterProduct, rejectMasterProduct, buildCatalogFromProducts } from "@/lib/actions/admin-catalog";
+import { approveMasterProduct, rejectMasterProduct, buildCatalogFromProducts, addMasterToFastrack } from "@/lib/actions/admin-catalog";
+import OfferModal from "@/components/OfferModal";
+import { useCurrency } from "@/components/MoneyProvider";
 import type { MasterProduct } from "@/lib/master-catalog";
 
 interface Cat {
@@ -12,8 +14,24 @@ interface Cat {
   parent_id: string | null;
 }
 
-export default function CatalogManager({ products, categories }: { products: MasterProduct[]; categories: Cat[] }) {
+export default function CatalogManager({
+  products,
+  categories,
+  fastrackLocations = [],
+  fastrackIds = [],
+}: {
+  products: MasterProduct[];
+  categories: Cat[];
+  /** FasTrack's own locations (warehouses no supplier owns). */
+  fastrackLocations?: { id: string; name: string }[];
+  /** Catalog products FasTrack already sells. */
+  fastrackIds?: string[];
+}) {
   const router = useRouter();
+  const currency = useCurrency();
+  const [selling, setSelling] = useState<MasterProduct | null>(null);
+  const [location, setLocation] = useState(fastrackLocations[0]?.id ?? "");
+  const soldByFastrack = new Set(fastrackIds);
   const [tab, setTab] = useState<"catalog" | "requests">("catalog");
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<MasterProduct | null>(null);
@@ -125,6 +143,13 @@ export default function CatalogManager({ products, categories }: { products: Mas
                   <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
                     {p.offers} {p.offers === 1 ? "supplier" : "suppliers"}
                   </span>
+                  {soldByFastrack.has(p.id) ? (
+                    <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-bold text-neutral-500">✓ Sold by FasTrack</span>
+                  ) : (
+                    <button type="button" onClick={() => setSelling(p)} className="rounded-full bg-blue-700 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-800">
+                      Sell in FasTrack shop
+                    </button>
+                  )}
                   <button type="button" onClick={() => setEditing(p)} className="rounded-full border border-neutral-300 px-4 py-1.5 text-xs font-bold text-neutral-700 hover:bg-neutral-50">
                     Edit
                   </button>
@@ -147,6 +172,35 @@ export default function CatalogManager({ products, categories }: { products: Mas
         </ul>
       )}
 
+      {selling && (
+        <OfferModal
+          product={selling}
+          currency={currency}
+          title={`Sell ${selling.name} in the FasTrack shop`}
+          submitLabel="Add to FasTrack shop"
+          note="Set FasTrack's price and the opening stock for each pack size. The stock goes to the location below; other FasTrack locations start at 0."
+          extra={
+            fastrackLocations.length > 1 ? (
+              <label className="text-xs font-medium text-neutral-500">
+                Stock location
+                <select value={location} onChange={(e) => setLocation(e.target.value)} className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm">
+                  {fastrackLocations.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null
+          }
+          onSubmit={(offers) => addMasterToFastrack(selling.id, location, offers)}
+          onClose={() => setSelling(null)}
+          onDone={() => {
+            setSelling(null);
+            router.refresh();
+          }}
+        />
+      )}
       {creating && <MasterProductForm key="new" open onClose={() => setCreating(false)} categories={categories} />}
       {editing && <MasterProductForm key={editing.id} open onClose={() => setEditing(null)} categories={categories} existing={editing} />}
     </div>
