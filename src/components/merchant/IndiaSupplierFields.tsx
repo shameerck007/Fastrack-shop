@@ -16,8 +16,9 @@ import {
   type IndiaSupplierValue,
 } from "@/lib/india-business";
 import { INDIAN_STATES } from "@/lib/india";
+import Select from "@/components/ui/Select";
 
-const inputClass = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm";
+const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
 /** Alphanumeric identifier box: uppercases, strips punctuation, and shows a live tick or reason. */
 function CodeInput({
@@ -119,14 +120,14 @@ export default function IndiaSupplierFields({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium">State *</label>
-          <select value={value.state} onChange={(e) => set({ state: e.target.value })} className={`${inputClass} bg-white`}>
+          <Select value={value.state} onChange={(e) => set({ state: e.target.value })} className={`${inputClass} bg-white`}>
             <option value="">Select state</option>
             {INDIAN_STATES.map((st) => (
               <option key={st} value={st}>
                 {st}
               </option>
             ))}
-          </select>
+          </Select>
           {stateMismatch && <p className="mt-1 text-xs text-red-600">Your GSTIN is registered in {gstin?.stateName}.</p>}
         </div>
         <div>

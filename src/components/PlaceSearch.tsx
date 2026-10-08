@@ -60,7 +60,7 @@ export default function PlaceSearch({
 
   return (
     <div ref={boxRef} className="relative">
-      <div className="flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 focus-within:border-blue-500">
+      <div className="flex items-center gap-2 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus-within:border-blue-500">
         <span aria-hidden>🔍</span>
         <input
           value={query}

@@ -2,8 +2,9 @@
 
 import { useMarket } from "@/components/MoneyProvider";
 import { taxProfileFor } from "@/lib/tax";
+import Select from "@/components/ui/Select";
 
-const inputClass = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm";
+const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
 /** Tax rate (and HSN code for India) for a product. The choices follow the current market. */
 export default function TaxFields({
@@ -26,13 +27,13 @@ export default function TaxFields({
     <div className="grid grid-cols-2 gap-3">
       <div>
         <label className="mb-1 block text-xs font-medium text-neutral-600">{profile.label} rate (price includes tax)</label>
-        <select value={value} onChange={(e) => onTaxRate(e.target.value)} className={`${inputClass} bg-white`}>
+        <Select value={value} onChange={(e) => onTaxRate(e.target.value)} className={`${inputClass} bg-white`}>
           {options.map((r) => (
             <option key={r} value={String(r)}>
               {r}%
             </option>
           ))}
-        </select>
+        </Select>
       </div>
       {countryCode === "IN" && (
         <div>

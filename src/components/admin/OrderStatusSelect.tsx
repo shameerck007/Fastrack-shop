@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateOrderStatus } from "@/lib/actions/admin-orders";
 import { useLocale } from "@/components/LocaleProvider";
 import type { OrderStatus } from "@/types/database";
+import Select from "@/components/ui/Select";
 
 const STATUSES: OrderStatus[] = [
   "pending",
@@ -30,7 +31,7 @@ export default function OrderStatusSelect({ orderId, status }: { orderId: string
   }
 
   return (
-    <select
+    <Select
       value={status}
       disabled={pending}
       onChange={(e) => handleChange(e.target.value as OrderStatus)}
@@ -41,6 +42,6 @@ export default function OrderStatusSelect({ orderId, status }: { orderId: string
           {t(`order_status.${s}`)}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }

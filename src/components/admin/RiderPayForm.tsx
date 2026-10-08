@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateRiderPay } from "@/lib/actions/admin-rider-pay";
 import { useCurrency } from "@/components/MoneyProvider";
 
-const field = "rounded-lg border border-neutral-300 px-3 py-2 text-sm";
+const field = "min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
 /** How this rider is paid: per delivery (gig), or a fixed monthly salary like an employee. */
 export default function RiderPayForm({

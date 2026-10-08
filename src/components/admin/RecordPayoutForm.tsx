@@ -5,6 +5,7 @@ import { recordSettlementPayout } from "@/lib/actions/admin-settlements";
 
 import { useLocale } from "@/components/LocaleProvider";
 import { useCurrency, useMoney } from "@/components/MoneyProvider";
+import Select from "@/components/ui/Select";
 
 const METHODS = ["bank_transfer", "cheque", "cash", "other"];
 
@@ -74,23 +75,23 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
             step={0.01}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="rounded-lg border border-neutral-300 px-3 py-2"
+            className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             required
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
           <span className="text-xs font-medium text-neutral-500">{t("payout_form.method")}</span>
-          <select
+          <Select
             value={method}
             onChange={(e) => setMethod(e.target.value)}
-            className="rounded-lg border border-neutral-300 px-3 py-2"
+            className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
             {METHODS.map((m) => (
               <option key={m} value={m}>
                 {t(`merchant.${m}`)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="flex flex-col gap-1 text-sm">
           <span className="text-xs font-medium text-neutral-500">{t("payout_form.reference_optional")}</span>
@@ -98,7 +99,7 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
             value={reference}
             onChange={(e) => setReference(e.target.value)}
             placeholder={t("payout_form.reference_placeholder")}
-            className="rounded-lg border border-neutral-300 px-3 py-2"
+            className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
@@ -107,7 +108,7 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder={t("payout_form.note_placeholder")}
-            className="rounded-lg border border-neutral-300 px-3 py-2"
+            className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           />
         </label>
       </div>

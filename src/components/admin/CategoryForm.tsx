@@ -9,6 +9,7 @@ import ImageUploader from "@/components/ImageUploader";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName } from "@/lib/i18n/localized";
 import type { Category } from "@/types/database";
+import Select from "@/components/ui/Select";
 
 export default function CategoryForm({
   existing,
@@ -107,7 +108,7 @@ export default function CategoryForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={(e) => autoTranslate(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <div className="flex items-center gap-1.5">
           <input
@@ -117,7 +118,7 @@ export default function CategoryForm({
               setNameAr(e.target.value);
               setNameArEdited(true);
             }}
-            className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             dir="rtl"
           />
           <button
@@ -137,25 +138,25 @@ export default function CategoryForm({
           placeholder={existing ? t("category_form.slug_placeholder") : t("category_form.slug_auto_placeholder")}
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <input
           placeholder={t("category_form.icon_placeholder")}
           value={icon}
           onChange={(e) => setIcon(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <input
           type="number"
           placeholder={t("category_form.sort_order_placeholder")}
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
-        <select
+        <Select
           value={parentId}
           onChange={(e) => setParentId(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         >
           <option value="">{t("category_form.no_parent")}</option>
           {availableParents.map((p) => (
@@ -163,7 +164,7 @@ export default function CategoryForm({
               {t("category_form.subcategory_of", { name: localizedName(p, locale) })}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

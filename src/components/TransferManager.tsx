@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { cancelStockTransfer, createStockTransfer, receiveStockTransfer, sendStockTransfer } from "@/lib/actions/transfers";
 import type { Location, LowStockRow, StockOption, Transfer } from "@/lib/transfers";
+import Select from "@/components/ui/Select";
 
-const field = "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
 const STATUS: Record<Transfer["status"], { label: string; tone: string }> = {
   draft: { label: "Draft", tone: "bg-neutral-100 text-neutral-600" },
@@ -228,23 +229,23 @@ function NewTransfer({
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-xs font-medium text-neutral-500">
             From
-            <select value={fromId} disabled={!!myLocationId} onChange={(e) => { setFromId(e.target.value); setLines({}); }} className={`${field} mt-1`}>
+            <Select value={fromId} disabled={!!myLocationId} onChange={(e) => { setFromId(e.target.value); setLines({}); }} className={`${field} mt-1`}>
               {locations.map((l) => (
                 <option key={l.id} value={l.id}>
                   {l.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="text-xs font-medium text-neutral-500">
             To
-            <select value={toId} onChange={(e) => setToId(e.target.value)} className={`${field} mt-1`}>
+            <Select value={toId} onChange={(e) => setToId(e.target.value)} className={`${field} mt-1`}>
               {locations.filter((l) => l.id !== fromId).map((l) => (
                 <option key={l.id} value={l.id}>
                   {l.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         </div>
 

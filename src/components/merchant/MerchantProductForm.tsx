@@ -13,6 +13,7 @@ import { orderedCategories } from "@/lib/category-tree";
 import { useLocale } from "@/components/LocaleProvider";
 import { useCurrency } from "@/components/MoneyProvider";
 import { localizedName } from "@/lib/i18n/localized";
+import Select from "@/components/ui/Select";
 
 const UNITS = ["unit", "kg", "g", "L", "ml", "pack"];
 
@@ -168,7 +169,7 @@ export default function MerchantProductForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={(e) => autoTranslate(e.target.value, nameArEdited, setNameAr, setTranslatingName)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <div className="flex items-center gap-1.5">
           <input
@@ -178,7 +179,7 @@ export default function MerchantProductForm({
               setNameAr(e.target.value);
               setNameArEdited(true);
             }}
-            className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             dir="rtl"
           />
           <button
@@ -199,7 +200,7 @@ export default function MerchantProductForm({
           value={brand}
           onChange={(e) => setBrand(e.target.value)}
           onBlur={(e) => autoTranslate(e.target.value, brandArEdited, setBrandAr, setTranslatingBrand)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <div className="flex items-center gap-1.5">
           <input
@@ -209,7 +210,7 @@ export default function MerchantProductForm({
               setBrandAr(e.target.value);
               setBrandArEdited(true);
             }}
-            className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             dir="rtl"
           />
           <button
@@ -225,22 +226,22 @@ export default function MerchantProductForm({
             {translatingBrand ? "…" : "🌐"}
           </button>
         </div>
-        <select
+        <Select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         >
           {orderedCategories(categories).map((c) => (
             <option key={c.id} value={c.id}>
               {c.parent_id ? `↳ ${localizedName(c, locale)}` : localizedName(c, locale)}
             </option>
           ))}
-        </select>
+        </Select>
         <input
           placeholder={t("product_form.sku_optional")}
           value={sku}
           onChange={(e) => setSku(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
       </div>
 
@@ -250,7 +251,7 @@ export default function MerchantProductForm({
         onChange={(e) => setDescription(e.target.value)}
         onBlur={(e) => autoTranslate(e.target.value, descriptionArEdited, setDescriptionAr, setTranslatingDescription)}
         rows={3}
-        className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
       />
       <div className="flex items-start gap-1.5">
         <textarea
@@ -263,7 +264,7 @@ export default function MerchantProductForm({
             setDescriptionArEdited(true);
           }}
           rows={3}
-          className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           dir="rtl"
         />
         <button
@@ -288,7 +289,7 @@ export default function MerchantProductForm({
           onBlur={(e) =>
             autoTranslate(e.target.value, variantLabelArEdited, setVariantLabelAr, setTranslatingVariantLabel)
           }
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <div className="flex items-center gap-1.5">
           <input
@@ -300,7 +301,7 @@ export default function MerchantProductForm({
               setVariantLabelAr(e.target.value);
               setVariantLabelArEdited(true);
             }}
-            className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             dir="rtl"
           />
           <button
@@ -316,24 +317,24 @@ export default function MerchantProductForm({
             {translatingVariantLabel ? "…" : "🌐"}
           </button>
         </div>
-        <select
+        <Select
           value={unit}
           onChange={(e) => setUnit(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         >
           {UNITS.map((u) => (
             <option key={u} value={u}>
               {u}
             </option>
           ))}
-        </select>
+        </Select>
         <input
           type="number"
           step="0.001"
           placeholder={t("product_form.qty_per_unit")}
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         {!existing && (
           <input
@@ -342,7 +343,7 @@ export default function MerchantProductForm({
             placeholder={t("product_form.initial_stock")}
             value={stock}
             onChange={(e) => setStock(e.target.value)}
-            className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           />
         )}
       </div>
@@ -354,7 +355,7 @@ export default function MerchantProductForm({
           placeholder={t("product_form.price_sar", { currency })}
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <input
           type="number"
@@ -362,7 +363,7 @@ export default function MerchantProductForm({
           placeholder={t("product_form.compare_at_price_discount")}
           value={compareAtPrice}
           onChange={(e) => setCompareAtPrice(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
       </div>
 

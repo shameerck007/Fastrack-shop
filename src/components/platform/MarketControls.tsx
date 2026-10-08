@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createTenant, setTenantStatus } from "@/lib/actions/platform";
+import Select from "@/components/ui/Select";
 
 type Status = "draft" | "active" | "suspended";
 
@@ -57,7 +58,7 @@ export function CreateMarketForm({ countries }: { countries: { code: string; nam
   const [country, setCountry] = useState(countries[0]?.code ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const field = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm";
+  const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -111,13 +112,13 @@ export function CreateMarketForm({ countries }: { countries: { code: string; nam
         </label>
         <label className="flex flex-col gap-1 text-sm">
           <span className="text-xs font-medium text-neutral-500">Country (sets the currency)</span>
-          <select value={country} onChange={(e) => setCountry(e.target.value)} className={`${field} bg-white`}>
+          <Select value={country} onChange={(e) => setCountry(e.target.value)} className={`${field} bg-white`}>
             {countries.map((c) => (
               <option key={c.code} value={c.code}>
                 {c.name} · {c.currency}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
       <p className="mt-2 text-xs text-neutral-400">The new market starts as a draft. Its tax rules and payment settings still need to be set up before you open it.</p>

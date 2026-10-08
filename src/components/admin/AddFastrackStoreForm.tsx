@@ -55,13 +55,13 @@ export default function AddFastrackStoreForm() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t("fastrack_stores.store_name_placeholder")}
-            className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           />
           <input
             value={addressLine}
             onChange={(e) => setAddressLine(e.target.value)}
             placeholder={t("fastrack_stores.address_placeholder")}
-            className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           />
           <p className="text-xs text-neutral-400">{t("fastrack_stores.pin_location_hint")}</p>
 

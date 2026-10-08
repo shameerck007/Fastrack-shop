@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { CodeCheck } from "@/lib/india-business";
 
-const inputClass = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm";
+const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
 /** Alphanumeric identifier box: uppercases, strips punctuation, and shows a live tick or the reason it is wrong. */
 export default function CodeInput({

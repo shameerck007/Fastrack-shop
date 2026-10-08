@@ -14,6 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
 import type { Address, AddressLabel } from "@/types/database";
+import Select from "@/components/ui/Select";
 
 function labelText(l: AddressLabel): string {
   return l.charAt(0).toUpperCase() + l.slice(1);
@@ -223,7 +224,7 @@ export default function AddressForm({
           onChange={(e) => setReceiverName(e.target.value)}
           placeholder={t("addresses.receiver_name_placeholder")}
           autoComplete="name"
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <PhoneNumberInput value={receiverPhone} onChange={setReceiverPhone} placeholder={isIndia ? "98XXXXXXXX" : t("addresses.receiver_phone_placeholder")} />
       </div>
@@ -232,7 +233,7 @@ export default function AddressForm({
         value={addressLine}
         onChange={(e) => setAddressLine(e.target.value)}
         placeholder={isIndia ? "Delivery note (e.g. Flat 4B, near the temple, gate code)" : t("addresses.address_description_placeholder")}
-        className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
       />
 
       {isIndia ? (
@@ -243,30 +244,30 @@ export default function AddressForm({
           value={buildingNumber}
           onChange={(e) => setBuildingNumber(e.target.value)}
           placeholder={t("address_in.flat")}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <input
           value={district}
           onChange={(e) => setDistrict(e.target.value)}
           placeholder={t("address_in.area")}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <input
           value={landmark}
           onChange={(e) => setLandmark(e.target.value)}
           placeholder={t("address_in.landmark")}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm sm:col-span-2"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:col-span-2"
         />
         <input
           value={city}
           onChange={(e) => setCity(e.target.value)}
           placeholder={t("address_in.city")}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
-        <select
+        <Select
           value={stateName}
           onChange={(e) => setStateName(e.target.value)}
-          className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         >
           <option value="">{t("address_in.select_state")}</option>
           {stateOptions.map((st) => (
@@ -274,14 +275,14 @@ export default function AddressForm({
               {st}
             </option>
           ))}
-        </select>
+        </Select>
         <input
           value={postalCode}
           onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
           placeholder={t("address_in.pin")}
           inputMode="numeric"
           maxLength={6}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
       </div>
 
@@ -294,13 +295,13 @@ export default function AddressForm({
           value={district}
           onChange={(e) => setDistrict(e.target.value)}
           placeholder={t("addresses.district_placeholder")}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <input
           value={city}
           onChange={(e) => setCity(e.target.value)}
           placeholder={t("addresses.city_placeholder")}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <input
           value={postalCode}
@@ -308,7 +309,7 @@ export default function AddressForm({
           placeholder={t("addresses.postal_code_placeholder")}
           inputMode="numeric"
           maxLength={5}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <input
           value={buildingNumber}
@@ -316,7 +317,7 @@ export default function AddressForm({
           placeholder={t("addresses.building_no_placeholder")}
           inputMode="numeric"
           maxLength={4}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <input
           value={additionalNumber}
@@ -324,13 +325,13 @@ export default function AddressForm({
           placeholder={t("addresses.additional_no_placeholder")}
           inputMode="numeric"
           maxLength={4}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
         <input
           value={unitNumber}
           onChange={(e) => setUnitNumber(e.target.value)}
           placeholder={t("addresses.unit_no_placeholder")}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
       </div>
       <input
@@ -338,7 +339,7 @@ export default function AddressForm({
         onChange={(e) => setShortAddress(e.target.value.toUpperCase())}
         placeholder={t("addresses.short_address_placeholder")}
         maxLength={8}
-        className="rounded-lg border border-neutral-300 px-3 py-2 text-sm uppercase"
+        className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 uppercase"
       />
 
         </>

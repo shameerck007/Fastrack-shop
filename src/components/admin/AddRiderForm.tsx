@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { findUserByEmail, isAlreadyRider, adminCreateRider, type FoundUser } from "@/lib/actions/admin-riders";
 import { useLocale } from "@/components/LocaleProvider";
+import Select from "@/components/ui/Select";
 
 export default function AddRiderForm() {
   const { t } = useLocale();
@@ -99,7 +100,7 @@ export default function AddRiderForm() {
               }}
               placeholder={t("add_rider.rider_email_placeholder")}
               type="email"
-              className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+              className="flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
             <button
               onClick={search}
@@ -118,20 +119,20 @@ export default function AddRiderForm() {
                 {t("add_rider.found_account", { name: found.fullName ?? t("add_rider.unnamed_account"), role: found.role })}
               </p>
 
-              <select
+              <Select
                 value={vehicleType}
                 onChange={(e) => setVehicleType(e.target.value)}
-                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               >
                 <option value="motorbike">{t("become_rider.vehicle_motorbike")}</option>
                 <option value="car">{t("become_rider.vehicle_car")}</option>
                 <option value="bicycle">{t("become_rider.vehicle_bicycle")}</option>
-              </select>
+              </Select>
               <input
                 value={licenseNumber}
                 onChange={(e) => setLicenseNumber(e.target.value)}
                 placeholder={t("add_rider.license_number")}
-                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
 
               <button

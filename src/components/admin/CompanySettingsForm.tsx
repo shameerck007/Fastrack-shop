@@ -8,6 +8,7 @@ import { useState, useTransition } from "react";
 import { updateCompanySettings } from "@/lib/actions/admin-settings";
 import { useLocale } from "@/components/LocaleProvider";
 import type { CompanySettings } from "@/lib/company-settings";
+import Select from "@/components/ui/Select";
 
 export default function CompanySettingsForm({ settings }: { settings: CompanySettings }) {
   const { t } = useLocale();
@@ -74,7 +75,7 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
     });
   }
 
-  const field = "rounded-lg border border-neutral-300 px-3 py-2 text-sm";
+  const field = "min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
   const label = "mb-1 block text-xs font-medium text-neutral-500";
 
   return (
@@ -111,14 +112,14 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
           {isIndia && (
             <div>
               <label className={label}>State (decides CGST + SGST or IGST on invoices)</label>
-              <select value={stateName} onChange={(e) => setStateName(e.target.value)} className={`${field} w-full bg-white`}>
+              <Select value={stateName} onChange={(e) => setStateName(e.target.value)} className={`${field} w-full bg-white`}>
                 <option value="">Select state</option>
                 {INDIAN_STATES.map((st) => (
                   <option key={st} value={st}>
                     {st}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           )}
         </div>

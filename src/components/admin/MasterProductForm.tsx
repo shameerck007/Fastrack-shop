@@ -6,8 +6,9 @@ import Modal from "@/components/Modal";
 import ImageUploader from "@/components/ImageUploader";
 import { createMasterProduct, updateMasterProduct, type MasterVariantInput } from "@/lib/actions/admin-catalog";
 import type { MasterProduct } from "@/lib/master-catalog";
+import Select from "@/components/ui/Select";
 
-const field = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 const lab = "mb-1 block text-xs font-medium text-neutral-500";
 
 interface Cat {
@@ -114,7 +115,7 @@ export default function MasterProductForm({
             </div>
             <div>
               <label className={lab}>Category</label>
-              <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={`${field} bg-white`}>
+              <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={`${field} bg-white`}>
                 <option value="">None</option>
                 {top.map((c) => (
                   <optgroup key={c.id} label={c.name}>
@@ -128,7 +129,7 @@ export default function MasterProductForm({
                       ))}
                   </optgroup>
                 ))}
-              </select>
+              </Select>
             </div>
             <div>
               <label className={lab}>Barcode (EAN / GTIN)</label>

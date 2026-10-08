@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { COUNTRIES, findCountry, type Country } from "@/lib/countries";
 import { useDefaultCountry } from "@/components/DefaultCountryProvider";
+import Select from "@/components/ui/Select";
 
 /** Splits a stored value back into a country + national number for editing, so
  * re-opening a form with an existing phone shows the right flag. Accepts the
@@ -66,7 +67,7 @@ export default function PhoneNumberInput({
 
   return (
     <div className="flex gap-2">
-      <select
+      <Select
         value={country.code}
         onChange={(e) => {
           const next = findCountry(e.target.value);
@@ -74,14 +75,14 @@ export default function PhoneNumberInput({
           emit(next, national);
         }}
         aria-label="Country code"
-        className="w-[108px] shrink-0 rounded-lg border border-neutral-300 bg-white px-2 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="w-[120px] shrink-0"
       >
         {COUNTRIES.map((c) => (
-          <option key={c.code} value={c.code}>
+          <option key={c.code} value={c.code} data-hint={c.name}>
             {c.flag} {c.dial}
           </option>
         ))}
-      </select>
+      </Select>
       <input
         type="tel"
         inputMode="numeric"
@@ -92,7 +93,7 @@ export default function PhoneNumberInput({
           setNational(e.target.value);
           emit(country, e.target.value);
         }}
-        className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
       />
     </div>
   );

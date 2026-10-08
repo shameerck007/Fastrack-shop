@@ -13,6 +13,7 @@ import { useMarket } from "@/components/MoneyProvider";
 import IndiaSupplierFields from "@/components/merchant/IndiaSupplierFields";
 import { EMPTY_INDIA_SUPPLIER, validateIndiaSupplier } from "@/lib/india-business";
 import { validatePhone } from "@/lib/countries";
+import Select from "@/components/ui/Select";
 
 const COUNTRIES = ["Saudi Arabia", "United Arab Emirates", "Kuwait", "Bahrain", "Qatar", "Oman", "India"];
 
@@ -136,7 +137,7 @@ export default function AddMerchantForm() {
               }}
               placeholder={t("add_merchant.owner_email_placeholder")}
               type="email"
-              className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+              className="flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
             <button
               onClick={search}
@@ -159,7 +160,7 @@ export default function AddMerchantForm() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t("add_merchant.store_name")}
-                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
               {isIndia && <IndiaSupplierFields value={india} onChange={setIndia} />}
               <div className={isIndia ? "hidden" : "grid grid-cols-2 gap-2"}>
@@ -174,13 +175,13 @@ export default function AddMerchantForm() {
                       value={crNumber}
                       onChange={(e) => setCrNumber(e.target.value)}
                       placeholder={t("add_merchant.cr_number")}
-                      className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                      className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                     <input
                       value={vatNumber}
                       onChange={(e) => setVatNumber(e.target.value)}
                       placeholder={t("add_merchant.vat_number_optional")}
-                      className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                      className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                   </>
                 )}
@@ -190,26 +191,26 @@ export default function AddMerchantForm() {
                 value={addressLine}
                 onChange={(e) => setAddressLine(e.target.value)}
                 placeholder={t("add_merchant.address_optional")}
-                className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
               <div className={isIndia ? "hidden" : "grid grid-cols-2 gap-2"}>
                 <input
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder={t("add_merchant.city")}
-                  className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
-                <select
+                <Select
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   {COUNTRIES.map((c) => (
                     <option key={c} value={c}>
                       {c}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <button

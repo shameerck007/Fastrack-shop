@@ -9,8 +9,9 @@ import { addMasterToStore, requestMasterProduct } from "@/lib/actions/merchant-c
 import OfferModal from "@/components/OfferModal";
 import { useCurrency } from "@/components/MoneyProvider";
 import type { MasterProduct } from "@/lib/master-catalog";
+import Select from "@/components/ui/Select";
 
-const field = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
 interface Cat {
   id: string;
@@ -164,14 +165,14 @@ function RequestModal({ categories, onClose, onDone }: { categories: Cat[]; onCl
             <input placeholder="Name in Arabic" dir="rtl" value={nameAr} onChange={(e) => setNameAr(e.target.value)} className={field} />
             <input placeholder="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} className={field} />
             <input placeholder="Barcode (EAN / GTIN)" value={barcode} onChange={(e) => setBarcode(e.target.value)} className={field} />
-            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={`${field} bg-white sm:col-span-2`}>
+            <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={`${field} bg-white sm:col-span-2`}>
               <option value="">Category</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
         <textarea rows={3} placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} className={field} />

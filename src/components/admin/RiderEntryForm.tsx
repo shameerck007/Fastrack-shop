@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { recordRiderSettlementEntry } from "@/lib/actions/admin-rider-settlements";
 import { useCurrency, useMoney } from "@/components/MoneyProvider";
+import Select from "@/components/ui/Select";
 
 
-const field = "rounded-lg border border-neutral-300 px-3 py-2 text-sm";
+const field = "min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
 /** Records either a payout to the rider or cash the rider handed in. The default
  * follows the balance: FasTrack owes them -> payout; they owe FasTrack -> cash deposit. */
@@ -114,11 +115,11 @@ export default function RiderEntryForm({
         </label>
         <label className="flex flex-col gap-1 text-sm">
           <span className="text-xs font-medium text-neutral-500">Method</span>
-          <select value={method} onChange={(e) => setMethod(e.target.value)} className={`${field} bg-white`}>
+          <Select value={method} onChange={(e) => setMethod(e.target.value)} className={`${field} bg-white`}>
             <option value="cash">Cash</option>
             <option value="bank_transfer">Bank transfer</option>
             <option value="other">Other</option>
-          </select>
+          </Select>
         </label>
         <label className="flex flex-col gap-1 text-sm">
           <span className="text-xs font-medium text-neutral-500">Reference (optional)</span>

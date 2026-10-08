@@ -25,9 +25,10 @@ import { useMarket } from "@/components/MoneyProvider";
 import CodeInput from "@/components/CodeInput";
 import IndianBankFields from "@/components/merchant/IndianBankFields";
 import { checkIndianBankDetails } from "@/lib/india-business";
+import Select from "@/components/ui/Select";
 
 const STEPS = ["Personal", "ID", "Vehicle", "Payout", "Review"] as const;
-const inputClass = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 const CITIES_SA = ["Riyadh", "Jeddah", "Makkah", "Madinah", "Dammam", "Khobar", "Dhahran", "Taif", "Tabuk", "Abha", "Buraidah", "Other"];
 // India launches in Kerala: riders pick their Kerala city.
 const CITIES_IN = ["Kochi", "Thiruvananthapuram", "Kozhikode", "Thrissur", "Kannur", "Kollam", "Kottayam", "Alappuzha", "Palakkad", "Malappuram", "Other"];
@@ -234,21 +235,21 @@ export default function RiderApplicationForm() {
                 <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className={inputClass} />
               </Field>
               <Field label="City you'll ride in">
-                <select value={city} onChange={(e) => setCity(e.target.value)} className={`${inputClass} bg-white`}>
+                <Select value={city} onChange={(e) => setCity(e.target.value)} className={`${inputClass} bg-white`}>
                   {CITIES.map((c) => (
                     <option key={c}>{c}</option>
                   ))}
-                </select>
+                </Select>
               </Field>
             </div>
             <Field label="Nationality">
-              <select value={nationality} onChange={(e) => setNationality(e.target.value)} className={`${inputClass} bg-white`}>
+              <Select value={nationality} onChange={(e) => setNationality(e.target.value)} className={`${inputClass} bg-white`}>
                 {COUNTRIES.map((c) => (
                   <option key={c.code} value={c.name}>
                     {c.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
             <div className="mt-1 border-t border-neutral-100 pt-3">
               <p className="mb-2 text-sm font-semibold">Emergency contact</p>
@@ -321,11 +322,11 @@ export default function RiderApplicationForm() {
         {step === 2 && (
           <>
             <Field label={t("become_rider.vehicle_type")}>
-              <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className={`${inputClass} bg-white`}>
+              <Select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className={`${inputClass} bg-white`}>
                 <option value="motorbike">{t("become_rider.vehicle_motorbike")}</option>
                 <option value="car">{t("become_rider.vehicle_car")}</option>
                 <option value="bicycle">{t("become_rider.vehicle_bicycle")}</option>
-              </select>
+              </Select>
             </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label={t("become_rider.license_number")}>

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "@/components/Link";
 import { useLocale } from "@/components/LocaleProvider";
+import Select from "@/components/ui/Select";
 
 export interface MerchantRow {
   id: string;
@@ -70,7 +71,7 @@ export default function MerchantsList({ merchants }: { merchants: MerchantRow[] 
           className="w-full rounded-full border border-neutral-300 px-4 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-64"
         />
 
-          <select
+          <Select
             value={country}
             onChange={(e) => setCountry(e.target.value)}
             className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700"
@@ -81,8 +82,8 @@ export default function MerchantsList({ merchants }: { merchants: MerchantRow[] 
                 {c}
               </option>
             ))}
-          </select>
-          <select
+          </Select>
+          <Select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700"
@@ -92,7 +93,7 @@ export default function MerchantsList({ merchants }: { merchants: MerchantRow[] 
             <option value="approved">{t("merchants_list.status_approved")}</option>
             <option value="rejected">{t("merchants_list.status_rejected")}</option>
             <option value="suspended">{t("merchants_list.status_suspended")}</option>
-          </select>
+          </Select>
         </div>
       </div>
 

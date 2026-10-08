@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Select from "@/components/ui/Select";
 import type { MasterProduct } from "@/lib/master-catalog";
 
 export interface FilterCategory {
@@ -137,7 +138,7 @@ export function CatalogSearch({
           className="h-10 w-full rounded-full border border-neutral-300 bg-white pe-4 ps-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
       </div>
-      <select value={cat} onChange={(e) => onChange({ cat: e.target.value })} className="h-10 min-w-[10rem] rounded-full border border-neutral-300 bg-white px-3 text-sm focus:border-blue-500 focus:outline-none">
+      <Select value={cat} onChange={(e) => onChange({ cat: e.target.value })} className="min-w-[12rem]">
         <option value="all">All categories</option>
         {parents.map((p) => {
           const kids = categories.filter((c) => c.parent_id === p.id);
@@ -156,7 +157,7 @@ export function CatalogSearch({
             </optgroup>
           );
         })}
-      </select>
+      </Select>
       <span className={`h-2 w-2 rounded-full bg-blue-600 transition-opacity ${loading ? "animate-pulse opacity-100" : "opacity-0"}`} aria-hidden />
     </div>
   );
