@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { TILE_URL, TILE_OPTIONS } from "@/lib/map-config";
 import { createClient } from "@/lib/supabase/client";
 import { distanceKm } from "@/lib/delivery-geo";
+import { etaMinutes as estimateMinutes } from "@/lib/eta";
 import { useLocale } from "@/components/LocaleProvider";
 import type { OrderStatus } from "@/types/database";
 
@@ -23,9 +24,9 @@ export interface TrackingRider {
 }
 
 // Straight-line distance understates road distance; scooter speed in city traffic.
-const ROAD_FACTOR = 1.35;
-const SPEED_KMH = 24;
-const PREP_MINUTES = 15;
+// Live legs (rider to shop, rider to customer) use town-traffic speed; the first estimate comes from the time promised at checkout.
+const ROAD_FACTOR = 1.3;
+const SPEED_KMH = 20;
 
 const STEPS = [
   { key: "step_placed", icon: "🧾", statuses: ["pending", "confirmed"] },
@@ -64,6 +65,7 @@ export default function OrderTrackingHero({
   rider,
   dest,
   shop,
+  promisedAt = null,
 }: {
   orderId: string;
   orderNumber: string;
@@ -71,6 +73,8 @@ export default function OrderTrackingHero({
   rider: TrackingRider | null;
   dest: Point | null;
   shop: (Point & { name: string }) | null;
+  /** The delivery time promised when the order was placed (ISO), so this screen agrees with checkout and the email. */
+  promisedAt?: string | null;
 }) {
   const { t, locale } = useLocale();
   const [status, setStatus] = useState(initialStatus);
@@ -259,29 +263,34 @@ export default function OrderTrackingHero({
     []
   );
 
-  // Estimated minutes left.
+  // Minutes left. Before the rider is on the way this is the time promised at checkout counting down (so it matches what the
+  // customer was told); once the rider moves it follows the road distance. A late order shows the longer, honest time.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+
   const etaMinutes = useMemo(() => {
     if (done || !dest) return null;
     const leg = (a: Point, b: Point) => ((distanceKm(a.lat, a.lng, b.lat, b.lng) * ROAD_FACTOR) / SPEED_KMH) * 60;
-    let minutes: number;
     const destKey = `${dest.lat.toFixed(5)},${dest.lng.toFixed(5)}`;
     const shopKey = shop ? `${shop.lat.toFixed(5)},${shop.lng.toFixed(5)}` : "";
     const roadMin = road && road.sec > 0 ? road.sec / 60 : null;
+    let minutes: number | null = null;
     if (status === "out_for_delivery" && riderPos) minutes = roadMin != null && road?.target === destKey ? roadMin : leg(riderPos, dest);
     else if (status === "rider_assigned" && riderPos && shop)
       minutes = (roadMin != null && road?.target === shopKey ? roadMin : leg(riderPos, shop)) + 3 + leg(shop, dest);
-    else if (shop) minutes = PREP_MINUTES + leg(shop, dest);
-    else return null;
+    if (minutes == null && promisedAt) minutes = (new Date(promisedAt).getTime() - now) / 60_000;
+    if (minutes == null && shop) minutes = estimateMinutes(distanceKm(shop.lat, shop.lng, dest.lat, dest.lng));
+    if (minutes == null) return null;
     return Math.max(2, Math.round(minutes));
-  }, [status, riderPos, dest, shop, done, road]);
+  }, [status, riderPos, dest, shop, done, road, promisedAt, now]);
 
   const arrival = useMemo(() => {
     if (etaMinutes == null) return null;
-    const fmt = (d: Date) => d.toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" });
-    const from = new Date(Date.now() + etaMinutes * 60_000);
-    const to = new Date(from.getTime() + 10 * 60_000);
-    return `${fmt(from)} – ${fmt(to)}`;
-  }, [etaMinutes, locale]);
+    return new Date(now + etaMinutes * 60_000).toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-US", { hour: "numeric", minute: "2-digit" });
+  }, [etaMinutes, locale, now]);
 
   const stepIndex = Math.max(
     0,

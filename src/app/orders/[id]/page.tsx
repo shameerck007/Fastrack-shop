@@ -91,6 +91,7 @@ export default async function OrderDetailPage({
           }
           dest={dest}
           shop={shop}
+          promisedAt={(order as unknown as { estimated_delivery_at?: string | null }).estimated_delivery_at ?? null}
         />
       )}
       <h1 className="mb-1 text-2xl font-semibold">{t("orders.order_details_title")}</h1>

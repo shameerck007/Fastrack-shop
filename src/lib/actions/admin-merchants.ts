@@ -18,11 +18,11 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 // promotes the owner's profile to merchant.
 async function finalizeApproval(
   supabase: SupabaseServerClient,
-  store: { id: string; name: string; address_line: string | null; owner_id: string }
+  store: { id: string; name: string; address_line: string | null; owner_id: string; lat?: number | null; lng?: number | null }
 ) {
   const { data: warehouse, error: warehouseError } = await supabase
     .from("warehouses")
-    .insert({ name: `${store.name} (Merchant)`, address_line: store.address_line })
+    .insert({ name: `${store.name} (Merchant)`, address_line: store.address_line, ...(store.lat != null && store.lng != null ? { lat: store.lat, lng: store.lng } : {}) })
     .select("id")
     .single();
   if (warehouseError) throw warehouseError;

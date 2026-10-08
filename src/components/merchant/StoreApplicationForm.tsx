@@ -16,6 +16,7 @@ import { defaultOpeningHours } from "@/lib/store-hours";
 import IndiaSupplierFields from "@/components/merchant/IndiaSupplierFields";
 import { EMPTY_INDIA_SUPPLIER, validateIndiaSupplier } from "@/lib/india-business";
 import { useMarket } from "@/components/MoneyProvider";
+import LocationPicker from "@/components/LocationPicker";
 
 export default function StoreApplicationForm() {
   const { countryCode } = useMarket();
@@ -28,6 +29,7 @@ export default function StoreApplicationForm() {
   const [bankName, setBankName] = useState("");
   const [bankIban, setBankIban] = useState("");
   const [addressLine, setAddressLine] = useState("");
+  const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
   const [crDocumentPath, setCrDocumentPath] = useState<string | null>(null);
   const [vatDocumentPath, setVatDocumentPath] = useState<string | null>(null);
   const [profile, setProfile] = useState<StoreProfileValue>({
@@ -45,6 +47,10 @@ export default function StoreApplicationForm() {
     setError(null);
     if (!crDocumentPath) {
       setError(isIndia ? "Please upload a copy of your GST registration certificate." : "Please upload a copy of your CR document.");
+      return;
+    }
+    if (!pin) {
+      setError("Please mark your shop on the map, so riders and delivery times start from the right place.");
       return;
     }
     const phoneCheck = validatePhone(contactPhone);
@@ -95,6 +101,8 @@ export default function StoreApplicationForm() {
           bankIban,
           india: isIndia ? india : undefined,
           addressLine,
+          lat: pin?.lat,
+          lng: pin?.lng,
           crDocumentPath,
           vatDocumentPath: vatDocumentPath ?? undefined,
           logoUrl: profile.logoUrl,
@@ -148,6 +156,12 @@ export default function StoreApplicationForm() {
           placeholder="Where riders will collect orders from"
           className="w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium">Shop location on the map *</label>
+        <p className="mb-2 text-xs text-neutral-500">Search for your shop, use your current location, or tap the map to drop the pin exactly where you are. Delivery areas and times are measured from this pin.</p>
+        <LocationPicker lat={pin?.lat ?? null} lng={pin?.lng ?? null} onChange={(lat, lng) => setPin({ lat, lng })} />
+        {pin && <p className="mt-1.5 text-xs font-medium text-emerald-700">✓ Pin saved</p>}
       </div>
       {!isIndia && (
         <BankFields value={{ bankName, iban: bankIban }} onChange={(v) => { setBankName(v.bankName); setBankIban(v.iban); }} />

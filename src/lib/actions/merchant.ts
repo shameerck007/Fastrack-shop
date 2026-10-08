@@ -29,6 +29,9 @@ export async function applyForStore(input: {
   india?: IndiaSupplierValue;
   contactPhone?: string;
   addressLine?: string;
+  /** The shop's pin on the map. */
+  lat?: number;
+  lng?: number;
   city?: string;
   crDocumentPath?: string;
   vatDocumentPath?: string;
@@ -119,8 +122,14 @@ export async function applyForStore(input: {
     };
   }
 
+  const hasPin = typeof input.lat === "number" && typeof input.lng === "number" && Number.isFinite(input.lat) && Number.isFinite(input.lng);
+  if (!hasPin) throw new Error("Please mark your shop on the map.");
+  if (Math.abs(input.lat as number) > 90 || Math.abs(input.lng as number) > 180) throw new Error("That map location isn't valid.");
+
   const row = {
     owner_id: user.id,
+    lat: input.lat as number,
+    lng: input.lng as number,
     name: input.name.trim(),
     ...identity,
     contact_phone: input.contactPhone?.trim() || null,
@@ -139,10 +148,10 @@ export async function applyForStore(input: {
   if (error?.code === "42703" || error?.code === "PGRST204") {
     // Optional columns (branding, India fields) come from migrations; drop them if missing.
     const {
-      logo_url, cover_url, tagline, opening_hours, state, fssai_number, bank_account_number, bank_ifsc, bank_account_holder, ...basic
+      logo_url, cover_url, tagline, opening_hours, state, fssai_number, lat, lng, bank_account_number, bank_ifsc, bank_account_holder, ...basic
     } = row;
     void logo_url; void cover_url; void tagline; void opening_hours;
-    void state; void fssai_number; void bank_account_number; void bank_ifsc; void bank_account_holder;
+    void lat; void lng; void state; void fssai_number; void bank_account_number; void bank_ifsc; void bank_account_holder;
     ({ error } = await supabase.from("stores").insert(basic));
   }
 
