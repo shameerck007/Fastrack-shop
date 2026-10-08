@@ -121,6 +121,8 @@ export async function getMasterCatalog(opts: { status?: "approved" | "pending" |
 export interface CatalogPage {
   items: MasterProduct[];
   total: number;
+  /** Set when the query failed for a reason other than the tables being absent. */
+  error?: string;
 }
 
 /** One page of the catalog, filtered on the server (the catalog is thousands of products, so it is never loaded whole). */
@@ -137,19 +139,30 @@ export async function searchMasterCatalog(opts: {
   const page = Math.max(1, opts.page ?? 1);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = (await createClient()) as any;
-  let q = supabase.from("master_products").select(SELECT, { count: "exact" }).eq("status", opts.status);
-  if (opts.requestedByStore) q = q.eq("requested_by_store", opts.requestedByStore);
-  if (opts.categoryIds && opts.categoryIds.length > 0) q = q.in("category_id", opts.categoryIds);
-  const needle = (opts.q ?? "").trim().replace(/[,()*%\\"]/g, " ").replace(/\s+/g, " ").trim();
-  if (needle) {
-    const like = `%${needle}%`;
-    const parts = [`name.ilike.${like}`, `brand.ilike.${like}`, `name_ar.ilike.${like}`];
-    if (/^\d{6,}$/.test(needle)) parts.push(`barcode.eq.${needle}`);
-    q = q.or(parts.join(","));
-  }
+  const filtered = (select: string, options?: { count: "exact"; head: true }) => {
+    let q = supabase.from("master_products").select(select, options).eq("status", opts.status);
+    if (opts.requestedByStore) q = q.eq("requested_by_store", opts.requestedByStore);
+    if (opts.categoryIds && opts.categoryIds.length > 0) q = q.in("category_id", opts.categoryIds);
+    const needle = (opts.q ?? "").trim().replace(/[,()*%\\"]/g, " ").replace(/\s+/g, " ").trim();
+    if (needle) {
+      const like = `%${needle}%`;
+      const parts = [`name.ilike.${like}`, `brand.ilike.${like}`, `name_ar.ilike.${like}`];
+      if (/^\d{6,}$/.test(needle)) parts.push(`barcode.eq.${needle}`);
+      q = q.or(parts.join(","));
+    }
+    return q;
+  };
   const from = (page - 1) * pageSize;
-  const { data, error, count } = await q.order("name", { ascending: true }).range(from, from + pageSize - 1);
-  if (error) return null;
+  const [{ data, error }, { count, error: countError }] = await Promise.all([
+    filtered(SELECT).order("name", { ascending: true }).range(from, from + pageSize - 1),
+    filtered("id", { count: "exact", head: true }),
+  ]);
+  const failure = error ?? countError;
+  if (failure) {
+    // The catalog tables arrive with migration 0067; anything else is a real failure worth showing.
+    if (failure.code === "42P01" || failure.code === "PGRST205" || /does not exist|schema cache/i.test(failure.message ?? "")) return null;
+    return { items: [], total: 0, error: failure.message ?? "The catalog query failed" };
+  }
   const rows = (data ?? []) as Row[];
   const offers = new Map<string, number>();
   if (opts.withOffers && rows.length > 0) {

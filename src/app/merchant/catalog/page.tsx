@@ -30,6 +30,7 @@ export default async function MerchantCatalogPage({ searchParams }: { searchPara
           Find your product, add it to your store, and set your price and stock. The name, photo and details are kept by FasTrack, so every listing looks right. Not in the catalog? Request it.
         </p>
       </div>
+      {result?.error && <p className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">The catalog could not be loaded: {result.error}</p>}
       {result === null ? (
         <p className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">The catalog isn&apos;t available yet. Please check back soon.</p>
       ) : (
