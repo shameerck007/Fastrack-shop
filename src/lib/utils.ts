@@ -48,8 +48,8 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
 };
 
 export const DELIVERY_TYPE_LABELS: Record<string, string> = {
-  express: "Express (15–30 min)",
-  standard: "Standard (30–60 min)",
+  express: "Quick delivery",
+  standard: "Standard delivery",
   scheduled: "Scheduled",
 };
 

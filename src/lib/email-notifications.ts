@@ -30,7 +30,7 @@ function estimateArrival(deliveryType: DeliveryType, scheduledFor: string | null
   if (deliveryType === "scheduled" && scheduledFor) {
     return new Date(scheduledFor).toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit" });
   }
-  return deliveryType === "express" ? "Today, 15–30 min" : "Today, 30–60 min";
+  return deliveryType === "express" ? "Today, quick delivery" : "We will confirm your delivery date";
 }
 
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
