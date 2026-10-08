@@ -125,24 +125,58 @@ export interface CatalogPage {
   error?: string;
 }
 
-/** One page of the catalog, filtered on the server (the catalog is thousands of products, so it is never loaded whole). */
-export async function searchMasterCatalog(opts: {
+export interface CatalogSearchOptions {
   status: "approved" | "pending" | "rejected";
   q?: string;
-  categoryIds?: string[];
+  /** A category; its sub-categories are included. */
+  categoryId?: string;
   requestedByStore?: string;
   page?: number;
   pageSize?: number;
   withOffers?: boolean;
-}): Promise<CatalogPage | null> {
+}
+
+/**
+ * One page of the catalog, filtered on the server (the catalog is thousands of products, so it is never loaded whole).
+ * Uses the one-round-trip database function from migration 0069; until that is run it falls back to plain table queries.
+ */
+export async function searchMasterCatalog(opts: CatalogSearchOptions): Promise<CatalogPage | null> {
+  if (!opts.requestedByStore) {
+    const pageSize = opts.pageSize ?? 48;
+    const page = Math.max(1, opts.page ?? 1);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabase = (await createClient()) as any;
+    const { data, error } = await supabase.rpc("search_master_products", {
+      p_status: opts.status,
+      p_q: opts.q ?? null,
+      p_category: opts.categoryId && opts.categoryId !== "all" ? opts.categoryId : null,
+      p_limit: pageSize,
+      p_offset: (page - 1) * pageSize,
+      p_offers: !!opts.withOffers,
+    });
+    if (!error && data) {
+      const d = data as { total: number; items: (Row & { offers?: number })[] };
+      return { items: d.items.map((r) => toProduct(r, Number(r.offers ?? 0))), total: Number(d.total) };
+    }
+    // Any other failure falls through to the table queries below, which report a real error.
+  }
+  return searchViaTables(opts);
+}
+
+async function searchViaTables(opts: CatalogSearchOptions): Promise<CatalogPage | null> {
   const pageSize = opts.pageSize ?? 48;
   const page = Math.max(1, opts.page ?? 1);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = (await createClient()) as any;
+  let categoryIds: string[] | undefined;
+  if (opts.categoryId && opts.categoryId !== "all") {
+    const { data: kids } = await supabase.from("categories").select("id").eq("parent_id", opts.categoryId);
+    categoryIds = [opts.categoryId, ...((kids ?? []) as { id: string }[]).map((k) => k.id)];
+  }
   const filtered = (select: string, options?: { count: "exact"; head: true }) => {
     let q = supabase.from("master_products").select(select, options).eq("status", opts.status);
     if (opts.requestedByStore) q = q.eq("requested_by_store", opts.requestedByStore);
-    if (opts.categoryIds && opts.categoryIds.length > 0) q = q.in("category_id", opts.categoryIds);
+    if (categoryIds) q = q.in("category_id", categoryIds);
     const needle = (opts.q ?? "").trim().replace(/[,()*%\\"]/g, " ").replace(/\s+/g, " ").trim();
     if (needle) {
       const like = `%${needle}%`;
@@ -181,12 +215,6 @@ export async function countMaster(status: "approved" | "pending", requestedBySto
   if (requestedByStore) q = q.eq("requested_by_store", requestedByStore);
   const { count } = await q;
   return count ?? 0;
-}
-
-/** A category plus its sub-categories, for filtering. */
-export function categoryScope(categories: { id: string; parent_id: string | null }[], id: string | undefined): string[] | undefined {
-  if (!id || id === "all") return undefined;
-  return [id, ...categories.filter((c) => c.parent_id === id).map((c) => c.id)];
 }
 
 /** The master products this supplier already sells (so the catalog can show "In your store"). */

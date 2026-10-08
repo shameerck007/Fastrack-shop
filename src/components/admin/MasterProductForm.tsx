@@ -20,11 +20,14 @@ interface Cat {
 export default function MasterProductForm({
   open,
   onClose,
+  onSaved,
   categories,
   existing,
 }: {
   open: boolean;
   onClose: () => void;
+  /** Called after a successful save, so the list behind can reload. */
+  onSaved?: () => void;
   categories: Cat[];
   existing?: MasterProduct | null;
 }) {
@@ -78,6 +81,7 @@ export default function MasterProductForm({
     }
     onClose();
     router.refresh();
+    onSaved?.();
   }
 
   const top = categories.filter((c) => !c.parent_id);

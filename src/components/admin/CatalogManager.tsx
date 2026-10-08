@@ -6,7 +6,7 @@ import MasterProductForm from "@/components/admin/MasterProductForm";
 import { approveMasterProduct, rejectMasterProduct, buildCatalogFromProducts, addMasterToFastrack } from "@/lib/actions/admin-catalog";
 import OfferModal from "@/components/OfferModal";
 import { useCurrency } from "@/components/MoneyProvider";
-import { CatalogPager, CatalogSearch, CatalogTabs } from "@/components/CatalogFilters";
+import { CatalogPager, CatalogSearch, CatalogTabs, useCatalogList } from "@/components/CatalogFilters";
 import type { MasterProduct } from "@/lib/master-catalog";
 
 interface Cat {
@@ -16,11 +16,13 @@ interface Cat {
 }
 
 export default function CatalogManager({
-  products,
-  total,
-  page,
+  products: initialProducts,
+  total: initialTotal,
+  page: initialPage,
   pageSize,
-  tab,
+  tab: initialTab,
+  q: initialQ = "",
+  cat: initialCat = "all",
   approvedCount,
   pendingCount,
   categories,
@@ -33,6 +35,8 @@ export default function CatalogManager({
   page: number;
   pageSize: number;
   tab: "catalog" | "requests";
+  q?: string;
+  cat?: string;
   approvedCount: number;
   pendingCount: number;
   categories: Cat[];
@@ -51,7 +55,14 @@ export default function CatalogManager({
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const rows = products;
+  const list = useCatalogList({
+    initial: { items: initialProducts, total: initialTotal, q: initialQ, cat: initialCat, page: initialPage, tab: initialTab },
+    pageSize,
+    statusFor: (t) => (t === "requests" ? "pending" : "approved"),
+    withOffers: true,
+  });
+  const rows = list.items;
+  const tab = list.state.tab;
 
   async function approve(id: string) {
     setBusy(id);
@@ -59,6 +70,7 @@ export default function CatalogManager({
     setBusy(null);
     if (res.error) setMessage(res.error);
     router.refresh();
+    list.reload();
   }
 
   async function reject(id: string) {
@@ -69,6 +81,7 @@ export default function CatalogManager({
     setBusy(null);
     if (res.error) setMessage(res.error);
     router.refresh();
+    list.reload();
   }
 
   async function build() {
@@ -79,6 +92,7 @@ export default function CatalogManager({
     setBusy(null);
     setMessage(res.error ?? `Done: ${res.created} catalog products created, ${res.linked} supplier and FasTrack products linked.`);
     router.refresh();
+    list.reload();
   }
 
   return (
@@ -87,6 +101,7 @@ export default function CatalogManager({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CatalogTabs
             tab={tab}
+            onTab={(key) => list.update({ tab: key })}
             tabs={[
               { key: "catalog", label: `Catalog (${approvedCount.toLocaleString()})` },
               { key: "requests", label: `Requests (${pendingCount})`, dot: pendingCount > 0 },
@@ -101,7 +116,7 @@ export default function CatalogManager({
             </button>
           </div>
         </div>
-        <CatalogSearch categories={categories} />
+        <CatalogSearch categories={categories} q={list.state.q} cat={list.state.cat} loading={list.loading} onChange={(c) => list.update(c)} />
       </div>
 
       {message && <p className="rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-900">{message}</p>}
@@ -115,7 +130,7 @@ export default function CatalogManager({
           </p>
         </div>
       ) : (
-        <ul className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <ul className={`overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-opacity ${list.loading ? "opacity-60" : ""}`}>
           {rows.map((p) => (
             <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-neutral-100 px-4 py-3 last:border-0">
               <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-100">
@@ -169,7 +184,8 @@ export default function CatalogManager({
           ))}
         </ul>
       )}
-      <CatalogPager page={page} pageSize={pageSize} total={total} />
+      {list.failed && <p className="rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-900">Could not load the list. Check your connection and try again.</p>}
+      <CatalogPager page={list.state.page} pageSize={pageSize} total={list.total} busy={list.loading} onPage={(p) => list.update({ page: p })} />
 
       {selling && (
         <OfferModal
@@ -197,11 +213,12 @@ export default function CatalogManager({
           onDone={() => {
             setSelling(null);
             router.refresh();
+            list.reload();
           }}
         />
       )}
-      {creating && <MasterProductForm key="new" open onClose={() => setCreating(false)} categories={categories} />}
-      {editing && <MasterProductForm key={editing.id} open onClose={() => setEditing(null)} categories={categories} existing={editing} />}
+      {creating && <MasterProductForm key="new" open onClose={() => setCreating(false)} onSaved={list.reload} categories={categories} />}
+      {editing && <MasterProductForm key={editing.id} open onClose={() => setEditing(null)} categories={categories} existing={editing} onSaved={list.reload} />}
     </div>
   );
 }

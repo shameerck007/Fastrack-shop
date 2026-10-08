@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import CatalogBrowser from "@/components/merchant/CatalogBrowser";
 import { getMyStore } from "@/lib/merchant";
-import { categoryScope, getStoreMasterIds, searchMasterCatalog } from "@/lib/master-catalog";
+import { getStoreMasterIds, searchMasterCatalog } from "@/lib/master-catalog";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Catalog" };
@@ -16,7 +16,7 @@ export default async function MerchantCatalogPage({ searchParams }: { searchPara
   const supabase = await createClient();
   const { data: categories } = await supabase.from("categories").select("id, name, parent_id").order("sort_order");
   const [result, ownedIds, pendingReq, declinedReq] = await Promise.all([
-    searchMasterCatalog({ status: "approved", q: sp.q, categoryIds: categoryScope(categories ?? [], sp.cat), page, pageSize: PAGE_SIZE }),
+    searchMasterCatalog({ status: "approved", q: sp.q, categoryId: sp.cat, page, pageSize: PAGE_SIZE }),
     getStoreMasterIds(store.id).catch(() => new Set<string>()),
     searchMasterCatalog({ status: "pending", requestedByStore: store.id, pageSize: 50 }),
     searchMasterCatalog({ status: "rejected", requestedByStore: store.id, pageSize: 50 }),
@@ -38,6 +38,8 @@ export default async function MerchantCatalogPage({ searchParams }: { searchPara
           products={result.items}
           total={result.total}
           page={page}
+          q={sp.q ?? ""}
+          cat={sp.cat ?? "all"}
           pageSize={PAGE_SIZE}
           ownedIds={[...ownedIds]}
           requests={[...(pendingReq?.items ?? []), ...(declinedReq?.items ?? [])]}

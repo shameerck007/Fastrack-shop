@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CatalogPager, CatalogSearch } from "@/components/CatalogFilters";
+import { CatalogPager, CatalogSearch, useCatalogList } from "@/components/CatalogFilters";
 import Modal from "@/components/Modal";
 import ImageUploader from "@/components/ImageUploader";
 import { addMasterToStore, requestMasterProduct } from "@/lib/actions/merchant-catalog";
@@ -22,6 +22,8 @@ export default function CatalogBrowser({
   products,
   total,
   page,
+  q: initialQ = "",
+  cat: initialCat = "all",
   pageSize,
   ownedIds,
   requests,
@@ -31,6 +33,8 @@ export default function CatalogBrowser({
   products: MasterProduct[];
   total: number;
   page: number;
+  q?: string;
+  cat?: string;
   pageSize: number;
   ownedIds: string[];
   requests: MasterProduct[];
@@ -42,12 +46,13 @@ export default function CatalogBrowser({
   const [adding, setAdding] = useState<MasterProduct | null>(null);
   const [requesting, setRequesting] = useState(false);
 
-  const rows = products;
+  const list = useCatalogList({ initial: { items: products, total, q: initialQ, cat: initialCat, page, tab: "catalog" }, pageSize });
+  const rows = list.items;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-        <CatalogSearch categories={categories} placeholder="Search by name, brand or barcode…" />
+        <CatalogSearch categories={categories} q={list.state.q} cat={list.state.cat} loading={list.loading} onChange={(c) => list.update(c)} placeholder="Search by name, brand or barcode…" />
         <button type="button" onClick={() => setRequesting(true)} className="ms-auto h-10 rounded-full border border-blue-600 bg-white px-4 text-sm font-bold text-blue-700 hover:bg-blue-50">
           Can&apos;t find it? Request a product
         </button>
@@ -75,11 +80,11 @@ export default function CatalogBrowser({
       {rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center">
           <span className="text-4xl">🔎</span>
-          <p className="font-semibold text-neutral-700">{total === 0 ? "Nothing matches your search" : "The catalog is empty for now"}</p>
+          <p className="font-semibold text-neutral-700">{list.state.q || list.state.cat !== "all" ? "Nothing matches your search" : "The catalog is empty for now"}</p>
           <p className="text-sm text-neutral-500">Request the product and FasTrack will add it after review.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={`grid grid-cols-1 gap-3 transition-opacity sm:grid-cols-2 lg:grid-cols-3 ${list.loading ? "opacity-60" : ""}`}>
           {rows.map((p) => {
             const mine = owned.has(p.id);
             return (
@@ -114,10 +119,11 @@ export default function CatalogBrowser({
           })}
         </div>
       )}
-      <CatalogPager page={page} pageSize={pageSize} total={total} />
+      {list.failed && <p className="rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-900">Could not load the list. Check your connection and try again.</p>}
+      <CatalogPager page={list.state.page} pageSize={pageSize} total={list.total} busy={list.loading} onPage={(p) => list.update({ page: p })} />
 
-      {adding && <OfferModal product={adding} currency={currency} title={`Add ${adding.name}`} submitLabel="Add to my store" onSubmit={(offers) => addMasterToStore(adding.id, offers)} onClose={() => setAdding(null)} onDone={() => { setAdding(null); router.refresh(); }} />}
-      {requesting && <RequestModal categories={categories} onClose={() => setRequesting(false)} onDone={() => { setRequesting(false); router.refresh(); }} />}
+      {adding && <OfferModal product={adding} currency={currency} title={`Add ${adding.name}`} submitLabel="Add to my store" onSubmit={(offers) => addMasterToStore(adding.id, offers)} onClose={() => setAdding(null)} onDone={() => { setAdding(null); router.refresh(); list.reload(); }} />}
+      {requesting && <RequestModal categories={categories} onClose={() => setRequesting(false)} onDone={() => { setRequesting(false); router.refresh(); list.reload(); }} />}
     </div>
   );
 }

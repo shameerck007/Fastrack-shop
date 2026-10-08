@@ -1,6 +1,6 @@
 import CatalogManager from "@/components/admin/CatalogManager";
 import { PageHeader, StatGrid, StatTile } from "@/components/admin/AdminUi";
-import { categoryScope, countMaster, searchMasterCatalog } from "@/lib/master-catalog";
+import { countMaster, searchMasterCatalog } from "@/lib/master-catalog";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Master catalog" };
@@ -14,7 +14,7 @@ export default async function AdminCatalogPage({ searchParams }: { searchParams:
   const supabase = await createClient();
   const { data: categories } = await supabase.from("categories").select("id, name, parent_id").order("sort_order");
   const [result, approvedCount, pendingCount, { data: warehouses }, { data: stores }, { data: ownProducts }] = await Promise.all([
-    searchMasterCatalog({ status: tab === "requests" ? "pending" : "approved", q: sp.q, categoryIds: categoryScope(categories ?? [], sp.cat), page, pageSize: PAGE_SIZE, withOffers: true }),
+    searchMasterCatalog({ status: tab === "requests" ? "pending" : "approved", q: sp.q, categoryId: sp.cat, page, pageSize: PAGE_SIZE, withOffers: true }),
     countMaster("approved"),
     countMaster("pending"),
     supabase.from("warehouses").select("id, name").eq("is_active", true).order("created_at"),
@@ -53,7 +53,7 @@ export default async function AdminCatalogPage({ searchParams }: { searchParams:
         <StatTile icon="🔗" label="Average suppliers per product" value={approvedCount ? (offers / approvedCount).toFixed(1) : "0"} accent="#0ea5e9" />
       </StatGrid>
       {result.error && <p className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">The catalog could not be loaded: {result.error}</p>}
-      <CatalogManager products={result.items} total={result.total} page={page} pageSize={PAGE_SIZE} tab={tab} approvedCount={approvedCount} pendingCount={pendingCount} categories={(categories ?? []) as { id: string; name: string; parent_id: string | null }[]} fastrackLocations={fastrackLocations} fastrackIds={fastrackIds} />
+      <CatalogManager products={result.items} total={result.total} page={page} pageSize={PAGE_SIZE} tab={tab} q={sp.q ?? ""} cat={sp.cat ?? "all"} approvedCount={approvedCount} pendingCount={pendingCount} categories={(categories ?? []) as { id: string; name: string; parent_id: string | null }[]} fastrackLocations={fastrackLocations} fastrackIds={fastrackIds} />
     </div>
   );
 }
