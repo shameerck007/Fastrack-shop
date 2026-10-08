@@ -14,16 +14,18 @@ export default function RiderEntryForm({
   riderId,
   balance,
   payoutMethod,
+  monthlySalary = null,
 }: {
   riderId: string;
   balance: number;
   payoutMethod: "bank" | "cash";
+  monthlySalary?: number | null;
 }) {
   const money = useMoney();
   const currency = useCurrency();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [kind, setKind] = useState<"payout" | "cash_deposit">("payout");
+  const [kind, setKind] = useState<"payout" | "cash_deposit" | "salary" | "bonus" | "advance" | "deduction">("payout");
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState(payoutMethod === "bank" ? "bank_transfer" : "cash");
   const [reference, setReference] = useState("");
@@ -76,17 +78,27 @@ export default function RiderEntryForm({
           Cancel
         </button>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {(
           [
             ["payout", "We paid the rider"],
             ["cash_deposit", "Rider handed in cash"],
+            ["salary", "Add monthly salary"],
+            ["advance", "Advance paid to rider"],
+            ["deduction", "Deduction / fine"],
+            ["bonus", "Add a bonus"],
           ] as const
         ).map(([value, label]) => (
           <button
             key={value}
             type="button"
-            onClick={() => setKind(value)}
+            onClick={() => {
+              setKind(value);
+              if (value === "salary") {
+                if (monthlySalary) setAmount(monthlySalary.toFixed(2));
+                setNote((n) => n || `Salary: ${new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" })}`);
+              }
+            }}
             className={`rounded-lg border px-3 py-2 text-sm font-medium ${
               kind === value ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-300 text-neutral-600"
             }`}
@@ -118,6 +130,13 @@ export default function RiderEntryForm({
         </label>
       </div>
       <p className="text-xs text-neutral-400">
+        {kind === "salary" || kind === "bonus"
+          ? "Added to what FasTrack owes the rider."
+          : kind === "advance"
+            ? "Money already given to the rider: it reduces the balance."
+            : kind === "deduction"
+              ? "A fine or deduction: it reduces the balance, no money is paid."
+              : ""}{" "}
         {balance > 0.005
           ? `FasTrack owes this rider ${money(balance)}.`
           : balance < -0.005

@@ -8,7 +8,7 @@ import type { LiveOffer } from "@/lib/rider";
 
 // The quick-delivery offer: one order, one countdown. Accept to take it; Decline (or letting the timer run out)
 // passes it to the next nearest rider straight away.
-export default function ExpressOfferCard({ offer }: { offer: LiveOffer }) {
+export default function ExpressOfferCard({ offer, salaryOnly = false }: { offer: LiveOffer; salaryOnly?: boolean }) {
   const money = useMoney();
   const router = useRouter();
   const [left, setLeft] = useState(offer.secondsLeft);
@@ -86,8 +86,8 @@ export default function ExpressOfferCard({ offer }: { offer: LiveOffer }) {
             </div>
           </div>
           <div className="shrink-0 rounded-2xl bg-blue-50 px-3 py-2 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-700">You earn</p>
-            <p className="text-lg font-extrabold text-blue-700">{money(offer.deliveryFee)}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-700">{salaryOnly ? "Pay" : "You earn"}</p>
+            <p className="text-lg font-extrabold text-blue-700">{salaryOnly ? "Salary" : money(offer.deliveryFee)}</p>
           </div>
         </div>
         {error && <p className="mt-2 text-xs font-semibold text-blue-900">{error}</p>}

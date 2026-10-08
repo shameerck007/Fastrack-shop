@@ -12,6 +12,37 @@ const riderPayCols = cache(async (): Promise<string> => {
   return error ? "" : "rider_pay, ";
 });
 
+export interface RiderPayProfile {
+  payType: "per_delivery" | "salary";
+  monthlySalary: number | null;
+  /** True when deliveries add to this rider's earnings (per-delivery riders, or salary riders with the extra switch on). */
+  earnsPerDelivery: boolean;
+}
+
+/** How the signed-in rider is paid (per delivery before migration 0065, or when the columns are missing). */
+export const getRiderPayProfile = cache(async (): Promise<RiderPayProfile> => {
+  const fallback: RiderPayProfile = { payType: "per_delivery", monthlySalary: null, earnsPerDelivery: true };
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return fallback;
+    const { data, error } = await (supabase as unknown as {
+      from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { pay_type?: string; monthly_salary?: number | null; deliveries_earn_extra?: boolean } | null; error: unknown }> } } };
+    })
+      .from("delivery_partners")
+      .select("pay_type, monthly_salary, deliveries_earn_extra")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (error || !data) return fallback;
+    const salary = data.pay_type === "salary";
+    return { payType: salary ? "salary" : "per_delivery", monthlySalary: data.monthly_salary == null ? null : Number(data.monthly_salary), earnsPerDelivery: !salary || !!data.deliveries_earn_extra };
+  } catch {
+    return fallback;
+  }
+});
+
 export interface RiderProfile {
   profile: Profile;
   deliveryPartner: DeliveryPartner;
@@ -260,7 +291,7 @@ export async function getRiderTodayStats(): Promise<RiderTodayStats> {
   const rows = (data ?? []) as unknown as { rider_pay: number | null; orders: { delivery_fee: number } }[];
   return {
     deliveries: rows.length,
-    earnings: rows.reduce((sum, r) => sum + Number(r.rider_pay ?? r.orders.delivery_fee), 0),
+    earnings: (await getRiderPayProfile()).earnsPerDelivery ? rows.reduce((sum, r) => sum + Number(r.rider_pay ?? r.orders.delivery_fee), 0) : 0,
   };
 }
 
@@ -293,7 +324,7 @@ export async function getRiderLifetimeStats(): Promise<RiderLifetimeStats | null
   const rows = (deliveries ?? []) as unknown as { rider_pay: number | null; orders: { delivery_fee: number } }[];
   return {
     totalDeliveries: rows.length,
-    totalEarnings: rows.reduce((sum, r) => sum + Number(r.rider_pay ?? r.orders.delivery_fee), 0),
+    totalEarnings: (await getRiderPayProfile()).earnsPerDelivery ? rows.reduce((sum, r) => sum + Number(r.rider_pay ?? r.orders.delivery_fee), 0) : 0,
     rating: rider.rating,
     memberSince: rider.created_at,
   };
@@ -326,13 +357,14 @@ export async function getWeeklyEarnings(): Promise<DayEarnings[]> {
     .gte("delivered_at", start.toISOString());
   if (error) throw error;
 
+  const earns = (await getRiderPayProfile()).earnsPerDelivery;
   const rows = (data ?? []) as unknown as { delivered_at: string; rider_pay: number | null; orders: { delivery_fee: number } }[];
   const byDay = new Map<string, { deliveries: number; earnings: number }>();
   for (const row of rows) {
     const key = row.delivered_at.slice(0, 10);
     const existing = byDay.get(key) ?? { deliveries: 0, earnings: 0 };
     existing.deliveries += 1;
-    existing.earnings += Number(row.rider_pay ?? row.orders.delivery_fee);
+    if (earns) existing.earnings += Number(row.rider_pay ?? row.orders.delivery_fee);
     byDay.set(key, existing);
   }
 

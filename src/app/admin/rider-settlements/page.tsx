@@ -84,7 +84,9 @@ export default async function AdminRiderSettlementsPage() {
                           <Link href={`/admin/rider-settlements/${r.riderId}`} className="font-medium text-neutral-900 hover:text-blue-600">
                             {r.riderName}
                           </Link>
-                          <div className="text-[11px] text-neutral-400">{r.payoutMethod === "bank" ? "🏦 Bank transfer" : "💵 Cash"}</div>
+                          <div className="text-[11px] text-neutral-400">
+                            {r.payType === "salary" ? "💼 Salary" : "🛵 Per delivery"} · {r.payoutMethod === "bank" ? "🏦 Bank transfer" : "💵 Cash"}
+                          </div>
                         </td>
                         <td className="px-3 py-3 text-right text-neutral-500">{r.deliveredCount}</td>
                         <td className="px-3 py-3 text-right text-neutral-700">{money(r.earned)}</td>

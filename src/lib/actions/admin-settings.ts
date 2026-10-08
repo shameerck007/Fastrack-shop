@@ -27,7 +27,13 @@ export async function updateCompanySettings(input: {
   /** Rider pay per delivery (migration 0064). null clears it (riders earn the delivery fee). */
   riderPayBase?: number | null;
   riderPayPerKm?: number;
+  /** Bonus when a rider completes this many deliveries in a day (migration 0065). null target = off. */
+  riderDailyTarget?: number | null;
+  riderDailyBonus?: number;
 }) {
+  const { riderDailyTarget, riderDailyBonus } = input;
+  if (riderDailyTarget != null && !(Number.isInteger(riderDailyTarget) && riderDailyTarget >= 1 && riderDailyTarget <= 200)) throw new Error("The daily target must be a whole number of deliveries, 1 to 200.");
+  if (riderDailyBonus != null && !(riderDailyBonus >= 0 && riderDailyBonus <= 10000)) throw new Error("The daily bonus must be between 0 and 10,000.");
   const { riderPayBase, riderPayPerKm } = input;
   if (riderPayBase != null && !(riderPayBase >= 0 && riderPayBase <= 10000)) throw new Error("Rider pay per delivery must be between 0 and 10,000.");
   if (riderPayPerKm != null && !(riderPayPerKm >= 0 && riderPayPerKm <= 1000)) throw new Error("Rider pay per km must be between 0 and 1,000.");
@@ -65,6 +71,8 @@ export async function updateCompanySettings(input: {
       ...(expressAutoDispatch != null ? { express_auto_dispatch: expressAutoDispatch } : {}),
       ...(riderPayBase !== undefined ? { rider_pay_base: riderPayBase } : {}),
       ...(riderPayPerKm != null ? { rider_pay_per_km: riderPayPerKm } : {}),
+      ...(riderDailyTarget !== undefined ? { rider_daily_target: riderDailyTarget } : {}),
+      ...(riderDailyBonus != null ? { rider_daily_bonus: riderDailyBonus } : {}),
       ...(expressRiderRadiusKm != null ? { express_rider_radius_km: expressRiderRadiusKm } : {}),
       ...(expressOfferSeconds != null ? { express_offer_seconds: Math.round(expressOfferSeconds) } : {}),
       updated_at: new Date().toISOString(),
@@ -72,7 +80,9 @@ export async function updateCompanySettings(input: {
   let { error } = await supabase.from("company_settings").update(row).eq("tenant_id", tenantId);
   // The rider-distance column arrives with migration 0059; until then save everything else.
   if (error && (error.code === "42703" || error.code === "PGRST204")) {
-    const { rider_pickup_radius_km: _r, prep_minutes: _p, rider_speed_kmh: _s, eta_buffer_minutes: _b, express_auto_dispatch: _ea, express_rider_radius_km: _er, express_offer_seconds: _eo, rider_pay_base: _pb, rider_pay_per_km: _pk, ...rest } = row as typeof row & {
+    const { rider_pickup_radius_km: _r, prep_minutes: _p, rider_speed_kmh: _s, eta_buffer_minutes: _b, express_auto_dispatch: _ea, express_rider_radius_km: _er, express_offer_seconds: _eo, rider_pay_base: _pb, rider_pay_per_km: _pk, rider_daily_target: _dt, rider_daily_bonus: _db, ...rest } = row as typeof row & {
+      rider_daily_target?: number | null;
+      rider_daily_bonus?: number;
       rider_pay_base?: number | null;
       rider_pay_per_km?: number;
       express_auto_dispatch?: boolean;

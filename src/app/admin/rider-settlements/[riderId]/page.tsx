@@ -22,6 +22,14 @@ function Card({ label, value, tone }: { label: string; value: string; tone?: "em
 }
 
 const METHOD_LABELS: Record<string, string> = { cash: "Cash", bank_transfer: "Bank transfer", other: "Other" };
+const ENTRY_LABEL: Record<string, string> = {
+  payout: "Paid to rider",
+  cash_deposit: "Cash handed in",
+  salary: "Monthly salary",
+  bonus: "Bonus",
+  advance: "Advance paid",
+  deduction: "Deduction",
+};
 
 export default async function AdminRiderSettlementDetailPage({ params }: { params: Promise<{ riderId: string }> }) {
   const money = await getMoney();
@@ -65,7 +73,7 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
             </p>
           )}
         </div>
-        {data?.summary && <RiderEntryForm riderId={riderId} balance={balance} payoutMethod={rider.payout_method ?? "cash"} />}
+        {data?.summary && <RiderEntryForm riderId={riderId} balance={balance} payoutMethod={rider.payout_method ?? "cash"} monthlySalary={(rider as { monthly_salary?: number | null }).monthly_salary ?? null} />}
       </div>
 
       {!data?.summary ? (
@@ -74,10 +82,12 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
         </p>
       ) : (
         <>
-          <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
-            <Card label="Delivery fees earned" value={money(data.summary.earned)} tone="emerald" />
+          <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Card label="Delivery pay earned" value={money(data.summary.earned - data.summary.salaryBonus)} tone="emerald" />
+            <Card label="Salary and bonuses" value={money(data.summary.salaryBonus)} tone="emerald" />
             <Card label="Cash collected (COD)" value={money(data.summary.cashCollected)} />
-            <Card label="Paid to rider" value={money(data.summary.paidOut)} />
+            <Card label="Paid to rider (incl. advances)" value={money(data.summary.paidOut)} />
+            <Card label="Deductions" value={money(data.summary.deductions)} />
             <Card label="Cash handed in" value={money(data.summary.cashDeposited)} />
             <Card
               label={balance > 0.005 ? "We owe the rider" : balance < -0.005 ? "Rider owes us" : "Balance"}
@@ -131,7 +141,7 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
                     <li key={e.id} className="flex items-start justify-between gap-3 px-4 py-3 text-sm">
                       <div className="min-w-0">
                         <p className="font-medium text-neutral-900">
-                          {e.kind === "payout" ? "Paid to rider" : "Cash handed in"} · {money(e.amount)}
+                          {ENTRY_LABEL[e.kind] ?? e.kind} · {money(e.amount)}
                         </p>
                         <p className="text-xs text-neutral-500">
                           {METHOD_LABELS[e.method] ?? e.method}

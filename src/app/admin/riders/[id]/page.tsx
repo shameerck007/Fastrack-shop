@@ -5,6 +5,7 @@ import { checkSaudiIban, formatIban } from "@/lib/iban";
 import { checkBankDetails } from "@/lib/saudi-banks";
 import { needsVehicleDocs } from "@/lib/rider-validation";
 import RiderStatusActions from "@/components/admin/RiderStatusActions";
+import RiderPayForm from "@/components/admin/RiderPayForm";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -228,6 +229,19 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
             </>
           )}
         </Card>
+
+        <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-neutral-800">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-sm">💼</span>
+            How this rider is paid
+          </h2>
+          <RiderPayForm
+            riderId={rider.id}
+            payType={((rider as { pay_type?: string }).pay_type === "salary" ? "salary" : "per_delivery") as "per_delivery" | "salary"}
+            monthlySalary={(rider as { monthly_salary?: number | null }).monthly_salary ?? null}
+            deliveriesEarnExtra={(rider as { deliveries_earn_extra?: boolean }).deliveries_earn_extra ?? false}
+          />
+        </section>
 
         <Card
           title="Payout"

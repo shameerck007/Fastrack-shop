@@ -23,6 +23,10 @@ export interface RiderSettlementSummary {
   cashDeposited: number;
   /** Positive: FasTrack owes the rider. Negative: the rider owes FasTrack. */
   balance: number;
+  /** Salary and bonus entries (already inside `earned`). */
+  salaryBonus: number;
+  /** Fines and other deductions (already taken off the balance). */
+  deductions: number;
 }
 
 export async function getRiderSettlementSummary(riderId: string): Promise<RiderSettlementSummary | null> {
@@ -38,6 +42,8 @@ export async function getRiderSettlementSummary(riderId: string): Promise<RiderS
     paidOut: Number(r.paid_out),
     cashDeposited: Number(r.cash_deposited),
     balance: Number(r.balance),
+    salaryBonus: Number(r.salary_bonus ?? 0),
+    deductions: Number(r.deductions ?? 0),
   };
 }
 
@@ -66,7 +72,7 @@ export async function getRiderSettlementOrders(riderId: string): Promise<RiderSe
 
 export interface RiderSettlementEntry {
   id: string;
-  kind: "payout" | "cash_deposit";
+  kind: "payout" | "cash_deposit" | "salary" | "bonus" | "advance" | "deduction";
   amount: number;
   method: string;
   reference: string | null;
@@ -98,6 +104,7 @@ export interface RiderSettlementOverviewRow extends RiderSettlementSummary {
   riderName: string;
   riderStatus: RiderStatus;
   payoutMethod: "bank" | "cash";
+  payType: "per_delivery" | "salary";
 }
 
 export async function getRiderSettlementOverview(): Promise<RiderSettlementOverviewRow[]> {
@@ -115,6 +122,9 @@ export async function getRiderSettlementOverview(): Promise<RiderSettlementOverv
     paidOut: Number(r.paid_out),
     cashDeposited: Number(r.cash_deposited),
     balance: Number(r.balance),
+    salaryBonus: Number(r.salary_bonus ?? 0),
+    deductions: Number(r.deductions ?? 0),
+    payType: r.pay_type === "salary" ? "salary" : "per_delivery",
   }));
 }
 

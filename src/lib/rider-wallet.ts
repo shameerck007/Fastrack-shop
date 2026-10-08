@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentTenant } from "@/lib/tenant-server";
+import { getRiderPayProfile, type RiderPayProfile } from "@/lib/rider";
 import {
   getRiderSettlementSummary,
   getRiderSettlementOrders,
@@ -16,6 +17,7 @@ export interface RiderWallet {
   entries: RiderSettlementEntry[];
   /** Cash taken from customers that hasn't been handed in yet. */
   cashInHand: number;
+  pay: RiderPayProfile;
   timeZone: string;
 }
 
@@ -26,7 +28,8 @@ export async function getRiderWallet(): Promise<RiderWallet | null> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
-  const [summary, orders, entries, tenant] = await Promise.all([
+  const [pay, summary, orders, entries, tenant] = await Promise.all([
+    getRiderPayProfile(),
     getRiderSettlementSummary(user.id).catch(() => null),
     getRiderSettlementOrders(user.id).catch(() => []),
     getRiderSettlementEntries(user.id).catch(() => []),
@@ -39,6 +42,7 @@ export async function getRiderWallet(): Promise<RiderWallet | null> {
     orders,
     entries,
     cashInHand: Math.max(summary.cashCollected - summary.cashDeposited, 0),
+    pay,
     timeZone: tenant?.country_code === "IN" ? "Asia/Kolkata" : "Asia/Riyadh",
   };
 }

@@ -7,6 +7,16 @@ import { buildPeriods, type PeriodMode } from "@/lib/finance-periods";
 
 export const metadata = { title: "Earnings · FasTrack Rider" };
 
+const ENTRY_LABEL: Record<string, string> = {
+  payout: "Payout received",
+  cash_deposit: "Cash handed in",
+  salary: "Monthly salary",
+  bonus: "Bonus",
+  advance: "Advance received",
+  deduction: "Deduction",
+};
+const ENTRY_ICON: Record<string, string> = { payout: "💸", cash_deposit: "🤝", salary: "💼", bonus: "🎯", advance: "💸", deduction: "➖" };
+
 const noT = (k: string) => (k === "rider.this_week" ? "Last 7 days" : k);
 
 function Row({ sign, label, hint, amount, width, color }: { sign: string; label: string; hint: string; amount: string; width: number; color: string }) {
@@ -45,7 +55,8 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
     );
   }
 
-  const { summary: s, orders, entries, cashInHand, timeZone } = wallet;
+  const { summary: s, orders, entries, cashInHand, timeZone, pay } = wallet;
+  const deliveryPay = s.earned - s.salaryBonus;
   const owed = s.balance >= 0;
   const week = earningsByDay(orders, timeZone, 7);
   const month = earningsByDay(orders, timeZone, 30);
@@ -60,7 +71,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
     { label: "30 days", ...sum(month) },
     { label: "All time", earnings: s.earned, deliveries: s.deliveredCount },
   ];
-  const biggest = Math.max(s.earned, s.cashCollected, s.paidOut, s.cashDeposited, 1);
+  const biggest = Math.max(deliveryPay, s.salaryBonus, s.cashCollected, s.paidOut, s.cashDeposited, s.deductions, 1);
   const pct = (n: number) => (n / biggest) * 100;
   const depositedPct = s.cashCollected > 0 ? Math.min((s.cashDeposited / s.cashCollected) * 100, 100) : 100;
 
@@ -108,6 +119,18 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
 
       <CollectionsPanel rows={buildPeriods(orders, entries, mode, timeZone)} mode={mode} basePath="/rider/earnings" money={money} heading="My collections" />
 
+      {pay.payType === "salary" && (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+          <div>
+            <p className="text-sm font-extrabold text-blue-900">💼 Monthly salary</p>
+            <p className="text-xs text-blue-800/70">
+              {pay.earnsPerDelivery ? "Your salary, plus the pay for each delivery." : "Your salary is added each month. Deliveries do not change it."}
+            </p>
+          </div>
+          {pay.monthlySalary != null && <span className="text-lg font-extrabold text-blue-900">{money(pay.monthlySalary)}</span>}
+        </div>
+      )}
+
       <RiderEarningsChart days={week} t={noT} money={money} />
 
       {/* how the balance is made */}
@@ -117,10 +140,18 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
           Nothing hidden: every number below comes from your delivered orders and the payments recorded by FasTrack.
         </p>
         <div className="flex flex-col gap-4">
-          <Row sign="+" label="Delivery fees earned" hint={`${s.deliveredCount} delivered orders`} amount={money(s.earned)} width={pct(s.earned)} color="#1d4ed8" />
+          {(pay.earnsPerDelivery || deliveryPay > 0) && (
+            <Row sign="+" label="Delivery pay" hint={`${s.deliveredCount} delivered orders`} amount={money(deliveryPay)} width={pct(deliveryPay)} color="#1d4ed8" />
+          )}
+          {s.salaryBonus > 0 && (
+            <Row sign="+" label="Salary and bonuses" hint="Monthly salary and daily-target bonuses" amount={money(s.salaryBonus)} width={pct(s.salaryBonus)} color="#1e40af" />
+          )}
           <Row sign="−" label="Cash you collected" hint="Cash-on-delivery money you took from customers" amount={money(s.cashCollected)} width={pct(s.cashCollected)} color="#38bdf8" />
           <Row sign="+" label="Cash you handed in" hint="Deposits recorded by FasTrack" amount={money(s.cashDeposited)} width={pct(s.cashDeposited)} color="#0369a1" />
-          <Row sign="−" label="Payouts you received" hint="Bank or cash payments from FasTrack" amount={money(s.paidOut)} width={pct(s.paidOut)} color="#1e3a8a" />
+          <Row sign="−" label="Payouts and advances you received" hint="Bank or cash payments from FasTrack" amount={money(s.paidOut)} width={pct(s.paidOut)} color="#1e3a8a" />
+          {s.deductions > 0 && (
+            <Row sign="−" label="Deductions" hint="Fines or other deductions recorded by FasTrack" amount={money(s.deductions)} width={pct(s.deductions)} color="#0c4a6e" />
+          )}
         </div>
         <div className="mt-4 flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5 text-sm">
           <span className="font-semibold text-neutral-700">= Balance</span>
@@ -162,10 +193,10 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
               <li key={e.id} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="flex min-w-0 items-center gap-3">
                   <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${e.kind === "payout" ? "bg-blue-100" : "bg-sky-100"}`}>
-                    {e.kind === "payout" ? "💸" : "🤝"}
+                    {ENTRY_ICON[e.kind] ?? "💸"}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-neutral-900">{e.kind === "payout" ? "Payout received" : "Cash handed in"}</p>
+                    <p className="text-sm font-semibold text-neutral-900">{ENTRY_LABEL[e.kind] ?? e.kind}</p>
                     <p className="truncate text-xs text-neutral-500">
                       {formatWhen(e.createdAt, timeZone)} · {e.method}
                       {e.reference ? ` · Ref ${e.reference}` : ""}
@@ -173,7 +204,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
                     </p>
                   </div>
                 </div>
-                <span className={`shrink-0 text-sm font-bold ${e.kind === "payout" ? "text-blue-800" : "text-sky-700"}`}>{money(e.amount)}</span>
+                <span className={`shrink-0 text-sm font-bold ${e.kind === "deduction" ? "text-sky-700" : "text-blue-800"}`}>{e.kind === "deduction" ? "−" : ""}{money(e.amount)}</span>
               </li>
             ))}
           </ul>

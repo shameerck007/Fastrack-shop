@@ -60,8 +60,9 @@ export function buildPeriods(
   for (const e of entries) {
     const row = rows.get(keyOf(e.createdAt));
     if (!row) continue;
-    if (e.kind === "payout") row.paidOut += e.amount;
-    else row.handedIn += e.amount;
+    if (e.kind === "payout" || e.kind === "advance") row.paidOut += e.amount;
+    else if (e.kind === "cash_deposit") row.handedIn += e.amount;
+    else if (e.kind === "salary" || e.kind === "bonus") row.earned += e.amount;
   }
   return [...rows.values()];
 }

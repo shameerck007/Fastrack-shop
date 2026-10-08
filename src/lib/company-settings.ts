@@ -28,6 +28,9 @@ export interface CompanySettings {
   /** What a rider earns per delivery (migration 0064); empty = the order's delivery fee. */
   rider_pay_base?: number | null;
   rider_pay_per_km?: number | null;
+  /** Daily target bonus (migration 0065). */
+  rider_daily_target?: number | null;
+  rider_daily_bonus?: number | null;
 }
 
 const FALLBACK: CompanySettings = {

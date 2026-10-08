@@ -30,6 +30,8 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
   const [offerSeconds, setOfferSeconds] = useState(String(settings.express_offer_seconds ?? 30));
   const [payBase, setPayBase] = useState(settings.rider_pay_base == null ? "" : String(settings.rider_pay_base));
   const [payPerKm, setPayPerKm] = useState(String(settings.rider_pay_per_km ?? 0));
+  const [dailyTarget, setDailyTarget] = useState(settings.rider_daily_target == null ? "" : String(settings.rider_daily_target));
+  const [dailyBonus, setDailyBonus] = useState(String(settings.rider_daily_bonus ?? 0));
   const { countryCode } = useMarket();
   const isIndia = countryCode === "IN";
   const [saved, setSaved] = useState(false);
@@ -62,6 +64,8 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
           expressOfferSeconds: Number(offerSeconds) || undefined,
           riderPayBase: payBase.trim() === "" ? null : Number(payBase),
           riderPayPerKm: payPerKm.trim() === "" ? 0 : Number(payPerKm),
+          riderDailyTarget: dailyTarget.trim() === "" ? null : Number(dailyTarget),
+          riderDailyBonus: dailyBonus.trim() === "" ? 0 : Number(dailyBonus),
         });
         setSaved(true);
       } catch (err) {
@@ -152,7 +156,16 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
             <label className={label}>Extra pay per km</label>
             <input type="number" min={0} step={0.5} value={payPerKm} onChange={(e) => setPayPerKm(e.target.value)} className={`${field} w-full`} />
           </div>
+          <div>
+            <label className={label}>Daily target (deliveries)</label>
+            <input type="number" min={1} max={200} value={dailyTarget} onChange={(e) => setDailyTarget(e.target.value)} placeholder="Empty = no bonus" className={`${field} w-full`} />
+          </div>
+          <div>
+            <label className={label}>Bonus when the target is reached</label>
+            <input type="number" min={0} step={0.5} value={dailyBonus} onChange={(e) => setDailyBonus(e.target.value)} className={`${field} w-full`} />
+          </div>
         </div>
+        <p className="mt-2 text-xs text-neutral-400">The daily bonus is added once per rider per day, by itself, when they complete the target number of deliveries (market time). It applies to per-delivery riders, and to salary riders who also earn per delivery.</p>
       </section>
 
       <section className="rounded-xl border border-neutral-200 bg-white p-4">

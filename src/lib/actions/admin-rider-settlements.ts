@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export interface RiderEntryInput {
   riderId: string;
-  kind: "payout" | "cash_deposit";
+  kind: "payout" | "cash_deposit" | "salary" | "bonus" | "advance" | "deduction";
   amount: number;
   method: string;
   reference?: string;
@@ -15,7 +15,7 @@ export interface RiderEntryInput {
 /** Admin records money paid to a rider, or cash a rider handed in. Returns an error value rather than throwing so the message survives production. */
 export async function recordRiderSettlementEntry(input: RiderEntryInput): Promise<{ error?: string }> {
   if (!(input.amount > 0)) return { error: "Enter an amount greater than zero." };
-  if (input.kind !== "payout" && input.kind !== "cash_deposit") return { error: "Choose payout or cash deposit." };
+  if (!["payout", "cash_deposit", "salary", "bonus", "advance", "deduction"].includes(input.kind)) return { error: "Choose what you are recording." };
 
   const supabase = await createClient();
   const {
@@ -35,7 +35,10 @@ export async function recordRiderSettlementEntry(input: RiderEntryInput): Promis
     note: input.note?.trim() || null,
     created_by: user?.id ?? null,
   });
-  if (error) return { error: error.message };
+  if (error) {
+    if (/kind_check|violates check constraint/i.test(error.message)) return { error: "Salary, bonus, advance and deduction entries need the latest database update (migration 0065). Run it, then try again." };
+    return { error: error.message };
+  }
 
   revalidatePath("/admin/rider-settlements");
   revalidatePath(`/admin/rider-settlements/${input.riderId}`);

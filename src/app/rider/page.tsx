@@ -1,6 +1,6 @@
 import Link from "@/components/Link";
 import type { MoneyFormatter } from "@/lib/money";
-import { getRiderProfile, getAvailableOrders, getActiveDelivery, getRiderTodayStats, getMyLiveOffer, type AvailableOrder } from "@/lib/rider";
+import { getRiderProfile, getAvailableOrders, getActiveDelivery, getRiderTodayStats, getMyLiveOffer, getRiderPayProfile, type AvailableOrder } from "@/lib/rider";
 
 import AcceptOrderButton from "@/components/rider/AcceptOrderButton";
 import AvailabilityToggle from "@/components/rider/AvailabilityToggle";
@@ -29,6 +29,8 @@ export default async function RiderHomePage() {
   const rider = await getRiderProfile();
   const activeDelivery = await getActiveDelivery();
   const isMatching = rider?.deliveryPartner.is_available && !activeDelivery;
+  const payProfile = await getRiderPayProfile();
+  const salaryOnly = !payProfile.earnsPerDelivery;
   const [todayStats, liveOffer, availableOrdersResult] = await Promise.all([
     getRiderTodayStats(),
     isMatching ? getMyLiveOffer() : Promise.resolve(null),
@@ -75,7 +77,7 @@ export default async function RiderHomePage() {
       </div>
 
       {isMatching && <OffersPoller />}
-      {liveOffer && <ExpressOfferCard key={liveOffer.id} offer={liveOffer} />}
+      {liveOffer && <ExpressOfferCard key={liveOffer.id} offer={liveOffer} salaryOnly={salaryOnly} />}
 
       {activeDelivery && <ActiveDeliveryCard delivery={activeDelivery} t={t} money={money} />}
 
@@ -116,7 +118,7 @@ export default async function RiderHomePage() {
           ) : (
             <div className="flex flex-col gap-3">
               {availableOrders.map((order) => (
-                <AvailableOrderCard key={order.id} order={order} t={t} money={money} />
+                <AvailableOrderCard key={order.id} order={order} t={t} money={money} salaryOnly={salaryOnly} />
               ))}
             </div>
           )}
@@ -136,7 +138,7 @@ function dueBadge(dueAt: string | null): { text: string; tone: string } | null {
   return { text: `📅 Due ${new Date(dueAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}`, tone: "bg-neutral-100 text-neutral-600" };
 }
 
-function AvailableOrderCard({ order, t, money }: { money: MoneyFormatter; order: AvailableOrder; t: T }) {
+function AvailableOrderCard({ order, t, money, salaryOnly = false }: { money: MoneyFormatter; order: AvailableOrder; t: T; salaryOnly?: boolean }) {
   const express = order.delivery_type === "express";
   const due = dueBadge(order.dueAt);
   return (
@@ -172,8 +174,8 @@ function AvailableOrderCard({ order, t, money }: { money: MoneyFormatter; order:
       </div>
       <div className="flex items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50 px-4 py-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">You earn</p>
-          <p className="text-xl font-extrabold leading-tight text-blue-700">{money(order.riderPay)}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">{salaryOnly ? "Pay" : "You earn"}</p>
+          <p className="text-xl font-extrabold leading-tight text-blue-700">{salaryOnly ? "Salary" : money(order.riderPay)}</p>
         </div>
         <AcceptOrderButton orderId={order.id} />
       </div>
