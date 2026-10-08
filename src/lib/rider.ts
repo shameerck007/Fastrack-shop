@@ -1,7 +1,16 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { distanceKm } from "@/lib/delivery-geo";
 import { getCompanySettings } from "@/lib/company-settings";
 import type { DeliveryPartner, Profile } from "@/types/database";
+
+
+/** "rider_pay, " when migration 0064 is applied, "" before it, so the rider screens keep working until it is. */
+const riderPayCols = cache(async (): Promise<string> => {
+  const supabase = await createClient();
+  const { error } = await supabase.from("delivery_assignments").select("rider_pay").limit(1);
+  return error ? "" : "rider_pay, ";
+});
 
 export interface RiderProfile {
   profile: Profile;
@@ -66,6 +75,8 @@ export interface AvailableOrder {
   warehouses: { name: string; address_line: string | null; lat: number | null; lng: number | null; standard_delivery_days?: number | null } | null;
   item_count: number;
   distanceKm: number | null;
+  /** What the rider would earn for this order (their pay setting, else the delivery fee). */
+  riderPay: number;
   /** When the customer was promised delivery by (Standard: order time plus the shop's days; Scheduled: the chosen slot). Null for Express. */
   dueAt: string | null;
 }
@@ -171,7 +182,16 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
       return (a.distanceKm as number) - (b.distanceKm as number);
     });
 
-  return { orders: nearby, hasLocation: true };
+  // What the rider would earn for each order (the market's rider-pay setting; falls back to the delivery fee).
+  const payById = new Map<string, number>();
+  if (nearby.length > 0) {
+    const { data: est } = await (supabase as unknown as { rpc: (fn: string, a: object) => Promise<{ data: { est_order_id: string; est_pay: number | null }[] | null }> }).rpc(
+      "rider_pay_estimates",
+      { p_order_ids: nearby.map((o) => o.id) }
+    );
+    for (const r of est ?? []) if (r.est_pay != null) payById.set(r.est_order_id, Number(r.est_pay));
+  }
+  return { orders: nearby.map((o) => ({ ...o, riderPay: payById.get(o.id) ?? Number(o.delivery_fee) })), hasLocation: true };
 }
 
 export interface ActiveDelivery {
@@ -196,7 +216,7 @@ export async function getActiveDelivery(): Promise<ActiveDelivery | null> {
   const { data, error } = await supabase
     .from("delivery_assignments")
     .select(
-      "orders!inner(id, order_number, status, delivery_fee, total, delivery_otp, warehouses(name, address_line, lat, lng), addresses(address_line, label, lat, lng), order_items(id))"
+      (await riderPayCols()) + "orders!inner(id, order_number, status, delivery_fee, total, delivery_otp, warehouses(name, address_line, lat, lng), addresses(address_line, label, lat, lng), order_items(id))"
     )
     .eq("rider_id", user.id)
     .not("orders.status", "in", "(delivered,cancelled)")
@@ -207,7 +227,8 @@ export async function getActiveDelivery(): Promise<ActiveDelivery | null> {
   if (error) throw error;
   if (!data?.orders) return null;
   const order = data.orders as unknown as ActiveDelivery & { order_items: { id: string }[] };
-  return { ...order, item_count: order.order_items?.length ?? 0 };
+  const pay = (data as unknown as { rider_pay: number | null }).rider_pay;
+  return { ...order, delivery_fee: Number(pay ?? order.delivery_fee), item_count: order.order_items?.length ?? 0 };
 }
 
 export interface RiderTodayStats {
@@ -227,17 +248,17 @@ export async function getRiderTodayStats(): Promise<RiderTodayStats> {
 
   const { data, error } = await supabase
     .from("delivery_assignments")
-    .select("orders!inner(delivery_fee, status)")
+    .select((await riderPayCols()) + "orders!inner(delivery_fee, status)")
     .eq("rider_id", user.id)
     .eq("orders.status", "delivered")
     .gte("delivered_at", startOfToday.toISOString());
 
   if (error) throw error;
 
-  const rows = (data ?? []) as unknown as { orders: { delivery_fee: number } }[];
+  const rows = (data ?? []) as unknown as { rider_pay: number | null; orders: { delivery_fee: number } }[];
   return {
     deliveries: rows.length,
-    earnings: rows.reduce((sum, r) => sum + Number(r.orders.delivery_fee), 0),
+    earnings: rows.reduce((sum, r) => sum + Number(r.rider_pay ?? r.orders.delivery_fee), 0),
   };
 }
 
@@ -255,10 +276,11 @@ export async function getRiderLifetimeStats(): Promise<RiderLifetimeStats | null
   } = await supabase.auth.getUser();
   if (!user) return null;
 
+  const payCols = await riderPayCols();
   const [{ data: deliveries, error }, { data: rider }] = await Promise.all([
     supabase
       .from("delivery_assignments")
-      .select("orders!inner(delivery_fee, status)")
+      .select(payCols + "orders!inner(delivery_fee, status)")
       .eq("rider_id", user.id)
       .eq("orders.status", "delivered"),
     supabase.from("delivery_partners").select("rating, created_at").eq("id", user.id).maybeSingle(),
@@ -266,10 +288,10 @@ export async function getRiderLifetimeStats(): Promise<RiderLifetimeStats | null
   if (error) throw error;
   if (!rider) return null;
 
-  const rows = (deliveries ?? []) as unknown as { orders: { delivery_fee: number } }[];
+  const rows = (deliveries ?? []) as unknown as { rider_pay: number | null; orders: { delivery_fee: number } }[];
   return {
     totalDeliveries: rows.length,
-    totalEarnings: rows.reduce((sum, r) => sum + Number(r.orders.delivery_fee), 0),
+    totalEarnings: rows.reduce((sum, r) => sum + Number(r.rider_pay ?? r.orders.delivery_fee), 0),
     rating: rider.rating,
     memberSince: rider.created_at,
   };
@@ -296,19 +318,19 @@ export async function getWeeklyEarnings(): Promise<DayEarnings[]> {
 
   const { data, error } = await supabase
     .from("delivery_assignments")
-    .select("delivered_at, orders!inner(delivery_fee, status)")
+    .select("delivered_at, " + (await riderPayCols()) + "orders!inner(delivery_fee, status)")
     .eq("rider_id", user.id)
     .eq("orders.status", "delivered")
     .gte("delivered_at", start.toISOString());
   if (error) throw error;
 
-  const rows = (data ?? []) as unknown as { delivered_at: string; orders: { delivery_fee: number } }[];
+  const rows = (data ?? []) as unknown as { delivered_at: string; rider_pay: number | null; orders: { delivery_fee: number } }[];
   const byDay = new Map<string, { deliveries: number; earnings: number }>();
   for (const row of rows) {
     const key = row.delivered_at.slice(0, 10);
     const existing = byDay.get(key) ?? { deliveries: 0, earnings: 0 };
     existing.deliveries += 1;
-    existing.earnings += Number(row.orders.delivery_fee);
+    existing.earnings += Number(row.rider_pay ?? row.orders.delivery_fee);
     byDay.set(key, existing);
   }
 
@@ -349,7 +371,7 @@ export async function getMyLiveOffer(): Promise<LiveOffer | null> {
   if (!user) return null;
   const { data, error } = await supabase
     .from("delivery_offers" as never)
-    .select("id, order_id, expires_at, distance_km, orders(order_number, delivery_fee, warehouses(name, address_line), order_items(id))")
+    .select("id, order_id, expires_at, distance_km, " + ((await riderPayCols()) ? "rider_pay, " : "") + "orders(order_number, delivery_fee, warehouses(name, address_line), order_items(id))")
     .eq("rider_id", user.id)
     .eq("status", "offered")
     .gt("expires_at", new Date().toISOString())
@@ -362,6 +384,7 @@ export async function getMyLiveOffer(): Promise<LiveOffer | null> {
     order_id: string;
     expires_at: string;
     distance_km: number | null;
+    rider_pay: number | null;
     orders: { order_number: string; delivery_fee: number; warehouses: { name: string; address_line: string | null } | null; order_items: { id: string }[] } | null;
   };
   return {
@@ -371,7 +394,7 @@ export async function getMyLiveOffer(): Promise<LiveOffer | null> {
     expiresAt: row.expires_at,
     secondsLeft: Math.max(0, Math.round((new Date(row.expires_at).getTime() - Date.now()) / 1000)),
     distanceKm: row.distance_km == null ? null : Number(row.distance_km),
-    deliveryFee: Number(row.orders?.delivery_fee ?? 0),
+    deliveryFee: Number(row.rider_pay ?? row.orders?.delivery_fee ?? 0),
     itemCount: row.orders?.order_items?.length ?? 0,
     shopName: row.orders?.warehouses?.name ?? null,
     shopAddress: row.orders?.warehouses?.address_line ?? null,

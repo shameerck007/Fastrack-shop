@@ -25,6 +25,9 @@ export interface CompanySettings {
   express_auto_dispatch?: boolean | null;
   express_rider_radius_km?: number | null;
   express_offer_seconds?: number | null;
+  /** What a rider earns per delivery (migration 0064); empty = the order's delivery fee. */
+  rider_pay_base?: number | null;
+  rider_pay_per_km?: number | null;
 }
 
 const FALLBACK: CompanySettings = {

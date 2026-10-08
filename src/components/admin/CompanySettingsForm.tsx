@@ -28,6 +28,8 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
   const [autoDispatch, setAutoDispatch] = useState(settings.express_auto_dispatch ?? true);
   const [expressRadius, setExpressRadius] = useState(String(settings.express_rider_radius_km ?? 5));
   const [offerSeconds, setOfferSeconds] = useState(String(settings.express_offer_seconds ?? 30));
+  const [payBase, setPayBase] = useState(settings.rider_pay_base == null ? "" : String(settings.rider_pay_base));
+  const [payPerKm, setPayPerKm] = useState(String(settings.rider_pay_per_km ?? 0));
   const { countryCode } = useMarket();
   const isIndia = countryCode === "IN";
   const [saved, setSaved] = useState(false);
@@ -58,6 +60,8 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
           expressAutoDispatch: autoDispatch,
           expressRiderRadiusKm: Number(expressRadius) || undefined,
           expressOfferSeconds: Number(offerSeconds) || undefined,
+          riderPayBase: payBase.trim() === "" ? null : Number(payBase),
+          riderPayPerKm: payPerKm.trim() === "" ? 0 : Number(payPerKm),
         });
         setSaved(true);
       } catch (err) {
@@ -132,6 +136,23 @@ export default function CompanySettingsForm({ settings }: { settings: CompanySet
           <span className="text-sm text-neutral-500">km (default 20)</span>
         </div>
         <p className="mt-1 text-xs text-neutral-400">A rider online within this distance of a shop or warehouse sees its new orders and gets a push notification.</p>
+      </section>
+
+      <section className="rounded-xl border border-neutral-200 bg-white p-4">
+        <h2 className="mb-1 text-sm font-semibold text-neutral-700">Rider pay</h2>
+        <p className="mb-3 text-xs text-neutral-400">
+          What a rider earns for each delivery, separate from what the customer pays. Pay = amount per delivery + amount per km from the shop to the customer (road distance, about 30% more than the straight line). Leave the amount per delivery empty and riders keep earning the order&apos;s delivery fee. The pay is fixed when a rider takes the order, so changing it only affects new orders.
+        </p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className={label}>Pay per delivery</label>
+            <input type="number" min={0} step={0.5} value={payBase} onChange={(e) => setPayBase(e.target.value)} placeholder="Empty = delivery fee" className={`${field} w-full`} />
+          </div>
+          <div>
+            <label className={label}>Extra pay per km</label>
+            <input type="number" min={0} step={0.5} value={payPerKm} onChange={(e) => setPayPerKm(e.target.value)} className={`${field} w-full`} />
+          </div>
+        </div>
       </section>
 
       <section className="rounded-xl border border-neutral-200 bg-white p-4">

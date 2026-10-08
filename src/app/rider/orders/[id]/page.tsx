@@ -86,6 +86,16 @@ export default async function RiderOrderPage({
   const isActive = !["delivered", "cancelled"].includes(order.status);
   const messages = user ? await getOrderMessages(order.id) : [];
 
+  // What this rider earns for the order (their pay, fixed when they took it), else the delivery fee.
+  const { data: assignment } = user
+    ? await (supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { rider_pay: number | null } | null }> } } } } })
+        .from("delivery_assignments")
+        .select("rider_pay")
+        .eq("order_id", order.id)
+        .eq("rider_id", user.id)
+        .maybeSingle()
+    : { data: null };
+  const earning = Number(assignment?.rider_pay ?? order.delivery_fee);
   const payment = (order.payments as { method: string; status: string }[] | null)?.[0];
   const collectCash = payment?.method === "cash_on_delivery" && payment.status !== "refunded";
   const customerPhone = order.addresses?.receiver_phone || order.profiles?.phone || null;
@@ -105,7 +115,7 @@ export default async function RiderOrderPage({
         </div>
         <div className="rounded-2xl bg-blue-700 px-4 py-2 text-end text-white shadow-md shadow-blue-700/20">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-100">{t("rider_task.you_earn")}</p>
-          <p className="text-lg font-extrabold leading-tight">{money(order.delivery_fee)}</p>
+          <p className="text-lg font-extrabold leading-tight">{money(earning)}</p>
         </div>
       </div>
 

@@ -173,7 +173,7 @@ function AvailableOrderCard({ order, t, money }: { money: MoneyFormatter; order:
       <div className="flex items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50 px-4 py-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">You earn</p>
-          <p className="text-xl font-extrabold leading-tight text-blue-700">{money(order.delivery_fee)}</p>
+          <p className="text-xl font-extrabold leading-tight text-blue-700">{money(order.riderPay)}</p>
         </div>
         <AcceptOrderButton orderId={order.id} />
       </div>
