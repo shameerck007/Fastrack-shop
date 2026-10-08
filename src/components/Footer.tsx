@@ -66,6 +66,13 @@ export default async function Footer() {
             {company.city ? ` · ${company.city}, ${countryName}` : ""}
           </p>
           <p className="text-xs text-neutral-400">&copy; {year} {company.trading_name}. All rights reserved.</p>
+          <p className="text-[11px] text-neutral-400">
+            Some product data and photos come from{" "}
+            <a href="https://world.openfoodfacts.org" target="_blank" rel="noreferrer" className="underline hover:text-neutral-600">
+              Open Food Facts
+            </a>{" "}
+            (CC BY-SA).
+          </p>
         </div>
       </div>
     </footer>
