@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "@/components/Link";
+import ScrollRow from "@/components/ScrollRow";
 import { useMemo } from "react";
 import { useLocale } from "@/components/LocaleProvider";
 import { useAllStores } from "@/components/StoreDirectoryProvider";
@@ -30,7 +31,7 @@ export default function ShopsRow() {
   return (
     <section className="mb-8">
       <h2 className="mb-3 text-xl font-extrabold tracking-tight">{t("store.shops_title")}</h2>
-      <div className="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
+      <ScrollRow className="-mx-4 md:mx-0" innerClassName="gap-3 px-4 pb-2 md:px-1">
         {shops.map(({ store, info }) => (
           <Link
             key={store.id}
@@ -58,7 +59,7 @@ export default function ShopsRow() {
             </span>
           </Link>
         ))}
-      </div>
+      </ScrollRow>
     </section>
   );
 }

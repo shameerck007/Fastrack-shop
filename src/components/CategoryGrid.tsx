@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "@/components/Link";
+import ScrollRow from "@/components/ScrollRow";
 import type { CategoryWithChildren } from "@/lib/catalog";
 import { categoryImageUrl, getCategoryTheme } from "@/lib/categoryTheme";
 import { useLocale } from "@/components/LocaleProvider";
@@ -12,10 +13,16 @@ import { localizedName } from "@/lib/i18n/localized";
 export default function CategoryGrid({ categories }: { categories: CategoryWithChildren[] }) {
   const { t, locale } = useLocale();
   const [openId, setOpenId] = useState<string | null>(null);
+  // The row scrolls sideways, so the sub-category fly-out is placed on the page (fixed) under the tile instead of inside the row.
+  const [anchor, setAnchor] = useState<{ left: number; top: number } | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function open(id: string) {
+  function open(id: string, el?: HTMLElement | null) {
     if (closeTimer.current) clearTimeout(closeTimer.current);
+    if (el) {
+      const r = el.getBoundingClientRect();
+      setAnchor({ left: r.left + r.width / 2, top: r.bottom + 4 });
+    }
     setOpenId(id);
   }
   function scheduleClose() {
@@ -24,15 +31,15 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
   }
 
   return (
-    <div className="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-9 md:gap-3 md:overflow-visible md:px-0">
+    <ScrollRow className="-mx-4 md:mx-0" innerClassName="gap-4 px-4 pb-1 md:gap-5 md:px-1">
       {categories.map((category) => {
         const theme = getCategoryTheme(category.slug);
         const hasChildren = category.children.length > 0;
         return (
           <div
             key={category.id}
-            className="relative shrink-0 snap-start md:shrink"
-            onMouseEnter={() => hasChildren && open(category.id)}
+            className="relative w-[4.75rem] shrink-0 snap-start sm:w-[5.5rem] md:w-24"
+            onMouseEnter={(e) => hasChildren && open(category.id, e.currentTarget)}
             onMouseLeave={scheduleClose}
           >
             <Link href={`/categories/${category.slug}`} className="group flex flex-col items-center gap-2">
@@ -48,8 +55,8 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
                   </div>
                 )}
               </div>
-              <span className="flex items-center gap-0.5 text-center text-xs font-semibold text-neutral-800 sm:text-sm">
-                {localizedName(category, locale)}
+              <span className="flex max-w-full items-center justify-center gap-0.5 whitespace-nowrap text-center text-xs font-semibold text-neutral-800 sm:text-sm">
+                <span className="truncate">{localizedName(category, locale)}</span>
                 {hasChildren && (
                   <span aria-hidden className="text-[8px] text-neutral-400">
                     ▾
@@ -58,9 +65,10 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
               </span>
             </Link>
 
-            {hasChildren && openId === category.id && (
+            {hasChildren && openId === category.id && anchor && (
               <div
-                className="absolute left-1/2 top-full z-40 mt-1 hidden min-w-[12rem] md:block -translate-x-1/2 rounded-xl border border-neutral-200 bg-white py-2 shadow-lg"
+                style={{ position: "fixed", left: anchor.left, top: anchor.top }}
+                className="z-40 hidden min-w-[12rem] -translate-x-1/2 rounded-xl border border-neutral-200 bg-white py-2 shadow-lg md:block"
                 onMouseEnter={() => open(category.id)}
                 onMouseLeave={scheduleClose}
               >
@@ -86,6 +94,6 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
           </div>
         );
       })}
-    </div>
+    </ScrollRow>
   );
 }
