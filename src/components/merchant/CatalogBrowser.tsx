@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CatalogPager, CatalogSearch } from "@/components/CatalogFilters";
 import Modal from "@/components/Modal";
 import ImageUploader from "@/components/ImageUploader";
 import { addMasterToStore, requestMasterProduct } from "@/lib/actions/merchant-catalog";
@@ -14,15 +15,23 @@ const field = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm foc
 interface Cat {
   id: string;
   name: string;
+  parent_id: string | null;
 }
 
 export default function CatalogBrowser({
   products,
+  total,
+  page,
+  pageSize,
   ownedIds,
   requests,
   categories,
 }: {
+  /** The current page (filtered and paged on the server). */
   products: MasterProduct[];
+  total: number;
+  page: number;
+  pageSize: number;
   ownedIds: string[];
   requests: MasterProduct[];
   categories: Cat[];
@@ -30,34 +39,16 @@ export default function CatalogBrowser({
   const router = useRouter();
   const currency = useCurrency();
   const owned = useMemo(() => new Set(ownedIds), [ownedIds]);
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState("all");
   const [adding, setAdding] = useState<MasterProduct | null>(null);
   const [requesting, setRequesting] = useState(false);
 
-  const rows = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return products.filter(
-      (p) => (cat === "all" || p.categoryId === cat) && (!needle || [p.name, p.nameAr, p.brand, p.barcode, p.categoryName].some((f) => f?.toLowerCase().includes(needle)))
-    );
-  }, [products, q, cat]);
+  const rows = products;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full max-w-sm">
-          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400">🔍</span>
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, brand or barcode…" className="w-full rounded-full border border-neutral-300 bg-white py-2 pe-4 ps-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-        </div>
-        <select value={cat} onChange={(e) => setCat(e.target.value)} className="rounded-full border border-neutral-300 bg-white px-3 py-2 text-sm">
-          <option value="all">All categories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <button type="button" onClick={() => setRequesting(true)} className="ms-auto rounded-full border border-blue-600 bg-white px-4 py-2 text-sm font-bold text-blue-700 hover:bg-blue-50">
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+        <CatalogSearch categories={categories} placeholder="Search by name, brand or barcode…" />
+        <button type="button" onClick={() => setRequesting(true)} className="ms-auto h-10 rounded-full border border-blue-600 bg-white px-4 text-sm font-bold text-blue-700 hover:bg-blue-50">
           Can&apos;t find it? Request a product
         </button>
       </div>
@@ -84,7 +75,7 @@ export default function CatalogBrowser({
       {rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center">
           <span className="text-4xl">🔎</span>
-          <p className="font-semibold text-neutral-700">{products.length === 0 ? "The catalog is empty for now" : "Nothing matches your search"}</p>
+          <p className="font-semibold text-neutral-700">{total === 0 ? "Nothing matches your search" : "The catalog is empty for now"}</p>
           <p className="text-sm text-neutral-500">Request the product and FasTrack will add it after review.</p>
         </div>
       ) : (
@@ -123,6 +114,7 @@ export default function CatalogBrowser({
           })}
         </div>
       )}
+      <CatalogPager page={page} pageSize={pageSize} total={total} />
 
       {adding && <OfferModal product={adding} currency={currency} title={`Add ${adding.name}`} submitLabel="Add to my store" onSubmit={(offers) => addMasterToStore(adding.id, offers)} onClose={() => setAdding(null)} onDone={() => { setAdding(null); router.refresh(); }} />}
       {requesting && <RequestModal categories={categories} onClose={() => setRequesting(false)} onDone={() => { setRequesting(false); router.refresh(); }} />}

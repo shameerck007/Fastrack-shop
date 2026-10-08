@@ -1,15 +1,22 @@
 import CatalogManager from "@/components/admin/CatalogManager";
 import { PageHeader, StatGrid, StatTile } from "@/components/admin/AdminUi";
-import { getMasterCatalog } from "@/lib/master-catalog";
+import { categoryScope, countMaster, searchMasterCatalog } from "@/lib/master-catalog";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Master catalog" };
 
-export default async function AdminCatalogPage() {
+const PAGE_SIZE = 40;
+
+export default async function AdminCatalogPage({ searchParams }: { searchParams: Promise<{ q?: string; cat?: string; tab?: string; page?: string }> }) {
+  const sp = await searchParams;
+  const tab = sp.tab === "requests" ? "requests" : "catalog";
+  const page = Math.max(1, Number(sp.page) || 1);
   const supabase = await createClient();
-  const [products, { data: categories }, { data: warehouses }, { data: stores }, { data: ownProducts }] = await Promise.all([
-    getMasterCatalog(),
-    supabase.from("categories").select("id, name, parent_id").order("sort_order"),
+  const { data: categories } = await supabase.from("categories").select("id, name, parent_id").order("sort_order");
+  const [result, approvedCount, pendingCount, { data: warehouses }, { data: stores }, { data: ownProducts }] = await Promise.all([
+    searchMasterCatalog({ status: tab === "requests" ? "pending" : "approved", q: sp.q, categoryIds: categoryScope(categories ?? [], sp.cat), page, pageSize: PAGE_SIZE, withOffers: true }),
+    countMaster("approved"),
+    countMaster("pending"),
     supabase.from("warehouses").select("id, name").eq("is_active", true).order("created_at"),
     supabase.from("stores").select("warehouse_id"),
     supabase.from("products").select("master_id").is("store_id", null).not("master_id" as never, "is", null),
@@ -18,7 +25,7 @@ export default async function AdminCatalogPage() {
   const fastrackLocations = (warehouses ?? []).filter((w) => !supplierWarehouses.has(w.id)) as { id: string; name: string }[];
   const fastrackIds = ((ownProducts ?? []) as unknown as { master_id: string }[]).map((p) => p.master_id);
 
-  if (products === null) {
+  if (result === null) {
     return (
       <div>
         <PageHeader icon="📚" title="Product catalog" subtitle="One shared list of products. Suppliers sell them by adding their price and stock." />
@@ -29,9 +36,8 @@ export default async function AdminCatalogPage() {
     );
   }
 
-  const approved = products.filter((p) => p.status === "approved");
-  const pending = products.filter((p) => p.status === "pending");
-  const offers = approved.reduce((n, p) => n + p.offers, 0);
+  const { count: offerCount } = await supabase.from("products").select("id", { count: "exact", head: true }).not("master_id" as never, "is", null);
+  const offers = offerCount ?? 0;
 
   return (
     <div>
@@ -41,12 +47,12 @@ export default async function AdminCatalogPage() {
         subtitle="What each product is: name, brand, photo, category, barcode and tax. Suppliers sell a product by adding their own price and stock, so it is never listed twice. Prices and stock are under Listings & stock."
       />
       <StatGrid>
-        <StatTile icon="📚" label="Catalog products" value={approved.length} accent="#2563eb" />
-        <StatTile icon="📭" label="Requests to review" value={pending.length} accent="#0369a1" hint={pending.length > 0 ? "Suppliers are waiting" : undefined} />
-        <StatTile icon="🏪" label="Supplier listings" value={offers} accent="#1e40af" hint="Offers linked to catalog products" />
-        <StatTile icon="🔗" label="Average suppliers per product" value={approved.length ? (offers / approved.length).toFixed(1) : "0"} accent="#0ea5e9" />
+        <StatTile icon="📚" label="Catalog products" value={approvedCount.toLocaleString()} accent="#2563eb" />
+        <StatTile icon="📭" label="Requests to review" value={pendingCount} accent="#0369a1" hint={pendingCount > 0 ? "Suppliers are waiting" : undefined} />
+        <StatTile icon="🏪" label="Supplier listings" value={offers.toLocaleString()} accent="#1e40af" hint="Offers linked to catalog products" />
+        <StatTile icon="🔗" label="Average suppliers per product" value={approvedCount ? (offers / approvedCount).toFixed(1) : "0"} accent="#0ea5e9" />
       </StatGrid>
-      <CatalogManager products={products} categories={(categories ?? []) as { id: string; name: string; parent_id: string | null }[]} fastrackLocations={fastrackLocations} fastrackIds={fastrackIds} />
+      <CatalogManager products={result.items} total={result.total} page={page} pageSize={PAGE_SIZE} tab={tab} approvedCount={approvedCount} pendingCount={pendingCount} categories={(categories ?? []) as { id: string; name: string; parent_id: string | null }[]} fastrackLocations={fastrackLocations} fastrackIds={fastrackIds} />
     </div>
   );
 }

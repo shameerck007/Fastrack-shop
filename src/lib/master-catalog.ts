@@ -118,6 +118,64 @@ export async function getMasterCatalog(opts: { status?: "approved" | "pending" |
   return rows.map((r) => toProduct(r, offers.get(r.id) ?? 0));
 }
 
+export interface CatalogPage {
+  items: MasterProduct[];
+  total: number;
+}
+
+/** One page of the catalog, filtered on the server (the catalog is thousands of products, so it is never loaded whole). */
+export async function searchMasterCatalog(opts: {
+  status: "approved" | "pending" | "rejected";
+  q?: string;
+  categoryIds?: string[];
+  requestedByStore?: string;
+  page?: number;
+  pageSize?: number;
+  withOffers?: boolean;
+}): Promise<CatalogPage | null> {
+  const pageSize = opts.pageSize ?? 48;
+  const page = Math.max(1, opts.page ?? 1);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = (await createClient()) as any;
+  let q = supabase.from("master_products").select(SELECT, { count: "exact" }).eq("status", opts.status);
+  if (opts.requestedByStore) q = q.eq("requested_by_store", opts.requestedByStore);
+  if (opts.categoryIds && opts.categoryIds.length > 0) q = q.in("category_id", opts.categoryIds);
+  const needle = (opts.q ?? "").trim().replace(/[,()*%\\"]/g, " ").replace(/\s+/g, " ").trim();
+  if (needle) {
+    const like = `%${needle}%`;
+    const parts = [`name.ilike.${like}`, `brand.ilike.${like}`, `name_ar.ilike.${like}`];
+    if (/^\d{6,}$/.test(needle)) parts.push(`barcode.eq.${needle}`);
+    q = q.or(parts.join(","));
+  }
+  const from = (page - 1) * pageSize;
+  const { data, error, count } = await q.order("name", { ascending: true }).range(from, from + pageSize - 1);
+  if (error) return null;
+  const rows = (data ?? []) as Row[];
+  const offers = new Map<string, number>();
+  if (opts.withOffers && rows.length > 0) {
+    const real = await createClient();
+    const { data: linked } = await real.from("products").select("master_id").in("master_id" as never, rows.map((r) => r.id) as never);
+    for (const l of (linked ?? []) as unknown as { master_id: string }[]) offers.set(l.master_id, (offers.get(l.master_id) ?? 0) + 1);
+  }
+  return { items: rows.map((r) => toProduct(r, offers.get(r.id) ?? 0)), total: count ?? rows.length };
+}
+
+/** Number of catalog products with a status (for the headline tiles and tabs). */
+export async function countMaster(status: "approved" | "pending", requestedByStore?: string): Promise<number> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = (await createClient()) as any;
+  let q = supabase.from("master_products").select("id", { count: "exact", head: true }).eq("status", status);
+  if (requestedByStore) q = q.eq("requested_by_store", requestedByStore);
+  const { count } = await q;
+  return count ?? 0;
+}
+
+/** A category plus its sub-categories, for filtering. */
+export function categoryScope(categories: { id: string; parent_id: string | null }[], id: string | undefined): string[] | undefined {
+  if (!id || id === "all") return undefined;
+  return [id, ...categories.filter((c) => c.parent_id === id).map((c) => c.id)];
+}
+
 /** The master products this supplier already sells (so the catalog can show "In your store"). */
 export async function getStoreMasterIds(storeId: string): Promise<Set<string>> {
   const supabase = await createClient();
