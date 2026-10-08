@@ -12,9 +12,9 @@ export default async function AdminCatalogPage() {
   if (products === null) {
     return (
       <div>
-        <PageHeader icon="📚" title="Master catalog" subtitle="One shared list of products. Suppliers sell them by adding their price and stock." />
+        <PageHeader icon="📚" title="Product catalog" subtitle="One shared list of products. Suppliers sell them by adding their price and stock." />
         <p className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-          The master catalog isn&apos;t set up in the database yet. Run migration <b>0067_master_catalog.sql</b> in the Supabase SQL editor, then reload this page.
+          The product catalog isn&apos;t set up in the database yet. Run migration <b>0067_master_catalog.sql</b> in the Supabase SQL editor, then reload this page.
         </p>
       </div>
     );
@@ -28,8 +28,8 @@ export default async function AdminCatalogPage() {
     <div>
       <PageHeader
         icon="📚"
-        title="Master catalog"
-        subtitle="FasTrack owns the product details (name, brand, photo, category, barcode, tax). Suppliers add their own price and stock, so the same product is never listed twice."
+        title="Product catalog"
+        subtitle="What each product is: name, brand, photo, category, barcode and tax. Suppliers sell a product by adding their own price and stock, so it is never listed twice. Prices and stock are under Listings & stock."
       />
       <StatGrid>
         <StatTile icon="📚" label="Catalog products" value={approved.length} accent="#2563eb" />

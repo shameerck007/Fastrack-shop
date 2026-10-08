@@ -24,8 +24,8 @@ export default async function AdminProductsPage() {
     <div>
       <PageHeader
         icon="📦"
-        title={t("admin.products")}
-        subtitle={`${t("admin.products_count", { count: products.length, plural: products.length === 1 ? "" : "s" })} · ${t("admin.products_catalog_hint")}`}
+        title="Listings & stock"
+        subtitle={`${products.length} products on sale. Each shows its price and stock, for FasTrack and for every supplier. The product details (name, photo, category) come from the Product catalog.`}
         actions={<ProductForm categories={categoryList} warehouses={warehouseList} />}
       />
 
