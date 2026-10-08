@@ -131,6 +131,27 @@ export async function notifyNearbyRidersOfNewOrder(orderId: string) {
     await dispatchExpressOrder(orderId);
     return;
   }
+  // Standard / scheduled orders join their route (one per shop and area); riders are told about the route.
+  const settings = await getCompanySettings();
+  if (kind?.delivery_type !== "express" && settings.standard_routes_enabled === true) {
+    const { routeStandardOrder } = await import("@/lib/routes");
+    if (await routeStandardOrder(orderId)) {
+      const { data: wh } = await supabase.from("orders").select("order_number, warehouses(lat, lng)").eq("id", orderId).maybeSingle();
+      const w = wh?.warehouses as unknown as { lat: number | null; lng: number | null } | null;
+      if (w?.lat != null && w?.lng != null) {
+        const { data: riders } = await supabase.from("delivery_partners").select("id, current_lat, current_lng").eq("status", "approved").eq("is_available", true);
+        const { data: busy } = await supabase.from("delivery_assignments").select("rider_id, orders!inner(status)").not("orders.status", "in", "(delivered,cancelled)");
+        const busyIds = new Set(((busy ?? []) as { rider_id: string | null }[]).map((b) => b.rider_id));
+        const radius = await getRiderMatchRadiusKm();
+        const near = (riders ?? [])
+          .filter((r) => !busyIds.has(r.id) && r.current_lat != null && r.current_lng != null)
+          .filter((r) => distanceKm(r.current_lat as number, r.current_lng as number, w.lat as number, w.lng as number) <= radius)
+          .map((r) => r.id);
+        await notifyUsers(near, { title: "Standard route available", body: "Orders are ready for pickup near you. Take the route.", url: "/rider" });
+      }
+      return;
+    }
+  }
   const { data: order } = await supabase
     .from("orders")
     .select("order_number, warehouses(lat, lng)")

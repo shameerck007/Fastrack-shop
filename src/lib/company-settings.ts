@@ -31,6 +31,8 @@ export interface CompanySettings {
   /** Daily target bonus (migration 0065). */
   rider_daily_target?: number | null;
   rider_daily_bonus?: number | null;
+  /** Group Standard orders into routes (migration 0066). */
+  standard_routes_enabled?: boolean | null;
 }
 
 const FALLBACK: CompanySettings = {

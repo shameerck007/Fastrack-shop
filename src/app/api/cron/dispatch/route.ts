@@ -44,5 +44,7 @@ export async function POST(request: Request) {
       );
     }
   }
-  return NextResponse.json({ ok: true, offered, alerted });
+  // Standard routes: route anything missed, drop cancelled orders, close empty routes (no-op before migration 0066).
+  const swept = await db.rpc("sweep_standard_routes");
+  return NextResponse.json({ ok: true, offered, alerted, routed: swept.error ? 0 : swept.data });
 }

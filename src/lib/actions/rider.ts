@@ -65,6 +65,41 @@ export async function markPickedUp(orderId: string) {
   revalidatePath("/rider");
 }
 
+/** Take a whole Standard route: every order still ready in it becomes yours. */
+export async function acceptRoute(routeId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("accept_route" as never, { p_route_id: routeId } as never);
+  if (error) throw new Error((error as { message?: string }).message || "This route is not available any more.");
+  const ids = (data as unknown as (string | { accept_route?: string })[] | null) ?? [];
+  for (const row of ids) {
+    const orderId = typeof row === "string" ? row : row.accept_route;
+    if (orderId) await updateOrderStatus(orderId, "rider_assigned");
+  }
+  revalidatePath("/rider");
+  return routeId;
+}
+
+/** At the shop: mark every order of the route as picked up and on its way. */
+export async function markRoutePickedUp(routeId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("You must be logged in.");
+  const { data: rows } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => Promise<{ data: { order_id: string }[] | null }> } } })
+    .from("delivery_route_orders")
+    .select("order_id")
+    .eq("route_id", routeId);
+  for (const r of rows ?? []) {
+    const { data: o } = await supabase.from("orders").select("status").eq("id", r.order_id).maybeSingle();
+    if (o?.status !== "rider_assigned") continue;
+    await supabase.from("delivery_assignments").update({ picked_up_at: new Date().toISOString() }).eq("order_id", r.order_id).eq("rider_id", user.id);
+    await updateOrderStatus(r.order_id, "out_for_delivery");
+  }
+  revalidatePath("/rider");
+  revalidatePath(`/rider/routes/${routeId}`);
+}
+
 export async function completeDelivery(orderId: string, otp: string) {
   const supabase = await createClient();
   const { data: order } = await supabase
@@ -82,6 +117,8 @@ export async function completeDelivery(orderId: string, otp: string) {
     .update({ delivered_at: new Date().toISOString() })
     .eq("order_id", orderId);
   await updateOrderStatus(orderId, "delivered");
+  // If this was the last stop of a Standard route, the route is complete (no-op for single orders).
+  await supabase.rpc("close_route_if_done" as never, { p_order_id: orderId } as never);
 
   revalidatePath("/rider");
   revalidatePath(`/orders/${orderId}`);

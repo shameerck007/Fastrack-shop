@@ -7,6 +7,8 @@ import AvailabilityToggle from "@/components/rider/AvailabilityToggle";
 import ActiveDeliveryCard from "@/components/rider/ActiveDeliveryCard";
 import ExpressOfferCard from "@/components/rider/ExpressOfferCard";
 import OffersPoller from "@/components/rider/OffersPoller";
+import AcceptRouteButton from "@/components/rider/AcceptRouteButton";
+import { getAvailableRoutes, getRouteForRider, type AvailableRoute } from "@/lib/routes";
 import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -31,6 +33,7 @@ export default async function RiderHomePage() {
   const isMatching = rider?.deliveryPartner.is_available && !activeDelivery;
   const payProfile = await getRiderPayProfile();
   const salaryOnly = !payProfile.earnsPerDelivery;
+  const [activeRoute, availableRoutes] = await Promise.all([getRouteForRider(), isMatching ? getAvailableRoutes() : Promise.resolve([])]);
   const [todayStats, liveOffer, availableOrdersResult] = await Promise.all([
     getRiderTodayStats(),
     isMatching ? getMyLiveOffer() : Promise.resolve(null),
@@ -79,7 +82,32 @@ export default async function RiderHomePage() {
       {isMatching && <OffersPoller />}
       {liveOffer && <ExpressOfferCard key={liveOffer.id} offer={liveOffer} salaryOnly={salaryOnly} />}
 
-      {activeDelivery && <ActiveDeliveryCard delivery={activeDelivery} t={t} money={money} />}
+      {activeRoute && activeRoute.stops.some((x) => x.status !== "delivered" && x.status !== "cancelled") && (
+        <Link href={`/rider/routes/${activeRoute.id}`} className="block overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-lg shadow-blue-600/10 active:scale-[0.99]">
+          <div className="flex items-center justify-between bg-gradient-to-r from-blue-700 to-sky-500 px-4 py-3 text-white">
+            <h2 className="flex items-center gap-2 text-sm font-bold">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-white" /> Your route
+            </h2>
+            <span className="rounded-full bg-white/20 px-3 py-0.5 text-sm font-extrabold">
+              {activeRoute.delivered}/{activeRoute.stops.length}
+            </span>
+          </div>
+          <div className="px-4 py-4">
+            <p className="font-extrabold text-neutral-900">{activeRoute.areaLabel}</p>
+            <p className="text-sm text-neutral-500">
+              {activeRoute.pickedUpAll ? "Out delivering" : `Pick up at ${activeRoute.shopName ?? "the shop"}`}
+              {" · "}
+              {activeRoute.stops.filter((x) => x.status !== "delivered" && x.status !== "cancelled").length} stops left
+            </p>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-blue-100">
+              <div className="h-full rounded-full bg-blue-600" style={{ width: `${(activeRoute.delivered / Math.max(activeRoute.stops.length, 1)) * 100}%` }} />
+            </div>
+            <p className="mt-3 text-center text-sm font-extrabold text-blue-700">Open route →</p>
+          </div>
+        </Link>
+      )}
+
+      {activeDelivery && !activeRoute?.stops.some((x) => x.orderId === activeDelivery.id) && <ActiveDeliveryCard delivery={activeDelivery} t={t} money={money} />}
 
       {!online && !activeDelivery && (
         <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-neutral-300 bg-white py-12 text-center">
@@ -96,7 +124,7 @@ export default async function RiderHomePage() {
             <h2 className="text-base font-extrabold text-neutral-900">{t("rider.nearby_orders")}</h2>
             {hasLocation && (
               <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">
-                {availableOrders.length} {availableOrders.length === 1 ? "order" : "orders"}
+                {availableOrders.length + availableRoutes.length} {availableOrders.length + availableRoutes.length === 1 ? "job" : "jobs"}
               </span>
             )}
           </div>
@@ -106,7 +134,7 @@ export default async function RiderHomePage() {
               <p className="text-sm font-semibold text-sky-900">{t("rider.share_location_title")}</p>
               <p className="text-xs text-sky-700">{t("rider.share_location_hint")}</p>
             </div>
-          ) : availableOrders.length === 0 ? (
+          ) : availableOrders.length === 0 && availableRoutes.length === 0 ? (
             <div className="flex flex-col items-center gap-2 rounded-3xl border border-neutral-200 bg-white p-8 text-center">
               <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-2xl">
                 <span className="absolute inset-0 animate-ping rounded-full bg-blue-100" />
@@ -117,6 +145,9 @@ export default async function RiderHomePage() {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
+              {availableRoutes.map((route) => (
+                <AvailableRouteCard key={route.id} route={route} money={money} salaryOnly={salaryOnly} />
+              ))}
               {availableOrders.map((order) => (
                 <AvailableOrderCard key={order.id} order={order} t={t} money={money} salaryOnly={salaryOnly} />
               ))}
@@ -136,6 +167,34 @@ function dueBadge(dueAt: string | null): { text: string; tone: string } | null {
   const hours = ms / 3600000;
   if (hours < 24) return { text: `🕒 Due today · in ${Math.max(1, Math.round(hours))}h`, tone: "bg-sky-100 text-sky-900" };
   return { text: `📅 Due ${new Date(dueAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}`, tone: "bg-neutral-100 text-neutral-600" };
+}
+
+function AvailableRouteCard({ route, money, salaryOnly }: { route: AvailableRoute; money: MoneyFormatter; salaryOnly: boolean }) {
+  const due = dueBadge(route.dueAt);
+  return (
+    <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
+      <div className="p-4">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="font-extrabold text-neutral-900">Standard route</span>
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold uppercase text-neutral-600">📦 {route.stops} {route.stops === 1 ? "stop" : "stops"}</span>
+        </div>
+        <p className="mt-2 text-sm font-semibold text-neutral-800">📍 {route.shopName ?? "Shop"}</p>
+        {route.shopAddress && <p className="truncate text-xs text-neutral-500">{route.shopAddress}</p>}
+        <p className="mt-1 text-xs text-neutral-500">Delivering to {route.areaLabel}</p>
+        <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold">
+          {route.distanceKm != null && <span className="rounded-full bg-sky-50 px-2.5 py-1 text-sky-700">🧭 {route.distanceKm.toFixed(1)} km to pickup</span>}
+          {due && <span className={`rounded-full px-2.5 py-1 ${due.tone}`}>{due.text}</span>}
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50 px-4 py-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">{salaryOnly ? "Pay" : "You earn"}</p>
+          <p className="text-xl font-extrabold leading-tight text-blue-700">{salaryOnly ? "Salary" : money(route.pay)}</p>
+        </div>
+        <AcceptRouteButton routeId={route.id} />
+      </div>
+    </div>
+  );
 }
 
 function AvailableOrderCard({ order, t, money, salaryOnly = false }: { money: MoneyFormatter; order: AvailableOrder; t: T; salaryOnly?: boolean }) {

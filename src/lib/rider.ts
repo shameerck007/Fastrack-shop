@@ -155,8 +155,10 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
 
   const radiusKm = await getRiderMatchRadiusKm();
   // With automatic quick-delivery dispatch on, Express orders reach a rider as an offer, not through this open list.
-  const autoExpress = (await getCompanySettings()).express_auto_dispatch === true;
-  const columns = "id, order_number, delivery_type, delivery_fee, created_at, scheduled_for, warehouses(name, address_line, lat, lng, standard_delivery_days)";
+  const companySettings = await getCompanySettings();
+  const autoExpress = companySettings.express_auto_dispatch === true;
+  const routesOn = companySettings.standard_routes_enabled === true;
+  const columns = "id, order_number, status, delivery_type, delivery_fee, created_at, scheduled_for, warehouses(name, address_line, lat, lng, standard_delivery_days)";
   const first = await supabase.from("orders").select(columns).in("status", ["preparing", "ready_for_pickup"]);
   let orders: unknown[] | null = first.data;
   let error = first.error;
@@ -164,7 +166,7 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
   if (error && (error.code === "42703" || error.code === "PGRST200" || error.code === "PGRST204")) {
     const retry = await supabase
       .from("orders")
-      .select("id, order_number, delivery_type, delivery_fee, created_at, scheduled_for, warehouses(name, address_line, lat, lng)")
+      .select("id, order_number, status, delivery_type, delivery_fee, created_at, scheduled_for, warehouses(name, address_line, lat, lng)")
       .in("status", ["preparing", "ready_for_pickup"]);
     orders = retry.data;
     error = retry.error;
@@ -185,7 +187,17 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
     countByOrder.set(row.order_id, (countByOrder.get(row.order_id) ?? 0) + 1);
   }
 
-  const withDistance = (orders as unknown as (Omit<AvailableOrder, "item_count" | "distanceKm" | "dueAt"> & { scheduled_for: string | null })[]).map((o) => ({
+  // Which of these orders already sit in a route (so they are not also listed one by one).
+  const inRoute = new Set<string>();
+  if (routesOn) {
+    const { data: members } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { in: (c: string, v: string[]) => Promise<{ data: { order_id: string }[] | null }> } } })
+      .from("delivery_route_orders")
+      .select("order_id")
+      .in("order_id", (orders as { id: string }[]).map((o) => o.id));
+    for (const m of members ?? []) inRoute.add(m.order_id);
+  }
+
+  const withDistance = (orders as unknown as (Omit<AvailableOrder, "item_count" | "distanceKm" | "dueAt" | "riderPay"> & { scheduled_for: string | null; status: string })[]).map((o) => ({
     ...o,
     item_count: countByOrder.get(o.id) ?? 0,
     dueAt:
@@ -205,6 +217,8 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
   const rank = (o: { dueAt: string | null }) => (o.dueAt && new Date(o.dueAt).getTime() < now ? 0 : o.dueAt == null ? 1 : 2);
   const nearby = withDistance
     .filter((o) => !(autoExpress && o.delivery_type === "express"))
+    // With routes on, ready Standard/scheduled orders are offered as a route instead of one by one.
+    .filter((o) => !(routesOn && o.delivery_type !== "express" && (o.status === "preparing" || inRoute.has(o.id))))
     .filter((o) => o.distanceKm != null && o.distanceKm <= radiusKm)
     .sort((a, b) => {
       const byRank = rank(a) - rank(b);
