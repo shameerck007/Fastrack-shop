@@ -6,7 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getCartItems } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
-import { combineMethods, pricingFor, splitDeliveryFee } from "@/lib/delivery-methods";
+import { combineMethods, pricingFor, splitDeliveryFee, standardDeliveryDate } from "@/lib/delivery-methods";
+import { DEFAULT_ETA_SETTINGS, etaRange } from "@/lib/eta";
+import { getCompanySettings } from "@/lib/company-settings";
+import { marketOffsetMinutes } from "@/lib/timezone";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { SERVICE_AREA_MESSAGE, stateInServiceArea } from "@/lib/india";
 import { assertStoresOpen } from "@/lib/stores";
@@ -158,6 +161,31 @@ async function placeOrderOrThrow(input: {
     pricing
   );
 
+  // The delivery time promised per shipment, worked out now so the confirmation email says the real thing:
+  // Express from the distance (preparation + travel + buffer, as shown at checkout), Standard from the shop's delivery days.
+  const company = await getCompanySettings().catch(() => null);
+  const etaSettings = {
+    prepMinutes: Number(company?.prep_minutes ?? DEFAULT_ETA_SETTINGS.prepMinutes),
+    speedKmh: Number(company?.rider_speed_kmh ?? DEFAULT_ETA_SETTINGS.speedKmh),
+    bufferMinutes: Number(company?.eta_buffer_minutes ?? DEFAULT_ETA_SETTINGS.bufferMinutes),
+  };
+  const promiseFor = (idxs: number[], type: DeliveryType): { promised_eta_minutes: number | null; estimated_delivery_at: string | null } => {
+    const now = new Date();
+    const known = idxs
+      .map((i) => deliverability.get(items[i].product_variants.products.id)?.methods)
+      .filter((m): m is NonNullable<typeof m> => !!m && m.state === "known");
+    if (type === "express") {
+      const dist = Math.max(0, ...known.map((m) => (m.state === "known" ? (m.distanceKm ?? 0) : 0)));
+      const r = etaRange(dist, etaSettings);
+      return r ? { promised_eta_minutes: r.hi, estimated_delivery_at: new Date(now.getTime() + r.hi * 60_000).toISOString() } : { promised_eta_minutes: null, estimated_delivery_at: null };
+    }
+    if (type === "standard") {
+      const days = Math.max(0, ...known.map((m) => (m.state === "known" ? m.standardDays : 0)));
+      return { promised_eta_minutes: null, estimated_delivery_at: standardDeliveryDate(days, now, marketOffsetMinutes(orderCountry)).toISOString() };
+    }
+    return { promised_eta_minutes: null, estimated_delivery_at: null };
+  };
+
   const placedIds: string[] = [];
   try {
     for (const [groupKey, idxs] of groups) {
@@ -170,9 +198,7 @@ async function placeOrderOrThrow(input: {
       const total = Math.round((groupSubtotal + deliveryFee) * 100) / 100;
 
       const orderNumber = generateOrderNumber();
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert({
+      const orderRow = {
           order_number: orderNumber,
           user_id: user.id,
           address_id: input.addressId,
@@ -191,10 +217,13 @@ async function placeOrderOrThrow(input: {
           total,
           delivery_otp: generateOtp(),
           notes: input.notes ?? null,
-        })
-        .select("id")
-        .single();
-      if (orderError) throw orderError;
+        };
+      // The promised-time columns arrive with migration 0072; until it is applied the order is saved without them.
+      let { data: order, error: orderError } = await supabase.from("orders").insert({ ...orderRow, ...promiseFor(idxs, groupType) }).select("id").single();
+      if (orderError && (orderError.code === "42703" || orderError.code === "PGRST204")) {
+        ({ data: order, error: orderError } = await supabase.from("orders").insert(orderRow).select("id").single());
+      }
+      if (orderError || !order) throw orderError ?? new Error("Could not place your order.");
       placedIds.push(order.id);
 
       const orderItems = idxs.map((i) => {

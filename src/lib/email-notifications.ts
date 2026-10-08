@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { moneyFor } from "@/lib/money";
+import { marketOffsetMinutes } from "@/lib/timezone";
 import { sendEmail } from "@/lib/email";
 import {
   renderEmailShell,
@@ -26,11 +27,31 @@ function formatOrderDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function estimateArrival(deliveryType: DeliveryType, scheduledFor: string | null): string {
-  if (deliveryType === "scheduled" && scheduledFor) {
-    return new Date(scheduledFor).toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit" });
+/** The delivery line of an email: the time promised when the order was placed (saved on the order), in the market's own clock.
+ * Without a saved promise we say the time will be confirmed, never an invented range. */
+function estimateArrival(order: {
+  delivery_type: DeliveryType;
+  scheduled_for: string | null;
+  estimated_delivery_at?: string | null;
+  promised_eta_minutes?: number | null;
+  country_code?: string | null;
+}): string {
+  const offset = marketOffsetMinutes(order.country_code);
+  const inMarket = (iso: string) => new Date(new Date(iso).getTime() + offset * 60_000);
+  if (order.delivery_type === "scheduled" && order.scheduled_for) {
+    return inMarket(order.scheduled_for).toLocaleString("en-US", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "UTC" });
   }
-  return deliveryType === "express" ? "Today, quick delivery" : "We will confirm your delivery date";
+  if (order.delivery_type === "express") {
+    if (order.estimated_delivery_at && order.promised_eta_minutes) {
+      const at = inMarket(order.estimated_delivery_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "UTC" });
+      return `About ${order.promised_eta_minutes} min (around ${at})`;
+    }
+    return "Today. We will confirm the time once the shop accepts your order";
+  }
+  if (order.estimated_delivery_at) {
+    return `Expected ${inMarket(order.estimated_delivery_at).toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })}`;
+  }
+  return "We will confirm your delivery date";
 }
 
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
@@ -57,8 +78,30 @@ type AddressRow = {
   receiver_phone: string | null;
 } | null;
 
-const FULL_ORDER_SELECT =
+const FULL_ORDER_FIELDS =
   "id, order_number, user_id, subtotal, delivery_fee, total, currency, created_at, delivery_type, scheduled_for, addresses(address_line, city, district, receiver_name, receiver_phone), order_items(product_name, variant_label, ordered_quantity, line_total, product_variants!variant_id(products(image_url))), payments(method), profiles(full_name)";
+// Promised delivery time (migration 0072); the email still works before that is applied.
+const FULL_ORDER_SELECT = FULL_ORDER_FIELDS + ", country_code, promised_eta_minutes, estimated_delivery_at";
+
+interface OrderEmailRow {
+  id: string;
+  order_number: string;
+  user_id: string;
+  subtotal: number;
+  delivery_fee: number;
+  total: number;
+  currency: string | null;
+  created_at: string;
+  delivery_type: DeliveryType;
+  scheduled_for: string | null;
+  country_code?: string | null;
+  promised_eta_minutes?: number | null;
+  estimated_delivery_at?: string | null;
+  addresses: unknown;
+  order_items: unknown;
+  payments: unknown;
+  profiles: unknown;
+}
 
 interface FullOrderEmailData {
   to: string;
@@ -75,7 +118,8 @@ interface FullOrderEmailData {
  * shows the exact same full picture instead of some being a thin recap. */
 async function loadFullOrderEmailData(orderId: string): Promise<FullOrderEmailData | null> {
   const supabase = await createClient();
-  const { data: order } = await supabase.from("orders").select(FULL_ORDER_SELECT).eq("id", orderId).maybeSingle();
+  let order = ((await supabase.from("orders").select(FULL_ORDER_SELECT).eq("id", orderId).maybeSingle()).data ?? null) as unknown as OrderEmailRow | null;
+  if (!order) order = ((await supabase.from("orders").select(FULL_ORDER_FIELDS).eq("id", orderId).maybeSingle()).data ?? null) as unknown as OrderEmailRow | null;
   if (!order) return null;
   const money = moneyFor((order as unknown as { currency?: string }).currency ?? "SAR");
 
@@ -102,7 +146,7 @@ async function loadFullOrderEmailData(orderId: string): Promise<FullOrderEmailDa
       { label: "Order #", value: order.order_number },
       { label: "Order date", value: formatOrderDate(order.created_at) },
       { label: "Order total", value: money(order.total) },
-      { label: "Delivery", value: estimateArrival(order.delivery_type, order.scheduled_for) },
+      { label: "Delivery", value: estimateArrival(order) },
     ])}
     <p style="margin:24px 0 8px;font-weight:700;color:#111111;font-size:15px;">Items in this order</p>
     ${renderOrderItemsTable(items)}
