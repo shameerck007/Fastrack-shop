@@ -4,10 +4,11 @@ import Link from "@/components/Link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
 
-const NAV = [
+const NAV: { href: string; labelKey?: string; label?: string; icon: string }[] = [
   { href: "/warehouse", labelKey: "portal.dashboard", icon: "📊" },
   { href: "/warehouse/orders", labelKey: "warehouse.orders_nav", icon: "🧾" },
   { href: "/warehouse/stock", labelKey: "warehouse.stock_nav", icon: "📦" },
+  { href: "/warehouse/transfers", label: "Stock transfers", icon: "🔁" },
 ];
 
 export default function WarehouseNav() {
@@ -27,7 +28,7 @@ export default function WarehouseNav() {
             }`}
           >
             <span>{item.icon}</span>
-            {t(item.labelKey)}
+            {item.label ?? t(item.labelKey ?? "")}
           </Link>
         );
       })}

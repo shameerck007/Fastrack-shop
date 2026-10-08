@@ -44,6 +44,16 @@ export async function POST(request: Request) {
       );
     }
   }
+  // Low stock at FasTrack locations: tell that location's staff and the market's admins once per item (no-op before migration 0068).
+  const low = await db.rpc("sweep_low_stock");
+  for (const r of ((low.error ? [] : low.data) ?? []) as { out_warehouse_id: string; out_count: number; out_sample: string }[]) {
+    const { data: staff } = await db.from("warehouse_staff").select("user_id").eq("warehouse_id", r.out_warehouse_id);
+    const { data: wh } = await db.from("warehouses").select("name, tenant_id").eq("id", r.out_warehouse_id).maybeSingle();
+    const { data: admins } = await db.from("profiles").select("id").eq("role", "admin").eq("tenant_id", (wh as { tenant_id: string } | null)?.tenant_id ?? "");
+    const who = [...((staff ?? []) as { user_id: string }[]).map((s) => s.user_id), ...((admins ?? []) as { id: string }[]).map((a) => a.id)];
+    await notifyUsers(who, { title: "Stock running low", body: `${(wh as { name: string } | null)?.name ?? "A location"}: ${r.out_count} item${r.out_count === 1 ? "" : "s"} below minimum (${r.out_sample}).`, url: "/admin/transfers" }, db);
+  }
+
   // Standard routes: route anything missed, drop cancelled orders, close empty routes (no-op before migration 0066).
   const swept = await db.rpc("sweep_standard_routes");
   return NextResponse.json({ ok: true, offered, alerted, routed: swept.error ? 0 : swept.data });

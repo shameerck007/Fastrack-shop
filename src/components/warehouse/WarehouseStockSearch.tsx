@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import StockCell from "@/components/admin/StockCell";
 import { updateWarehouseStock } from "@/lib/actions/warehouse-staff";
+import ReceiveStockButton from "@/components/warehouse/ReceiveStockButton";
 import { useLocale } from "@/components/LocaleProvider";
 import type { WarehouseStockRow } from "@/lib/warehouse-staff";
 
@@ -124,6 +125,7 @@ export default function WarehouseStockSearch({ stock, locale }: { stock: Warehou
                 <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[row.status]}`}>
                   {STATUS_LABEL[row.status]}
                 </span>
+                <ReceiveStockButton inventoryId={row.inventoryId} />
                 <StockCell
                   inventoryId={row.inventoryId}
                   stock={row.stock}
