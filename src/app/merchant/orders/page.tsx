@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
-import { getMyStore } from "@/lib/merchant";
-import { getMerchantOrders, summarizeMerchantOrders } from "@/lib/merchant-orders";
+import { getMerchantStats, getMyStore } from "@/lib/merchant";
+import Link from "@/components/Link";
+import { PageHeader, StatGrid, StatTile } from "@/components/admin/AdminUi";
+import { getMerchantOrders } from "@/lib/merchant-orders";
 
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
@@ -20,40 +22,46 @@ const STATUS_BADGE: Record<OrderStatus, string> = {
   cancelled: "bg-red-50 text-red-600",
 };
 
-export default async function MerchantOrdersPage() {
+export default async function MerchantOrdersPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const sp = await searchParams;
+  const tab = sp.tab === "done" ? "done" : "active";
   const money = await getMoney();
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const store = await getMyStore();
   if (!store) redirect("/sell");
 
-  const orders = await getMerchantOrders();
-  const kpis = summarizeMerchantOrders(orders);
+  const [orders, stats] = await Promise.all([getMerchantOrders(50, tab), getMerchantStats(store.id)]);
+
+  const tabLink = (key: string, label: string) => (
+    <Link
+      key={key}
+      href={key === "active" ? "/merchant/orders" : `/merchant/orders?tab=${key}`}
+      className={`inline-flex h-9 items-center rounded-full px-4 text-sm font-bold ${tab === key ? "bg-blue-700 text-white shadow" : "text-neutral-500"}`}
+    >
+      {label}
+    </Link>
+  );
 
   return (
-    <div>
-      <h1 className="text-xl font-semibold">{t("merchant.orders_title")}</h1>
-      <p className="mt-1 text-sm text-neutral-500">{t("merchant.orders_intro")}</p>
+    <div className="flex flex-col gap-5">
+      <PageHeader icon="🧾" title={t("merchant.orders_title")} subtitle={t("merchant.orders_intro")} />
 
-      <div className="my-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="text-sm text-neutral-500">{t("merchant.new_orders")}</p>
-          <p className="text-2xl font-semibold text-amber-600">{kpis.newCount}</p>
-        </div>
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="text-sm text-neutral-500">{t("merchant.preparing_orders")}</p>
-          <p className="text-2xl font-semibold text-blue-700">{kpis.preparingCount}</p>
-        </div>
-        <div className="rounded-xl border border-neutral-200 bg-white p-4">
-          <p className="text-sm text-neutral-500">{t("merchant.ready_orders")}</p>
-          <p className="text-2xl font-semibold text-emerald-700">{kpis.readyCount}</p>
-        </div>
+      <StatGrid>
+        <StatTile icon="🔔" label={t("merchant.new_orders")} value={stats.newOrders} accent="#d97706" />
+        <StatTile icon="👨‍🍳" label={t("merchant.preparing_orders")} value={stats.preparing} accent="#2563eb" />
+        <StatTile icon="✅" label={t("merchant.ready_orders")} value={stats.ready} accent="#059669" />
+      </StatGrid>
+
+      <div className="flex w-fit rounded-full bg-neutral-100 p-0.5">
+        {tabLink("active", "In progress")}
+        {tabLink("done", "Completed")}
       </div>
 
       {orders.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center">
           <span className="text-4xl">🧾</span>
-          <p className="text-sm text-neutral-500">{t("merchant.no_orders_yet_merchant")}</p>
+          <p className="text-sm text-neutral-500">{tab === "done" ? "No completed orders yet" : t("merchant.no_orders_yet_merchant")}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">

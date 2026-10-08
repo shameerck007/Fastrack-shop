@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getMoney } from "@/lib/tenant-server";
+import { PageHeader } from "@/components/admin/AdminUi";
 import { getMyStore } from "@/lib/merchant";
 import { getStoreSettlementSummary, getStoreSettlementOrders, getStorePayouts } from "@/lib/settlements";
 import { SettlementSummaryCards, SettlementOrdersTable, SettlementPayoutsList } from "@/components/SettlementLedger";
@@ -20,12 +21,11 @@ export default async function MerchantSettlementsPage() {
   ]);
 
   return (
-    <div>
-      <h1 className="text-xl font-semibold">{t("merchant.settlement_ledger")}</h1>
-      <p className="mt-1 text-sm text-neutral-500">{t("merchant.settlement_intro")}</p>
+    <div className="flex flex-col gap-5">
+      <PageHeader icon="📒" title={t("merchant.settlement_ledger")} subtitle={t("merchant.settlement_intro")} />
 
       {summary && (
-        <div className="my-5">
+        <div>
           <SettlementSummaryCards summary={summary} t={t} money={money} />
         </div>
       )}

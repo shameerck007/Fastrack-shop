@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { PageHeader } from "@/components/admin/AdminUi";
 import CatalogBrowser from "@/components/merchant/CatalogBrowser";
 import { getMyStore } from "@/lib/merchant";
 import { getStoreMasterIds, searchMasterCatalog } from "@/lib/master-catalog";
@@ -23,13 +24,12 @@ export default async function MerchantCatalogPage({ searchParams }: { searchPara
   ]);
 
   return (
-    <div>
-      <div className="mb-5 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-4 sm:p-5">
-        <h1 className="text-xl font-semibold text-neutral-900">Product catalog</h1>
-        <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">
-          Find your product, add it to your store, and set your price and stock. The name, photo and details are kept by FasTrack, so every listing looks right. Not in the catalog? Request it.
-        </p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        icon="📚"
+        title="Product catalog"
+        subtitle="Find your product, add it to your store, and set your price and stock. The name, photo and details are kept by FasTrack, so every listing looks right. Not in the catalog? Request it."
+      />
       {result?.error && <p className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">The catalog could not be loaded: {result.error}</p>}
       {result === null ? (
         <p className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">The catalog isn&apos;t available yet. Please check back soon.</p>

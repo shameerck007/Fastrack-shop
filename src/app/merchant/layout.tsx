@@ -29,9 +29,11 @@ export default async function MerchantLayout({ children }: { children: React.Rea
               </Link>
               <LanguageToggle />
               <NotificationBell />
-              <span className="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 sm:inline">
-                ● {t("merchant.approved_seller")}
-              </span>
+              {store?.status === "approved" && (
+                <span className="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 sm:inline">
+                  ● {t("merchant.approved_seller")}
+                </span>
+              )}
               <form action={signOut}>
                 <button className="text-neutral-500 hover:text-neutral-900">{t("portal.log_out")}</button>
               </form>

@@ -14,21 +14,31 @@ export interface MerchantOrderRow extends Pick<Order, "id" | "order_number" | "s
   order_items: MerchantOrderItem[];
 }
 
+const ACTIVE_STATUSES: OrderStatus[] = [
+  "pending",
+  "confirmed",
+  "preparing",
+  "ready_for_pickup",
+  "rider_assigned",
+  "out_for_delivery",
+];
+
 // RLS ("merchants view orders containing their products" / "merchants view
 // their order items") does the actual scoping here: a plain select only
 // ever returns orders that include at least one of this store's products,
 // and within those orders, only the line items that are this store's own —
 // a mixed order with another seller's items never exposes those lines or
 // their prices to this merchant. No store_id filter needed client-side.
-export async function getMerchantOrders(limit = 100): Promise<MerchantOrderRow[]> {
+export async function getMerchantOrders(limit = 50, scope: "all" | "active" | "done" = "all"): Promise<MerchantOrderRow[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let q = supabase
     .from("orders")
     .select(
       "id, order_number, status, created_at, order_items(id, product_name, variant_label, ordered_quantity, line_total, variant_id, product_variants!variant_id(products(image_url, name, name_ar)))"
-    )
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    );
+  if (scope === "active") q = q.in("status", ACTIVE_STATUSES);
+  if (scope === "done") q = q.in("status", ["delivered", "cancelled"]);
+  const { data, error } = await q.order("created_at", { ascending: false }).limit(limit);
 
   if (error) throw error;
   return (data as unknown as MerchantOrderRow[]) ?? [];
@@ -39,15 +49,6 @@ export interface MerchantOrderKPIs {
   preparingCount: number;
   readyCount: number;
 }
-
-const ACTIVE_STATUSES: OrderStatus[] = [
-  "pending",
-  "confirmed",
-  "preparing",
-  "ready_for_pickup",
-  "rider_assigned",
-  "out_for_delivery",
-];
 
 export function summarizeMerchantOrders(orders: MerchantOrderRow[]): MerchantOrderKPIs {
   return {
