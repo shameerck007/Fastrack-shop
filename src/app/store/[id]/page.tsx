@@ -42,7 +42,7 @@ export default async function StorePage({
 
   return (
     <div>
-      <StoreHeader storeName={store.name} />
+      <StoreHeader store={store} />
       <StoreHero store={store} />
       <div className="mx-auto max-w-6xl px-4 py-6 max-md:pb-36">
         <DeliverableProductList
