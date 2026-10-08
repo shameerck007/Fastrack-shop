@@ -6,8 +6,10 @@ export interface PeriodRow {
   key: string;
   label: string;
   deliveries: number;
-  /** Delivery fees earned by riders. */
+  /** What riders earned (their delivery pay, salary and bonuses). */
   earned: number;
+  /** Delivery charges customers paid on the delivered orders (admin view). */
+  deliveryCharges: number;
   /** Cash taken from customers on cash-on-delivery orders. */
   cashCollected: number;
   /** Cash riders handed in to FasTrack. */
@@ -25,7 +27,7 @@ function dayKey(d: Date, timeZone: string): string {
  * so a delivery at 11:30 pm India time lands on the right day.
  */
 export function buildPeriods(
-  orders: Pick<RiderSettlementOrder, "deliveredAt" | "deliveryFee" | "cashCollected">[],
+  orders: Pick<RiderSettlementOrder, "deliveredAt" | "deliveryFee" | "cashCollected" | "customerFee">[],
   entries: Pick<RiderSettlementEntry, "kind" | "amount" | "createdAt">[],
   mode: PeriodMode,
   timeZone: string,
@@ -47,7 +49,7 @@ export function buildPeriods(
       mode === "daily"
         ? d.toLocaleDateString("en-GB", { timeZone, weekday: "short", day: "numeric", month: "short" })
         : d.toLocaleDateString("en-GB", { timeZone: "UTC", month: "short", year: "numeric" });
-    rows.set(key, { key, label, deliveries: 0, earned: 0, cashCollected: 0, handedIn: 0, paidOut: 0 });
+    rows.set(key, { key, label, deliveries: 0, earned: 0, deliveryCharges: 0, cashCollected: 0, handedIn: 0, paidOut: 0 });
   }
   for (const o of orders) {
     if (!o.deliveredAt) continue;
@@ -55,6 +57,7 @@ export function buildPeriods(
     if (!row) continue;
     row.deliveries += 1;
     row.earned += o.deliveryFee;
+    row.deliveryCharges += o.customerFee ?? 0;
     row.cashCollected += o.cashCollected;
   }
   for (const e of entries) {

@@ -29,12 +29,15 @@ export default function CollectionsPanel({
   basePath,
   money,
   heading = "Collections",
+  showCharges = false,
 }: {
   rows: PeriodRow[];
   mode: PeriodMode;
   basePath: string;
   money: MoneyFormatter;
   heading?: string;
+  /** Admin view: also show the delivery charges customers paid. */
+  showCharges?: boolean;
 }) {
   const current = rows[0];
   const previous = rows[1];
@@ -47,11 +50,12 @@ export default function CollectionsPanel({
     (a, r) => ({
       deliveries: a.deliveries + r.deliveries,
       earned: a.earned + r.earned,
+      deliveryCharges: a.deliveryCharges + r.deliveryCharges,
       cashCollected: a.cashCollected + r.cashCollected,
       handedIn: a.handedIn + r.handedIn,
       paidOut: a.paidOut + r.paidOut,
     }),
-    { deliveries: 0, earned: 0, cashCollected: 0, handedIn: 0, paidOut: 0 }
+    { deliveries: 0, earned: 0, deliveryCharges: 0, cashCollected: 0, handedIn: 0, paidOut: 0 }
   );
 
   return (
@@ -72,10 +76,13 @@ export default function CollectionsPanel({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className={`grid grid-cols-2 gap-3 ${showCharges ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
         <Card tone="dark" icon="💵" label={`${unit}: cash collected`} value={money(current.cashCollected)} hint={`${previous.label}: ${money(previous.cashCollected)}`} />
         <Card tone="light" icon="🤝" label={`${unit}: handed in`} value={money(current.handedIn)} hint={pending > 0 ? `${money(pending)} still to hand in` : "Nothing pending"} />
-        <Card tone="light" icon="🛵" label={`${unit}: delivery fees`} value={money(current.earned)} hint={`${current.deliveries} deliveries · ${prevUnit} ${money(previous.earned)}`} />
+        <Card tone="light" icon="🛵" label={`${unit}: rider pay`} value={money(current.earned)} hint={`${current.deliveries} deliveries · ${prevUnit} ${money(previous.earned)}`} />
+        {showCharges && (
+          <Card tone="light" icon="🧾" label={`${unit}: delivery charges`} value={money(current.deliveryCharges)} hint={`Paid by customers · ${prevUnit} ${money(previous.deliveryCharges)}`} />
+        )}
         <Card tone="light" icon="💸" label={`${unit}: paid out`} value={money(current.paidOut)} hint={`${prevUnit} ${money(previous.paidOut)}`} />
       </div>
 
@@ -114,14 +121,15 @@ export default function CollectionsPanel({
       {/* table */}
       <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
+          <table className="w-full min-w-[620px] text-sm">
             <thead>
               <tr className="border-b border-neutral-100 text-start text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
                 <th className="px-4 py-2.5 text-start">{mode === "daily" ? "Day" : "Month"}</th>
                 <th className="px-3 py-2.5 text-end">Deliveries</th>
                 <th className="px-3 py-2.5 text-end">Collected</th>
                 <th className="px-3 py-2.5 text-end">Handed in</th>
-                <th className="px-3 py-2.5 text-end">Fees</th>
+                {showCharges && <th className="px-3 py-2.5 text-end">Delivery charges</th>}
+                <th className="px-3 py-2.5 text-end">Rider pay</th>
                 <th className="px-4 py-2.5 text-end">Paid out</th>
               </tr>
             </thead>
@@ -132,6 +140,7 @@ export default function CollectionsPanel({
                   <td className="px-3 py-2.5 text-end">{r.deliveries}</td>
                   <td className="px-3 py-2.5 text-end font-semibold">{money(r.cashCollected)}</td>
                   <td className="px-3 py-2.5 text-end">{money(r.handedIn)}</td>
+                  {showCharges && <td className="px-3 py-2.5 text-end">{money(r.deliveryCharges)}</td>}
                   <td className="px-3 py-2.5 text-end">{money(r.earned)}</td>
                   <td className="px-4 py-2.5 text-end">{money(r.paidOut)}</td>
                 </tr>
@@ -143,6 +152,7 @@ export default function CollectionsPanel({
                 <td className="px-3 py-2.5 text-end">{totals.deliveries}</td>
                 <td className="px-3 py-2.5 text-end">{money(totals.cashCollected)}</td>
                 <td className="px-3 py-2.5 text-end">{money(totals.handedIn)}</td>
+                {showCharges && <td className="px-3 py-2.5 text-end">{money(totals.deliveryCharges)}</td>}
                 <td className="px-3 py-2.5 text-end">{money(totals.earned)}</td>
                 <td className="px-4 py-2.5 text-end">{money(totals.paidOut)}</td>
               </tr>

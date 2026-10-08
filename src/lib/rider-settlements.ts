@@ -54,6 +54,8 @@ export interface RiderSettlementOrder {
   deliveryFee: number;
   orderTotal: number;
   cashCollected: number;
+  /** What the customer paid for delivery on this order (filled in by the admin pages). */
+  customerFee?: number;
 }
 
 export async function getRiderSettlementOrders(riderId: string): Promise<RiderSettlementOrder[]> {
@@ -148,4 +150,17 @@ export async function getAllRiderSettlementEntries(): Promise<(RiderSettlementEn
     note: (r.note as string | null) ?? null,
     createdAt: String(r.created_at),
   }));
+}
+
+/** The delivery charge customers paid on these orders (admin only: RLS lets admins read every order in their market). */
+export async function getCustomerDeliveryCharges(orderIds: string[]): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  if (orderIds.length === 0) return out;
+  const supabase = await createClient();
+  for (let i = 0; i < orderIds.length; i += 150) {
+    const chunk = orderIds.slice(i, i + 150);
+    const { data } = await supabase.from("orders").select("id, delivery_fee").in("id", chunk);
+    for (const o of data ?? []) out.set(o.id as string, Number(o.delivery_fee));
+  }
+  return out;
 }

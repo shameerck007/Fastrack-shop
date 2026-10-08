@@ -229,7 +229,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
                   <p className="font-semibold text-neutral-900">#{o.orderNumber}</p>
                   <p className="text-xs text-neutral-500">{formatWhen(o.deliveredAt, timeZone)}</p>
                 </div>
-                <span className="font-bold text-blue-700">+{money(o.deliveryFee)}</span>
+                {pay.earnsPerDelivery ? <span className="font-bold text-blue-700">+{money(o.deliveryFee)}</span> : <span className="text-xs font-semibold text-neutral-400">Delivered</span>}
               </li>
             ))}
           </ul>

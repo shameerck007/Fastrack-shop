@@ -19,6 +19,7 @@ export default async function RiderHistoryPage() {
   const tz = wallet?.timeZone ?? "Asia/Riyadh";
   const lifetime = await getRiderLifetimeStats().catch(() => null);
   const today = earningsByDay(orders, tz, 1)[0];
+  const earns = wallet?.pay.earnsPerDelivery ?? true;
 
   return (
     <div className="flex flex-col gap-4">
@@ -45,8 +46,14 @@ export default async function RiderHistoryPage() {
                   <p className="text-xs text-neutral-500">{formatWhen(o.deliveredAt, tz)}</p>
                 </div>
                 <div className="text-end">
-                  <p className="text-lg font-extrabold text-blue-700">+{money(o.deliveryFee)}</p>
-                  <p className="text-[11px] text-neutral-400">your earning</p>
+                  {earns ? (
+                    <>
+                      <p className="text-lg font-extrabold text-blue-700">+{money(o.deliveryFee)}</p>
+                      <p className="text-[11px] text-neutral-400">your earning</p>
+                    </>
+                  ) : (
+                    <p className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-800">Delivered</p>
+                  )}
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold">

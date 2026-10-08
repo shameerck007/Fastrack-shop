@@ -4,6 +4,7 @@ import {
   getRiderSettlementOverview,
   getRiderSettlementOrders,
   getAllRiderSettlementEntries,
+  getCustomerDeliveryCharges,
   type RiderSettlementOrder,
 } from "@/lib/rider-settlements";
 import { buildPeriods, type PeriodMode } from "@/lib/finance-periods";
@@ -27,6 +28,9 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
     entries = await getAllRiderSettlementEntries();
     const lists = await Promise.all(riders.map((r) => getRiderSettlementOrders(r.riderId).catch(() => [])));
     riders.forEach((r, i) => ordersByRider.set(r.riderId, lists[i]));
+    // What customers paid for delivery on each of those orders, to set beside what riders earned.
+    const charges = await getCustomerDeliveryCharges(lists.flat().map((o) => o.orderId));
+    for (const list of lists) for (const o of list) o.customerFee = charges.get(o.orderId) ?? 0;
   } catch {
     failed = true;
   }
@@ -71,7 +75,7 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
             <p className="max-w-[55%] text-end text-xs text-white/70">Collected from customers and not yet handed in to FasTrack.</p>
           </div>
 
-          <CollectionsPanel rows={rows} mode={mode} basePath="/admin/collections" money={money} heading="All riders" />
+          <CollectionsPanel rows={rows} mode={mode} basePath="/admin/collections" money={money} heading="All riders" showCharges />
 
           <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-4 py-3">
@@ -82,14 +86,15 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
               <p className="p-5 text-sm text-neutral-500">No rider activity in this {mode === "daily" ? "day" : "month"} yet.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-sm">
+                <table className="w-full min-w-[680px] text-sm">
                   <thead>
                     <tr className="border-b border-neutral-100 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
                       <th className="px-4 py-2.5 text-start">Rider</th>
                       <th className="px-3 py-2.5 text-end">Deliveries</th>
                       <th className="px-3 py-2.5 text-end">Collected</th>
                       <th className="px-3 py-2.5 text-end">Handed in</th>
-                      <th className="px-3 py-2.5 text-end">Fees</th>
+                      <th className="px-3 py-2.5 text-end">Delivery charges</th>
+                      <th className="px-3 py-2.5 text-end">Rider pay</th>
                       <th className="px-4 py-2.5 text-end">Cash with rider</th>
                     </tr>
                   </thead>
@@ -100,6 +105,7 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
                         <td className="px-3 py-2.5 text-end">{x.deliveries}</td>
                         <td className="px-3 py-2.5 text-end font-semibold">{money(x.cashCollected)}</td>
                         <td className="px-3 py-2.5 text-end">{money(x.handedIn)}</td>
+                        <td className="px-3 py-2.5 text-end">{money(x.deliveryCharges)}</td>
                         <td className="px-3 py-2.5 text-end">{money(x.earned)}</td>
                         <td className="px-4 py-2.5 text-end font-bold text-blue-800">{money(Math.max(x.r.cashCollected - x.r.cashDeposited, 0))}</td>
                       </tr>
