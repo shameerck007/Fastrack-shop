@@ -131,6 +131,33 @@ export function pricingFor(countryCode: string | null | undefined): DeliveryPric
   return PRICING[(countryCode ?? "SA").toUpperCase()] ?? PRICING.SA;
 }
 
+/**
+ * One delivery charge for the whole checkout, however many shops it is split into (the shops still pack and deliver
+ * their own parcels, but the customer pays once). Free over the threshold on the whole cart; otherwise the highest
+ * fee among the shipments' methods (Express beats Standard). The charge is shared between the shops' orders in
+ * proportion to their item totals, to the cent, so every order's invoice still adds up.
+ */
+export function splitDeliveryFee(
+  shipments: { key: string; subtotal: number; method: "express" | "standard" | "scheduled" }[],
+  pricing: DeliveryPricing
+): { total: number; byKey: Map<string, number> } {
+  const byKey = new Map<string, number>();
+  const cartSubtotal = shipments.reduce((n, s) => n + s.subtotal, 0);
+  if (shipments.length === 0) return { total: 0, byKey };
+  const total =
+    cartSubtotal >= pricing.freeOver ? 0 : Math.max(...shipments.map((s) => (s.method === "express" ? pricing.express : pricing.standard)));
+  let given = 0;
+  shipments.forEach((s, i) => {
+    const share =
+      i === shipments.length - 1
+        ? Math.round((total - given) * 100) / 100
+        : Math.round(((cartSubtotal > 0 ? s.subtotal / cartSubtotal : 1 / shipments.length) * total) * 100) / 100;
+    given += share;
+    byKey.set(s.key, share);
+  });
+  return { total, byKey };
+}
+
 export function deliveryFee(method: "express" | "standard" | "scheduled", subtotal: number, pricing: DeliveryPricing): number {
   if (subtotal >= pricing.freeOver) return 0;
   return method === "express" ? pricing.express : pricing.standard;

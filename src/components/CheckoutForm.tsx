@@ -11,7 +11,7 @@ import { extractTax } from "@/lib/tax";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { marketUi } from "@/lib/market-ui";
 import { formatEta } from "@/lib/eta";
-import { formatDeliveryDate, pricingFor, standardDeliveryDate } from "@/lib/delivery-methods";
+import { formatDeliveryDate, pricingFor, splitDeliveryFee, standardDeliveryDate } from "@/lib/delivery-methods";
 import type { Address, CartItemWithVariant, DeliveryType, PaymentMethod } from "@/types/database";
 import { useMoney } from "@/components/MoneyProvider";
 
@@ -93,21 +93,23 @@ export default function CheckoutForm({
       showTimes && type === "express" && chosenAddress?.lat != null && chosenAddress?.lng != null
         ? etaAt(chosenAddress.lat, chosenAddress.lng, g.storeId !== undefined ? [g.storeId] : items.map((i) => i.product_variants.products.store_id ?? null))
         : null;
-    const baseFee = type === "express" ? pricing.express : pricing.standard;
     return {
       ...g,
       type,
       available: m.express || m.standard,
       etaText: range ? formatEta(range) : null,
       date: formatDeliveryDate(standardDeliveryDate(m.standardDays, new Date(), offsetMin), locale),
-      fee: g.subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : baseFee,
+      fee: 0,
     };
   });
   const deliveryType: DeliveryType = parcels[0]?.type ?? "express";
   const anyStandardAvailable = parcels.every((p) => (shipmentMethods[addressId]?.[p.key] ?? offered).standard);
   const allDeliverable = parcels.every((p) => p.available);
   const split = parcels.length > 1;
-  const deliveryFee = Math.round(parcels.reduce((sum, g) => sum + g.fee, 0) * 100) / 100;
+  // One delivery charge for the whole cart, however many shops it splits into.
+  const feeSplit = splitDeliveryFee(parcels.map((p) => ({ key: p.key, subtotal: p.subtotal, method: p.type })), pricing);
+  const deliveryFee = feeSplit.total;
+  for (const p of parcels) p.fee = feeSplit.byKey.get(p.key) ?? 0;
   const total = Math.round((subtotal + deliveryFee) * 100) / 100;
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
@@ -284,11 +286,21 @@ export default function CheckoutForm({
                             : t("checkout.scheduled")}
                       </p>
                     </div>
-                    <span className={`shrink-0 text-sm font-extrabold ${p.fee === 0 ? "text-emerald-600" : "text-neutral-900"}`}>
-                      {p.fee === 0 ? t("checkout.free") : money(p.fee)}
-                    </span>
+                    {!split && (
+                      <span className={`shrink-0 text-sm font-extrabold ${deliveryFee === 0 ? "text-emerald-600" : "text-neutral-900"}`}>
+                        {deliveryFee === 0 ? t("checkout.free") : money(deliveryFee)}
+                      </span>
+                    )}
                   </div>
                 ))}
+                {split && (
+                  <div className="flex items-center justify-between rounded-2xl bg-neutral-50 px-3.5 py-2.5 text-sm">
+                    <span className="font-semibold text-neutral-700">{t("checkout_ui.one_delivery_fee")}</span>
+                    <span className={`font-extrabold ${deliveryFee === 0 ? "text-emerald-600" : "text-neutral-900"}`}>
+                      {deliveryFee === 0 ? t("checkout.free") : money(deliveryFee)}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
             {anyStandardAvailable && (
@@ -389,7 +401,7 @@ export default function CheckoutForm({
               </div>
             )}
             <div
-              className={`${split ? "hidden " : ""}mb-3 rounded-2xl px-3 py-2.5 text-xs font-bold ${
+              className={`mb-3 rounded-2xl px-3 py-2.5 text-xs font-bold ${
                 freeLeft === 0 ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-800"
               }`}
             >
@@ -419,13 +431,6 @@ export default function CheckoutForm({
                   {deliveryFee === 0 ? t("checkout.free") : money(deliveryFee)}
                 </span>
               </div>
-              {split &&
-                parcels.map((g) => (
-                  <div key={g.key} className="flex justify-between text-xs text-neutral-400">
-                    <span>{g.name ? t("checkout_ui.parcel_label", { shop: g.name }) : `Delivery ${parcels.indexOf(g) + 1}`}</span>
-                    <span>{g.fee === 0 ? t("checkout.free") : money(g.fee)}</span>
-                  </div>
-                ))}
               <div className="flex justify-between border-t border-dashed border-neutral-200 pt-2 text-base font-extrabold">
                 <span>{t("checkout.total")}</span>
                 <span>{money(total)}</span>

@@ -103,7 +103,7 @@ export function CartDeliveryOptions({ storeIds }: { storeIds: (string | null)[] 
   if (unique.length > 1) {
     return (
       <section className="flex flex-col gap-2">
-        <p className="text-xs font-semibold text-neutral-500">{unique.length} separate deliveries, each with its own time</p>
+        <p className="text-xs font-semibold text-neutral-500">{unique.length} separate deliveries, each with its own time. You pay one delivery fee for the whole cart.</p>
         {unique.map((id, i) => {
           const st = statuses[i];
           if (st.state !== "ok") return null;
@@ -123,7 +123,6 @@ export function CartDeliveryOptions({ storeIds }: { storeIds: (string | null)[] 
                     ? `${t("checkout.standard")} · ${t("delivery_info.standard_by", { date: formatDeliveryDate(standardDeliveryDate(st.standardDays, new Date(), offsetMin), locale) })}`
                     : t("delivery_info.standard_unavailable")
               }
-              fee={money(express ? pricing.express : pricing.standard)}
             />
           );
         })}

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCartItems } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
-import { combineMethods, deliveryFee as deliveryFeeFor, pricingFor } from "@/lib/delivery-methods";
+import { combineMethods, pricingFor, splitDeliveryFee } from "@/lib/delivery-methods";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { SERVICE_AREA_MESSAGE, stateInServiceArea } from "@/lib/india";
 import { assertStoresOpen } from "@/lib/stores";
@@ -148,13 +148,23 @@ async function placeOrderOrThrow(input: {
     }
   }
 
+  // One delivery charge for the whole checkout, shared between the shops' orders (see splitDeliveryFee).
+  const feeSplit = splitDeliveryFee(
+    [...groups].map(([key, idxs]) => ({
+      key,
+      subtotal: Math.round(idxs.reduce((n, i) => n + items[i].quantity * items[i].product_variants.price, 0) * 100) / 100,
+      method: typeByGroup.get(key) ?? "standard",
+    })),
+    pricing
+  );
+
   const placedIds: string[] = [];
   try {
     for (const [groupKey, idxs] of groups) {
       const groupType = typeByGroup.get(groupKey) ?? "standard";
       const groupItems = idxs.map((i) => items[i]);
       const groupSubtotal = Math.round(groupItems.reduce((sum, it) => sum + it.quantity * it.product_variants.price, 0) * 100) / 100;
-      const deliveryFee = deliveryFeeFor(groupType, groupSubtotal, pricing);
+      const deliveryFee = feeSplit.byKey.get(groupKey) ?? 0;
       // Tax inside the order = the items' tax, plus GST inside the delivery charge where it applies (India).
       const vat = Math.round((idxs.reduce((sum, i) => sum + itemTaxes[i].tax, 0) + extractTax(deliveryFee, deliveryTaxRate(taxCountry))) * 100) / 100;
       const total = Math.round((groupSubtotal + deliveryFee) * 100) / 100;
