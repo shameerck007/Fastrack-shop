@@ -86,7 +86,7 @@ export default function ProductCard({
         )}
         {storeClosed && !outOfStock && <ClosedOverlay status={storeStatus} />}
         {variant && !outOfStock && !storeClosed && (
-          <QuickAddToCart variantId={variant.id} storeId={product.store_id} stock={stock ?? Infinity} />
+          <QuickAddToCart variantId={variant.id} storeId={product.store_id} stock={stock ?? Infinity} maxQty={product.max_order_qty ?? null} />
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3.5">

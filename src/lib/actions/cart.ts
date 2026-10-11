@@ -45,6 +45,14 @@ async function getOrCreateCartId(): Promise<string> {
   return created.id;
 }
 
+/** The most one order may hold of this variant's product (null = no limit). Read on its own so a missing column never breaks adding to the cart. */
+async function maxQtyOfVariant(variantId: string): Promise<{ max: number | null; name: string }> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("product_variants").select("products(name, max_order_qty)").eq("id", variantId).maybeSingle();
+  const p = (data as unknown as { products: { name: string; max_order_qty?: number | null } | null } | null)?.products;
+  return { max: p?.max_order_qty ?? null, name: p?.name ?? "this item" };
+}
+
 async function addToCartOrThrow(
   variantId: string,
   quantity: number,
@@ -82,6 +90,11 @@ async function addToCartOrThrow(
     .maybeSingle();
 
   const requestedTotal = (existing?.quantity ?? 0) + quantity;
+  const limit = await maxQtyOfVariant(variantId);
+  if (limit.max !== null && requestedTotal > limit.max) {
+    const have = existing?.quantity ?? 0;
+    throw new Error(have >= limit.max ? `You've reached the limit of ${limit.max} per order for this item.` : `You can buy up to ${limit.max} of this item per order — you already have ${have} in your cart.`);
+  }
   const available = await getVariantStock(variantId);
   if (requestedTotal > available) {
     throw new Error(
@@ -108,33 +121,23 @@ async function addToCartOrThrow(
 
 }
 
-export async function updateCartItemQuantity(cartItemId: string, quantity: number) {
+/** Returns { error } instead of throwing: in production a thrown message never reaches the shopper. */
+export async function updateCartItemQuantity(cartItemId: string, quantity: number): Promise<{ error?: string }> {
   const supabase = await createClient();
 
   if (quantity <= 0) {
     const { error } = await supabase.from("cart_items").delete().eq("id", cartItemId);
-    if (error) throw error;
-  } else {
-    const { data: item } = await supabase
-      .from("cart_items")
-      .select("variant_id")
-      .eq("id", cartItemId)
-      .maybeSingle();
-
-    if (item) {
-      const available = await getVariantStock(item.variant_id);
-      if (quantity > available) {
-        throw new Error(`Only ${available} left in stock.`);
-      }
-    }
-
-    const { error } = await supabase
-      .from("cart_items")
-      .update({ quantity })
-      .eq("id", cartItemId);
-    if (error) throw error;
+    return error ? { error: error.message } : {};
   }
-
+  const { data: item } = await supabase.from("cart_items").select("variant_id").eq("id", cartItemId).maybeSingle();
+  if (item) {
+    const limit = await maxQtyOfVariant(item.variant_id);
+    if (limit.max !== null && quantity > limit.max) return { error: `You can buy up to ${limit.max} of this item per order.` };
+    const available = await getVariantStock(item.variant_id);
+    if (quantity > available) return { error: `Only ${available} left in stock.` };
+  }
+  const { error } = await supabase.from("cart_items").update({ quantity }).eq("id", cartItemId);
+  return error ? { error: error.message } : {};
 }
 
 export async function removeCartItem(cartItemId: string) {

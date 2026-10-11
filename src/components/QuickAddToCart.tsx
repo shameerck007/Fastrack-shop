@@ -24,10 +24,13 @@ export default function QuickAddToCart({
   variantId,
   storeId,
   stock,
+  maxQty = null,
 }: {
   variantId: string;
   storeId: string | null;
   stock: number;
+  /** The product's per-order limit, if it has one. */
+  maxQty?: number | null;
 }) {
   const [pending, startTransition] = useTransition();
   const [justAdded, setJustAdded] = useState(false);
@@ -54,7 +57,12 @@ export default function QuickAddToCart({
     setOptimisticQty(Math.max(0, qty - 1));
     startTransition(async () => {
       try {
-        await updateCartItemQuantity(line.id, qty - 1);
+        const res = await updateCartItemQuantity(line.id, qty - 1);
+        if (res.error) {
+          setOptimisticQty(null);
+          setError(res.error);
+          return;
+        }
         notifyCartChanged();
       } catch {
         setOptimisticQty(null);
@@ -145,7 +153,8 @@ export default function QuickAddToCart({
           <button
             type="button"
             onClick={handleAdd}
-            disabled={pending || qty >= stock}
+            disabled={pending || qty >= stock || (maxQty !== null && qty >= maxQty)}
+            title={maxQty !== null && qty >= maxQty ? t("cart.limit_reached", { count: maxQty }) : undefined}
             aria-label={t("product.add_to_cart")}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-700 text-xl font-bold text-white active:scale-90 disabled:opacity-50"
           >

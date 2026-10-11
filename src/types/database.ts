@@ -134,6 +134,8 @@ export interface Product {
   /** Tax percent for this product (e.g. 15, or GST 0/5/12/18); null = the market's default. */
   tax_rate?: number | null;
   hsn_code?: string | null;
+  /** The most one order may hold of this product, per variant (null = no limit). */
+  max_order_qty?: number | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

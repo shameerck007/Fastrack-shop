@@ -192,6 +192,7 @@ export default async function ProductPage({
                 stock={stock}
                 isLoggedIn={isLoggedIn}
                 storeId={product.store_id}
+                maxQty={product.max_order_qty ?? null}
               />
             ) : (
               <p className="text-sm text-red-600">{t("product.currently_unavailable")}</p>

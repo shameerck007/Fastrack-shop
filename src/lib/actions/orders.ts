@@ -58,6 +58,13 @@ async function placeOrderOrThrow(input: {
     throw new Error(`Not enough stock for: ${names}. Please update your cart.`);
   }
 
+  // A product can carry a limit on how many one order may hold (per size); checked here as well as when adding to the cart.
+  const overLimit = items.filter((item) => item.product_variants.products.max_order_qty != null && item.quantity > (item.product_variants.products.max_order_qty as number));
+  if (overLimit.length > 0) {
+    const list = overLimit.map((item) => `${item.product_variants.products.name} (up to ${item.product_variants.products.max_order_qty})`).join(", ");
+    throw new Error(`Some items are over the limit for one order: ${list}. Please lower the quantity in your cart.`);
+  }
+
   // Product prices are VAT-inclusive (what's shown in the catalog is what
   // the item costs) — vat here is the tax portion already inside subtotal,
   // extracted for the receipt/ZATCA breakdown, not added on top.

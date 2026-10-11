@@ -13,11 +13,13 @@ export default function ProductBuyBox({
   variants,
   stock,
   isLoggedIn,
+  maxQty = null,
 }: {
   storeId: string | null;
   variants: ProductVariant[];
   stock: Record<string, number>;
   isLoggedIn: boolean;
+  maxQty?: number | null;
 }) {
   const { statusForStore, location, openPicker } = useDeliveryLocation();
   const { t } = useLocale();
@@ -62,7 +64,7 @@ export default function ProductBuyBox({
   return (
     <div className="flex flex-col gap-4">
       <DeliveryOptionsInfo storeId={storeId} />
-      <AddToCartForm variants={variants} stock={stock} isLoggedIn={isLoggedIn} storeId={storeId} />
+      <AddToCartForm variants={variants} stock={stock} isLoggedIn={isLoggedIn} storeId={storeId} maxQty={maxQty} />
     </div>
   );
 }

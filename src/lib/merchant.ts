@@ -29,6 +29,7 @@ export interface MerchantProduct {
   description_ar: string | null;
   tax_rate?: number | null;
   hsn_code?: string | null;
+  max_order_qty?: number | null;
   image_url: string | null;
   is_active: boolean;
   category_id: string | null;
@@ -50,7 +51,7 @@ export async function getMyStoreProducts(storeId: string): Promise<MerchantProdu
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, name_ar, brand, brand_ar, sku, description, description_ar, tax_rate, hsn_code, image_url, is_active, category_id, category:categories(name), product_variants(id, label, label_ar, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock))"
+      "id, name, name_ar, brand, brand_ar, sku, description, description_ar, tax_rate, hsn_code, max_order_qty, image_url, is_active, category_id, category:categories(name), product_variants(id, label, label_ar, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock))"
     )
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
@@ -70,7 +71,7 @@ export async function getMyStoreProductsPage(
   let q = supabase
     .from("products")
     .select(
-      "id, name, name_ar, brand, brand_ar, sku, description, description_ar, tax_rate, hsn_code, image_url, is_active, category_id, category:categories(name), product_variants(id, label, label_ar, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock))",
+      "id, name, name_ar, brand, brand_ar, sku, description, description_ar, tax_rate, hsn_code, max_order_qty, image_url, is_active, category_id, category:categories(name), product_variants(id, label, label_ar, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock))",
       { count: "exact" }
     )
     .eq("store_id", storeId);

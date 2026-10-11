@@ -15,6 +15,8 @@ export async function createProduct(input: {
   /** Tax percent for this product (null/undefined = the market's default). */
   taxRate?: number | null;
   hsnCode?: string;
+  /** The most one order may hold of this product; null/empty = no limit. */
+  maxOrderQty?: number | null;
   imageUrl?: string;
   price: number;
   compareAtPrice?: number;
@@ -41,6 +43,7 @@ export async function createProduct(input: {
       image_url: input.imageUrl ?? null,
       tax_rate: input.taxRate ?? null,
       hsn_code: input.hsnCode?.trim() || null,
+      max_order_qty: input.maxOrderQty ?? null,
     })
     .select("id")
     .single();
@@ -86,6 +89,7 @@ export async function updateProduct(
     descriptionAr?: string;
     taxRate?: number | null;
     hsnCode?: string;
+    maxOrderQty?: number | null;
     imageUrl?: string;
     price: number;
     compareAtPrice?: number;
@@ -111,6 +115,7 @@ export async function updateProduct(
       image_url: input.imageUrl ?? null,
       tax_rate: input.taxRate ?? null,
       hsn_code: input.hsnCode?.trim() || null,
+      max_order_qty: input.maxOrderQty ?? null,
     })
     .eq("id", productId);
   if (productError) throw productError;

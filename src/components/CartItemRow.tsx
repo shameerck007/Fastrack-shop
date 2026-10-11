@@ -35,6 +35,8 @@ export default function CartItemRow({
   const variant = item.product_variants;
   const product = variant.products;
   const name = localizedName(product, locale);
+  const maxQty = product.max_order_qty ?? null;
+  const atLimit = maxQty !== null && quantity >= maxQty;
 
   function updateQuantity(quantity: number) {
     setError(null);
@@ -42,7 +44,13 @@ export default function CartItemRow({
     else setOptimisticQty(quantity);
     startTransition(async () => {
       try {
-        await updateCartItemQuantity(item.id, quantity);
+        const res = await updateCartItemQuantity(item.id, quantity);
+        if (res.error) {
+          setRemoved(false);
+          setOptimisticQty(null);
+          setError(res.error);
+          return;
+        }
         notifyCartChanged();
         refreshSoon(() => router.refresh());
       } catch (err) {
@@ -88,6 +96,7 @@ export default function CartItemRow({
           </Link>
           {product.brand && <p className="text-xs text-neutral-400">{localizedField(product.brand, product.brand_ar, locale)}</p>}
           <p className="text-sm text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</p>
+          {maxQty !== null && <p className="mt-0.5 text-xs font-medium text-amber-700">{t("cart.limit_per_order", { count: maxQty })}</p>}
           {undeliverable && (
             <p className="mt-1 text-xs font-medium text-red-600">{t("cart.item_not_deliverable")}</p>
           )}
@@ -105,7 +114,8 @@ export default function CartItemRow({
             <span className="w-8 text-center text-sm">{quantity}</span>
             <button
               className="px-3 py-1 text-base disabled:opacity-40"
-              disabled={pending}
+              disabled={pending || atLimit}
+              title={atLimit ? t("cart.limit_reached", { count: maxQty ?? 0 }) : undefined}
               onClick={() => updateQuantity(quantity + 1)}
             >
               +

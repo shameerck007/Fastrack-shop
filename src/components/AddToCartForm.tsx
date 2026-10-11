@@ -14,11 +14,14 @@ export default function AddToCartForm({
   stock,
   isLoggedIn,
   storeId,
+  maxQty = null,
 }: {
   variants: ProductVariant[];
   stock: Record<string, number>;
   isLoggedIn: boolean;
   storeId: string | null;
+  /** The product's per-order limit, if it has one. */
+  maxQty?: number | null;
 }) {
   const [variantId, setVariantId] = useState(
     variants.find((v) => v.is_default)?.id ?? variants[0]?.id
@@ -35,8 +38,9 @@ export default function AddToCartForm({
   // that do have a delivery boundary set.
   const needsLocation = statusForStore(storeId).state === "no_location";
 
-  const available = stock[variantId] ?? 0;
-  const inStock = available > 0;
+  const inStock = (stock[variantId] ?? 0) > 0;
+  // What one order can hold: what is in stock, or the product's per-order limit if that is lower.
+  const available = maxQty !== null ? Math.min(stock[variantId] ?? 0, maxQty) : (stock[variantId] ?? 0);
   // Clamped at render time rather than synced via an effect: if the
   // selected variant changes to one with less stock, the displayed
   // quantity (and what actually gets added) should reflect that immediately.
@@ -127,8 +131,9 @@ export default function AddToCartForm({
             </button>
           </div>
 
-          {available <= 10 && (
-            <p className="text-sm text-amber-600">{t("product.only_left_in_stock", { count: available })}</p>
+          {maxQty !== null && <p className="text-sm font-medium text-amber-700">{t("product.limit_per_order", { count: maxQty })}</p>}
+          {(stock[variantId] ?? 0) <= 10 && (
+            <p className="text-sm text-amber-600">{t("product.only_left_in_stock", { count: stock[variantId] ?? 0 })}</p>
           )}
         </>
       ) : (

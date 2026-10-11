@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import OrderLimitField from "@/components/admin/OrderLimitField";
 import TaxFields from "@/components/admin/TaxFields";
 import { useRouter } from "next/navigation";
 import { createMerchantProduct, updateMerchantProduct } from "@/lib/actions/merchant-products";
@@ -41,6 +42,7 @@ export default function MerchantProductForm({
   const [descriptionAr, setDescriptionAr] = useState(existing?.description_ar ?? "");
   const [taxRate, setTaxRate] = useState(existing?.tax_rate != null ? String(existing.tax_rate) : "");
   const [hsnCode, setHsnCode] = useState(existing?.hsn_code ?? "");
+  const [maxOrderQty, setMaxOrderQty] = useState(existing?.max_order_qty != null ? String(existing.max_order_qty) : "");
   const [categoryId, setCategoryId] = useState(existing?.category_id ?? categories[0]?.id ?? "");
   const [variantLabel, setVariantLabel] = useState(existingVariant?.label ?? "1 unit");
   const [variantLabelAr, setVariantLabelAr] = useState(existingVariant?.label_ar ?? "");
@@ -66,6 +68,7 @@ export default function MerchantProductForm({
     setDescription("");
     setDescriptionAr("");
     setVariantLabelAr("");
+    setMaxOrderQty("");
     setPrice("");
     setCompareAtPrice("");
     setStock("");
@@ -76,6 +79,10 @@ export default function MerchantProductForm({
     setError(null);
     if (!name || !price || (!existing && !stock) || !categoryId) {
       setError(t("product_form.fill_required"));
+      return;
+    }
+    if (maxOrderQty !== "" && !(Number(maxOrderQty) >= 1)) {
+      setError("The maximum order quantity must be 1 or more, or empty for no limit.");
       return;
     }
     startTransition(async () => {
@@ -93,6 +100,7 @@ export default function MerchantProductForm({
             imageUrl: imageUrl || undefined,
             taxRate: taxRate === "" ? null : Number(taxRate),
             hsnCode: hsnCode || undefined,
+            maxOrderQty: maxOrderQty === "" ? null : Number(maxOrderQty),
             price: Number(price),
             compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
             variantLabel,
@@ -114,6 +122,7 @@ export default function MerchantProductForm({
             imageUrl: imageUrl || undefined,
             taxRate: taxRate === "" ? null : Number(taxRate),
             hsnCode: hsnCode || undefined,
+            maxOrderQty: maxOrderQty === "" ? null : Number(maxOrderQty),
             price: Number(price),
             compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
             variantLabel,
@@ -238,6 +247,8 @@ export default function MerchantProductForm({
       </div>
 
       <TaxFields taxRate={taxRate} onTaxRate={setTaxRate} hsnCode={hsnCode} onHsnCode={setHsnCode} />
+
+      <OrderLimitField value={maxOrderQty} onChange={setMaxOrderQty} />
 
       {existing && (
         <p className="text-xs text-neutral-400">{t("product_form.stock_managed_separately")}</p>
