@@ -306,9 +306,11 @@ export default function ZonesOverviewMap({
               ⚡ Express reach
             </button>
           )}
+          {customerPoints.length > 0 && (
           <button type="button" onClick={() => setShow((s) => ({ ...s, customers: !s.customers }))} className={chip(show.customers, "#7c3aed")} style={show.customers ? { background: "#7c3aed" } : undefined}>
             📌 Customers <span className="rounded-full bg-white/25 px-1.5">{customerPoints.length}</span>{outsideCount > 0 && <span className="rounded-full bg-red-600 px-1.5 text-white">{outsideCount} outside</span>}
           </button>
+          )}
         </div>
 
         {/* legend */}
@@ -332,10 +334,12 @@ export default function ZonesOverviewMap({
               </div>
             </>
           )}
-          <div className="mt-1 flex items-center gap-2 text-neutral-700">
-            <span className="h-2.5 w-2.5 rounded-full bg-violet-600" /> Customer address
-          </div>
-          {areaShapes && (
+          {customerPoints.length > 0 && (
+            <div className="mt-1 flex items-center gap-2 text-neutral-700">
+              <span className="h-2.5 w-2.5 rounded-full bg-violet-600" /> Customer address
+            </div>
+          )}
+          {areaShapes && customerPoints.length > 0 && (
             <div className="mt-1 flex items-center gap-2 text-neutral-700">
               <span className="h-2.5 w-2.5 rounded-full bg-red-600" /> Address outside every area
             </div>

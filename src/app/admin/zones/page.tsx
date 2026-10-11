@@ -60,7 +60,7 @@ export default async function AdminZonesPage() {
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const supabase = await createClient();
-  const [{ data: warehouses }, { data: stores }, { data: products }, { data: orders }, { data: addresses }] =
+  const [{ data: warehouses }, { data: stores }, { data: products }, { data: orders }] =
     await Promise.all([
       supabase
         .from("warehouses")
@@ -70,7 +70,6 @@ export default async function AdminZonesPage() {
       supabase.from("stores").select("id, name, warehouse_id, contact_phone, address_line, status"),
       supabase.from("products").select("store_id").eq("is_active", true),
       supabase.from("orders").select("warehouse_id").limit(5000),
-      supabase.from("addresses").select("lat, lng").not("lat", "is", null).limit(5000),
     ]);
 
   let warehouseRows = warehouses;
@@ -114,14 +113,15 @@ export default async function AdminZonesPage() {
   for (const o of orders ?? []) {
     if (o.warehouse_id) ordersByWarehouse.set(o.warehouse_id, (ordersByWarehouse.get(o.warehouse_id) ?? 0) + 1);
   }
-  const pins = ((addresses ?? []) as { lat: number; lng: number }[]).filter((a) => a.lat != null && a.lng != null);
+  // Customer addresses are not shown here: delivery areas are about shops and zones, not people.
+  const pins: { lat: number; lng: number }[] = [];
 
   const areaCards: AreaCard[] = areas.map((a, i) => ({
     ...a,
     nameAr: a.nameAr ?? null,
     color: COLORS[i % COLORS.length],
     shops: rows.filter((w) => areaAt(areas, w.lat, w.lng)?.id === a.id).length,
-    customers: pins.filter((p) => areaAt(areas, p.lat, p.lng)?.id === a.id).length,
+    customers: null,
   }));
   const areaColor = new Map(areaCards.map((a) => [a.id, a.color]));
   const storeOfWarehouse = new Map((stores ?? []).map((st) => [st.warehouse_id, st]));
@@ -149,7 +149,7 @@ export default async function AdminZonesPage() {
     };
   });
   const shopsWithoutPin = shopRows.filter((r) => r.lat == null || r.lng == null).length;
-  const outsideAreas = pins.filter((p) => !areaAt(areas, p.lat, p.lng)).length;
+  const shopsOutside = shopRows.filter((r) => r.lat != null && !r.areaName).length;
 
   const cards = rows.map((w, index) => {
     const store = storeByWarehouse.get(w.id);
@@ -259,8 +259,8 @@ export default async function AdminZonesPage() {
         <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat icon="🗺️" label="Delivery areas" value={areas.length} accent="#2563eb" hint="Shops and customers are matched to these" />
           <Stat icon="🏪" label="Shops and warehouses" value={shopRows.length} accent="#059669" hint={shopsWithoutPin > 0 ? `${shopsWithoutPin} without a GPS pin (not live)` : "All have a GPS pin"} />
-          <Stat icon="📌" label="Customer addresses pinned" value={pins.length} accent="#7c3aed" hint="Saved with a map location" />
-          <Stat icon="⚠️" label="Outside every area" value={outsideAreas} accent={outsideAreas > 0 ? "#dc2626" : "#404040"} hint={outsideAreas > 0 ? "These addresses cannot order yet" : "All saved addresses are covered"} />
+          <Stat icon="📍" label="Shops inside a zone" value={shopRows.filter((r) => r.areaName).length} accent="#7c3aed" hint="Express and Standard follow the zone rules" />
+          <Stat icon="⚠️" label="Shops outside every zone" value={shopsOutside} accent={shopsOutside > 0 ? "#d97706" : "#404040"} hint={shopsOutside > 0 ? "Standard only until a zone covers them" : "All shops are inside a zone"} />
         </div>
       ) : (
       <>
@@ -276,26 +276,6 @@ export default async function AdminZonesPage() {
               : t("admin.still_unrestricted", { count: cards.length - zonedCount })
           }
           accent={zonedCount === cards.length ? "#059669" : "#d97706"}
-        />
-        <Stat
-          icon="📌"
-          label={t("admin.customer_addresses_pinned")}
-          value={pins.length}
-          hint={t("admin.saved_with_map_location")}
-          accent="#7c3aed"
-        />
-        <Stat
-          icon="⚠️"
-          label={t("admin.outside_every_zone")}
-          value={areaZones.length === 0 ? "—" : anyUnrestricted ? `${uncovered}*` : uncovered}
-          hint={
-            areaZones.length === 0
-              ? t("admin.set_boundary_to_see")
-              : anyUnrestricted
-                ? t("admin.unrestricted_still_reach")
-                : t("admin.cant_order_any_store")
-          }
-          accent={uncovered > 0 ? "#dc2626" : "#404040"}
         />
       </div>
 

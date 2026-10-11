@@ -10,14 +10,13 @@ const COLORS = ["#1d4ed8", "#059669", "#d97706", "#7c3aed", "#db2777", "#0891b2"
 export default async function CoveragePage() {
   const supabase = await createClient();
   const loose = supabase as unknown as { from: (t: string) => { select: (c: string) => Promise<{ data: unknown; error: unknown }> } };
-  const [areasResult, whResult, overridesResult, storesResult, productsResult, ordersResult, addressesResult] = await Promise.all([
+  const [areasResult, whResult, overridesResult, storesResult, productsResult, ordersResult] = await Promise.all([
     loose.from("delivery_areas").select("*"),
     supabase.from("warehouses").select("id, name, address_line, lat, lng").eq("is_active", true).order("created_at", { ascending: true }),
     loose.from("warehouses").select("id, express_mode, express_max_km"),
     supabase.from("stores").select("id, name, warehouse_id, address_line, status"),
     supabase.from("products").select("store_id").eq("is_active", true),
     supabase.from("orders").select("warehouse_id").limit(5000),
-    supabase.from("addresses").select("lat, lng").not("lat", "is", null).limit(5000),
   ]);
 
   const rawAreas = (areasResult.error ? [] : (areasResult.data as { id: string; is_active?: boolean }[])) ?? [];
@@ -28,7 +27,7 @@ export default async function CoveragePage() {
       <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-neutral-300 bg-white p-12 text-center">
         <span className="text-5xl">🗺️</span>
         <h1 className="text-xl font-extrabold text-neutral-900">No delivery zones yet</h1>
-        <p className="max-w-md text-sm text-neutral-500">The coverage map shows your zones, the shops in them and where customers are. Add your first zone to see it.</p>
+        <p className="max-w-md text-sm text-neutral-500">The coverage map shows your zones and the shops in them. Add your first zone to see it.</p>
         <Link href="/admin/zones" className="rounded-full bg-blue-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-800">
           Add a delivery zone
         </Link>
@@ -45,7 +44,6 @@ export default async function CoveragePage() {
   for (const p of productsResult.data ?? []) productsByStore.set(p.store_id, (productsByStore.get(p.store_id) ?? 0) + 1);
   const ordersByWarehouse = new Map<string, number>();
   for (const o of ordersResult.data ?? []) if (o.warehouse_id) ordersByWarehouse.set(o.warehouse_id, (ordersByWarehouse.get(o.warehouse_id) ?? 0) + 1);
-  const pins = ((addressesResult.data ?? []) as { lat: number; lng: number }[]).filter((a) => a.lat != null && a.lng != null);
 
   const shops: CoverageShop[] = warehouses.map((w) => {
     const area = areaAt(areas, w.lat, w.lng);
@@ -89,14 +87,12 @@ export default async function CoveragePage() {
       standardDays: a.standardDays,
       priority: a.priority,
       shops: inside.length,
-      customers: pins.filter((p) => areaAt(areas, p.lat, p.lng)?.id === a.id).length,
       orders: inside.reduce((n, s) => n + s.orders, 0),
       products: inside.reduce((n, s) => n + s.products, 0),
     };
   });
   const colorOf = new Map(zones.map((z) => [z.id, z.color]));
   for (const s of shops) s.areaColor = s.areaId ? (colorOf.get(s.areaId) ?? null) : null;
-  const points = pins.map((p) => ({ lat: p.lat, lng: p.lng, outside: !areaAt(areas, p.lat, p.lng) }));
 
   return (
     <div>
@@ -107,7 +103,7 @@ export default async function CoveragePage() {
         <span aria-hidden>/</span>
         <span>Coverage map</span>
       </div>
-      <CoverageExplorer zones={zones} shops={shops} points={points} />
+      <CoverageExplorer zones={zones} shops={shops} />
     </div>
   );
 }

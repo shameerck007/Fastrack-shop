@@ -113,7 +113,6 @@ export default function AreasManager({ areas }: { areas: AreaCard[] }) {
                 </p>
                 <p className="text-xs text-neutral-500">
                   {a.polygon ? `Drawn area, ${a.polygon.length} points` : `Circle, ${a.radiusKm} km radius`} · {a.shops} {a.shops === 1 ? "shop" : "shops"} inside
-                  {a.customers != null ? ` · ${a.customers} saved addresses` : ""}
                 </p>
               </div>
               <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold">
