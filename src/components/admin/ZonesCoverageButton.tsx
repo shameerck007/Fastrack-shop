@@ -1,15 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ZonesOverviewMap, { type OverviewZone, type OverviewPoint } from "@/components/admin/ZonesOverviewMap";
+import type { ReactNode } from "react";
+import ZonesOverviewMap, { type OverviewZone, type OverviewPoint, type OverviewArea } from "@/components/admin/ZonesOverviewMap";
 import { useLocale } from "@/components/LocaleProvider";
 
 export default function ZonesCoverageButton({
   zones,
   customerPoints,
+  areaShapes,
+  children,
 }: {
   zones: OverviewZone[];
   customerPoints: OverviewPoint[];
+  areaShapes?: OverviewArea[];
+  /** Shown under the map (the shops and warehouses with their pins and rules). */
+  children?: ReactNode;
 }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
@@ -75,9 +81,11 @@ export default function ZonesCoverageButton({
               <ZonesOverviewMap
                 zones={zones}
                 customerPoints={customerPoints}
+                areaShapes={areaShapes}
                 fill={maximized}
                 height="h-[55vh] md:h-[30rem]"
               />
+              {children && !maximized && <div className="mt-4">{children}</div>}
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import ZonesList, { type ZoneCard } from "@/components/admin/ZonesList";
 import ZonesCoverageButton from "@/components/admin/ZonesCoverageButton";
-import type { OverviewZone } from "@/components/admin/ZonesOverviewMap";
+import type { OverviewArea, OverviewZone } from "@/components/admin/ZonesOverviewMap";
 import { parsePolygon, pointInPolygon } from "@/lib/geo-polygon";
 import { distanceKm } from "@/lib/delivery-geo";
 import AreasManager, { type AreaCard } from "@/components/admin/AreasManager";
@@ -147,6 +147,38 @@ export default async function AdminZonesPage() {
       standardOn: area ? area.standardEnabled : true,
     };
   });
+  const areaShapes: OverviewArea[] = areaCards.map((a) => ({
+    id: a.id,
+    name: a.name,
+    color: a.color,
+    polygon: a.polygon,
+    lat: a.lat,
+    lng: a.lng,
+    radiusKm: a.radiusKm,
+    rules: `${a.expressEnabled ? `Express ≤ ${a.expressMaxKm} km` : "Express off"}, ${a.standardEnabled ? `Standard ${a.standardDays} d` : "Standard off"}`,
+  }));
+  const areaZonesForMap: OverviewZone[] = shopRows
+    .filter((r) => r.lat != null && r.lng != null)
+    .map((r, i) => ({
+      id: r.id,
+      name: r.name,
+      lat: r.lat as number,
+      lng: r.lng as number,
+      radiusKm: null,
+      color: COLORS[i % COLORS.length],
+      polygon: null,
+      kind: r.kind,
+      orders: ordersByWarehouse.get(r.id) ?? 0,
+      products: r.kind === "supplier" ? (productsByStore.get(storeOfWarehouse.get(r.id)?.id ?? null) ?? 0) : (productsByStore.get(null) ?? 0),
+      address: r.address,
+      inAreas: {
+        areaName: r.areaName,
+        hasPin: true,
+        offers: r.expressOn && r.standardOn ? `Express ≤ ${r.expressReachKm} km + Standard` : r.expressOn ? `Express ≤ ${r.expressReachKm} km` : r.standardOn ? "Standard only" : "Not delivering",
+      },
+    }));
+  const shopsWithoutPin = shopRows.filter((r) => r.lat == null || r.lng == null).length;
+  const outsideAreas = pins.filter((p) => !areaAt(areas, p.lat, p.lng)).length;
 
   const cards = rows.map((w, index) => {
     const store = storeByWarehouse.get(w.id);
@@ -238,18 +270,27 @@ export default async function AdminZonesPage() {
             <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">{t("admin.zones_subtitle")}</p>
           </div>
         </div>
-        {areas.length === 0 && (
+        {areas.length === 0 ? (
           <ZonesCoverageButton
             zones={overviewZones}
             customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}
           />
+        ) : (
+          <ZonesCoverageButton zones={areaZonesForMap} areaShapes={areaShapes} customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}>
+            <AreaShops rows={shopRows} />
+          </ZonesCoverageButton>
         )}
       </div>
 
       <AreasManager areas={areaCards} />
 
       {areas.length > 0 ? (
-        <AreaShops rows={shopRows} />
+        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Stat icon="🗺️" label="Delivery areas" value={areas.length} accent="#2563eb" hint="Shops and customers are matched to these" />
+          <Stat icon="🏪" label="Shops and warehouses" value={shopRows.length} accent="#059669" hint={shopsWithoutPin > 0 ? `${shopsWithoutPin} without a GPS pin (not live)` : "All have a GPS pin"} />
+          <Stat icon="📌" label="Customer addresses pinned" value={pins.length} accent="#7c3aed" hint="Saved with a map location" />
+          <Stat icon="⚠️" label="Outside every area" value={outsideAreas} accent={outsideAreas > 0 ? "#dc2626" : "#404040"} hint={outsideAreas > 0 ? "These addresses cannot order yet" : "All saved addresses are covered"} />
+        </div>
       ) : (
       <>
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">

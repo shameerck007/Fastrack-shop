@@ -28,6 +28,20 @@ export interface OverviewZone {
   standardDays?: number;
   address?: string | null;
   status?: string | null;
+  /** Common delivery areas: the area this shop sits in and what it offers (the shop has no boundary of its own). */
+  inAreas?: { areaName: string | null; offers: string; hasPin: boolean };
+}
+
+/** A common delivery area drawn on the coverage map. */
+export interface OverviewArea {
+  id: string;
+  name: string;
+  color: string;
+  polygon: [number, number][] | null;
+  lat: number | null;
+  lng: number | null;
+  radiusKm: number | null;
+  rules: string;
 }
 
 export interface OverviewPoint {
@@ -48,6 +62,7 @@ function popupHtml(z: OverviewZone): string {
   const hub = z.kind === "fastrack";
   const accent = hub ? BRAND : z.color;
   const area = areaOf(z);
+  const inAreas = z.inAreas;
   const stat = (icon: string, label: string, value: string) =>
     `<div style="background:#f8fafc;border-radius:12px;padding:8px 10px"><div style="font-size:11px;color:#64748b">${icon} ${label}</div><div style="font-size:15px;font-weight:800;color:#0f172a">${value}</div></div>`;
   return `
@@ -62,10 +77,14 @@ function popupHtml(z: OverviewZone): string {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
       ${stat("🧾", "Orders", String(z.orders ?? 0))}
       ${stat("📦", "Products", String(z.products ?? 0))}
-      ${stat("⚡", "Express area", z.polygon && z.polygon.length >= 3 ? `custom · ${area && area < 10 ? area.toFixed(1) : Math.round(area ?? 0)} km²` : z.radiusKm != null ? `${z.radiusKm} km` : "not set")}
-      ${stat("📌", "Customers inside", z.customers == null ? "—" : String(z.customers))}
+      ${
+        inAreas
+          ? stat("🗺️", "Delivery area", esc(inAreas.areaName ?? (inAreas.hasPin ? "Outside every area" : "No pin yet"))) + stat("🚚", "Offers", esc(inAreas.offers))
+          : stat("⚡", "Express area", z.polygon && z.polygon.length >= 3 ? `custom · ${area && area < 10 ? area.toFixed(1) : Math.round(area ?? 0)} km²` : z.radiusKm != null ? `${z.radiusKm} km` : "not set") +
+            stat("📌", "Customers inside", z.customers == null ? "—" : String(z.customers))
+      }
     </div>
-    <div style="margin-top:8px;font-size:12px;color:#475569">${z.standardEnabled === false ? "Standard delivery is off" : `📦 Standard: ${z.standardRadiusKm ? `within ${z.standardRadiusKm} km` : "no distance limit"} · ${z.standardDays ?? 2} day${(z.standardDays ?? 2) === 1 ? "" : "s"}`}</div>
+    ${inAreas ? "" : `<div style="margin-top:8px;font-size:12px;color:#475569">${z.standardEnabled === false ? "Standard delivery is off" : `📦 Standard: ${z.standardRadiusKm ? `within ${z.standardRadiusKm} km` : "no distance limit"} · ${z.standardDays ?? 2} day${(z.standardDays ?? 2) === 1 ? "" : "s"}`}</div>`}
     ${z.address ? `<div style="margin-top:4px;font-size:11px;color:#94a3b8">${esc(z.address)}</div>` : ""}
   </div>`;
 }
@@ -96,11 +115,14 @@ function markerHtml(z: OverviewZone): { html: string; size: [number, number]; an
 export default function ZonesOverviewMap({
   zones,
   customerPoints,
+  areaShapes,
   height = "h-96 md:h-[30rem]",
   fill = false,
 }: {
   zones: OverviewZone[];
   customerPoints: OverviewPoint[];
+  /** Common delivery areas to draw (when set, these replace the per-shop boundaries). */
+  areaShapes?: OverviewArea[];
   height?: string;
   /** Fill the parent (which must have a height) instead of using a fixed height. */
   fill?: boolean;
@@ -116,6 +138,7 @@ export default function ZonesOverviewMap({
   const hubs = useMemo(() => zones.filter((z) => z.kind === "fastrack"), [zones]);
   const suppliers = useMemo(() => zones.filter((z) => z.kind !== "fastrack"), [zones]);
   const zoned = useMemo(() => zones.filter((z) => z.radiusKm != null || (z.polygon && z.polygon.length >= 3)), [zones]);
+  const areaCount = areaShapes ? areaShapes.length : zoned.length;
 
   useEffect(() => {
     let cancelled = false;
@@ -145,7 +168,7 @@ export default function ZonesOverviewMap({
         const hub = z.kind === "fastrack";
         const color = hub ? BRAND : z.color;
         const hasShape = z.polygon && z.polygon.length >= 3;
-        if (hasShape || z.radiusKm != null) {
+        if (!areaShapes && (hasShape || z.radiusKm != null)) {
           const style = hub
             ? { color, fillColor: color, fillOpacity: 0.16, weight: 3 }
             : { color, fillColor: color, fillOpacity: 0.1, weight: 2, dashArray: "7 6" };
@@ -179,6 +202,15 @@ export default function ZonesOverviewMap({
           pinned = false;
         });
         markersRef.current.set(z.id, marker);
+      }
+      for (const a of areaShapes ?? []) {
+        const style = { color: a.color, fillColor: a.color, fillOpacity: 0.14, weight: 2.5 };
+        const hasShape = a.polygon && a.polygon.length >= 3;
+        const shape = hasShape ? L.polygon(a.polygon as LatLng[], style) : a.lat != null && a.lng != null && a.radiusKm != null ? L.circle([a.lat, a.lng], { radius: a.radiusKm * 1000, ...style }) : null;
+        if (!shape) continue;
+        shape.addTo(layers.areas);
+        shape.bindTooltip(`${a.name} · ${a.rules}`, { sticky: true });
+        bounds.extend(shape.getBounds());
       }
       for (const p of customerPoints) {
         L.circleMarker([p.lat, p.lng], { radius: 3, color: "#fff", weight: 1, fillColor: "#7c3aed", fillOpacity: 0.75 }).addTo(layers.customers);
@@ -249,7 +281,7 @@ export default function ZonesOverviewMap({
             🏪 Suppliers <span className="rounded-full bg-white/25 px-1.5">{suppliers.length}</span>
           </button>
           <button type="button" onClick={() => setShow((s) => ({ ...s, areas: !s.areas }))} className={chip(show.areas, "#0891b2")} style={show.areas ? { background: "#0891b2" } : undefined}>
-            ⭕ Delivery areas <span className="rounded-full bg-white/25 px-1.5">{zoned.length}</span>
+            ⭕ Delivery areas <span className="rounded-full bg-white/25 px-1.5">{areaCount}</span>
           </button>
           <button type="button" onClick={() => setShow((s) => ({ ...s, customers: !s.customers }))} className={chip(show.customers, "#7c3aed")} style={show.customers ? { background: "#7c3aed" } : undefined}>
             📌 Customers <span className="rounded-full bg-white/25 px-1.5">{customerPoints.length}</span>
@@ -261,11 +293,11 @@ export default function ZonesOverviewMap({
           <p className="mb-1.5 font-extrabold uppercase tracking-wider text-neutral-400">Legend</p>
           <div className="flex items-center gap-2 text-neutral-700">
             <span className="flex h-5 w-5 items-center justify-center rounded-md border-2 border-blue-700 bg-white"><img src="/icon-192.png" alt="" className="h-full w-full object-cover" /></span>
-            FasTrack hub · solid blue area
+            FasTrack hub
           </div>
           <div className="mt-1 flex items-center gap-2 text-neutral-700">
             <span className="flex h-5 w-5 items-center justify-center rounded-full border-[3px] border-amber-500 bg-white text-[10px]">🏪</span>
-            Supplier shop · dashed coloured area
+            Supplier shop
           </div>
           <div className="mt-1 flex items-center gap-2 text-neutral-700">
             <span className="h-2.5 w-2.5 rounded-full bg-violet-600" /> Customer address
@@ -299,7 +331,7 @@ export default function ZonesOverviewMap({
                     <span className="block max-w-[11rem] truncate text-xs font-extrabold text-neutral-900">{z.name}</span>
                     <span className="block text-[11px] text-neutral-500">
                       {hub ? "FasTrack hub" : "Supplier"} ·{" "}
-                      {z.polygon && z.polygon.length >= 3 ? "custom area" : z.radiusKm != null ? `${z.radiusKm} km` : "no area yet"}
+                      {z.inAreas ? (z.inAreas.areaName ?? (z.inAreas.hasPin ? "outside areas" : "no pin")) : z.polygon && z.polygon.length >= 3 ? "custom area" : z.radiusKm != null ? `${z.radiusKm} km` : "no area yet"}
                     </span>
                   </span>
                 </button>
