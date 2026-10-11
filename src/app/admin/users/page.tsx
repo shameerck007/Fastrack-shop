@@ -3,10 +3,11 @@ import { PageHeader } from "@/components/admin/AdminUi";
 import CustomersToolbar from "@/components/admin/CustomersToolbar";
 import CustomerDetailView from "@/components/admin/CustomerDetailView";
 import PeopleToolbar from "@/components/admin/PeopleToolbar";
+import PeopleTable from "@/components/admin/PeopleTable";
 import RidersPanel from "@/components/admin/RidersPanel";
 import { getCustomers } from "@/lib/admin-customers";
-import { getPeople, getPeopleCounts, type PersonRow } from "@/lib/admin-people";
-import { ROLES, roleInfo } from "@/lib/people-roles";
+import { getPeople, getPeopleCounts } from "@/lib/admin-people";
+import { ROLES } from "@/lib/people-roles";
 import { getMoney } from "@/lib/tenant-server";
 
 export const metadata = { title: "Users" };
@@ -14,28 +15,6 @@ export const metadata = { title: "Users" };
 const PAGE_SIZE = 25;
 
 type SP = { role?: string; q?: string; page?: string; filter?: string; selected?: string };
-
-function manageHref(p: PersonRow): { href: string; label: string } | null {
-  switch (p.role) {
-    case "customer":
-      return { href: `/admin/users?role=customer&selected=${p.id}`, label: "Open" };
-    case "merchant":
-      return p.store_id ? { href: `/admin/merchants/${p.store_id}`, label: "Manage supplier" } : null;
-    case "rider":
-      return { href: `/admin/riders/${p.id}`, label: "Manage rider" };
-    case "store_staff":
-      return p.warehouse_id ? { href: `/admin/store/${p.warehouse_id}`, label: "Open store" } : null;
-    default:
-      return null;
-  }
-}
-
-const STORE_STATUS: Record<string, string> = {
-  approved: "bg-emerald-50 text-emerald-700",
-  pending: "bg-amber-50 text-amber-700",
-  rejected: "bg-red-50 text-red-600",
-  suspended: "bg-neutral-100 text-neutral-500",
-};
 
 function ago(iso: string | null): string {
   if (!iso) return "Never";
@@ -193,44 +172,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
               <p className="font-semibold text-neutral-700">No accounts match</p>
             </div>
           ) : (
-            <ul className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-              {result.items.map((p) => {
-                const info = roleInfo(p.role);
-                const manage = manageHref(p);
-                return (
-                  <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-bold text-neutral-600">{(p.name ?? "?").trim().charAt(0).toUpperCase() || "?"}</span>
-                    <div className="min-w-[10rem] flex-1">
-                      <p className="flex flex-wrap items-center gap-1.5">
-                        <span className="truncate text-sm font-bold text-neutral-900">{p.name ?? "No name"}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${info.tone}`}>
-                          {info.icon} {info.single}
-                        </span>
-                        {p.rider_status && p.role !== "rider" && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800">🛵 Rider {p.rider_status}</span>}
-                        {p.blocked && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">Blocked</span>}
-                      </p>
-                      <p className="truncate font-mono text-xs text-neutral-500">
-                        {p.phone_masked ?? "—"} · {p.email_masked ?? "—"}
-                      </p>
-                      {(p.store_name || p.warehouse_name) && (
-                        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-neutral-500">
-                          {p.role === "merchant" && p.store_name ? `🏪 ${p.store_name}` : p.warehouse_name ? `📦 ${p.warehouse_name}` : null}
-                          {p.role === "merchant" && p.store_status && <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STORE_STATUS[p.store_status] ?? "bg-neutral-100 text-neutral-600"}`}>{p.store_status}</span>}
-                        </p>
-                      )}
-                    </div>
-                    <span className="hidden text-xs text-neutral-400 sm:block">Joined {new Date(p.joined_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-                    {manage ? (
-                      <Link href={manage.href} className="ms-auto h-9 shrink-0 rounded-full border border-neutral-300 px-4 text-xs font-bold leading-9 text-neutral-700 hover:bg-blue-50">
-                        {manage.label}
-                      </Link>
-                    ) : (
-                      <span className="ms-auto text-xs text-neutral-300">{p.role === "admin" || p.role === "super_admin" ? "Platform account" : "—"}</span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+            <PeopleTable items={result.items} />
           )}
         </>
       )}
