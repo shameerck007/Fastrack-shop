@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CatalogPager, CatalogSearch, useCatalogList } from "@/components/CatalogFilters";
 import Modal from "@/components/Modal";
 import ImageUploader from "@/components/ImageUploader";
-import { addMasterToStore, requestMasterProduct } from "@/lib/actions/merchant-catalog";
+import { addMasterToStore, getMyCommissionRates, requestMasterProduct } from "@/lib/actions/merchant-catalog";
 import OfferModal from "@/components/OfferModal";
 import ArabicInput from "@/components/ui/ArabicInput";
 import { useCurrency } from "@/components/MoneyProvider";
@@ -50,6 +50,20 @@ export default function CatalogBrowser({
 
   const list = useCatalogList({ initial: { items: products, total, q: initialQ, cat: initialCat, page, tab: "catalog" }, pageSize });
   const rows = list.items;
+  // The commission on each product, so the supplier knows what FasTrack keeps before listing it.
+  const [rates, setRates] = useState<Record<string, number>>({});
+  useEffect(() => {
+    const need = rows.map((p) => p.id).filter((id) => rates[id] === undefined);
+    if (need.length === 0) return;
+    let off = false;
+    getMyCommissionRates(need).then((r) => {
+      if (!off && Object.keys(r).length > 0) setRates((prev) => ({ ...prev, ...r }));
+    });
+    return () => {
+      off = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -105,6 +119,11 @@ export default function CatalogBrowser({
                     {p.brand && <p className="text-xs text-neutral-500">{p.brand}</p>}
                     <p className="mt-1 text-[11px] text-neutral-400">{p.variants.map((v) => v.label).join(" · ")}</p>
                     {p.categoryName && <span className="mt-1 inline-block rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold text-neutral-600">{p.categoryName}</span>}
+                    {rates[p.id] !== undefined && (
+                      <p className="mt-1 text-[11px] font-semibold text-blue-800">
+                        Commission {rates[p.id]}% <span className="font-normal text-neutral-400">· you keep {Math.round((100 - rates[p.id]) * 100) / 100}%</span>
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="mt-auto border-t border-neutral-100 bg-neutral-50 px-3 py-2.5">

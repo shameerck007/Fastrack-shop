@@ -170,3 +170,12 @@ export async function requestMasterProduct(input: ProductRequestInput): Promise<
     return { error: e instanceof Error ? e.message : "Could not send the request." };
   }
 }
+
+/** The commission that applies to this supplier for each catalog product (shown before they list it). Empty until migration 0079. */
+export async function getMyCommissionRates(masterIds: string[]): Promise<Record<string, number>> {
+  if (masterIds.length === 0) return {};
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("commission_preview" as never, { p_master_ids: masterIds.slice(0, 100) } as never);
+  if (error || !data) return {};
+  return data as unknown as Record<string, number>;
+}
