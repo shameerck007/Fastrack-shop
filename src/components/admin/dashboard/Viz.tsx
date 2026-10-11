@@ -100,43 +100,6 @@ export function Gauge({ value, label, caption, colors = ["#f43f5e", "#f59e0b", "
   );
 }
 
-/* ------------------------------------------------------------------ LED "rising" meter */
-
-/** A row of LED segments that light up one after another, like a digital level meter. `mark` (0-1) draws a line, e.g. the previous period. */
-export function LedMeter({ value, max = 1, segments = 32, mark }: { value: number; max?: number; segments?: number; mark?: number }) {
-  const on = useMounted(200);
-  const lit = Math.round(Math.max(0, Math.min(1, value / max)) * segments);
-  const markAt = mark !== undefined ? Math.round((mark / max) * segments) : null;
-  return (
-    <div className="relative">
-      <div className="flex h-9 items-end gap-[3px]" role="img" aria-label={`Meter at ${Math.round((value / max) * 100)}%`}>
-        {Array.from({ length: segments }, (_, i) => {
-          const t = i / (segments - 1);
-          const hue = 190 + t * 130; // cyan -> blue -> violet -> magenta
-          const isOn = on && i < lit;
-          return (
-            <span
-              key={i}
-              className="flex-1 rounded-[3px]"
-              style={{
-                height: `${40 + t * 60}%`,
-                background: isOn ? `hsl(${hue} 95% 62%)` : "rgba(255,255,255,0.2)",
-                boxShadow: isOn ? `0 0 10px hsl(${hue} 95% 60% / .65)` : "none",
-                transition: `background .35s ease ${i * 28}ms, box-shadow .35s ease ${i * 28}ms`,
-              }}
-            />
-          );
-        })}
-      </div>
-      {markAt !== null && markAt > 0 && markAt <= segments && (
-        <span className="pointer-events-none absolute inset-y-0 w-px bg-white/70" style={{ left: `${(markAt / segments) * 100}%` }}>
-          <span className="absolute -top-4 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold uppercase tracking-wider text-white/60">before</span>
-        </span>
-      )}
-    </div>
-  );
-}
-
 /* ------------------------------------------------------------------ ring stat */
 
 export function Ring({ pct, color, children }: { pct: number; color: string; children?: React.ReactNode }) {
@@ -275,8 +238,7 @@ export function Columns({ items, format }: { items: { label: string; value: numb
   return (
     <div className="flex h-52 items-end gap-2.5 sm:gap-3">
       {items.map((it, i) => {
-        const c = PALETTE[(i * 2 + 1) % PALETTE.length];
-        const c2 = PALETTE[(i * 2 + 2) % PALETTE.length];
+        const c = PALETTE[i % PALETTE.length];
         return (
           <div key={it.label} className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end" title={`${it.label}: ${fmt(it.value)}`}>
             <span className="mb-1 truncate text-[11px] font-bold text-neutral-900 opacity-80 transition group-hover:opacity-100">{fmt(it.value)}</span>
@@ -285,8 +247,8 @@ export function Columns({ items, format }: { items: { label: string; value: numb
                 className="absolute inset-x-0 bottom-0 rounded-t-xl"
                 style={{
                   height: on ? `${Math.max(6, (it.value / max) * 100)}%` : "0%",
-                  background: `linear-gradient(to top, ${c}33, ${c} 55%, ${c2})`,
-                  boxShadow: `0 0 18px ${c}55`,
+                  background: `linear-gradient(to top, ${c}55, ${c})`,
+                  boxShadow: `0 6px 16px ${c}30`,
                   transition: `height 1.1s cubic-bezier(.2,.8,.2,1) ${i * 90}ms`,
                 }}
               />
@@ -310,10 +272,10 @@ export function StackedBars({ items }: { items: { label: string; total: number; 
     <div>
       <div className="mb-3 flex flex-wrap gap-4 text-[11px] font-semibold text-neutral-500">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#0ea5e9,#6366f1)" }} /> Paid to the supplier
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#60a5fa,#1d4ed8)" }} /> Paid to the supplier
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#f97316,#f43f5e)" }} /> FasTrack commission
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#fbbf24,#f59e0b)" }} /> FasTrack commission
         </span>
       </div>
       <ul className="flex flex-col gap-3.5">
@@ -329,9 +291,9 @@ export function StackedBars({ items }: { items: { label: string; total: number; 
                 </span>
               </div>
               <div className="h-3.5 w-full overflow-hidden rounded-full bg-neutral-200/70">
-                <div className="flex h-full overflow-hidden rounded-full" style={{ width: on ? `${Math.max(3, w)}%` : "0%", transition: `width 1.2s cubic-bezier(.2,.8,.2,1) ${i * 100}ms`, boxShadow: "0 0 14px rgba(129,140,248,.4)" }}>
-                  <span style={{ width: `${100 - cw}%`, background: "linear-gradient(90deg,#0ea5e9,#6366f1)" }} />
-                  <span style={{ width: `${cw}%`, background: "linear-gradient(90deg,#f97316,#f43f5e)" }} />
+                <div className="flex h-full overflow-hidden rounded-full" style={{ width: on ? `${Math.max(3, w)}%` : "0%", transition: `width 1.2s cubic-bezier(.2,.8,.2,1) ${i * 100}ms`, boxShadow: "0 4px 12px rgba(29,78,216,.22)" }}>
+                  <span style={{ width: `${100 - cw}%`, background: "linear-gradient(90deg,#60a5fa,#1d4ed8)" }} />
+                  <span style={{ width: `${cw}%`, background: "linear-gradient(90deg,#fbbf24,#f59e0b)" }} />
                 </div>
               </div>
             </li>
@@ -400,29 +362,28 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
     <div ref={ref} className="relative" onMouseMove={move} onMouseLeave={() => setHover(null)}>
       <div className="mb-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] font-semibold text-neutral-500">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-1 w-5 rounded-full" style={{ background: "linear-gradient(90deg,#0ea5e9,#6366f1,#d946ef)" }} /> Sales
+          <span className="h-1 w-5 rounded-full bg-blue-700" /> Sales
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-5 border-t-2 border-dashed border-slate-500" /> Previous period
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(#10b981,#06b6d4)" }} /> Orders
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(#2dd4bf,#0d9488)" }} /> Orders
         </span>
       </div>
       <svg viewBox={`0 0 ${W} ${H1 + H2 + 8}`} className="h-auto w-full" role="img" aria-label="Sales and orders per day with the previous period for comparison">
         <defs>
           <linearGradient id={`a${id}`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
           </linearGradient>
           <linearGradient id={`l${id}`} x1={padL} x2={W - padR} y1="0" y2="0" gradientUnits="userSpaceOnUse">
             <stop offset="0%" stopColor="#0ea5e9" />
-            <stop offset="55%" stopColor="#6366f1" />
-            <stop offset="100%" stopColor="#d946ef" />
+            <stop offset="100%" stopColor="#1d4ed8" />
           </linearGradient>
           <linearGradient id={`b${id}`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#10b981" />
-            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.55" />
+            <stop offset="0%" stopColor="#2dd4bf" />
+            <stop offset="100%" stopColor="#0d9488" />
           </linearGradient>
           <filter id={`s${id}`} x="-5%" y="-30%" width="110%" height="160%">
             <feGaussianBlur stdDeviation="4" result="b" />
@@ -464,7 +425,7 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
         {hover !== null && h && (
           <g>
             <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H1 + H2 + 8} stroke="rgba(15,23,42,0.25)" />
-            <circle cx={x(hover)} cy={y1(h.revenue)} r="6" fill="#ffffff" stroke="#d946ef" strokeWidth="3" />
+            <circle cx={x(hover)} cy={y1(h.revenue)} r="6" fill="#ffffff" stroke="#1d4ed8" strokeWidth="3" />
           </g>
         )}
       </svg>
@@ -473,7 +434,7 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
           <p className="font-bold text-neutral-900">{dayLabel(h.date, true)}</p>
           <p className="mt-1.5 flex justify-between gap-2">
             <span className="text-neutral-500">Sales</span>
-            <b className="text-fuchsia-600">{money(h.revenue)}</b>
+            <b className="text-blue-700">{money(h.revenue)}</b>
           </p>
           <p className="flex justify-between gap-2">
             <span className="text-neutral-500">Before</span>
@@ -481,10 +442,46 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
           </p>
           <p className="flex justify-between gap-2">
             <span className="text-neutral-500">Orders</span>
-            <b className="text-emerald-600">{h.orders}</b>
+            <b className="text-teal-700">{h.orders}</b>
           </p>
         </div>
       )}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ sales trend (the sales card) */
+
+/** The period's sales as a calm blue area, with the previous period as a dashed line. */
+export function SalesTrend({ series, previous }: { series: Point[]; previous: Point[] }) {
+  const on = useMounted(150);
+  const id = uid(useId());
+  const n = series.length;
+  const W = 400;
+  const H = 100;
+  const pad = 4;
+  const max = Math.max(...series.map((d) => d.revenue), ...previous.map((d) => d.revenue), 1);
+  const x = (i: number) => (n <= 1 ? W / 2 : pad + (i / (n - 1)) * (W - pad * 2));
+  const y = (v: number) => H - pad - (v / max) * (H - pad * 2);
+  const line = series.map((d, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(d.revenue).toFixed(1)}`).join(" ");
+  const prevLine = previous.slice(0, n).map((d, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(d.revenue).toFixed(1)}`).join(" ");
+  const area = n ? `${line} L${x(n - 1).toFixed(1)},${H} L${x(0).toFixed(1)},${H} Z` : "";
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-24 w-full" role="img" aria-label="Sales per day compared with the previous period">
+      <defs>
+        <linearGradient id={`st${id}`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#2563eb" stopOpacity="0.30" />
+          <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
+        </linearGradient>
+        <clipPath id={`sc${id}`}>
+          <rect x="0" y="0" width={on ? W : 0} height={H} style={{ transition: "width 1.3s cubic-bezier(.2,.8,.2,1)" }} />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#sc${id})`}>
+        {area && <path d={area} fill={`url(#st${id})`} />}
+        {prevLine && <path d={prevLine} fill="none" stroke="#94a3b8" strokeWidth="1.4" strokeDasharray="4 3" vectorEffect="non-scaling-stroke" />}
+        {line && <path d={line} fill="none" stroke="#1d4ed8" strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />}
+      </g>
+    </svg>
   );
 }
