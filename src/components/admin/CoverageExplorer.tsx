@@ -102,7 +102,6 @@ export default function CoverageExplorer({ zones, shops, points }: { zones: Cove
   const [pin, setPin] = useState<CoverageShop | null>(null);
   const [rule, setRule] = useState<CoverageShop | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(true);
 
   const colorOf = useMemo(() => new Map(zones.map((z) => [z.id, z.color])), [zones]);
   const zoneName = useMemo(() => new Map(zones.map((z) => [z.id, z.name])), [zones]);
@@ -276,18 +275,18 @@ export default function CoverageExplorer({ zones, shops, points }: { zones: Cove
   );
 
   return (
-    <div ref={wrapRef} className={`relative isolate flex flex-col gap-3 bg-neutral-50 lg:block ${fullscreen ? "h-screen p-0" : "lg:h-[calc(100dvh-8.25rem)] lg:min-h-[32rem]"}`}>
+    <div ref={wrapRef} className={`relative isolate flex flex-col gap-3 bg-neutral-50 lg:flex-row-reverse ${fullscreen ? "h-screen p-3" : "lg:h-[calc(100dvh-8.25rem)] lg:min-h-[32rem]"}`}>
       <style>{`
         @keyframes ftpulse { 0% { transform: scale(.7); opacity: .9 } 100% { transform: scale(1.5); opacity: 0 } }
         .leaflet-tooltip { border-radius: 12px; border: 0; box-shadow: 0 8px 24px rgba(15,23,42,.22); padding: 8px 10px; font-size: 12px; }
       `}</style>
 
       {/* map */}
-      <div className="relative h-[58vh] overflow-hidden rounded-3xl border border-neutral-200 shadow-xl lg:absolute lg:inset-0 lg:h-full">
+      <div className="relative h-[58vh] min-w-0 overflow-hidden rounded-2xl border border-neutral-200 shadow-sm lg:h-full lg:flex-1">
         <div ref={containerRef} className="h-full w-full" />
 
         {/* top strip: headline numbers */}
-        <div className={`pointer-events-none absolute end-3 top-3 z-[1000] flex flex-col items-end gap-2 ${panelOpen ? "lg:start-[21.75rem]" : "lg:start-14"} lg:end-3 lg:flex-row lg:items-start lg:justify-between`}>
+        <div className="pointer-events-none absolute end-3 top-3 z-[1000] flex flex-col items-end gap-2 lg:start-3 lg:end-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="pointer-events-auto flex flex-wrap gap-1.5">
             <span className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-neutral-800 shadow-md backdrop-blur">🗺️ {zones.length} {zones.length === 1 ? "zone" : "zones"}</span>
             <span className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-neutral-800 shadow-md backdrop-blur">🏪 {live}/{shops.length} shops live</span>
@@ -306,12 +305,6 @@ export default function CoverageExplorer({ zones, shops, points }: { zones: Cove
           </div>
         </div>
 
-        {!panelOpen && (
-          <button type="button" onClick={() => setPanelOpen(true)} className="absolute start-3 top-3 z-[1000] hidden h-9 items-center gap-1.5 rounded-full bg-white/95 px-3 text-xs font-bold text-neutral-800 shadow-md backdrop-blur hover:bg-blue-50 lg:flex">
-            › Zones &amp; shops
-          </button>
-        )}
-
         {/* legend */}
         <div className="pointer-events-none absolute bottom-3 end-14 z-[1000] hidden rounded-2xl bg-white/90 p-3 text-[11px] shadow-lg backdrop-blur md:block">
           <div className="flex items-center gap-2 text-neutral-700">
@@ -327,21 +320,13 @@ export default function CoverageExplorer({ zones, shops, points }: { zones: Cove
       </div>
 
       {/* side panel */}
-      <aside className={`z-[1001] flex max-h-[70vh] flex-col overflow-hidden rounded-3xl border border-white/60 bg-white/95 shadow-2xl backdrop-blur lg:absolute lg:bottom-3 lg:start-3 lg:top-3 lg:max-h-none lg:w-[20rem] ${panelOpen ? "" : "lg:hidden"}`}>
+      <aside className="flex max-h-[70vh] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm lg:h-full lg:max-h-none lg:w-80 lg:shrink-0">
         <div className="shrink-0 border-b border-neutral-100 p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <h1 className="truncate text-base font-extrabold tracking-tight text-neutral-900">Delivery coverage</h1>
-              <p className="text-[11px] text-neutral-500">Zones, shops and where customers are</p>
-            </div>
-            <div className="flex shrink-0 items-center gap-1.5">
-              <Link href="/admin/zones" className="rounded-full bg-blue-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-800">
-                Manage zones
-              </Link>
-              <button type="button" onClick={() => setPanelOpen(false)} aria-label="Hide panel" title="Hide panel" className="hidden h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-neutral-600 hover:bg-neutral-200 lg:flex">
-                ‹
-              </button>
-            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Zones, shops and customers</p>
+            <Link href="/admin/zones" className="rounded-full bg-blue-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-blue-800">
+              Manage zones
+            </Link>
           </div>
           <div className="flex rounded-full bg-neutral-100 p-0.5 text-xs font-bold">
             {(["zones", "shops"] as const).map((k) => (

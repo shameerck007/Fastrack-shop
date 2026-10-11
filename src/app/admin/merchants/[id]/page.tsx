@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMyStoreProducts } from "@/lib/merchant";
 import StoreStatusActions from "@/components/admin/StoreStatusActions";
+import ShopLocationCard from "@/components/admin/ShopLocationCard";
+import { getShopLocation } from "@/lib/shop-location";
 import StoreProfileForm from "@/components/merchant/StoreProfileForm";
 import { describeStatus, getOpenStatus } from "@/lib/store-hours";
 import { getCurrentTenant } from "@/lib/tenant-server";
@@ -70,6 +72,9 @@ export default async function AdminMerchantDetailPage({
       ? supabase.from("orders").select("id", { count: "exact", head: true }).eq("warehouse_id", store.warehouse_id)
       : Promise.resolve({ count: 0 }),
   ]);
+
+  const storePin = store as unknown as { lat?: number | null; lng?: number | null };
+  const location = await getShopLocation(store.warehouse_id ?? null, { lat: storePin.lat ?? null, lng: storePin.lng ?? null, address: store.address_line ?? null });
 
   const [crUrl, vatUrl] = await Promise.all([
     signedDocUrl(supabase, store.cr_document_path),
@@ -148,6 +153,12 @@ export default async function AdminMerchantDetailPage({
           <p className={`text-2xl font-semibold ${lowStock > 0 ? "text-amber-600" : ""}`}>{lowStock}</p>
           <p className="text-xs text-neutral-500">{t("merchant_detail.low_stock_items")}</p>
         </div>
+      </div>
+
+      <div className="mb-4">
+        <Card title="Shop location (GPS pin)">
+          <ShopLocationCard warehouseId={store.warehouse_id ?? null} name={store.name} lat={location.lat} lng={location.lng} areaName={location.areaName} zoning={location.zoning} address={location.address} />
+        </Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

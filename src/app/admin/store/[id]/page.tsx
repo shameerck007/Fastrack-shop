@@ -5,6 +5,8 @@ import { getFastrackStoreAnalytics } from "@/lib/fastrack-store";
 import RevenueTrendChart from "@/components/admin/charts/RevenueTrendChart";
 import BarList from "@/components/admin/charts/BarList";
 import FastrackStoreStatusToggle from "@/components/admin/FastrackStoreStatusToggle";
+import ShopLocationCard from "@/components/admin/ShopLocationCard";
+import { getShopLocation } from "@/lib/shop-location";
 import AddWarehouseStaffForm from "@/components/admin/AddWarehouseStaffForm";
 import RemoveWarehouseStaffButton from "@/components/admin/RemoveWarehouseStaffButton";
 import { getWarehouseStaffList } from "@/lib/actions/admin-warehouse-staff";
@@ -66,6 +68,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
   if (!analytics.warehouse) notFound();
   const w = analytics.warehouse;
   const staff = await getWarehouseStaffList(w.id);
+  const location = await getShopLocation(w.id);
 
   const orderedStatusCounts = STATUS_ORDER.map((status) => ({
     status,
@@ -108,6 +111,11 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
           {t("fastrack_stores.default_note")}
         </div>
       )}
+
+      <section className="mb-5 rounded-xl border border-neutral-200 bg-white p-4">
+        <h2 className="mb-3 text-sm font-semibold text-neutral-700">Location (GPS pin)</h2>
+        <ShopLocationCard warehouseId={w.id} name={w.name} lat={location.lat} lng={location.lng} areaName={location.areaName} zoning={location.zoning} address={location.address} />
+      </section>
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <Stat icon="📈" label={t("admin.revenue_30d")} value={money(analytics.revenue30d)} accent="#059669" />
