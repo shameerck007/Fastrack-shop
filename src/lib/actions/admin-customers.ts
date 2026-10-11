@@ -19,8 +19,7 @@ export async function setCustomerBlocked(id: string, blocked: boolean, reason?: 
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_set_customer_blocked" as never, { p_id: id, p_blocked: blocked, p_reason: reason ?? null } as never);
   if (error) return { error: error.message };
-  revalidatePath(`/admin/customers/${id}`);
-  revalidatePath("/admin/customers");
+  revalidatePath("/admin/users");
   return {};
 }
 
@@ -31,6 +30,6 @@ export async function addCustomerNote(id: string, body: string): Promise<{ error
   const supabase = await createClient();
   const { error } = await supabase.rpc("admin_add_customer_note" as never, { p_id: id, p_body: text } as never);
   if (error) return { error: error.message };
-  revalidatePath(`/admin/customers/${id}`);
+  revalidatePath("/admin/users");
   return {};
 }

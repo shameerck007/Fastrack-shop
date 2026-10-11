@@ -109,7 +109,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
 
   return (
     <div>
-      <Link href="/admin/riders" className="text-sm text-blue-600 hover:underline">
+      <Link href="/admin/users?role=rider" className="text-sm text-blue-600 hover:underline">
         {t("rider_detail.all_riders")}
       </Link>
 

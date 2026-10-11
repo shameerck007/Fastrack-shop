@@ -18,6 +18,7 @@ export async function approveRider(riderId: string) {
   if (profileError) throw profileError;
 
   revalidatePath("/admin/riders");
+  revalidatePath("/admin/users");
 
   await notifyUsers([riderId], {
     title: "You're approved to ride!",
