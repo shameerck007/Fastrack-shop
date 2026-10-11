@@ -33,6 +33,11 @@ export interface CompanySettings {
   rider_daily_bonus?: number | null;
   /** Group Standard orders into routes (migration 0066). */
   standard_routes_enabled?: boolean | null;
+  /** What the shopper pays for delivery, set by the admin (migration 0081); empty = the market's default. */
+  delivery_fee_express?: number | null;
+  delivery_fee_standard?: number | null;
+  free_delivery_over?: number | null;
+  free_delivery_enabled?: boolean | null;
 }
 
 const FALLBACK: CompanySettings = {

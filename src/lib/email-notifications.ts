@@ -79,7 +79,7 @@ type AddressRow = {
 } | null;
 
 const FULL_ORDER_FIELDS =
-  "id, order_number, user_id, subtotal, delivery_fee, total, currency, created_at, delivery_type, scheduled_for, addresses(address_line, city, district, receiver_name, receiver_phone), order_items(product_name, variant_label, ordered_quantity, line_total, product_variants!variant_id(products(image_url))), payments(method), profiles(full_name)";
+  "id, order_number, user_id, subtotal, delivery_fee, discount, total, currency, created_at, delivery_type, scheduled_for, addresses(address_line, city, district, receiver_name, receiver_phone), order_items(product_name, variant_label, ordered_quantity, line_total, product_variants!variant_id(products(image_url))), payments(method), profiles(full_name)";
 // Promised delivery time (migration 0072); the email still works before that is applied.
 const FULL_ORDER_SELECT = FULL_ORDER_FIELDS + ", country_code, promised_eta_minutes, estimated_delivery_at";
 
@@ -89,6 +89,7 @@ interface OrderEmailRow {
   user_id: string;
   subtotal: number;
   delivery_fee: number;
+  discount?: number | null;
   total: number;
   currency: string | null;
   created_at: string;
@@ -153,6 +154,7 @@ async function loadFullOrderEmailData(orderId: string): Promise<FullOrderEmailDa
     <div style="margin-top:16px;max-width:260px;margin-inline-start:auto;">
       ${renderSummaryTable([
         { label: "Item(s) subtotal", value: money(order.subtotal) },
+        ...(Number(order.discount ?? 0) > 0 ? [{ label: "Discount", value: `-${money(Number(order.discount))}` }] : []),
         { label: "Delivery", value: order.delivery_fee > 0 ? money(order.delivery_fee) : "Free" },
         { label: "Order total", value: money(order.total), bold: true },
       ])}

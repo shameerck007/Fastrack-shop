@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getCartItems } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses, type StockNeeds } from "@/lib/delivery-zones";
-import { combineMethods, pricingFor, splitDeliveryFee, standardDeliveryDate } from "@/lib/delivery-methods";
+import { combineMethods, splitDeliveryFee, standardDeliveryDate } from "@/lib/delivery-methods";
+import { getDeliveryPricing } from "@/lib/delivery-pricing";
+import { discountPerLine, OFFER_REASON_EN, quoteForCart } from "@/lib/offers";
 import { DEFAULT_ETA_SETTINGS, etaRange } from "@/lib/eta";
 import { getCompanySettings } from "@/lib/company-settings";
 import { marketOffsetMinutes } from "@/lib/timezone";
@@ -27,6 +29,8 @@ async function placeOrderOrThrow(input: {
   scheduledFor?: string;
   paymentMethod: PaymentMethod;
   notes?: string;
+  /** The coupon code the shopper applied; empty = the best automatic offer, if any. */
+  offerCode?: string | null;
 }) {
   // No payment gateway is wired up yet — the checkout UI only offers Cash
   // on Delivery, but enforce it here too rather than trusting the client.
@@ -59,13 +63,20 @@ async function placeOrderOrThrow(input: {
   // extracted for the receipt/ZATCA breakdown, not added on top.
   // Delivery fees are per market (SAR in Saudi Arabia, INR in India), charged per supplier order.
   const orderTenant = await getCurrentTenant();
-  const pricing = pricingFor(orderTenant?.country_code);
+  const pricing = await getDeliveryPricing();
   // Tax is computed per item from each product's own rate (GST slabs in India, VAT in Saudi).
   const taxCountry = orderTenant?.country_code ?? "SA";
-  const itemTaxes = items.map((item) => {
+  // An offer (a coupon the shopper applied, or an automatic one) is worked out by the database from the real cart, never from the browser.
+  const lineTotals = items.map((item) => Math.round(item.quantity * item.product_variants.price * 100) / 100);
+  const offerCode = input.offerCode?.trim() || null;
+  const quote = await quoteForCart(offerCode, items);
+  if (offerCode && !quote.ok) throw new Error(OFFER_REASON_EN[quote.reason ?? "invalid"] ?? OFFER_REASON_EN.invalid);
+  const applied = quote.ok ? quote : null;
+  const lineDiscount = applied ? discountPerLine(lineTotals, applied.eligible, applied.discount) : lineTotals.map(() => 0);
+  // The tax inside a line is on what the customer pays for it, after the discount.
+  const itemTaxes = items.map((item, i) => {
     const rate = productTaxRate(item.product_variants.products, taxCountry);
-    const gross = Math.round(item.quantity * item.product_variants.price * 100) / 100;
-    return { rate, tax: extractTax(gross, rate) };
+    return { rate, tax: extractTax(Math.round((lineTotals[i] - lineDiscount[i]) * 100) / 100, rate) };
   });
 
   // Fetched before warehouse resolution — for FasTrack's own items (no
@@ -164,7 +175,8 @@ async function placeOrderOrThrow(input: {
       subtotal: Math.round(idxs.reduce((n, i) => n + items[i].quantity * items[i].product_variants.price, 0) * 100) / 100,
       method: typeByGroup.get(key) ?? "standard",
     })),
-    pricing
+    pricing,
+    applied?.freeDelivery ?? false
   );
 
   // The delivery time promised per shipment, worked out now so the confirmation email says the real thing:
@@ -201,7 +213,8 @@ async function placeOrderOrThrow(input: {
       const deliveryFee = feeSplit.byKey.get(groupKey) ?? 0;
       // Tax inside the order = the items' tax, plus GST inside the delivery charge where it applies (India).
       const vat = Math.round((idxs.reduce((sum, i) => sum + itemTaxes[i].tax, 0) + extractTax(deliveryFee, deliveryTaxRate(taxCountry))) * 100) / 100;
-      const total = Math.round((groupSubtotal + deliveryFee) * 100) / 100;
+      const groupDiscount = Math.round(idxs.reduce((n, i) => n + lineDiscount[i], 0) * 100) / 100;
+      const total = Math.round((groupSubtotal - groupDiscount + deliveryFee) * 100) / 100;
 
       // Take the stock first, so an order is never created for something that has just sold out. If a later step
       // fails, the stock is put back (restoreStock below).
@@ -235,7 +248,8 @@ async function placeOrderOrThrow(input: {
           scheduled_for: groupType === "scheduled" ? input.scheduledFor : null,
           subtotal: groupSubtotal,
           delivery_fee: deliveryFee,
-          discount: 0,
+          discount: groupDiscount,
+          ...(applied?.offerId ? { offer_id: applied.offerId, offer_code: applied.code ?? null } : {}),
           vat,
           total,
           delivery_otp: generateOtp(),
@@ -251,12 +265,17 @@ async function placeOrderOrThrow(input: {
         throw orderError ?? new Error("Could not place your order.");
       }
       placedIds.push(order.id);
+      // One use of the offer per checkout, even when the cart splits into several orders.
+      if (applied?.offerId && placedIds.length === 1) {
+        await supabase.from("offer_redemptions").insert({ offer_id: applied.offerId, order_id: order.id, user_id: user.id, amount: applied.discount, free_delivery: applied.freeDelivery });
+      }
 
       const orderItems = idxs.map((i) => {
         const item = items[i];
         return {
           tax_rate: itemTaxes[i].rate,
           tax_amount: itemTaxes[i].tax,
+          ...(lineDiscount[i] > 0 ? { discount_amount: lineDiscount[i] } : {}),
           hsn_code: item.product_variants.products.hsn_code ?? null,
           order_id: order.id,
           variant_id: item.variant_id,

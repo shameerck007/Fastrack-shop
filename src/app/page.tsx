@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { getCurrentTenant, getMoney } from "@/lib/tenant-server";
-import { pricingFor } from "@/lib/delivery-methods";
+import { getDeliveryPricing } from "@/lib/delivery-pricing";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { dashboardPathForRole, SHOP_MODE_COOKIE } from "@/lib/landing";
@@ -68,6 +68,8 @@ export default async function HomePage() {
   const ratings = Object.fromEntries(ratingsMap);
   const stock = Object.fromEntries(stockMap);
 
+  const freePricing = await getDeliveryPricing();
+
   return (
     <DeliveryGate>
       <div className="mx-auto max-w-6xl px-4 py-5">
@@ -75,7 +77,7 @@ export default async function HomePage() {
           eyebrow={t("home.hero_eyebrow")}
           title={t("home.hero_title")}
           subtitle={t("home.hero_subtitle")}
-          chips={[t("home.hero_chip_fast"), t("home.hero_chip_free", { amount: money(pricingFor((await getCurrentTenant())?.country_code).freeOver) })]}
+          chips={freePricing.freeEnabled ? [t("home.hero_chip_fast"), t("home.hero_chip_free", { amount: money(freePricing.freeOver) })] : [t("home.hero_chip_fast")]}
           cta={t("home.hero_cta")}
         />
 

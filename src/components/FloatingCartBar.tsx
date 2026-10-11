@@ -6,8 +6,7 @@ import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { useLocale } from "@/components/LocaleProvider";
 
 import { showsCartBar } from "@/lib/mobile-fullscreen";
-import { useMarket, useMoney } from "@/components/MoneyProvider";
-import { pricingFor } from "@/lib/delivery-methods";
+import { useMoney, usePricing } from "@/components/MoneyProvider";
 
 
 function CartIcon() {
@@ -29,18 +28,18 @@ export function PlaceOrderPill({ className = "", compact = false }: { className?
   const money = useMoney();
   const { cartCount, cartTotal, cartSavings } = useCustomerHeaderState();
   const { t } = useLocale();
-  const pricing = pricingFor(useMarket().countryCode);
+  const pricing = usePricing();
 
   if (cartCount <= 0) return null;
 
-  const toFree = Math.max(0, pricing.freeOver - cartTotal);
+  const toFree = pricing.freeEnabled ? Math.max(0, pricing.freeOver - cartTotal) : Number.POSITIVE_INFINITY;
   const delivery =
-    toFree === 0 ? t("cartbar.free_delivery") : t("cartbar.delivery_fee", { fee: money(pricing.standard) });
+    pricing.freeEnabled && toFree === 0 ? t("cartbar.free_delivery") : t("cartbar.delivery_fee", { fee: money(pricing.standard) });
   const subline = cartSavings > 0 ? `${t("cartbar.saved", { amount: money(cartSavings) })} · ${delivery}` : delivery;
 
   return (
     <div className={className}>
-      {!compact && toFree > 0 && (
+      {!compact && pricing.freeEnabled && toFree > 0 && (
         <div className="flex items-center justify-between gap-3 rounded-t-3xl bg-blue-50 px-4 py-2 text-xs font-medium text-blue-900">
           <span>{t("cartbar.add_for_free_delivery", { amount: money(toFree) })}</span>
           <Link href="/" className="shrink-0 rounded-full border border-blue-700 px-3 py-1 font-semibold text-blue-700">

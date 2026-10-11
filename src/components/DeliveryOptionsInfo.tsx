@@ -1,23 +1,23 @@
 "use client";
 
 import { useDeliveryLocation } from "@/components/delivery-location-context";
-import { useMarket } from "@/components/MoneyProvider";
+import { useMarket, usePricing } from "@/components/MoneyProvider";
 import { marketOffsetMinutes } from "@/lib/timezone";
 import { useLocale } from "@/components/LocaleProvider";
-import { formatDeliveryDate, pricingFor, standardDeliveryDate } from "@/lib/delivery-methods";
+import { formatDeliveryDate, standardDeliveryDate } from "@/lib/delivery-methods";
 import { useMoney } from "@/components/MoneyProvider";
 import { formatEta } from "@/lib/eta";
 import { marketUi } from "@/lib/market-ui";
 import { useAllStores } from "@/components/StoreDirectoryProvider";
 
 
-function Row({ icon, title, detail, fee, ok }: { icon: string; title: string; detail: string; fee?: string; ok: boolean }) {
+function Row({ icon, title, detail, fee, ok }: { icon: string; title: string; detail?: string; fee?: string; ok: boolean }) {
   return (
     <div className={`flex items-center gap-3 rounded-2xl border p-3 ${ok ? "border-neutral-200 bg-white" : "border-neutral-200 bg-neutral-50 opacity-70"}`}>
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${ok ? "bg-blue-50" : "bg-neutral-100 grayscale"}`}>{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-bold text-neutral-900">{title}</span>
-        <span className={`block text-xs ${ok ? "text-neutral-600" : "text-neutral-500"}`}>{detail}</span>
+        {detail && <span className={`block text-xs ${ok ? "text-neutral-600" : "text-neutral-500"}`}>{detail}</span>}
       </span>
       {ok && fee && <span className="shrink-0 text-sm font-extrabold text-neutral-900">{fee}</span>}
     </div>
@@ -38,8 +38,8 @@ function OptionRows({ offer }: { offer: Offer }) {
   const money = useMoney();
   const { t, locale } = useLocale();
   const offsetMin = marketOffsetMinutes(useMarket().countryCode);
-  const pricing = pricingFor(useMarket().countryCode);
-  const freeHint = t("delivery_info.free_over", { amount: money(pricing.freeOver) });
+  const pricing = usePricing();
+  const freeHint = pricing.freeEnabled ? t("delivery_info.free_over", { amount: money(pricing.freeOver) }) : undefined;
   return (
     <section className="flex flex-col gap-2">
       <h3 className="text-sm font-extrabold tracking-tight text-neutral-900">{t("delivery_info.title")}</h3>
@@ -86,7 +86,7 @@ export function CartDeliveryOptions({ storeIds }: { storeIds: (string | null)[] 
   const money = useMoney();
   const market = useMarket();
   const offsetMin = marketOffsetMinutes(market.countryCode);
-  const pricing = pricingFor(market.countryCode);
+  const pricing = usePricing();
   const { locale } = useLocale();
   const { stores } = useAllStores();
   const calculated = marketUi(market.countryCode).deliveryBadges;

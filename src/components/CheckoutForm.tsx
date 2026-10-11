@@ -1,17 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useMarket } from "@/components/MoneyProvider";
+import { useEffect, useState, useTransition } from "react";
+import { useMarket, usePricing } from "@/components/MoneyProvider";
 import { marketOffsetMinutes } from "@/lib/timezone";
 import AddressForm from "@/components/AddressForm";
 import { placeOrder } from "@/lib/actions/orders";
+import { quoteOffer } from "@/lib/actions/offers";
+import type { OfferQuote } from "@/lib/offers";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
 import { extractTax } from "@/lib/tax";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { marketUi } from "@/lib/market-ui";
 import { formatEta } from "@/lib/eta";
-import { formatDeliveryDate, pricingFor, splitDeliveryFee, standardDeliveryDate } from "@/lib/delivery-methods";
+import { formatDeliveryDate, splitDeliveryFee, standardDeliveryDate } from "@/lib/delivery-methods";
 import type { Address, CartItemWithVariant, DeliveryType, PaymentMethod } from "@/types/database";
 import { useMoney } from "@/components/MoneyProvider";
 
@@ -58,7 +60,7 @@ export default function CheckoutForm({
   const money = useMoney();
   const { t, locale } = useLocale();
   const offsetMin = marketOffsetMinutes(useMarket().countryCode);
-  const pricing = pricingFor(useMarket().countryCode);
+  const pricing = usePricing();
   const FREE_DELIVERY_THRESHOLD = pricing.freeOver;
   const DELIVERY_OPTIONS = DELIVERY_OPTION_DEFS.map((d) => ({ ...d, fee: pricing[d.feeKey] }));
   // null means "no explicit user selection yet" — fall back to the first
@@ -79,6 +81,41 @@ export default function CheckoutForm({
   const [showAddresses, setShowAddresses] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // Offers: a coupon the shopper types, or an automatic offer the shop applies by itself. The database decides what it is worth.
+  const [quote, setQuote] = useState<OfferQuote | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [checkingCoupon, setCheckingCoupon] = useState(false);
+  useEffect(() => {
+    let live = true;
+    quoteOffer(null)
+      .then((q) => live && q.ok && setQuote(q))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
+  const reasonText = (q: OfferQuote) =>
+    q.reason === "min_order" && q.minOrder != null
+      ? t("offers_ui.min_order", { amount: money(q.minOrder) })
+      : t(`offers_ui.reason_${["expired", "used_up", "used_by_you", "first_order_only", "no_eligible"].includes(q.reason ?? "") ? q.reason : "invalid"}`);
+  async function applyCoupon() {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCheckingCoupon(true);
+    setCouponError(null);
+    try {
+      const q = await quoteOffer(code);
+      if (q.ok) {
+        setQuote(q);
+        setCouponInput("");
+      } else setCouponError(reasonText(q));
+    } catch {
+      setCouponError(t("offers_ui.reason_invalid"));
+    } finally {
+      setCheckingCoupon(false);
+    }
+  }
 
   const offered = methodsByAddress[addressId] ?? { express: true, standard: true, standardDays: 2 };
   const { etaAt } = useDeliveryLocation();
@@ -107,10 +144,11 @@ export default function CheckoutForm({
   const allDeliverable = parcels.every((p) => p.available);
   const split = parcels.length > 1;
   // One delivery charge for the whole cart, however many shops it splits into.
-  const feeSplit = splitDeliveryFee(parcels.map((p) => ({ key: p.key, subtotal: p.subtotal, method: p.type })), pricing);
+  const feeSplit = splitDeliveryFee(parcels.map((p) => ({ key: p.key, subtotal: p.subtotal, method: p.type })), pricing, !!quote?.freeDelivery);
   const deliveryFee = feeSplit.total;
   for (const p of parcels) p.fee = feeSplit.byKey.get(p.key) ?? 0;
-  const total = Math.round((subtotal + deliveryFee) * 100) / 100;
+  const discount = Math.min(subtotal, quote?.discount ?? 0);
+  const total = Math.round((subtotal - discount + deliveryFee) * 100) / 100;
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   function handlePlaceOrder() {
@@ -136,6 +174,7 @@ export default function CheckoutForm({
           scheduledFor: scheduleLater ? scheduledFor : undefined,
           paymentMethod,
           notes: notes.trim() || undefined,
+          offerCode: quote?.code ?? null,
         });
         if (result?.error) setError(result.error);
       } catch (err) {
@@ -400,6 +439,7 @@ export default function CheckoutForm({
                 <p className="mt-0.5 text-blue-800/80">{t("checkout_ui.split_hint")}</p>
               </div>
             )}
+            {pricing.freeEnabled && (
             <div
               className={`mb-3 rounded-2xl px-3 py-2.5 text-xs font-bold ${
                 freeLeft === 0 ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-800"
@@ -419,12 +459,56 @@ export default function CheckoutForm({
                 </>
               )}
             </div>
+            )}
+
+            <div className="mb-3">
+              {quote?.ok ? (
+                <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 px-3 py-2.5 text-xs font-bold text-emerald-800">
+                  <span aria-hidden>🏷️</span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {t("offers_ui.applied", { name: (locale === "ar" && quote.nameAr) || quote.name || quote.code || "" })}
+                    {quote.freeDelivery && <span className="block font-medium text-emerald-700/80">{t("offers_ui.free_delivery")}</span>}
+                  </span>
+                  {quote.code && (
+                    <button type="button" onClick={() => setQuote(null)} className="shrink-0 font-bold text-emerald-900 underline">
+                      {t("offers_ui.remove")}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <div className="flex gap-2">
+                    <input
+                      value={couponInput}
+                      onChange={(e) => {
+                        setCouponInput(e.target.value.toUpperCase());
+                        setCouponError(null);
+                      }}
+                      onKeyDown={(e) => e.key === "Enter" && applyCoupon()}
+                      placeholder={t("offers_ui.placeholder")}
+                      aria-label={t("offers_ui.title")}
+                      className="h-10 min-w-0 flex-1 rounded-full border border-neutral-300 px-4 text-sm uppercase placeholder:normal-case focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    />
+                    <button type="button" onClick={applyCoupon} disabled={checkingCoupon || !couponInput.trim()} className="h-10 shrink-0 rounded-full border border-blue-700 px-4 text-sm font-bold text-blue-700 hover:bg-blue-50 disabled:opacity-50">
+                      {t("offers_ui.apply")}
+                    </button>
+                  </div>
+                  {couponError && <p className="mt-1.5 ps-2 text-xs font-medium text-red-600">{couponError}</p>}
+                </>
+              )}
+            </div>
 
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between">
                 <span className="text-neutral-500">{t("orders.item_subtotal")}</span>
                 <span className="font-medium">{money(subtotal)}</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">{t("offers_ui.discount")}</span>
+                  <span className="font-medium text-emerald-600">−{money(discount)}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-neutral-500">{t("checkout.delivery_fee")}</span>
                 <span className={`font-medium ${deliveryFee === 0 ? "text-emerald-600" : ""}`}>
@@ -435,7 +519,7 @@ export default function CheckoutForm({
                 <span>{t("checkout.total")}</span>
                 <span>{money(total)}</span>
               </div>
-              <p className="text-end text-[11px] text-neutral-400">{t("checkout_ui.vat_included", { label: taxLabel, amount: money(Math.round((taxTotal + parcels.reduce((n, g) => n + extractTax(g.fee, deliveryTaxPercent), 0)) * 100) / 100) })}</p>
+              <p className="text-end text-[11px] text-neutral-400">{t("checkout_ui.vat_included", { label: taxLabel, amount: money(Math.round(((subtotal > 0 ? taxTotal * (1 - discount / subtotal) : taxTotal) + parcels.reduce((n, g) => n + extractTax(g.fee, deliveryTaxPercent), 0)) * 100) / 100) })}</p>
             </div>
 
             {error && <p className="mt-3 hidden text-sm text-red-600 lg:block">{error}</p>}

@@ -19,6 +19,7 @@ import MarketSuggestionBanner from "@/components/MarketSuggestionBanner";
 import MarketToast from "@/components/MarketToast";
 import NavProgress from "@/components/NavProgress";
 import { getCompanySettings } from "@/lib/company-settings";
+import { pricingFromSettings } from "@/lib/delivery-methods";
 import { DEFAULT_ETA_SETTINGS } from "@/lib/eta";
 import MoneyProvider from "@/components/MoneyProvider";
 import { getCurrentTenant, getMarketSuggestion } from "@/lib/tenant-server";
@@ -115,7 +116,7 @@ export default async function RootLayout({
           <NavProgress />
         </Suspense>
         <LocaleProvider locale={locale}>
-        <MoneyProvider currency={currency} countryCode={marketCountry}>
+        <MoneyProvider currency={currency} countryCode={marketCountry} pricing={pricingFromSettings(marketCountry, company)}>
         <DefaultCountryProvider countryCode={countryCode}>
         <CustomerStateProvider>
         <StoreDirectoryProvider>

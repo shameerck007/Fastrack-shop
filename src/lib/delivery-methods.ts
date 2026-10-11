@@ -138,16 +138,34 @@ export interface DeliveryPricing {
   express: number;
   standard: number;
   freeOver: number;
+  /** False when the admin has switched the "free delivery over" rule off. */
+  freeEnabled: boolean;
 }
 
 const PRICING: Record<string, DeliveryPricing> = {
-  SA: { express: 12, standard: 7, freeOver: 50 },
+  SA: { express: 12, standard: 7, freeOver: 50, freeEnabled: true },
   // India: roughly the same money in rupees, rounded to typical local quick-commerce levels.
-  IN: { express: 49, standard: 29, freeOver: 499 },
+  IN: { express: 49, standard: 29, freeOver: 499, freeEnabled: true },
 };
 
+/** The built-in fees of a market, used where the admin has not set their own. */
 export function pricingFor(countryCode: string | null | undefined): DeliveryPricing {
   return PRICING[(countryCode ?? "SA").toUpperCase()] ?? PRICING.SA;
+}
+
+/** The fees the admin set under Delivery fees; anything left empty keeps the built-in default. */
+export function pricingFromSettings(
+  countryCode: string | null | undefined,
+  s: { delivery_fee_express?: number | string | null; delivery_fee_standard?: number | string | null; free_delivery_over?: number | string | null; free_delivery_enabled?: boolean | null } | null | undefined
+): DeliveryPricing {
+  const base = pricingFor(countryCode);
+  const pick = (v: number | string | null | undefined, d: number) => (v === null || v === undefined || v === "" || !Number.isFinite(Number(v)) ? d : Number(v));
+  return {
+    express: pick(s?.delivery_fee_express, base.express),
+    standard: pick(s?.delivery_fee_standard, base.standard),
+    freeOver: pick(s?.free_delivery_over, base.freeOver),
+    freeEnabled: s?.free_delivery_enabled ?? true,
+  };
 }
 
 /**
@@ -158,13 +176,15 @@ export function pricingFor(countryCode: string | null | undefined): DeliveryPric
  */
 export function splitDeliveryFee(
   shipments: { key: string; subtotal: number; method: "express" | "standard" | "scheduled" }[],
-  pricing: DeliveryPricing
+  pricing: DeliveryPricing,
+  /** A free-delivery offer applies to this checkout. */
+  forceFree = false
 ): { total: number; byKey: Map<string, number> } {
   const byKey = new Map<string, number>();
   const cartSubtotal = shipments.reduce((n, s) => n + s.subtotal, 0);
   if (shipments.length === 0) return { total: 0, byKey };
   const total =
-    cartSubtotal >= pricing.freeOver ? 0 : Math.max(...shipments.map((s) => (s.method === "express" ? pricing.express : pricing.standard)));
+    forceFree || (pricing.freeEnabled && cartSubtotal >= pricing.freeOver) ? 0 : Math.max(...shipments.map((s) => (s.method === "express" ? pricing.express : pricing.standard)));
   let given = 0;
   shipments.forEach((s, i) => {
     const share =
@@ -178,6 +198,6 @@ export function splitDeliveryFee(
 }
 
 export function deliveryFee(method: "express" | "standard" | "scheduled", subtotal: number, pricing: DeliveryPricing): number {
-  if (subtotal >= pricing.freeOver) return 0;
+  if (pricing.freeEnabled && subtotal >= pricing.freeOver) return 0;
   return method === "express" ? pricing.express : pricing.standard;
 }
