@@ -23,25 +23,25 @@ export default function PortalNav({ items, rootHref }: { items: PortalNavItem[];
   const { t } = useLocale();
 
   return (
-    <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-col md:gap-1 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
+    <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-col md:gap-0.5 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
       {items.map((item, i) => {
         const showSection = item.section && item.section !== items[i - 1]?.section;
         const active = item.href === rootHref ? pathname === item.href : pathname.startsWith(item.href);
         return (
           <Fragment key={item.href}>
           {showSection && (
-            <span className="hidden px-3.5 pb-1 pt-3 text-[10px] font-bold uppercase tracking-wider text-neutral-400 first:pt-0 md:block">{item.section}</span>
+            <span className="hidden px-3.5 pb-0.5 pt-3.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 first:pt-0 md:block">{item.section}</span>
           )}
           <Link
             href={item.href}
-            className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition md:rounded-xl md:py-2.5 ${
+            className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-semibold transition md:rounded-xl md:py-2 ${
               active
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/25"
                 : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-blue-50 hover:text-blue-700 md:bg-transparent md:ring-0"
             }`}
           >
             <span
-              className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm ${active ? "bg-white/20" : "bg-neutral-100 md:bg-white md:shadow-sm md:ring-1 md:ring-neutral-200"}`}
+              className={`flex h-6 w-6 items-center justify-center rounded-lg text-[13px] ${active ? "bg-white/20" : "bg-neutral-100 md:bg-white md:shadow-sm md:ring-1 md:ring-neutral-200"}`}
             >
               {item.icon}
             </span>

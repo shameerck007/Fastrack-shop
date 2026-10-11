@@ -100,7 +100,7 @@ export default async function CoveragePage() {
 
   return (
     <div>
-      <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-neutral-500">
+      <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-neutral-500">
         <Link href="/admin/zones" className="text-blue-700 hover:underline">
           Delivery zones
         </Link>

@@ -3,11 +3,8 @@ import { cookies } from "next/headers";
 import { findCountry } from "@/lib/countries";
 import { ADMIN_SCOPE_COOKIE } from "@/lib/platform-scope";
 import { requireRole } from "@/lib/auth";
-import { signOut } from "@/lib/actions/auth";
-import Wordmark from "@/components/Wordmark";
 import AdminNav from "@/components/admin/AdminNav";
-import LanguageToggle from "@/components/LanguageToggle";
-import NotificationBell from "@/components/NotificationBell";
+import PortalHeader from "@/components/PortalHeader";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import Flag from "@/components/Flag";
@@ -20,37 +17,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/70 via-neutral-50 to-neutral-50">
-      <header className="sticky top-0 z-30 border-b border-neutral-200/70 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <Link href="/admin" className="shrink-0">
-              <Wordmark height={24} />
-            </Link>
-            <div className="flex shrink-0 items-center gap-3 text-sm sm:gap-4">
-              <Link href="/api/enter-shop" prefetch={false} className="flex items-center gap-1 text-neutral-500 hover:text-neutral-900">
-                <span className="rtl:-scale-x-100">←</span> <span className="hidden sm:inline">{t("portal.back_to_shop")}</span>
-              </Link>
-              <LanguageToggle />
-              <NotificationBell />
-              <span className="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 sm:inline">
-                ● {profile.full_name ?? "Admin"}
-              </span>
-              <form action={signOut}>
-                <button className="text-neutral-500 hover:text-neutral-900">{t("portal.log_out")}</button>
-              </form>
-            </div>
-          </div>
-          <Link href="/admin" className="block min-w-0">
-            <span className="inline-block truncate rounded-md bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
-              {t("admin.control_center")}
-            </span>
-          </Link>
-        </div>
-      </header>
+      <PortalHeader
+        homeHref="/admin"
+        title={t("admin.control_center")}
+        subtitle="FasTrack Shop"
+        chip={profile.full_name ?? "Admin"}
+        backLabel={t("portal.back_to_shop")}
+        logoutLabel={t("portal.log_out")}
+        maxWidth="max-w-[90rem]"
+      />
 
       {profile.role === "super_admin" && scopeCountry && (
         <div className="border-b border-blue-100 bg-blue-50">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 text-sm text-blue-900">
+          <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-3 px-4 py-1.5 text-sm text-blue-900">
             <span>
               <Flag code={scopeCountry} className="me-1.5 h-3.5 w-[18px] align-[-2px]" /> Working in <b>{findCountry(scopeCountry.toUpperCase()).name}</b> only
             </span>
@@ -61,8 +40,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       )}
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 md:flex-row md:gap-6 md:py-6">
-        <aside className="shrink-0 md:w-56">
+      <div className="mx-auto flex max-w-[90rem] flex-col gap-3 px-4 py-4 md:flex-row md:gap-6 md:py-5">
+        <aside className="shrink-0 md:sticky md:top-[4.25rem] md:max-h-[calc(100dvh-5rem)] md:w-52 md:self-start md:overflow-y-auto">
           <AdminNav />
         </aside>
         <div className="min-w-0 flex-1">{children}</div>

@@ -1,11 +1,7 @@
-import Link from "@/components/Link";
 import { requireRole } from "@/lib/auth";
-import { signOut } from "@/lib/actions/auth";
 import { getMyStore } from "@/lib/merchant";
-import Wordmark from "@/components/Wordmark";
 import MerchantNav from "@/components/merchant/MerchantNav";
-import LanguageToggle from "@/components/LanguageToggle";
-import NotificationBell from "@/components/NotificationBell";
+import PortalHeader from "@/components/PortalHeader";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -17,39 +13,17 @@ export default async function MerchantLayout({ children }: { children: React.Rea
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/70 via-neutral-50 to-neutral-50">
-      <header className="sticky top-0 z-30 border-b border-neutral-200/70 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-col gap-1.5 px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <Link href="/merchant" className="shrink-0">
-              <Wordmark height={24} />
-            </Link>
-            <div className="flex shrink-0 items-center gap-3 text-sm sm:gap-4">
-              <Link href="/api/enter-shop" prefetch={false} className="flex items-center gap-1 text-neutral-500 hover:text-neutral-900">
-                <span className="rtl:-scale-x-100">←</span> <span className="hidden sm:inline">{t("portal.back_to_shop")}</span>
-              </Link>
-              <LanguageToggle />
-              <NotificationBell />
-              {store?.status === "approved" && (
-                <span className="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 sm:inline">
-                  ● {t("merchant.approved_seller")}
-                </span>
-              )}
-              <form action={signOut}>
-                <button className="text-neutral-500 hover:text-neutral-900">{t("portal.log_out")}</button>
-              </form>
-            </div>
-          </div>
-          <Link href="/merchant" className="block min-w-0">
-            <span className="block truncate font-semibold leading-tight text-neutral-900">
-              {store?.name ?? "FasTrack Merchant"}
-            </span>
-            <span className="block truncate text-xs leading-tight text-neutral-400">{t("merchant.seller_center")}</span>
-          </Link>
-        </div>
-      </header>
+      <PortalHeader
+        homeHref="/merchant"
+        title={store?.name ?? "FasTrack Merchant"}
+        subtitle={t("merchant.seller_center")}
+        chip={store?.status === "approved" ? t("merchant.approved_seller") : null}
+        backLabel={t("portal.back_to_shop")}
+        logoutLabel={t("portal.log_out")}
+      />
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 md:flex-row md:gap-6 md:py-6">
-        <aside className="shrink-0 md:w-56">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 md:flex-row md:gap-6 md:py-5">
+        <aside className="shrink-0 md:sticky md:top-[4.25rem] md:max-h-[calc(100dvh-5rem)] md:w-52 md:self-start md:overflow-y-auto">
           <MerchantNav />
         </aside>
         <div className="min-w-0 flex-1">{children}</div>
