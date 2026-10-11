@@ -168,6 +168,12 @@ export default async function OrderDetailPage({
                 <span>-{orderMoney(order.discount)}</span>
               </div>
             )}
+            {Number((order as unknown as { refunded_amount?: number | string | null }).refunded_amount ?? 0) > 0 && (
+              <div className="flex justify-between text-amber-700">
+                <span>Refunded</span>
+                <span>-{orderMoney(Number((order as unknown as { refunded_amount?: number | string | null }).refunded_amount))}</span>
+              </div>
+            )}
             <div className="flex justify-between border-t border-neutral-200 pt-1 font-semibold">
               <span>{t("checkout.total")}</span>
               <span>{orderMoney(order.total)}</span>

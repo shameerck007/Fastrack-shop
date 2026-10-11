@@ -102,37 +102,29 @@ async function restockCancelledOrder(orderId: string) {
   }
 }
 
-// No payment gateway exists yet (only Cash on Delivery is supported — see
-// placeOrder), so this is a manual record, not an automated money-back
-// transaction: admin marks the order as refunded (cash returned or waived
-// outside the app) and the customer gets notified on all three channels.
-export async function markOrderRefunded(orderId: string, reason: string) {
+// No payment gateway exists yet (only Cash on Delivery is supported), so a refund is a record of money returned to the customer outside
+// the app. It is itemised: the admin chooses which items and how many (and whether the delivery fee goes back). The database reverses
+// what the supplier was paid, FasTrack's commission, any supplier-funded discount and the tax inside, in the same proportion,
+// and the customer is told on every channel.
+export async function refundOrder(orderId: string, items: { orderItemId: string; quantity: number }[], refundDelivery: boolean, reason: string): Promise<{ amount: number; full: boolean }> {
   try {
-  const supabase = await createClient();
+    const supabase = await createClient();
+    const chosen = items.filter((i) => i.quantity > 0).map((i) => ({ order_item_id: i.orderItemId, quantity: i.quantity }));
+    const { data, error } = await supabase.rpc("admin_refund_order" as never, { p_order: orderId, p_items: chosen, p_delivery: refundDelivery, p_reason: reason.trim() } as never);
+    if (error) throw error;
+    const r = data as { amount: number; full: boolean; user_id: string; order_number: string };
 
-  const { data, error } = await supabase
-    .from("payments")
-    .update({ status: "refunded" })
-    .eq("order_id", orderId)
-    .neq("status", "refunded")
-    .select("id")
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) throw new UserError("This order has no payment record, or was already refunded.");
-
-  revalidatePath("/admin/orders");
-  revalidatePath(`/orders/${orderId}`);
-
-  const { data: order } = await supabase.from("orders").select("user_id, order_number").eq("id", orderId).maybeSingle();
-  if (order) {
-    await notifyUsers([order.user_id], {
+    revalidatePath("/admin/orders");
+    revalidatePath(`/admin/orders/${orderId}`);
+    revalidatePath(`/orders/${orderId}`);
+    revalidatePath("/admin/settlements");
+    await notifyUsers([r.user_id], {
       title: "Refund processed",
-      body: reason ? `A refund has been processed for order #${order.order_number}: ${reason}` : `A refund has been processed for order #${order.order_number}.`,
+      body: reason.trim() ? `A refund has been processed for order #${r.order_number}: ${reason.trim()}` : `A refund has been processed for order #${r.order_number}.`,
       url: `/orders/${orderId}`,
     });
-  }
-  await sendRefundEmail(orderId, reason);
-
+    await sendRefundEmail(orderId, reason.trim());
+    return { amount: Number(r.amount), full: !!r.full };
   } catch (e) {
     return failure(e) as never;
   }

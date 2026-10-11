@@ -4,7 +4,8 @@ import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import DownloadLabelButton from "@/components/DownloadLabelButton";
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
-import RefundOrderButton from "@/components/admin/RefundOrderButton";
+import RefundDialog from "@/components/admin/RefundDialog";
+import { createClient } from "@/lib/supabase/server";
 import { getAdminOrderDetail } from "@/lib/admin-orders";
 import { ORDER_STATUS_FLOW, PAYMENT_METHOD_LABELS } from "@/lib/utils";
 import { getServerLocale } from "@/lib/i18n/get-locale";
@@ -65,6 +66,21 @@ export default async function AdminOrderDetailPage({
   const merchantNames = [...new Set(order.items.filter((i) => i.store_name).map((i) => i.store_name as string))];
   const fromFastrack = order.items.some((i) => !i.store_name);
   const fulfillment = { fromFastrack, merchantNames };
+  // What has already been refunded (the refund tables arrive with migration 0092), so the dialog only offers what is left.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = (await createClient()) as any;
+  const refundRows = ((await db.from("order_refunds").select("id, amount, delivery_amount, reason, created_at, order_refund_items(order_item_id, quantity)").eq("order_id", id).order("created_at", { ascending: false })).data ?? []) as { id: string; amount: number; delivery_amount: number; reason: string | null; created_at: string; order_refund_items: { order_item_id: string; quantity: number }[] }[];
+  const refundedQty = new Map<string, number>();
+  for (const r of refundRows) for (const it of r.order_refund_items) refundedQty.set(it.order_item_id, (refundedQty.get(it.order_item_id) ?? 0) + Number(it.quantity));
+  const deliveryRefunded = refundRows.some((r) => Number(r.delivery_amount) > 0);
+  const refundItems = (order.order_items as unknown as { id: string; product_name: string; variant_label: string | null; ordered_quantity: number; line_total: number; discount_amount?: number | null }[]).map((i) => ({
+    id: i.id,
+    name: i.variant_label ? `${i.product_name} (${i.variant_label})` : i.product_name,
+    ordered: Number(i.ordered_quantity),
+    refunded: refundedQty.get(i.id) ?? 0,
+    unitNet: Number(i.ordered_quantity) > 0 ? (Number(i.line_total) - Number(i.discount_amount ?? 0)) / Number(i.ordered_quantity) : 0,
+  }));
+  const refundedTotal = Number((order as unknown as { refunded_amount?: number | string | null }).refunded_amount ?? 0);
   const tz = timeZoneFor((await getCurrentTenant())?.country_code);
   const live = liveEtaOf(order as never, currentMs());
   const promisedAt = (order as unknown as { estimated_delivery_at?: string | null }).estimated_delivery_at ?? null;
@@ -326,7 +342,25 @@ export default async function AdminOrderDetailPage({
                   <span className="capitalize">{payment.status}</span>
                 </Row>
                 <Row label={t("admin.amount_label")}>{money(payment.amount)}</Row>
-                {payment.status !== "refunded" && <RefundOrderButton orderId={id} />}
+                {refundedTotal > 0 && <Row label="Refunded so far"><span className="font-semibold text-amber-700">-{money(refundedTotal)}</span></Row>}
+                {order.status !== "cancelled" && refundItems.some((i) => i.ordered - i.refunded > 0) || (!deliveryRefunded && order.delivery_fee > 0) ? (
+                  <div className="mt-2">
+                    <RefundDialog orderId={id} items={refundItems} deliveryFee={Number(order.delivery_fee)} deliveryRefunded={deliveryRefunded} />
+                  </div>
+                ) : null}
+                {refundRows.length > 0 && (
+                  <ul className="mt-3 divide-y divide-neutral-100 border-t border-neutral-100 text-xs">
+                    {refundRows.map((r) => (
+                      <li key={r.id} className="flex justify-between gap-3 py-1.5">
+                        <span className="text-neutral-500">
+                          {new Date(r.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
+                          {r.reason ? ` · ${r.reason}` : ""}
+                        </span>
+                        <b className="text-amber-700">-{money(Number(r.amount))}</b>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </>
             ) : (
               <p className="text-sm text-neutral-400">{t("admin.no_payment_record")}</p>

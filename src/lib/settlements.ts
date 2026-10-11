@@ -10,6 +10,10 @@ export interface SettlementSummary {
   paidOut: number;
   balanceDue: number;
   deliveredOrderCount: number;
+  /** Sales returned to customers (net of nothing: the amount of the sales that was refunded). */
+  refunds: number;
+  /** Tax (VAT / GST) inside the sales, after refunds. */
+  taxInside: number;
 }
 
 function toSummary(row: {
@@ -20,6 +24,8 @@ function toSummary(row: {
   paid_out: number;
   balance_due: number;
   delivered_order_count: number;
+  refunds?: number;
+  tax_inside?: number;
 }): SettlementSummary {
   return {
     grossSales: row.gross_sales,
@@ -29,6 +35,8 @@ function toSummary(row: {
     paidOut: row.paid_out,
     balanceDue: row.balance_due,
     deliveredOrderCount: row.delivered_order_count,
+    refunds: Number(row.refunds ?? 0),
+    taxInside: Number(row.tax_inside ?? 0),
   };
 }
 
@@ -38,7 +46,7 @@ export async function getStoreSettlementSummary(storeId: string): Promise<Settle
   const { data, error } = await supabase.rpc("store_settlement_summary", { target_store_id: storeId }).maybeSingle();
   if (error) throw toUserError(error);
   if (!data) return null;
-  return toSummary(data);
+  return toSummary(data as Parameters<typeof toSummary>[0]);
 }
 
 export interface SettlementOrderRow {
@@ -49,6 +57,8 @@ export interface SettlementOrderRow {
   lineTotal: number;
   commissionAmount: number;
   netAmount: number;
+  refunded: number;
+  taxAmount: number;
 }
 
 /** Order-level breakdown behind a store's summary — same access rule as getStoreSettlementSummary. */
@@ -64,6 +74,8 @@ export async function getStoreSettlementOrders(storeId: string): Promise<Settlem
     line_total: number;
     commission_amount: number;
     net_amount: number;
+    refunded?: number;
+    tax_amount?: number;
   }[]).map((r) => ({
     orderId: r.order_id,
     orderNumber: r.order_number,
@@ -72,6 +84,8 @@ export async function getStoreSettlementOrders(storeId: string): Promise<Settlem
     lineTotal: r.line_total,
     commissionAmount: r.commission_amount,
     netAmount: r.net_amount,
+    refunded: Number(r.refunded ?? 0),
+    taxAmount: Number(r.tax_amount ?? 0),
   }));
 }
 
@@ -120,6 +134,8 @@ export async function getAdminSettlementOverview(): Promise<AdminSettlementOverv
     paid_out: number;
     balance_due: number;
     delivered_order_count: number;
+    refunds?: number;
+    tax_inside?: number;
   }[]).map((r) => ({
     storeId: r.store_id,
     storeName: r.store_name,

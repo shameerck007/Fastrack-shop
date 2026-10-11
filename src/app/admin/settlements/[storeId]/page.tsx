@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getStoreSettlementSummary, getStoreSettlementOrders, getStorePayouts } from "@/lib/settlements";
 import { SettlementSummaryCards, SettlementOrdersTable, SettlementPayoutsList } from "@/components/SettlementLedger";
 import RecordPayoutForm from "@/components/admin/RecordPayoutForm";
+import StatementDialog from "@/components/StatementDialog";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -56,7 +57,10 @@ export default async function AdminSettlementDetailPage({
             </Link>
           </p>
         </div>
-        {summary && <RecordPayoutForm storeId={store.id} balanceDue={summary.balanceDue} />}
+        <div className="flex flex-wrap items-center gap-2">
+          <StatementDialog storeId={store.id} />
+          {summary && <RecordPayoutForm storeId={store.id} balanceDue={summary.balanceDue} />}
+        </div>
       </div>
 
       {summary && (

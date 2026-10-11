@@ -18,8 +18,9 @@ function SummaryCard({ label, value, tone }: { label: string; value: string; ton
 
 export function SettlementSummaryCards({ summary, t, money }: { summary: SettlementSummary; t: T; money: MoneyFormatter }) {
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
       <SummaryCard label={t("merchant.gross_sales_delivered")} value={money(summary.grossSales)} />
+      <SummaryCard label="Refunds" value={summary.refunds > 0 ? `-${money(summary.refunds)}` : money(0)} tone={summary.refunds > 0 ? "amber" : "neutral"} />
       <SummaryCard label={t("merchant.commission_pct", { rate: summary.commissionRate })} value={money(summary.commissionAmount)} />
       <SummaryCard label={t("merchant.net_earned")} value={money(summary.netEarned)} tone="emerald" />
       <SummaryCard label={t("merchant.paid_out")} value={money(summary.paidOut)} />
@@ -28,6 +29,7 @@ export function SettlementSummaryCards({ summary, t, money }: { summary: Settlem
         value={money(summary.balanceDue)}
         tone={summary.balanceDue > 0.005 ? "amber" : "emerald"}
       />
+      <p className="col-span-full text-center text-xs text-neutral-400">Sales include {money(summary.taxInside)} of tax (VAT / GST) that is part of the customer prices.</p>
     </div>
   );
 }
@@ -45,6 +47,7 @@ export function SettlementOrdersTable({ orders, t, locale, money }: { orders: Se
             <th className="px-3 py-2.5">{t("merchant.delivered_th")}</th>
             <th className="px-3 py-2.5 text-right">{t("merchant.items_th")}</th>
             <th className="px-3 py-2.5 text-right">{t("merchant.sale_total_th")}</th>
+            <th className="px-3 py-2.5 text-right">Refunded</th>
             <th className="px-3 py-2.5 text-right">{t("merchant.commission_th")}</th>
             <th className="px-4 py-2.5 text-right">{t("merchant.net_th")}</th>
           </tr>
@@ -58,6 +61,7 @@ export function SettlementOrdersTable({ orders, t, locale, money }: { orders: Se
               </td>
               <td className="px-3 py-2.5 text-right text-neutral-500">{o.itemCount}</td>
               <td className="px-3 py-2.5 text-right text-neutral-700">{money(o.lineTotal)}</td>
+              <td className={`px-3 py-2.5 text-right ${o.refunded > 0 ? "text-amber-700" : "text-neutral-300"}`}>{o.refunded > 0 ? `-${money(o.refunded)}` : "—"}</td>
               <td className="px-3 py-2.5 text-right text-neutral-500">{money(o.commissionAmount)}</td>
               <td className="px-4 py-2.5 text-right font-medium text-neutral-900">{money(o.netAmount)}</td>
             </tr>

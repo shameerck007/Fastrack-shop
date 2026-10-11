@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/admin/AdminUi";
 import { getMyStore } from "@/lib/merchant";
 import { getStoreSettlementSummary, getStoreSettlementOrders, getStorePayouts } from "@/lib/settlements";
 import { SettlementSummaryCards, SettlementOrdersTable, SettlementPayoutsList } from "@/components/SettlementLedger";
+import StatementDialog from "@/components/StatementDialog";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -22,7 +23,7 @@ export default async function MerchantSettlementsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader icon="📒" title={t("merchant.settlement_ledger")} subtitle={t("merchant.settlement_intro")} />
+      <PageHeader icon="📒" title={t("merchant.settlement_ledger")} subtitle={t("merchant.settlement_intro")} actions={<StatementDialog storeId={store.id} />} />
 
       {summary && (
         <div>
