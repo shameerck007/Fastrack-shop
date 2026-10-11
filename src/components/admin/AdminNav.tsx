@@ -11,6 +11,7 @@ const NAV: PortalNavItem[] = [
   { href: "/admin/merchants", labelKey: "admin.merchants", icon: "🏪", section: "Catalog & stores" },
   { href: "/admin/orders", labelKey: "admin.orders", icon: "🧾", section: "Operations" },
   { href: "/admin/customers", label: "Customers", icon: "👥", section: "Operations" },
+  { href: "/admin/people", label: "Users & roles", icon: "🛡️", section: "Operations" },
   { href: "/admin/riders", labelKey: "admin.riders", icon: "🛵", section: "Operations" },
   { href: "/admin/transfers", label: "Stock transfers", icon: "🔁", section: "Operations" },
   { href: "/admin/settlements", labelKey: "admin.settlement_ledger", icon: "📒", section: "Finance" },
