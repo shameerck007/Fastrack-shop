@@ -53,15 +53,16 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
         ← All customers
       </Link>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white px-4 py-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white">{name.trim().charAt(0).toUpperCase()}</span>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3.5 shadow-sm">
+        <div className="flex min-w-0 items-center gap-3.5">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xl font-extrabold text-white ring-4 ring-blue-50">{name.trim().charAt(0).toUpperCase()}</span>
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-lg font-bold text-neutral-900">{name}</h1>
-              {c.blocked_at ? <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-bold text-red-700">Blocked from ordering</span> : <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">Active</span>}
-            </div>
-            <p className="text-xs text-neutral-500">Joined {when(c.joined_at)}</p>
+            <h1 className="truncate text-xl font-extrabold tracking-tight text-neutral-900">{name}</h1>
+            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-neutral-500">
+              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-800">🛍️ Customer</span>
+              {c.blocked_at ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">Blocked from ordering</span> : <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Active</span>}
+              <span>Joined {when(c.joined_at)}</span>
+            </p>
           </div>
         </div>
         <BlockButton id={c.id} blocked={!!c.blocked_at} name={name} />
@@ -75,27 +76,30 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[
-          ["🧾", "Orders", c.stats.orders],
-          ["💰", "Spent (delivered)", money(Number(c.stats.spent))],
-          ["📊", "Average order", money(avg)],
-          ["↩️", "Cancelled", c.stats.cancelled],
-        ].map(([icon, label, value]) => (
-          <div key={String(label)} className="rounded-2xl border border-neutral-200 bg-white px-3.5 py-3 shadow-sm">
-            <p className="text-xs font-medium text-neutral-500">
-              {icon} {label}
-            </p>
-            <p className="mt-0.5 text-xl font-bold text-neutral-900">{value}</p>
+          ["🧾", "Orders", c.stats.orders, "#2563eb"],
+          ["💰", "Spent (delivered)", money(Number(c.stats.spent)), "#059669"],
+          ["📊", "Average order", money(avg), "#7c3aed"],
+          ["↩️", "Cancelled", c.stats.cancelled, "#d97706"],
+        ].map(([icon, label, value, accent]) => (
+          <div key={String(label)} className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-3.5 py-3 shadow-sm">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base" style={{ background: `${accent}1a`, color: String(accent) }}>
+              {icon}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-medium text-neutral-500">{label}</p>
+              <p className="truncate text-lg font-bold leading-tight text-neutral-900">{value}</p>
+            </div>
           </div>
         ))}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
         <div className="flex flex-col gap-4">
-          <Card title="Contact">
+          <Card title="🔒 Contact">
             <ContactCard id={c.id} phoneMasked={c.phone_masked} emailMasked={c.email_masked} canReveal={c.can_reveal} />
           </Card>
 
-          <Card title={`Saved addresses (${c.addresses.length})`}>
+          <Card title={`📍 Saved addresses (${c.addresses.length})`}>
             {c.addresses.length === 0 ? (
               <p className="text-sm text-neutral-400">No saved addresses.</p>
             ) : (
@@ -117,7 +121,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
             )}
           </Card>
 
-          <Card title="Support notes">
+          <Card title="📝 Support notes">
             <NoteForm id={c.id} />
             {c.notes.length > 0 && (
               <ul className="mt-3 flex flex-col gap-2">
@@ -135,7 +139,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
         </div>
 
         <div className="flex flex-col gap-4">
-          <Card title={`Orders (${c.orders.length}${c.orders.length === 50 ? "+" : ""})`}>
+          <Card title={`🧾 Orders (${c.orders.length}${c.orders.length === 50 ? "+" : ""})`}>
             {c.orders.length === 0 ? (
               <p className="text-sm text-neutral-400">No orders yet.</p>
             ) : (
@@ -157,7 +161,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
           </Card>
 
           {c.access_log && (
-            <Card title="Access log (super admin only)">
+            <Card title="🛡️ Access log (super admin only)">
               {c.access_log.length === 0 ? (
                 <p className="text-sm text-neutral-400">Nothing recorded yet.</p>
               ) : (

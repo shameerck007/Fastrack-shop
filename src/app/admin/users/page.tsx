@@ -112,26 +112,38 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
                   <p className="font-semibold text-neutral-700">No customers match</p>
                 </div>
               ) : (
-                <ul className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-                  {result.items.map((c) => (
-                    <li key={c.id}>
-                      <Link href={hrefFor(c.id)} className={`flex items-center gap-3 px-3 py-2.5 transition hover:bg-neutral-50 ${selected === c.id ? "bg-blue-50/70" : ""}`}>
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-700">{(c.name ?? "?").trim().charAt(0).toUpperCase() || "?"}</span>
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-center gap-1.5">
-                            <span className="truncate text-sm font-bold text-neutral-900">{c.name ?? "No name"}</span>
-                            {c.blocked && <span className="shrink-0 rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-700">Blocked</span>}
+                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                  <div className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                    <span>Customer</span>
+                    <span>Spent · orders</span>
+                  </div>
+                  <ul className="divide-y divide-neutral-100">
+                    {result.items.map((c) => (
+                      <li key={c.id}>
+                        <Link href={hrefFor(c.id)} className={`relative flex items-center gap-3 px-4 py-3 transition hover:bg-neutral-50 ${selected === c.id ? "bg-blue-50/70" : ""}`}>
+                          {selected === c.id && <span aria-hidden className="absolute inset-y-0 start-0 w-1 rounded-e bg-blue-600" />}
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-extrabold text-blue-800">{(c.name ?? "?").trim().charAt(0).toUpperCase() || "?"}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-center gap-1.5">
+                              <span className="truncate text-sm font-bold text-neutral-900">{c.name ?? "No name"}</span>
+                              {c.blocked && <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">Blocked</span>}
+                            </span>
+                            <span className="block truncate font-mono text-[11px] text-neutral-500">{c.phone_masked ?? c.email_masked ?? "—"}</span>
+                            <span className="block truncate text-[11px] text-neutral-400">
+                              {c.city ?? "No address yet"} · last order {ago(c.last_order_at).toLowerCase()}
+                            </span>
                           </span>
-                          <span className="block truncate font-mono text-[11px] text-neutral-500">{c.phone_masked ?? c.email_masked ?? "—"}</span>
-                        </span>
-                        <span className="shrink-0 text-end text-[11px] leading-tight text-neutral-500">
-                          <b className="block text-sm text-neutral-900">{money(Number(c.spent))}</b>
-                          {c.orders} {c.orders === 1 ? "order" : "orders"} · {ago(c.last_order_at)}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                          <span className="shrink-0 text-end leading-tight">
+                            <b className="block text-sm text-neutral-900">{money(Number(c.spent))}</b>
+                            <span className="text-[11px] text-neutral-500">
+                              {c.orders} {c.orders === 1 ? "order" : "orders"}
+                            </span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
 
