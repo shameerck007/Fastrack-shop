@@ -66,6 +66,7 @@ export default function OrderTrackingHero({
   dest,
   shop,
   promisedAt = null,
+  liveEtaAt = null,
 }: {
   orderId: string;
   orderNumber: string;
@@ -75,6 +76,8 @@ export default function OrderTrackingHero({
   shop: (Point & { name: string }) | null;
   /** The delivery time promised when the order was placed (ISO), so this screen agrees with checkout and the email. */
   promisedAt?: string | null;
+  /** The arrival time the system last worked out from the rider's real position (ISO). */
+  liveEtaAt?: string | null;
 }) {
   const { t, locale } = useLocale();
   const [status, setStatus] = useState(initialStatus);
@@ -82,6 +85,7 @@ export default function OrderTrackingHero({
     rider?.lat != null && rider?.lng != null ? { lat: rider.lat, lng: rider.lng } : null
   );
   const [live, setLive] = useState(false);
+  const [liveEta, setLiveEta] = useState<string | null>(liveEtaAt);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const riderMarker = useRef<Marker | null>(null);
@@ -108,8 +112,9 @@ export default function OrderTrackingHero({
       channel = supabase
         .channel(`order-tracking-${orderId}`)
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${orderId}` }, (payload) => {
-          const next = payload.new as { status?: OrderStatus };
+          const next = payload.new as { status?: OrderStatus; live_eta_at?: string | null };
           if (next.status) setStatus(next.status);
+          if (next.live_eta_at) setLiveEta(next.live_eta_at);
         });
       if (riderId) {
         channel = channel.on(
@@ -281,16 +286,39 @@ export default function OrderTrackingHero({
     if (status === "out_for_delivery" && riderPos) minutes = roadMin != null && road?.target === destKey ? roadMin : leg(riderPos, dest);
     else if (status === "rider_assigned" && riderPos && shop)
       minutes = (roadMin != null && road?.target === shopKey ? roadMin : leg(riderPos, shop)) + 3 + leg(shop, dest);
+    if (minutes == null && liveEta && (status === "rider_assigned" || status === "out_for_delivery")) minutes = (new Date(liveEta).getTime() - now) / 60_000;
     if (minutes == null && promisedAt) minutes = (new Date(promisedAt).getTime() - now) / 60_000;
     if (minutes == null && shop) minutes = estimateMinutes(distanceKm(shop.lat, shop.lng, dest.lat, dest.lng));
     if (minutes == null) return null;
     return Math.max(2, Math.round(minutes));
-  }, [status, riderPos, dest, shop, done, road, promisedAt, now]);
+  }, [status, riderPos, dest, shop, done, road, promisedAt, liveEta, now]);
 
   const arrival = useMemo(() => {
     if (etaMinutes == null) return null;
     return new Date(now + etaMinutes * 60_000).toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-US", { hour: "numeric", minute: "2-digit" });
   }, [etaMinutes, locale, now]);
+
+  // On time or late, against the time promised at checkout.
+  const lateBy = useMemo(() => {
+    if (etaMinutes == null || !promisedAt || done) return 0;
+    const diff = Math.round((now + etaMinutes * 60_000 - new Date(promisedAt).getTime()) / 60_000);
+    return diff >= 5 ? diff : 0;
+  }, [etaMinutes, promisedAt, done, now]);
+
+  // The journey bar: rider -> shop is the first quarter, shop -> you the rest. The scooter sits where the rider really is.
+  const journey = useMemo(() => {
+    if (status === "delivered") return { pos: 100, kmAway: 0 };
+    const shopToYou = shop && dest ? Math.max(0.3, distanceKm(shop.lat, shop.lng, dest.lat, dest.lng)) : null;
+    if (status === "out_for_delivery" && riderPos && dest && shopToYou) {
+      const left = distanceKm(riderPos.lat, riderPos.lng, dest.lat, dest.lng);
+      return { pos: 25 + 75 * Math.min(1, Math.max(0, 1 - left / shopToYou)), kmAway: left };
+    }
+    if (status === "rider_assigned" && riderPos && shop) {
+      const toShop = distanceKm(riderPos.lat, riderPos.lng, shop.lat, shop.lng);
+      return { pos: 25 * Math.min(1, Math.max(0, 1 - toShop / 3)), kmAway: toShop + (shopToYou ?? 0) };
+    }
+    return { pos: status === "preparing" || status === "ready_for_pickup" ? 25 : 8, kmAway: shopToYou };
+  }, [status, riderPos, shop, dest]);
 
   const stepIndex = Math.max(
     0,
@@ -329,27 +357,77 @@ export default function OrderTrackingHero({
       )}
 
       <div className={`relative z-[600] bg-white px-5 pb-5 pt-5 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] ${hasMap ? "-mt-6 rounded-t-3xl md:mt-0 md:rounded-none md:shadow-none" : "rounded-3xl"}`}>
-        <h2 className="text-xl font-extrabold tracking-tight text-neutral-900">{title}</h2>
-        <p className="text-sm text-neutral-500">#{orderNumber}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-xl font-extrabold tracking-tight text-neutral-900">{title}</h2>
+            <p className="text-sm text-neutral-500">#{orderNumber}</p>
+          </div>
+          {live && !done && (
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+              {t("tracking.live")}
+            </span>
+          )}
+        </div>
 
-        {arrival && (
-          <div className="mt-3 rounded-2xl bg-blue-50 px-4 py-3">
-            <p className="text-xs font-medium text-blue-700">{t("tracking.eta_label")}</p>
-            <p className="text-lg font-extrabold text-blue-900">{arrival}</p>
+        {etaMinutes != null && !done && (
+          <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-600 p-4 text-white shadow-lg shadow-blue-700/20">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-blue-100">{t("tracking.eta_label")}</p>
+                <p className="mt-0.5 flex items-baseline gap-1.5 leading-none">
+                  <span className="font-mono text-5xl font-extrabold tabular-nums">{etaMinutes}</span>
+                  <span className="text-lg font-bold text-blue-100">min</span>
+                </p>
+              </div>
+              <div className="text-end">
+                {arrival && <p className="text-lg font-extrabold">{arrival}</p>}
+                <span className={`mt-1 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${lateBy > 0 ? "bg-amber-400 text-amber-950" : "bg-white/20 text-white"}`}>
+                  <span aria-hidden>{lateBy > 0 ? "⏳" : "✓"}</span>
+                  {lateBy > 0 ? t("tracking.running_late", { min: lateBy }) : t("tracking.on_time")}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <div className="relative h-10">
+                <div className="absolute inset-x-3 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white/25" />
+                <div className="absolute start-3 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white transition-[width] duration-[1500ms] ease-out" style={{ width: `calc((100% - 1.5rem) * ${journey.pos / 100})` }} />
+                <span className="absolute top-1/2 -translate-y-1/2 text-lg" style={{ insetInlineStart: "calc(25% + 0.25rem)" }} aria-hidden>🏪</span>
+                <span className="absolute end-0 top-1/2 -translate-y-1/2 text-lg" aria-hidden>🏠</span>
+                <span
+                  className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-[left] duration-[1500ms] ease-out"
+                  style={{ left: `calc(0.75rem + (100% - 1.5rem) * ${journey.pos / 100})` }}
+                  aria-hidden
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-4 ring-white/30">🛵</span>
+                </span>
+              </div>
+              <div className="mt-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-blue-100">
+                <span>{t("tracking.stage_rider")}</span>
+                <span>{journey.kmAway != null ? t("tracking.km_away", { km: journey.kmAway.toFixed(1) }) : ""}</span>
+                <span>{t("tracking.stage_you")}</span>
+              </div>
+            </div>
           </div>
         )}
 
         {status !== "cancelled" && (
-          <ol className="mt-4 grid grid-cols-4 gap-1.5">
-            {STEPS.map((s, i) => (
-              <li key={s.key} className="flex flex-col items-center gap-1 text-center">
-                <span className={`h-1.5 w-full rounded-full ${i <= stepIndex ? "bg-blue-600" : "bg-neutral-200"}`} />
-                <span className={`text-lg ${i <= stepIndex ? "" : "opacity-40 grayscale"}`}>{s.icon}</span>
-                <span className={`text-[11px] font-semibold leading-tight ${i <= stepIndex ? "text-neutral-900" : "text-neutral-400"}`}>
-                  {t(`tracking.${s.key}`)}
-                </span>
-              </li>
-            ))}
+          <ol className="mt-5 grid grid-cols-4 gap-1.5">
+            {STEPS.map((s, i) => {
+              const reached = i <= stepIndex;
+              const current = i === stepIndex && !done;
+              return (
+                <li key={s.key} className="flex flex-col items-center gap-1.5 text-center">
+                  <span className={`relative flex h-11 w-11 items-center justify-center rounded-full text-xl transition ${reached ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" : "bg-neutral-100 text-neutral-400"}`}>
+                    {current && <span className="absolute inset-0 animate-ping rounded-full bg-blue-400/40" />}
+                    <span className={`relative ${reached ? "" : "opacity-50 grayscale"}`}>{s.icon}</span>
+                  </span>
+                  <span className={`text-[11px] font-semibold leading-tight ${reached ? "text-neutral-900" : "text-neutral-400"}`}>{t(`tracking.${s.key}`)}</span>
+                  <span className={`h-1 w-full rounded-full ${reached ? "bg-blue-600" : "bg-neutral-200"}`} />
+                </li>
+              );
+            })}
           </ol>
         )}
 
