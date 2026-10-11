@@ -25,7 +25,7 @@ export interface AreaShopRow {
   standardOn: boolean;
 }
 
-function status(r: AreaShopRow): { label: string; tone: string } {
+export function shopStatus(r: AreaShopRow): { label: string; tone: string } {
   if (r.lat == null || r.lng == null) return { label: "Not live: set the GPS pin", tone: "bg-amber-50 text-amber-800" };
   if (r.expressOn && r.standardOn) return { label: `Express up to ${r.expressReachKm} km + Standard`, tone: "bg-emerald-50 text-emerald-800" };
   if (r.expressOn) return { label: `Express up to ${r.expressReachKm} km`, tone: "bg-emerald-50 text-emerald-800" };
@@ -62,7 +62,7 @@ export default function AreaShops({ rows }: { rows: AreaShopRow[] }) {
       ) : (
         <ul className="divide-y divide-neutral-100">
           {shown.map((r) => {
-            const st = status(r);
+            const st = shopStatus(r);
             return (
               <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-5">
                 <div className="min-w-[12rem] flex-1">
@@ -125,7 +125,7 @@ export default function AreaShops({ rows }: { rows: AreaShopRow[] }) {
   );
 }
 
-function PinModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose: () => void; onSaved: () => void }) {
+export function PinModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose: () => void; onSaved: () => void }) {
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(row.lat != null && row.lng != null ? { lat: row.lat, lng: row.lng } : null);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -161,7 +161,7 @@ function PinModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose: () => 
   );
 }
 
-function RuleModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose: () => void; onSaved: () => void }) {
+export function RuleModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose: () => void; onSaved: () => void }) {
   const [mode, setMode] = useState<"auto" | "off">(row.expressMode);
   const [maxKm, setMaxKm] = useState(row.expressMaxKm != null ? String(row.expressMaxKm) : "");
   const [pending, start] = useTransition();

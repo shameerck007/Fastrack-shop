@@ -1,11 +1,12 @@
+import Link from "@/components/Link";
 import { createClient } from "@/lib/supabase/server";
 import ZonesList, { type ZoneCard } from "@/components/admin/ZonesList";
 import ZonesCoverageButton from "@/components/admin/ZonesCoverageButton";
-import type { OverviewArea, OverviewZone } from "@/components/admin/ZonesOverviewMap";
+import type { OverviewZone } from "@/components/admin/ZonesOverviewMap";
 import { parsePolygon, pointInPolygon } from "@/lib/geo-polygon";
 import { distanceKm } from "@/lib/delivery-geo";
 import AreasManager, { type AreaCard } from "@/components/admin/AreasManager";
-import AreaShops, { type AreaShopRow } from "@/components/admin/AreaShops";
+import { type AreaShopRow } from "@/components/admin/AreaShops";
 import { areaAt, parseAreas } from "@/lib/delivery-areas";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -147,38 +148,6 @@ export default async function AdminZonesPage() {
       standardOn: area ? area.standardEnabled : true,
     };
   });
-  const areaShapes: OverviewArea[] = areaCards.map((a) => ({
-    id: a.id,
-    name: a.name,
-    color: a.color,
-    polygon: a.polygon,
-    lat: a.lat,
-    lng: a.lng,
-    radiusKm: a.radiusKm,
-    shops: a.shops,
-    rules: `${a.expressEnabled ? `Express ≤ ${a.expressMaxKm} km` : "Express off"}, ${a.standardEnabled ? `Standard ${a.standardDays} d` : "Standard off"}`,
-  }));
-  const areaZonesForMap: OverviewZone[] = shopRows
-    .filter((r) => r.lat != null && r.lng != null)
-    .map((r, i) => ({
-      id: r.id,
-      name: r.name,
-      lat: r.lat as number,
-      lng: r.lng as number,
-      radiusKm: null,
-      color: COLORS[i % COLORS.length],
-      polygon: null,
-      kind: r.kind,
-      orders: ordersByWarehouse.get(r.id) ?? 0,
-      products: r.kind === "supplier" ? (productsByStore.get(storeOfWarehouse.get(r.id)?.id ?? null) ?? 0) : (productsByStore.get(null) ?? 0),
-      address: r.address,
-      inAreas: {
-        areaName: r.areaName,
-        hasPin: true,
-        expressReachKm: r.expressOn ? r.expressReachKm : null,
-        offers: r.expressOn && r.standardOn ? `Express ≤ ${r.expressReachKm} km + Standard` : r.expressOn ? `Express ≤ ${r.expressReachKm} km` : r.standardOn ? "Standard only" : "Not delivering",
-      },
-    }));
   const shopsWithoutPin = shopRows.filter((r) => r.lat == null || r.lng == null).length;
   const outsideAreas = pins.filter((p) => !areaAt(areas, p.lat, p.lng)).length;
 
@@ -278,9 +247,9 @@ export default async function AdminZonesPage() {
             customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}
           />
         ) : (
-          <ZonesCoverageButton zones={areaZonesForMap} areaShapes={areaShapes} customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng, outside: !areaAt(areas, p.lat, p.lng) }))}>
-            <AreaShops rows={shopRows} />
-          </ZonesCoverageButton>
+          <Link href="/admin/zones/coverage" className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+            🗺️ {t("zones_coverage.view_coverage_map")}
+          </Link>
         )}
       </div>
 
