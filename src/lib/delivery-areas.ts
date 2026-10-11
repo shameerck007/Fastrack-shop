@@ -2,8 +2,8 @@
 //
 // The admin draws a few shared areas; a shop only has its GPS pin. For a shop and a customer the rules are:
 //   - the customer must be inside some area, or nothing is offered;
-//   - Express: the customer's area and the shop's area both allow Express, the shop has not switched it off, and the distance is
-//     within the smallest "Express up to" limit of the two areas and the shop's own limit;
+//   - Express: the shop and the customer are in the same zone, the zone allows Express and the shop has not switched it off.
+//     The zone boundary is the Express boundary, so there is no separate distance setting;
 //   - Standard: the customer's area allows it, and so does the shop's area. A shop outside every area can still use Standard.
 // While no area exists the old per-shop boundaries are used instead.
 
@@ -109,10 +109,7 @@ export function verdictInAreas(areas: DeliveryArea[], shop: AreaShop, customer: 
   if (!customerArea || shop.lat == null || shop.lng == null) {
     return { covered: false, express: false, standard: false, standardDays: 2, distanceKm: distance, expressLimitKm: null, customerArea, shopArea };
   }
-  const limits = [customerArea.expressMaxKm, shopArea?.expressMaxKm, shop.expressMaxKm].filter((n): n is number => typeof n === "number" && n > 0);
-  const limit = Math.min(...limits);
-  const express =
-    shop.expressMode !== "off" && customerArea.expressEnabled && !!shopArea && shopArea.expressEnabled && distance !== null && distance <= limit;
+  const express = shop.expressMode !== "off" && !!shopArea && shopArea.id === customerArea.id && customerArea.expressEnabled;
   const standard = customerArea.standardEnabled && (shopArea ? shopArea.standardEnabled : true);
   return {
     covered: true,
@@ -120,7 +117,7 @@ export function verdictInAreas(areas: DeliveryArea[], shop: AreaShop, customer: 
     standard,
     standardDays: Math.max(customerArea.standardDays, shopArea?.standardDays ?? 0),
     distanceKm: distance,
-    expressLimitKm: limit,
+    expressLimitKm: null,
     customerArea,
     shopArea,
   };

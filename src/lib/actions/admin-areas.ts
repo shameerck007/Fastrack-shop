@@ -10,7 +10,6 @@ export interface AreaInput {
   nameAr?: string;
   shape: { polygon: LatLng[] | null; lat: number; lng: number; radiusKm: number };
   expressEnabled: boolean;
-  expressMaxKm: number;
   standardEnabled: boolean;
   standardDays: number;
   logisticsEnabled: boolean;
@@ -30,7 +29,6 @@ export async function saveDeliveryArea(input: AreaInput): Promise<{ error?: stri
   if (!polygon && (!Number.isFinite(input.shape.lat) || !Number.isFinite(input.shape.lng) || !(input.shape.radiusKm > 0))) {
     return { error: "Mark the area on the map: drop a pin and set a radius, or draw the area." };
   }
-  if (!(input.expressMaxKm > 0 && input.expressMaxKm <= 100)) return { error: "Express distance must be between 0.1 and 100 km." };
   if (!Number.isInteger(input.standardDays) || input.standardDays < 0 || input.standardDays > 30) return { error: "Standard days must be a whole number from 0 to 30." };
 
   const supabase = await createClient();
@@ -47,7 +45,6 @@ export async function saveDeliveryArea(input: AreaInput): Promise<{ error?: stri
     lng: polygon ? null : input.shape.lng,
     radius_km: polygon ? null : input.shape.radiusKm,
     express_enabled: input.expressEnabled,
-    express_max_km: input.expressMaxKm,
     standard_enabled: input.standardEnabled,
     standard_days: input.standardDays,
     logistics_enabled: input.logisticsEnabled,

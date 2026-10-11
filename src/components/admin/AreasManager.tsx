@@ -18,7 +18,6 @@ export interface AreaCard {
   lng: number | null;
   radiusKm: number | null;
   expressEnabled: boolean;
-  expressMaxKm: number;
   standardEnabled: boolean;
   standardDays: number;
   logisticsEnabled: boolean;
@@ -36,7 +35,6 @@ const EMPTY: Omit<AreaCard, "id" | "shops" | "customers" | "color"> = {
   lng: null,
   radiusKm: null,
   expressEnabled: true,
-  expressMaxKm: 8,
   standardEnabled: true,
   standardDays: 2,
   logisticsEnabled: false,
@@ -81,8 +79,8 @@ export default function AreasManager({ areas }: { areas: AreaCard[] }) {
         <div className="min-w-0">
           <h2 className="text-base font-extrabold tracking-tight text-neutral-900">Common delivery areas</h2>
           <p className="mt-0.5 max-w-2xl text-xs text-neutral-500">
-            Draw a few shared areas (a city or part of one) with their own rules. A shop only needs its GPS pin: it takes the area it sits in, and for each order the customer&apos;s area, the shop&apos;s area,
-            the distance and these rules decide whether Express or Standard is offered.{" "}
+            Draw a few shared zones (a city or part of one). A shop only needs its GPS pin: it takes the zone it sits in. Express is offered when the shop and the customer are in the same zone;
+            otherwise Standard is used, following the zone rules.{" "}
             {areas.length === 0
               ? "Until you add the first area, each shop's own boundary below is used."
               : "Areas now decide delivery for every shop; the old per-shop boundaries are ignored."}
@@ -117,7 +115,7 @@ export default function AreasManager({ areas }: { areas: AreaCard[] }) {
               </div>
               <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold">
                 <span className={`rounded-full px-2.5 py-1 ${a.expressEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>
-                  {a.expressEnabled ? `Express up to ${a.expressMaxKm} km` : "Express off"}
+                  {a.expressEnabled ? "Express in this zone" : "Express off"}
                 </span>
                 <span className={`rounded-full px-2.5 py-1 ${a.standardEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>
                   {a.standardEnabled ? `Standard ${a.standardDays} ${a.standardDays === 1 ? "day" : "days"}` : "Standard off"}
@@ -155,7 +153,6 @@ function AreaEditorModal({ initial, onClose, onSaved }: { initial: Partial<AreaC
   const [name, setName] = useState(initial.name ?? "");
   const [nameAr, setNameAr] = useState(initial.nameAr ?? "");
   const [expressEnabled, setExpressEnabled] = useState(initial.expressEnabled ?? true);
-  const [expressMaxKm, setExpressMaxKm] = useState(String(initial.expressMaxKm ?? 8));
   const [standardEnabled, setStandardEnabled] = useState(initial.standardEnabled ?? true);
   const [standardDays, setStandardDays] = useState(String(initial.standardDays ?? 2));
   const [logistics, setLogistics] = useState(initial.logisticsEnabled ?? false);
@@ -175,11 +172,8 @@ function AreaEditorModal({ initial, onClose, onSaved }: { initial: Partial<AreaC
           <Field label="Name in Arabic">
             <input value={nameAr} onChange={(e) => setNameAr(e.target.value)} dir="rtl" className={inputClass} />
           </Field>
-          <Field label="Express delivery">
+          <Field label="Express delivery" hint="Express applies inside this zone: when the shop and the customer are both in it.">
             <OnOff value={expressEnabled} onChange={setExpressEnabled} />
-          </Field>
-          <Field label="Express up to (km from the shop)" hint="Beyond this distance the order goes Standard.">
-            <input type="number" min={0.1} max={100} step={0.5} value={expressMaxKm} onChange={(e) => setExpressMaxKm(e.target.value)} disabled={!expressEnabled} className={inputClass} />
           </Field>
           <Field label="Standard delivery">
             <OnOff value={standardEnabled} onChange={setStandardEnabled} />
@@ -212,7 +206,6 @@ function AreaEditorModal({ initial, onClose, onSaved }: { initial: Partial<AreaC
                 nameAr,
                 shape: { polygon: zone.polygon, lat: zone.lat, lng: zone.lng, radiusKm: zone.radiusKm },
                 expressEnabled,
-                expressMaxKm: Number(expressMaxKm),
                 standardEnabled,
                 standardDays: Number(standardDays),
                 logisticsEnabled: logistics,

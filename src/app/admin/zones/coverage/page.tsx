@@ -13,7 +13,7 @@ export default async function CoveragePage() {
   const [areasResult, whResult, overridesResult, storesResult, productsResult, ordersResult] = await Promise.all([
     loose.from("delivery_areas").select("*"),
     supabase.from("warehouses").select("id, name, address_line, lat, lng").eq("is_active", true).order("created_at", { ascending: true }),
-    loose.from("warehouses").select("id, express_mode, express_max_km"),
+    loose.from("warehouses").select("id, express_mode"),
     supabase.from("stores").select("id, name, warehouse_id, address_line, status"),
     supabase.from("products").select("store_id").eq("is_active", true),
     supabase.from("orders").select("warehouse_id").limit(5000),
@@ -49,7 +49,6 @@ export default async function CoveragePage() {
     const area = areaAt(areas, w.lat, w.lng);
     const o = overrides.get(w.id);
     const mode: "auto" | "off" = o?.express_mode === "off" ? "off" : "auto";
-    const own = o?.express_max_km == null ? null : Number(o.express_max_km);
     const st = storeOfWarehouse.get(w.id);
     return {
       id: w.id,
@@ -62,8 +61,8 @@ export default async function CoveragePage() {
       areaColor: null,
       areaId: area?.id ?? null,
       expressMode: mode,
-      expressMaxKm: own,
-      expressReachKm: area ? Math.min(area.expressMaxKm, own ?? Infinity) : null,
+      expressMaxKm: null,
+      expressReachKm: null,
       expressOn: mode !== "off" && !!area && area.expressEnabled,
       standardOn: area ? area.standardEnabled : true,
       orders: ordersByWarehouse.get(w.id) ?? 0,
@@ -82,7 +81,6 @@ export default async function CoveragePage() {
       lng: a.lng,
       radiusKm: a.radiusKm,
       expressEnabled: a.expressEnabled,
-      expressMaxKm: a.expressMaxKm,
       standardEnabled: a.standardEnabled,
       standardDays: a.standardDays,
       priority: a.priority,

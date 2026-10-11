@@ -99,7 +99,7 @@ export default async function AdminZonesPage() {
   };
   const [areasResult, overridesResult] = await Promise.all([
     loose.from("delivery_areas").select("*"),
-    loose.from("warehouses").select("id, express_mode, express_max_km"),
+    loose.from("warehouses").select("id, express_mode"),
   ]);
   const areas = areasResult.error ? [] : parseAreas(areasResult.data).filter((a) => (areasResult.data as { id: string; is_active?: boolean }[]).find((r) => r.id === a.id)?.is_active !== false);
   const overrides = new Map(
@@ -129,8 +129,6 @@ export default async function AdminZonesPage() {
     const area = areaAt(areas, w.lat, w.lng);
     const o = overrides.get(w.id);
     const mode: "auto" | "off" = o?.express_mode === "off" ? "off" : "auto";
-    const own = o?.express_max_km == null ? null : Number(o.express_max_km);
-    const reach = area ? Math.min(area.expressMaxKm, own ?? Infinity) : null;
     const st = storeOfWarehouse.get(w.id);
     return {
       id: w.id,
@@ -142,8 +140,8 @@ export default async function AdminZonesPage() {
       areaName: area?.name ?? null,
       areaColor: area ? (areaColor.get(area.id) ?? null) : null,
       expressMode: mode,
-      expressMaxKm: own,
-      expressReachKm: reach,
+      expressMaxKm: null,
+      expressReachKm: null,
       expressOn: mode !== "off" && !!area && area.expressEnabled,
       standardOn: area ? area.standardEnabled : true,
     };

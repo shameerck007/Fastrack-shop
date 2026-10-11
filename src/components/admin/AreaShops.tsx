@@ -27,8 +27,8 @@ export interface AreaShopRow {
 
 export function shopStatus(r: AreaShopRow): { label: string; tone: string } {
   if (r.lat == null || r.lng == null) return { label: "Not live: set the GPS pin", tone: "bg-amber-50 text-amber-800" };
-  if (r.expressOn && r.standardOn) return { label: `Express up to ${r.expressReachKm} km + Standard`, tone: "bg-emerald-50 text-emerald-800" };
-  if (r.expressOn) return { label: `Express up to ${r.expressReachKm} km`, tone: "bg-emerald-50 text-emerald-800" };
+  if (r.expressOn && r.standardOn) return { label: "Express in zone + Standard", tone: "bg-emerald-50 text-emerald-800" };
+  if (r.expressOn) return { label: "Express in zone", tone: "bg-emerald-50 text-emerald-800" };
   if (r.standardOn) return { label: r.areaName ? "Standard only" : "Standard only (outside every area)", tone: "bg-blue-50 text-blue-800" };
   return { label: "Not delivering", tone: "bg-neutral-100 text-neutral-500" };
 }
@@ -86,7 +86,6 @@ export default function AreaShops({ rows }: { rows: AreaShopRow[] }) {
                 </div>
                 <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${st.tone}`}>{st.label}</span>
                 {r.expressMode === "off" && <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-semibold text-neutral-500">Express off for this shop</span>}
-                {r.expressMode === "auto" && r.expressMaxKm != null && <span className="rounded-full bg-neutral-100 px-2 py-1 text-[10px] font-semibold text-neutral-500">own limit {r.expressMaxKm} km</span>}
                 <div className="ms-auto flex gap-2">
                   <button type="button" onClick={() => setPin(r)} className="h-9 rounded-full border border-neutral-300 px-4 text-xs font-bold text-neutral-700 hover:bg-neutral-50">
                     {r.lat != null ? "Move pin" : "Set pin"}
@@ -163,22 +162,18 @@ export function PinModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose:
 
 export function RuleModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose: () => void; onSaved: () => void }) {
   const [mode, setMode] = useState<"auto" | "off">(row.expressMode);
-  const [maxKm, setMaxKm] = useState(row.expressMaxKm != null ? String(row.expressMaxKm) : "");
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   return (
     <Modal open onClose={onClose} title={`Express rule: ${row.name}`}>
       <div className="flex flex-col gap-4">
-        <p className="text-sm text-neutral-600">By default a shop follows its area&apos;s rules. Use this only for an exception.</p>
+        <p className="text-sm text-neutral-600">By default a shop follows its zone&apos;s rules. Use this only for an exception.</p>
         <Field label="Express for this shop">
           <Select value={mode} onChange={(e) => setMode(e.target.value === "off" ? "off" : "auto")} className="w-full">
             <option value="auto">Follow the area</option>
             <option value="off">Off for this shop (Standard only)</option>
           </Select>
-        </Field>
-        <Field label="Shorter Express distance (km)" hint="Leave empty to follow the area's limit. Cannot be longer than the area's limit.">
-          <input type="number" min={0.1} max={100} step={0.5} value={maxKm} onChange={(e) => setMaxKm(e.target.value)} disabled={mode === "off"} placeholder="Follow the area" className={inputClass} />
         </Field>
         {error && <p className="text-sm font-medium text-blue-900">{error}</p>}
         <div className="flex justify-end gap-2">
@@ -191,7 +186,7 @@ export function RuleModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose
             className={primaryButton}
             onClick={() =>
               start(async () => {
-                const res = await setWarehouseExpressOverride(row.id, mode, maxKm.trim() === "" ? null : Number(maxKm));
+                const res = await setWarehouseExpressOverride(row.id, mode, null);
                 if (res.error) setError(res.error);
                 else onSaved();
               })

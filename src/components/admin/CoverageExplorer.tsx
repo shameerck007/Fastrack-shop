@@ -20,7 +20,6 @@ export interface CoverageZone {
   lng: number | null;
   radiusKm: number | null;
   expressEnabled: boolean;
-  expressMaxKm: number;
   standardEnabled: boolean;
   standardDays: number;
   priority: number;
@@ -57,7 +56,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
-  const layers = useRef<{ zones: LayerGroup; reach: LayerGroup; shops: LayerGroup } | null>(null);
+  const layers = useRef<{ zones: LayerGroup; shops: LayerGroup } | null>(null);
   const zoneShapes = useRef<Map<string, Polygon | Circle>>(new Map());
   const fitted = useRef(false);
 
@@ -66,7 +65,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
   const [selectedShop, setSelectedShop] = useState<string | null>(null);
   const [tab, setTab] = useState<"zones" | "shops">("zones");
   const [q, setQ] = useState("");
-  const [show, setShow] = useState({ zones: true, reach: true, shops: true });
+  const [show, setShow] = useState({ zones: true, shops: true });
   const [pin, setPin] = useState<CoverageShop | null>(null);
   const [rule, setRule] = useState<CoverageShop | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
@@ -88,7 +87,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
       L.tileLayer(TILE_URL, { ...TILE_OPTIONS, attribution: "" }).addTo(map);
       L.control.zoom({ position: "bottomright" }).addTo(map);
       L.control.scale({ imperial: false, position: "bottomleft" }).addTo(map);
-      layers.current = { zones: L.layerGroup().addTo(map), reach: L.layerGroup().addTo(map), shops: L.layerGroup().addTo(map) };
+      layers.current = { zones: L.layerGroup().addTo(map), shops: L.layerGroup().addTo(map) };
       if (typeof ResizeObserver !== "undefined") {
         ro = new ResizeObserver(() => map.invalidateSize());
         ro.observe(containerRef.current);
@@ -128,7 +127,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
       const shape = hasShape ? L.polygon(z.polygon as LatLng[], style) : z.lat != null && z.lng != null && z.radiusKm != null ? L.circle([z.lat, z.lng], { radius: z.radiusKm * 1000, ...style }) : null;
       if (!shape) continue;
       shape.addTo(g.zones);
-      shape.bindTooltip(`<b>${esc(z.name)}</b><br/>${z.expressEnabled ? `Express ≤ ${z.expressMaxKm} km` : "Express off"} · ${z.standardEnabled ? `Standard ${z.standardDays} d` : "Standard off"}`, { sticky: true });
+      shape.bindTooltip(`<b>${esc(z.name)}</b><br/>${z.expressEnabled ? "Express" : "Express off"} · ${z.standardEnabled ? `Standard ${z.standardDays} d` : "Standard off"}`, { sticky: true });
       shape.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
         setSelected(z.id);
@@ -145,20 +144,16 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
     }
   }, [ready, zones, selected, shops]);
 
-  // ---- Express reach circles and shop markers
+  // ---- shop markers
   useEffect(() => {
     const L = leafletRef.current;
     const g = layers.current;
     if (!ready || !L || !g) return;
-    g.reach.clearLayers();
     g.shops.clearLayers();
     for (const s of shops) {
       if (s.lat == null || s.lng == null) continue;
       const color = (s.areaId && colorOf.get(s.areaId)) || "#64748b";
       const dim = selected != null && s.areaId !== selected;
-      if (s.expressOn && s.expressReachKm) {
-        L.circle([s.lat, s.lng], { radius: s.expressReachKm * 1000, color, weight: 1.5, dashArray: "5 5", fillColor: color, fillOpacity: dim ? 0.01 : 0.05, opacity: dim ? 0.25 : 0.85, interactive: false }).addTo(g.reach);
-      }
       const ic = shopIcon(s, color, selectedShop === s.id);
       const marker = L.marker([s.lat, s.lng], {
         icon: L.divIcon({ className: "", html: ic.html, iconSize: [ic.size, ic.size], iconAnchor: [ic.size / 2, ic.size / 2] }),
@@ -241,7 +236,6 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
         </div>
         <div className="flex items-center gap-1.5">
           {layerBtn("zones", "Zones")}
-          {layerBtn("reach", "⚡ Express reach")}
           {layerBtn("shops", "🏪 Shops")}
           <button type="button" onClick={toggleFullscreen} aria-label="Full screen" className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm ring-1 ring-neutral-200 hover:bg-neutral-50">
             {fullscreen ? "🗗" : "⛶"}
@@ -288,7 +282,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-bold text-neutral-900">{z.name}</span>
                         <span className="mt-0.5 flex flex-wrap items-center gap-1">
-                          <span className={`${chip} ${z.expressEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>{z.expressEnabled ? `Express ≤ ${z.expressMaxKm} km` : "Express off"}</span>
+                          <span className={`${chip} ${z.expressEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>{z.expressEnabled ? "Express" : "Express off"}</span>
                           <span className={`${chip} ${z.standardEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>{z.standardEnabled ? `Standard ${z.standardDays}d` : "Standard off"}</span>
                         </span>
                       </span>
@@ -315,7 +309,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-1.5 px-3 pt-2.5">
-                  <span className={`${chip} ${sel.expressEnabled ? "bg-emerald-50 text-emerald-800" : "bg-neutral-100 text-neutral-500"}`}>{sel.expressEnabled ? `⚡ Express up to ${sel.expressMaxKm} km` : "Express off"}</span>
+                  <span className={`${chip} ${sel.expressEnabled ? "bg-emerald-50 text-emerald-800" : "bg-neutral-100 text-neutral-500"}`}>{sel.expressEnabled ? "⚡ Express in this zone" : "Express off"}</span>
                   <span className={`${chip} ${sel.standardEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>{sel.standardEnabled ? `📦 Standard ${sel.standardDays} ${sel.standardDays === 1 ? "day" : "days"}` : "Standard off"}</span>
                 </div>
                 <div className="mx-3 mt-2.5 grid grid-cols-2 divide-x divide-neutral-100 rounded-xl border border-neutral-100 text-center">
@@ -367,9 +361,6 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
           <div className="pointer-events-none absolute bottom-2 start-2 z-[1000] hidden rounded-xl bg-white/90 px-2.5 py-1.5 text-[10px] text-neutral-600 shadow backdrop-blur sm:block">
             <span className="me-3 inline-flex items-center gap-1">
               <span className="h-2.5 w-4 rounded-sm border-2 border-blue-600 bg-blue-100" /> Zone
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="h-2.5 w-4 rounded-full border-2 border-dashed border-teal-700" /> Express reach
             </span>
           </div>
         </div>
