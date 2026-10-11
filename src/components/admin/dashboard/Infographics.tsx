@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useMoney } from "@/components/MoneyProvider";
-import { PALETTE } from "./palette";
+/** Bubble fills stay dark enough for white labels. */
+const BUBBLE_COLORS = ["#1e40af", "#2563eb", "#0ea5e9", "#0d9488", "#475569", "#64748b"];
 
 function useMounted(delay = 80) {
   const [on, setOn] = useState(false);
@@ -204,13 +205,13 @@ export function SupplierBubbles({ items }: { items: Bubble[] }) {
         <defs>
           {sorted.map((_, i) => (
             <radialGradient key={i} id={`bub${i}`} cx="35%" cy="30%" r="80%">
-              <stop offset="0%" stopColor={PALETTE[(i * 3 + 1) % PALETTE.length]} stopOpacity="0.55" />
-              <stop offset="100%" stopColor={PALETTE[(i * 3 + 1) % PALETTE.length]} stopOpacity="0.9" />
+              <stop offset="0%" stopColor={BUBBLE_COLORS[i % BUBBLE_COLORS.length]} stopOpacity="0.55" />
+              <stop offset="100%" stopColor={BUBBLE_COLORS[i % BUBBLE_COLORS.length]} stopOpacity="0.9" />
             </radialGradient>
           ))}
         </defs>
         {sorted.map((s, i) => {
-          const c = PALETTE[(i * 3 + 1) % PALETTE.length];
+          const c = BUBBLE_COLORS[i % BUBBLE_COLORS.length];
           const r = radii[i];
           const cr = r - 4;
           const circ = 2 * Math.PI * cr;

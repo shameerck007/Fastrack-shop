@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { toggleProductActive, updateProductStock } from "@/lib/actions/admin-products";
+import { toggleProductActive, updateProduct, updateProductStock } from "@/lib/actions/admin-products";
 import StockCell from "@/components/admin/StockCell";
-import ProductForm from "@/components/admin/ProductForm";
+import ProductEditorModal from "@/components/admin/ProductEditorModal";
 
 import { useLocale } from "@/components/LocaleProvider";
 import type { Category, Warehouse } from "@/types/database";
@@ -28,20 +28,8 @@ export default function AdminProductCard({
   const variant = product.product_variants[0];
   const inv = variant?.inventory[0];
 
-  if (editing) {
-    return (
-      <div className="sm:col-span-2 lg:col-span-3">
-        <ProductForm
-          categories={categories}
-          warehouses={warehouses}
-          existing={product}
-          onDone={() => setEditing(false)}
-        />
-      </div>
-    );
-  }
-
   return (
+    <>
     <div className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition hover:shadow-md">
       <div className="flex h-36 items-center justify-center bg-neutral-50">
         {product.image_url ? (
@@ -106,5 +94,17 @@ export default function AdminProductCard({
         </div>
       </div>
     </div>
+    {editing && variant && (
+      <ProductEditorModal
+        product={product}
+        categories={categories}
+        onClose={() => setEditing(false)}
+        onSave={async (v) => {
+          await updateProduct(product.id, variant.id, v);
+          router.refresh();
+        }}
+      />
+    )}
+    </>
   );
 }

@@ -145,7 +145,7 @@ export function Donut({ slices, centerLabel, format = "int" }: { slices: Slice[]
   const arcs = slices.map((s, i) => ({ ...s, i, len: (s.value / total) * 100, offset: slices.slice(0, i).reduce((n, x) => n + (x.value / total) * 100, 0) }));
   const active = hot !== null ? slices[hot] : null;
   return (
-    <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
+    <div className="flex min-w-0 flex-col items-center gap-4">
       <div className="relative h-44 w-44 shrink-0">
         <svg viewBox="0 0 42 42" className="h-full w-full -rotate-90">
           <circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(15,23,42,0.06)" strokeWidth="5" />
@@ -175,7 +175,7 @@ export function Donut({ slices, centerLabel, format = "int" }: { slices: Slice[]
           <p className="max-w-[6.5rem] truncate text-[11px] font-semibold text-neutral-500">{active ? `${active.label} · ${Math.round((active.value / total) * 100)}%` : centerLabel}</p>
         </div>
       </div>
-      <ul className="grid w-full gap-1.5 text-sm">
+      <ul className="grid w-full min-w-0 gap-1.5 text-sm">
         {slices.map((s, i) => (
           <li key={s.label} className="flex items-center justify-between gap-3 rounded-lg px-2 py-1 transition hover:bg-neutral-100" onMouseEnter={() => setHot(i)} onMouseLeave={() => setHot(null)}>
             <span className="flex min-w-0 items-center gap-2 text-neutral-700">

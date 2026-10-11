@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { toggleMerchantProductActive, updateMerchantProductStock } from "@/lib/actions/merchant-products";
+import { toggleMerchantProductActive, updateMerchantProduct, updateMerchantProductStock } from "@/lib/actions/merchant-products";
 import StockCell from "@/components/admin/StockCell";
-import MerchantProductForm from "@/components/merchant/MerchantProductForm";
+import ProductEditorModal from "@/components/admin/ProductEditorModal";
 
 import { useLocale } from "@/components/LocaleProvider";
 import type { Category } from "@/types/database";
@@ -26,15 +26,8 @@ export default function MerchantProductCard({
   const variant = product.product_variants[0];
   const inv = variant?.inventory[0];
 
-  if (editing) {
-    return (
-      <div className="sm:col-span-2 lg:col-span-3">
-        <MerchantProductForm categories={categories} existing={product} onDone={() => setEditing(false)} />
-      </div>
-    );
-  }
-
   return (
+    <>
     <div className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition hover:shadow-md">
       <div className="flex h-36 items-center justify-center bg-neutral-50">
         {product.image_url ? (
@@ -99,5 +92,17 @@ export default function MerchantProductCard({
         </div>
       </div>
     </div>
+    {editing && variant && (
+      <ProductEditorModal
+        product={product}
+        categories={categories}
+        onClose={() => setEditing(false)}
+        onSave={async (v) => {
+          await updateMerchantProduct(product.id, variant.id, v);
+          router.refresh();
+        }}
+      />
+    )}
+    </>
   );
 }
