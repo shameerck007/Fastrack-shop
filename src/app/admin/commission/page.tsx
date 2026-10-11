@@ -3,7 +3,7 @@ import CommissionManager, { type CategoryRow, type RuleRow, type StoreOption } f
 import { getCompanySettings } from "@/lib/company-settings";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "Commission" };
+export const metadata = { title: "Commission rates" };
 
 export default async function AdminCommissionPage() {
   const supabase = await createClient();
@@ -22,12 +22,12 @@ export default async function AdminCommissionPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         icon="💰"
-        title="Commission"
-        subtitle="What FasTrack keeps from each supplier sale. Set a rate per category, add exceptions for a supplier, and suppliers see the rate before they list."
+        title="Commission rates"
+        subtitle="The share FasTrack keeps from each supplier sale. Rates are set per category, with exceptions per supplier; suppliers see their rate before they list."
       />
       {missing && (
         <p className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-          Commission rules aren&apos;t set up in the database yet. Run migration <b>0079_commission_rules.sql</b> in the Supabase SQL editor, then reload this page. Until then every supplier uses the single rate on their settlement page.
+          Commission rules aren&apos;t set up in the database yet. Run migrations <b>0079_commission_rules.sql</b> and <b>0080_commission_rules_policies.sql</b> in the Supabase SQL editor, then reload this page. Until then every supplier uses the single rate on their settlement page.
         </p>
       )}
       <CommissionManager

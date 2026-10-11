@@ -49,6 +49,17 @@ export async function saveCategoryRate(categoryId: string, rate: number | null):
   return {};
 }
 
+/** Saves several category rates at once (null clears a rate). Stops at the first problem and says which category it was. */
+export async function saveCategoryRates(items: { categoryId: string; rate: number | null }[]): Promise<{ error?: string; saved?: number }> {
+  let saved = 0;
+  for (const it of items) {
+    const res = await saveCategoryRate(it.categoryId, it.rate);
+    if (res.error) return { error: res.error, saved };
+    saved++;
+  }
+  return { saved };
+}
+
 /** An exception for one supplier (optionally only for a category), with optional dates. */
 export async function addCommissionException(input: { storeId: string; categoryId: string | null; rate: number; startsOn?: string; endsOn?: string; note?: string }): Promise<{ error?: string }> {
   if (!validRate(input.rate)) return { error: "Enter a rate between 0 and 100." };
