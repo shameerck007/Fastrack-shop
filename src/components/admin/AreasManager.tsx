@@ -65,7 +65,7 @@ export default function AreasManager({ areas }: { areas: AreaCard[] }) {
   const [message, setMessage] = useState<string | null>(null);
 
   function remove(a: AreaCard) {
-    if (!window.confirm(`Delete the area "${a.name}"? Shops and customers inside it stop being covered unless another area covers them.`)) return;
+    if (!window.confirm(`Delete the zone "${a.name}"? Shops and customers inside it stop being covered unless another zone covers them.`)) return;
     startTransition(async () => {
       const res = await deleteDeliveryArea(a.id);
       setMessage(res.error ?? null);
@@ -77,17 +77,15 @@ export default function AreasManager({ areas }: { areas: AreaCard[] }) {
     <section className="mb-5 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-100 px-4 py-4 sm:px-5">
         <div className="min-w-0">
-          <h2 className="text-base font-extrabold tracking-tight text-neutral-900">Common delivery areas</h2>
+          <h2 className="text-base font-extrabold tracking-tight text-neutral-900">Zones</h2>
           <p className="mt-0.5 max-w-2xl text-xs text-neutral-500">
-            Draw a few shared zones (a city or part of one). A shop only needs its GPS pin: it takes the zone it sits in. Express is offered when the shop and the customer are in the same zone;
-            otherwise Standard is used, following the zone rules.{" "}
             {areas.length === 0
-              ? "Until you add the first area, each shop's own boundary below is used."
-              : "Areas now decide delivery for every shop; the old per-shop boundaries are ignored."}
+              ? "Add your first zone, for example a city. Until then each shop's own boundary below is used."
+              : "Each zone has its own rules. Open one to change its shape, Express or Standard."}
           </p>
         </div>
         <button type="button" onClick={() => setEditing({ ...EMPTY })} className={primaryButton}>
-          + Add area
+          + Add zone
         </button>
       </div>
 
@@ -96,8 +94,8 @@ export default function AreasManager({ areas }: { areas: AreaCard[] }) {
       {areas.length === 0 ? (
         <div className="flex flex-col items-center gap-2 p-8 text-center">
           <span className="text-4xl">🗺️</span>
-          <p className="font-semibold text-neutral-700">No common areas yet</p>
-          <p className="max-w-md text-sm text-neutral-500">Add your first area, for example &ldquo;Riyadh&rdquo; or &ldquo;Kochi&rdquo;. As soon as one exists, areas take over from the per-shop boundaries.</p>
+          <p className="font-semibold text-neutral-700">No zones yet</p>
+          <p className="max-w-md text-sm text-neutral-500">Add your first zone, for example &ldquo;Riyadh&rdquo; or &ldquo;Kochi&rdquo;. As soon as one exists, zones take over from the per-shop boundaries.</p>
         </div>
       ) : (
         <ul className="divide-y divide-neutral-100">
@@ -163,10 +161,10 @@ function AreaEditorModal({ initial, onClose, onSaved }: { initial: Partial<AreaC
   const startLng = initial.lng ?? center?.[1] ?? null;
 
   return (
-    <Modal open onClose={onClose} title={initial.id ? `Edit area: ${initial.name}` : "Add a delivery area"} size="xl">
+    <Modal open onClose={onClose} title={initial.id ? `Edit zone: ${initial.name}` : "Add a delivery zone"} size="xl">
       <div className="flex flex-col gap-5">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Area name" required>
+          <Field label="Zone name" required>
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Riyadh North" className={inputClass} />
           </Field>
           <Field label="Name in Arabic">
@@ -181,7 +179,7 @@ function AreaEditorModal({ initial, onClose, onSaved }: { initial: Partial<AreaC
           <Field label="Standard delivery days">
             <input type="number" min={0} max={30} step={1} value={standardDays} onChange={(e) => setStandardDays(e.target.value)} disabled={!standardEnabled} className={inputClass} />
           </Field>
-          <Field label="Priority" hint="Where areas overlap, the higher number wins.">
+          <Field label="Priority" hint="Where zones overlap, the higher number wins.">
             <input type="number" min={-100} max={100} step={1} value={priority} onChange={(e) => setPriority(e.target.value)} className={inputClass} />
           </Field>
           <Field label="Third-party logistics" hint="Recorded for now. Booking couriers for far shops comes later.">
@@ -190,7 +188,7 @@ function AreaEditorModal({ initial, onClose, onSaved }: { initial: Partial<AreaC
         </div>
 
         <div>
-          <p className="mb-2 text-sm font-semibold text-neutral-800">Where is this area?</p>
+          <p className="mb-2 text-sm font-semibold text-neutral-800">Where is this zone?</p>
           <ZoneEditor
             warehouseId=""
             storeAddress={null}
@@ -198,7 +196,7 @@ function AreaEditorModal({ initial, onClose, onSaved }: { initial: Partial<AreaC
             initialLng={startLng}
             initialRadiusKm={initial.radiusKm ?? null}
             initialPolygon={initial.polygon ?? null}
-            saveLabel={initial.id ? "Save area" : "Create area"}
+            saveLabel={initial.id ? "Save zone" : "Create zone"}
             onSave={async (zone) => {
               const res = await saveDeliveryArea({
                 id: initial.id,

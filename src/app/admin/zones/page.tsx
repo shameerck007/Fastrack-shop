@@ -6,6 +6,7 @@ import type { OverviewZone } from "@/components/admin/ZonesOverviewMap";
 import { parsePolygon, pointInPolygon } from "@/lib/geo-polygon";
 import { distanceKm } from "@/lib/delivery-geo";
 import AreasManager, { type AreaCard } from "@/components/admin/AreasManager";
+import { PageHeader } from "@/components/admin/AdminUi";
 import { type AreaShopRow } from "@/components/admin/AreaShops";
 import { areaAt, parseAreas } from "@/lib/delivery-areas";
 import { getServerLocale } from "@/lib/i18n/get-locale";
@@ -221,11 +222,52 @@ export default async function AdminZonesPage() {
   const areaZones = overviewZones.filter((z) => z.radiusKm != null || (z.polygon && z.polygon.length >= 3));
 
   const zonedCount = cards.filter((c) => c.zoned).length;
-  const uncovered = pins.filter(
-    (p) => areaZones.length > 0 && !areaZones.some((z) => (z.polygon ? pointInPolygon(p.lat, p.lng, z.polygon) : distanceKm(z.lat, z.lng, p.lat, p.lng) <= (z.radiusKm as number)))
-  ).length;
-  // A store with no area is not live, so it reaches nobody.
-  const anyUnrestricted = false;
+
+  const coverageLink = (
+    <Link href="/admin/zones/coverage" className="inline-flex h-10 items-center rounded-full border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+      {t("zones_coverage.view_coverage_map")}
+    </Link>
+  );
+
+  if (areas.length > 0) {
+    return (
+      <div className="flex flex-col gap-4">
+        <PageHeader
+          icon="📍"
+          title="Delivery zones"
+          subtitle="Draw a few shared zones. A shop only needs its GPS pin: it belongs to the zone it sits in. Express is offered inside a zone, Standard everywhere else the zones reach."
+          actions={coverageLink}
+        />
+
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Stat icon="🗺️" label="Zones" value={areas.length} accent="#2563eb" />
+          <Stat icon="🏪" label="Shops and warehouses" value={shopRows.length} accent="#059669" hint={shopsWithoutPin > 0 ? `${shopsWithoutPin} without a GPS pin` : "All have a GPS pin"} />
+          <Stat icon="📍" label="Inside a zone" value={shopRows.filter((r) => r.areaName).length} accent="#7c3aed" hint="Get Express and Standard" />
+          <Stat icon="⚠️" label="Outside every zone" value={shopsOutside} accent={shopsOutside > 0 ? "#d97706" : "#404040"} hint={shopsOutside > 0 ? "Standard only" : "None"} />
+        </div>
+
+        <div className="grid gap-2 rounded-2xl border border-neutral-200 bg-white p-3 text-xs text-neutral-600 shadow-sm sm:grid-cols-3">
+          <p>
+            <b className="text-neutral-900">⚡ Express</b>
+            <br />
+            The shop and the customer are in the same zone and the delivery time is within 60 minutes.
+          </p>
+          <p>
+            <b className="text-neutral-900">📦 Standard</b>
+            <br />
+            The customer is in another zone, or too far for Express. It arrives in the zone&apos;s delivery days.
+          </p>
+          <p>
+            <b className="text-neutral-900">🚫 Not delivered</b>
+            <br />
+            The customer is outside every zone.
+          </p>
+        </div>
+
+        <AreasManager areas={areaCards} />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -239,47 +281,23 @@ export default async function AdminZonesPage() {
             <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">{t("admin.zones_subtitle")}</p>
           </div>
         </div>
-        {areas.length === 0 ? (
-          <ZonesCoverageButton
-            zones={overviewZones}
-            customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}
-          />
-        ) : (
-          <Link href="/admin/zones/coverage" className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
-            🗺️ {t("zones_coverage.view_coverage_map")}
-          </Link>
-        )}
+        <ZonesCoverageButton zones={overviewZones} customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))} />
       </div>
 
       <AreasManager areas={areaCards} />
 
-      {areas.length > 0 ? (
-        <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat icon="🗺️" label="Delivery areas" value={areas.length} accent="#2563eb" hint="Shops and customers are matched to these" />
-          <Stat icon="🏪" label="Shops and warehouses" value={shopRows.length} accent="#059669" hint={shopsWithoutPin > 0 ? `${shopsWithoutPin} without a GPS pin (not live)` : "All have a GPS pin"} />
-          <Stat icon="📍" label="Shops inside a zone" value={shopRows.filter((r) => r.areaName).length} accent="#7c3aed" hint="Express and Standard follow the zone rules" />
-          <Stat icon="⚠️" label="Shops outside every zone" value={shopsOutside} accent={shopsOutside > 0 ? "#d97706" : "#404040"} hint={shopsOutside > 0 ? "Standard only until a zone covers them" : "All shops are inside a zone"} />
-        </div>
-      ) : (
-      <>
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat icon="🏪" label={t("admin.stores_warehouses")} value={cards.length} accent="#2563eb" />
         <Stat
           icon="🎯"
           label={t("admin.with_a_boundary")}
           value={t("admin.of_count", { count: zonedCount, total: cards.length })}
-          hint={
-            zonedCount === cards.length
-              ? t("admin.all_configured")
-              : t("admin.still_unrestricted", { count: cards.length - zonedCount })
-          }
+          hint={zonedCount === cards.length ? t("admin.all_configured") : t("admin.still_unrestricted", { count: cards.length - zonedCount })}
           accent={zonedCount === cards.length ? "#059669" : "#d97706"}
         />
       </div>
 
       <ZonesList cards={listCards} />
-      </>
-      )}
     </div>
   );
 }
