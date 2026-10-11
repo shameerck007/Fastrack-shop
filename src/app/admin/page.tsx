@@ -15,9 +15,9 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
 
   if (!data) {
     return (
-      <div className="rounded-3xl bg-[#0b1220] p-6 text-white">
-        <h1 className="text-xl font-extrabold">Business overview</h1>
-        <p className="mt-3 rounded-xl border border-sky-300/30 bg-sky-400/10 p-4 text-sm text-sky-100">
+      <div>
+        <h1 className="text-xl font-extrabold text-neutral-900">Business overview</h1>
+        <p className="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
           The business dashboard needs database migration <b>0083_admin_dashboard.sql</b>. Run it in the Supabase SQL editor, then reload this page.
         </p>
       </div>

@@ -51,7 +51,7 @@ export function CountUp({ value, kind = "int", decimals = 0, className = "", sty
 
 /* ------------------------------------------------------------------ speedometer gauge */
 
-export function Gauge({ value, label, caption, colors = ["#fb7185", "#fbbf24", "#34d399"] }: { value: number; label: string; caption?: string; colors?: [string, string, string] }) {
+export function Gauge({ value, label, caption, colors = ["#f43f5e", "#f59e0b", "#10b981"] }: { value: number; label: string; caption?: string; colors?: [string, string, string] }) {
   const id = uid(useId());
   const on = useMounted();
   const pct = Math.max(0, Math.min(100, value));
@@ -74,7 +74,7 @@ export function Gauge({ value, label, caption, colors = ["#fb7185", "#fbbf24", "
             </feMerge>
           </filter>
         </defs>
-        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="14" strokeLinecap="round" />
+        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(15,23,42,0.08)" strokeWidth="14" strokeLinecap="round" />
         <path d="M 20 100 A 80 80 0 0 1 180 100" pathLength={100} fill="none" stroke={`url(#g${id})`} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${on ? pct : 0} 100`} filter={`url(#f${id})`} style={{ transition: "stroke-dasharray 1.4s cubic-bezier(.2,.8,.2,1)" }} />
         {ticks.map((i) => {
           const a = Math.PI - (i / 10) * Math.PI;
@@ -82,20 +82,20 @@ export function Gauge({ value, label, caption, colors = ["#fb7185", "#fbbf24", "
           const y1 = 100 - Math.sin(a) * 62;
           const x2 = 100 + Math.cos(a) * (i % 5 === 0 ? 54 : 58);
           const y2 = 100 - Math.sin(a) * (i % 5 === 0 ? 54 : 58);
-          return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,0.35)" strokeWidth={i % 5 === 0 ? 1.6 : 1} />;
+          return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(15,23,42,0.35)" strokeWidth={i % 5 === 0 ? 1.6 : 1} />;
         })}
         <g style={{ transformOrigin: "100px 100px", transform: `rotate(${angle}deg)`, transition: "transform 1.4s cubic-bezier(.2,.8,.2,1)" }}>
-          <polygon points="97,100 100,34 103,100" fill="#f8fafc" />
+          <polygon points="97,100 100,34 103,100" fill="#0f172a" />
         </g>
-        <circle cx="100" cy="100" r="7" fill="#0b1220" stroke="#f8fafc" strokeWidth="2.5" />
-        <text x="22" y="118" fontSize="9" fill="rgba(255,255,255,0.4)" textAnchor="middle">0</text>
-        <text x="178" y="118" fontSize="9" fill="rgba(255,255,255,0.4)" textAnchor="middle">100</text>
+        <circle cx="100" cy="100" r="7" fill="#ffffff" stroke="#0f172a" strokeWidth="2.5" />
+        <text x="22" y="118" fontSize="9" fill="rgba(15,23,42,0.4)" textAnchor="middle">0</text>
+        <text x="178" y="118" fontSize="9" fill="rgba(15,23,42,0.4)" textAnchor="middle">100</text>
       </svg>
-      <p className="-mt-1 font-mono text-3xl font-extrabold tabular-nums text-white" style={{ textShadow: "0 0 18px rgba(129,140,248,0.6)" }}>
+      <p className="-mt-1 font-mono text-3xl font-extrabold tabular-nums text-neutral-900">
         <CountUp value={pct} kind="pct" decimals={1} />
       </p>
-      <p className="text-sm font-bold text-slate-200">{label}</p>
-      {caption && <p className="text-xs text-slate-400">{caption}</p>}
+      <p className="text-sm font-bold text-neutral-800">{label}</p>
+      {caption && <p className="text-xs text-neutral-500">{caption}</p>}
     </div>
   );
 }
@@ -120,7 +120,7 @@ export function LedMeter({ value, max = 1, segments = 32, mark }: { value: numbe
               className="flex-1 rounded-[3px]"
               style={{
                 height: `${40 + t * 60}%`,
-                background: isOn ? `hsl(${hue} 95% 62%)` : "rgba(255,255,255,0.07)",
+                background: isOn ? `hsl(${hue} 95% 62%)` : "rgba(255,255,255,0.2)",
                 boxShadow: isOn ? `0 0 10px hsl(${hue} 95% 60% / .65)` : "none",
                 transition: `background .35s ease ${i * 28}ms, box-shadow .35s ease ${i * 28}ms`,
               }}
@@ -155,7 +155,7 @@ export function Ring({ pct, color, children }: { pct: number; color: string; chi
             </feMerge>
           </filter>
         </defs>
-        <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4.5" />
+        <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(15,23,42,0.08)" strokeWidth="4.5" />
         <circle cx="22" cy="22" r="18" pathLength={100} fill="none" stroke={color} strokeWidth="4.5" strokeLinecap="round" strokeDasharray={`${on ? p : 0} 100`} filter={`url(#r${id})`} style={{ transition: "stroke-dasharray 1.3s cubic-bezier(.2,.8,.2,1)" }} />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center text-lg">{children}</div>
@@ -178,14 +178,14 @@ export function Donut({ slices, centerLabel, format = "int" }: { slices: Slice[]
   const total = slices.reduce((n, s) => n + s.value, 0);
   const fmt = (v: number) => (format === "money" ? money(v) : v.toLocaleString("en-US"));
   const centerFmt = (v: number) => (format === "money" ? compact(v) : fmt(v));
-  if (total === 0) return <p className="py-10 text-center text-sm text-slate-400">Nothing to show for this period yet.</p>;
+  if (total === 0) return <p className="py-10 text-center text-sm text-neutral-500">Nothing to show for this period yet.</p>;
   const arcs = slices.map((s, i) => ({ ...s, i, len: (s.value / total) * 100, offset: slices.slice(0, i).reduce((n, x) => n + (x.value / total) * 100, 0) }));
   const active = hot !== null ? slices[hot] : null;
   return (
     <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
       <div className="relative h-44 w-44 shrink-0">
         <svg viewBox="0 0 42 42" className="h-full w-full -rotate-90">
-          <circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+          <circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(15,23,42,0.06)" strokeWidth="5" />
           {arcs.map((a) => (
             <circle
               key={a.label}
@@ -206,20 +206,20 @@ export function Donut({ slices, centerLabel, format = "int" }: { slices: Slice[]
           ))}
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-          <p className="font-mono text-2xl font-extrabold tabular-nums text-white" style={{ textShadow: "0 0 16px rgba(129,140,248,.55)" }}>
+          <p className="font-mono text-2xl font-extrabold tabular-nums text-neutral-900">
             {centerFmt(active ? active.value : total)}
           </p>
-          <p className="max-w-[6.5rem] truncate text-[11px] font-semibold text-slate-400">{active ? `${active.label} · ${Math.round((active.value / total) * 100)}%` : centerLabel}</p>
+          <p className="max-w-[6.5rem] truncate text-[11px] font-semibold text-neutral-500">{active ? `${active.label} · ${Math.round((active.value / total) * 100)}%` : centerLabel}</p>
         </div>
       </div>
       <ul className="grid w-full gap-1.5 text-sm">
         {slices.map((s, i) => (
-          <li key={s.label} className="flex items-center justify-between gap-3 rounded-lg px-2 py-1 transition hover:bg-white/5" onMouseEnter={() => setHot(i)} onMouseLeave={() => setHot(null)}>
-            <span className="flex min-w-0 items-center gap-2 text-slate-300">
+          <li key={s.label} className="flex items-center justify-between gap-3 rounded-lg px-2 py-1 transition hover:bg-neutral-100" onMouseEnter={() => setHot(i)} onMouseLeave={() => setHot(null)}>
+            <span className="flex min-w-0 items-center gap-2 text-neutral-700">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: s.color, boxShadow: `0 0 8px ${s.color}` }} />
               <span className="truncate">{s.label}</span>
             </span>
-            <span className="shrink-0 font-bold text-white">{Math.round((s.value / total) * 100)}%</span>
+            <span className="shrink-0 font-bold text-neutral-900">{Math.round((s.value / total) * 100)}%</span>
           </li>
         ))}
       </ul>
@@ -232,7 +232,7 @@ export function Donut({ slices, centerLabel, format = "int" }: { slices: Slice[]
 export function RadialBars({ items, format }: { items: { label: string; value: number }[]; format: "money" | "int" }) {
   const money = useMoney();
   const on = useMounted();
-  if (items.length === 0) return <p className="py-10 text-center text-sm text-slate-400">No sales in this period yet.</p>;
+  if (items.length === 0) return <p className="py-10 text-center text-sm text-neutral-500">No sales in this period yet.</p>;
   const max = Math.max(...items.map((i) => i.value), 1);
   const fmt = (v: number) => (format === "money" ? money(v) : String(v));
   return (
@@ -243,7 +243,7 @@ export function RadialBars({ items, format }: { items: { label: string; value: n
           const pct = (it.value / max) * 75;
           return (
             <g key={it.label}>
-              <circle cx="21" cy="21" r={radius} pathLength={100} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="2.4" strokeDasharray="75 100" strokeLinecap="round" />
+              <circle cx="21" cy="21" r={radius} pathLength={100} fill="none" stroke="rgba(15,23,42,0.07)" strokeWidth="2.4" strokeDasharray="75 100" strokeLinecap="round" />
               <circle cx="21" cy="21" r={radius} pathLength={100} fill="none" stroke={PALETTE[i % PALETTE.length]} strokeWidth="2.4" strokeLinecap="round" strokeDasharray={`${on ? pct : 0} 100`} style={{ transition: `stroke-dasharray 1.2s cubic-bezier(.2,.8,.2,1) ${i * 120}ms`, filter: `drop-shadow(0 0 1.2px ${PALETTE[i % PALETTE.length]})` }} />
             </g>
           );
@@ -252,11 +252,11 @@ export function RadialBars({ items, format }: { items: { label: string; value: n
       <ul className="grid w-full gap-1.5 text-sm">
         {items.map((it, i) => (
           <li key={it.label} className="flex items-center justify-between gap-3">
-            <span className="flex min-w-0 items-center gap-2 text-slate-300">
+            <span className="flex min-w-0 items-center gap-2 text-neutral-700">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: PALETTE[i % PALETTE.length], boxShadow: `0 0 8px ${PALETTE[i % PALETTE.length]}` }} />
               <span className="truncate">{it.label}</span>
             </span>
-            <span className="shrink-0 font-bold text-white">{fmt(it.value)}</span>
+            <span className="shrink-0 font-bold text-neutral-900">{fmt(it.value)}</span>
           </li>
         ))}
       </ul>
@@ -269,7 +269,7 @@ export function RadialBars({ items, format }: { items: { label: string; value: n
 export function Columns({ items, format }: { items: { label: string; value: number }[]; format: "money" | "int" }) {
   const money = useMoney();
   const on = useMounted();
-  if (items.length === 0) return <p className="py-10 text-center text-sm text-slate-400">No sales in this period yet.</p>;
+  if (items.length === 0) return <p className="py-10 text-center text-sm text-neutral-500">No sales in this period yet.</p>;
   const max = Math.max(...items.map((i) => i.value), 1);
   const fmt = (v: number) => (format === "money" ? money(v) : String(v));
   return (
@@ -279,7 +279,7 @@ export function Columns({ items, format }: { items: { label: string; value: numb
         const c2 = PALETTE[(i * 2 + 2) % PALETTE.length];
         return (
           <div key={it.label} className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end" title={`${it.label}: ${fmt(it.value)}`}>
-            <span className="mb-1 truncate text-[11px] font-bold text-white opacity-80 transition group-hover:opacity-100">{fmt(it.value)}</span>
+            <span className="mb-1 truncate text-[11px] font-bold text-neutral-900 opacity-80 transition group-hover:opacity-100">{fmt(it.value)}</span>
             <div className="relative w-full flex-1">
               <div
                 className="absolute inset-x-0 bottom-0 rounded-t-xl"
@@ -291,7 +291,7 @@ export function Columns({ items, format }: { items: { label: string; value: numb
                 }}
               />
             </div>
-            <span className="mt-2 line-clamp-2 h-8 w-full text-center text-[10px] font-medium leading-tight text-slate-400">{it.label}</span>
+            <span className="mt-2 line-clamp-2 h-8 w-full text-center text-[10px] font-medium leading-tight text-neutral-500">{it.label}</span>
           </div>
         );
       })}
@@ -304,16 +304,16 @@ export function Columns({ items, format }: { items: { label: string; value: numb
 export function StackedBars({ items }: { items: { label: string; total: number; part: number; note: string }[] }) {
   const money = useMoney();
   const on = useMounted();
-  if (items.length === 0) return <p className="py-10 text-center text-sm text-slate-400">No sales in this period yet.</p>;
+  if (items.length === 0) return <p className="py-10 text-center text-sm text-neutral-500">No sales in this period yet.</p>;
   const max = Math.max(...items.map((i) => i.total), 1);
   return (
     <div>
-      <div className="mb-3 flex flex-wrap gap-4 text-[11px] font-semibold text-slate-400">
+      <div className="mb-3 flex flex-wrap gap-4 text-[11px] font-semibold text-neutral-500">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#38bdf8,#818cf8)" }} /> Paid to the supplier
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#0ea5e9,#6366f1)" }} /> Paid to the supplier
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#fb923c,#fb7185)" }} /> FasTrack commission
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#f97316,#f43f5e)" }} /> FasTrack commission
         </span>
       </div>
       <ul className="flex flex-col gap-3.5">
@@ -323,15 +323,15 @@ export function StackedBars({ items }: { items: { label: string; total: number; 
           return (
             <li key={it.label}>
               <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
-                <span className="min-w-0 truncate font-bold text-slate-100">{it.label}</span>
-                <span className="shrink-0 font-mono text-xs font-bold tabular-nums text-white">
-                  {money(it.total)} <span className="font-sans font-normal text-slate-500">· {it.note}</span>
+                <span className="min-w-0 truncate font-bold text-neutral-900">{it.label}</span>
+                <span className="shrink-0 font-mono text-xs font-bold tabular-nums text-neutral-900">
+                  {money(it.total)} <span className="font-sans font-normal text-neutral-400">· {it.note}</span>
                 </span>
               </div>
-              <div className="h-3.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+              <div className="h-3.5 w-full overflow-hidden rounded-full bg-neutral-200/70">
                 <div className="flex h-full overflow-hidden rounded-full" style={{ width: on ? `${Math.max(3, w)}%` : "0%", transition: `width 1.2s cubic-bezier(.2,.8,.2,1) ${i * 100}ms`, boxShadow: "0 0 14px rgba(129,140,248,.4)" }}>
-                  <span style={{ width: `${100 - cw}%`, background: "linear-gradient(90deg,#38bdf8,#818cf8)" }} />
-                  <span style={{ width: `${cw}%`, background: "linear-gradient(90deg,#fb923c,#fb7185)" }} />
+                  <span style={{ width: `${100 - cw}%`, background: "linear-gradient(90deg,#0ea5e9,#6366f1)" }} />
+                  <span style={{ width: `${cw}%`, background: "linear-gradient(90deg,#f97316,#f43f5e)" }} />
                 </div>
               </div>
             </li>
@@ -398,31 +398,31 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
 
   return (
     <div ref={ref} className="relative" onMouseMove={move} onMouseLeave={() => setHover(null)}>
-      <div className="mb-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] font-semibold text-slate-400">
+      <div className="mb-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] font-semibold text-neutral-500">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-1 w-5 rounded-full" style={{ background: "linear-gradient(90deg,#38bdf8,#818cf8,#e879f9)" }} /> Sales
+          <span className="h-1 w-5 rounded-full" style={{ background: "linear-gradient(90deg,#0ea5e9,#6366f1,#d946ef)" }} /> Sales
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-5 border-t-2 border-dashed border-slate-500" /> Previous period
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(#34d399,#22d3ee)" }} /> Orders
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(#10b981,#06b6d4)" }} /> Orders
         </span>
       </div>
       <svg viewBox={`0 0 ${W} ${H1 + H2 + 8}`} className="h-auto w-full" role="img" aria-label="Sales and orders per day with the previous period for comparison">
         <defs>
           <linearGradient id={`a${id}`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#818cf8" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#818cf8" stopOpacity="0" />
+            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
           </linearGradient>
           <linearGradient id={`l${id}`} x1={padL} x2={W - padR} y1="0" y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#38bdf8" />
-            <stop offset="55%" stopColor="#818cf8" />
-            <stop offset="100%" stopColor="#e879f9" />
+            <stop offset="0%" stopColor="#0ea5e9" />
+            <stop offset="55%" stopColor="#6366f1" />
+            <stop offset="100%" stopColor="#d946ef" />
           </linearGradient>
           <linearGradient id={`b${id}`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#34d399" />
-            <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.55" />
+            <stop offset="0%" stopColor="#10b981" />
+            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.55" />
           </linearGradient>
           <filter id={`s${id}`} x="-5%" y="-30%" width="110%" height="160%">
             <feGaussianBlur stdDeviation="4" result="b" />
@@ -437,8 +437,8 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
         </defs>
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
           <g key={f}>
-            <line x1={padL} x2={W - padR} y1={y1(f * maxRev)} y2={y1(f * maxRev)} stroke="rgba(255,255,255,0.07)" />
-            <text x={padL - 8} y={y1(f * maxRev) + 4} textAnchor="end" fontSize="11" fill="rgba(148,163,184,0.9)">
+            <line x1={padL} x2={W - padR} y1={y1(f * maxRev)} y2={y1(f * maxRev)} stroke="rgba(15,23,42,0.07)" />
+            <text x={padL - 8} y={y1(f * maxRev) + 4} textAnchor="end" fontSize="11" fill="#64748b">
               {compact(f * maxRev)}
             </text>
           </g>
@@ -456,114 +456,35 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
         })}
         {series.map((d, i) =>
           i % every === 0 || i === n - 1 ? (
-            <text key={d.date} x={x(i)} y={H1 - 2} textAnchor={i === 0 ? "start" : i === n - 1 ? "end" : "middle"} fontSize="11" fill="rgba(148,163,184,0.9)">
+            <text key={d.date} x={x(i)} y={H1 - 2} textAnchor={i === 0 ? "start" : i === n - 1 ? "end" : "middle"} fontSize="11" fill="#64748b">
               {dayLabel(d.date)}
             </text>
           ) : null
         )}
         {hover !== null && h && (
           <g>
-            <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H1 + H2 + 8} stroke="rgba(255,255,255,0.25)" />
-            <circle cx={x(hover)} cy={y1(h.revenue)} r="6" fill="#0b1220" stroke="#e879f9" strokeWidth="3" />
+            <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H1 + H2 + 8} stroke="rgba(15,23,42,0.25)" />
+            <circle cx={x(hover)} cy={y1(h.revenue)} r="6" fill="#ffffff" stroke="#d946ef" strokeWidth="3" />
           </g>
         )}
       </svg>
       {h && hover !== null && (
-        <div className="pointer-events-none absolute top-8 z-10 w-48 -translate-x-1/2 rounded-xl border border-white/15 bg-slate-900/95 p-3 text-xs shadow-2xl backdrop-blur" style={{ left: `${Math.min(84, Math.max(16, (x(hover) / W) * 100))}%` }}>
-          <p className="font-bold text-white">{dayLabel(h.date, true)}</p>
+        <div className="pointer-events-none absolute top-8 z-10 w-48 -translate-x-1/2 rounded-xl border border-neutral-200 bg-white/95 p-3 text-xs shadow-2xl backdrop-blur" style={{ left: `${Math.min(84, Math.max(16, (x(hover) / W) * 100))}%` }}>
+          <p className="font-bold text-neutral-900">{dayLabel(h.date, true)}</p>
           <p className="mt-1.5 flex justify-between gap-2">
-            <span className="text-slate-400">Sales</span>
-            <b className="text-fuchsia-300">{money(h.revenue)}</b>
+            <span className="text-neutral-500">Sales</span>
+            <b className="text-fuchsia-600">{money(h.revenue)}</b>
           </p>
           <p className="flex justify-between gap-2">
-            <span className="text-slate-400">Before</span>
-            <b className="text-slate-300">{money(previous[hover]?.revenue ?? 0)}</b>
+            <span className="text-neutral-500">Before</span>
+            <b className="text-neutral-700">{money(previous[hover]?.revenue ?? 0)}</b>
           </p>
           <p className="flex justify-between gap-2">
-            <span className="text-slate-400">Orders</span>
-            <b className="text-emerald-300">{h.orders}</b>
+            <span className="text-neutral-500">Orders</span>
+            <b className="text-emerald-600">{h.orders}</b>
           </p>
         </div>
       )}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ heatmap */
-
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const hourLabel = (h: number) => (h === 0 ? "12a" : h < 12 ? `${h}a` : h === 12 ? "12p" : `${h - 12}p`);
-/** indigo -> fuchsia -> orange, so the busiest hours glow. */
-function heat(t: number) {
-  const stops = [
-    [99, 102, 241],
-    [217, 70, 239],
-    [251, 146, 60],
-  ];
-  const s = t * (stops.length - 1);
-  const i = Math.min(stops.length - 2, Math.floor(s));
-  const f = s - i;
-  const c = stops[i].map((v, k) => Math.round(v + (stops[i + 1][k] - v) * f));
-  return `rgb(${c[0]} ${c[1]} ${c[2]})`;
-}
-
-export function HeatGrid({ cells }: { cells: [number, number, number][] }) {
-  const on = useMounted(150);
-  const grid = new Map<string, number>();
-  let max = 0;
-  for (const [d, h, n] of cells) {
-    grid.set(`${d}-${h}`, n);
-    max = Math.max(max, n);
-  }
-  if (max === 0) return <p className="py-10 text-center text-sm text-slate-400">No orders in this period yet.</p>;
-  const peak = [...grid.entries()].sort((a, b) => b[1] - a[1])[0];
-  const [pd, ph] = peak[0].split("-").map(Number);
-  return (
-    <div>
-      <div className="overflow-x-auto">
-        <div className="min-w-[34rem]">
-          <div className="grid gap-[3px]" style={{ gridTemplateColumns: "2.25rem repeat(24, minmax(0, 1fr))" }}>
-            <span />
-            {Array.from({ length: 24 }, (_, h) => (
-              <span key={h} className="text-center text-[9px] leading-none text-slate-500">
-                {h % 3 === 0 ? hourLabel(h) : ""}
-              </span>
-            ))}
-            {DAYS.map((d, i) => (
-              <div key={d} className="contents">
-                <span className="self-center text-[11px] font-semibold text-slate-400">{d}</span>
-                {Array.from({ length: 24 }, (_, h) => {
-                  const n = grid.get(`${i + 1}-${h}`) ?? 0;
-                  return (
-                    <span
-                      key={h}
-                      title={`${d} ${hourLabel(h)}: ${n} order${n === 1 ? "" : "s"}`}
-                      className="aspect-square rounded-[5px]"
-                      style={{
-                        backgroundColor: n === 0 ? "rgba(255,255,255,0.05)" : heat(n / max),
-                        boxShadow: n > 0 && n / max > 0.6 ? `0 0 10px ${heat(n / max)}` : "none",
-                        opacity: on ? 1 : 0,
-                        transform: on ? "scale(1)" : "scale(.5)",
-                        transition: `opacity .5s ease ${(i * 24 + h) * 4}ms, transform .5s ease ${(i * 24 + h) * 4}ms`,
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-        <span>
-          Busiest: <b className="text-white">{DAYS[pd - 1]} around {hourLabel(ph)}</b> ({peak[1]} order{peak[1] === 1 ? "" : "s"})
-        </span>
-        <span className="inline-flex items-center gap-2">
-          quiet
-          <span className="h-2 w-24 rounded-full" style={{ background: `linear-gradient(90deg, ${heat(0)}, ${heat(0.5)}, ${heat(1)})` }} />
-          busy
-        </span>
-      </div>
     </div>
   );
 }
