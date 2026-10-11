@@ -8,6 +8,7 @@
 // While no area exists the old per-shop boundaries are used instead.
 
 import { distanceKm } from "@/lib/delivery-geo";
+import { etaMinutes, type EtaSettings } from "@/lib/eta";
 import { parsePolygon, pointInPolygon, type LatLng } from "@/lib/geo-polygon";
 
 export interface DeliveryArea {
@@ -102,14 +103,21 @@ export interface AreaVerdict {
 }
 
 /** What one shop can offer to one customer location under the areas. */
-export function verdictInAreas(areas: DeliveryArea[], shop: AreaShop, customer: { lat: number; lng: number }): AreaVerdict {
+export function verdictInAreas(
+  areas: DeliveryArea[],
+  shop: AreaShop,
+  customer: { lat: number; lng: number },
+  /** Express is dropped when the delivery time would be longer than this (see EXPRESS_MAX_MINUTES). */
+  cap?: { maxMinutes: number; eta: EtaSettings }
+): AreaVerdict {
   const customerArea = areaAt(areas, customer.lat, customer.lng);
   const shopArea = areaAt(areas, shop.lat, shop.lng);
   const distance = shop.lat != null && shop.lng != null ? distanceKm(shop.lat, shop.lng, customer.lat, customer.lng) : null;
   if (!customerArea || shop.lat == null || shop.lng == null) {
     return { covered: false, express: false, standard: false, standardDays: 2, distanceKm: distance, expressLimitKm: null, customerArea, shopArea };
   }
-  const express = shop.expressMode !== "off" && !!shopArea && shopArea.id === customerArea.id && customerArea.expressEnabled;
+  let express = shop.expressMode !== "off" && !!shopArea && shopArea.id === customerArea.id && customerArea.expressEnabled;
+  if (express && cap && distance !== null && etaMinutes(distance, cap.eta) > cap.maxMinutes) express = false;
   const standard = customerArea.standardEnabled && (shopArea ? shopArea.standardEnabled : true);
   return {
     covered: true,

@@ -12,6 +12,7 @@ import { distanceKm, type Coords } from "@/lib/delivery-geo";
 import { DEFAULT_OFFSET_MINUTES } from "@/lib/timezone";
 import { pointInPolygon, type LatLng } from "@/lib/geo-polygon";
 import { verdictInAreas, type DeliveryArea } from "@/lib/delivery-areas";
+import type { EtaSettings } from "@/lib/eta";
 
 export interface DeliveryZone {
   lat: number | null;
@@ -30,6 +31,8 @@ export interface DeliveryZone {
   /** Per-shop exceptions used with areas. */
   expressMode?: "auto" | "off" | null;
   expressMaxKm?: number | null;
+  /** With areas: the longest delivery time (minutes) that still counts as Express, and the settings the time is worked out with. */
+  etaCap?: { maxMinutes: number; eta: EtaSettings };
 }
 
 export const DEFAULT_STANDARD_DAYS = 2;
@@ -55,7 +58,7 @@ export function methodsFor(zone: DeliveryZone | undefined, coords: Coords | null
     // A shop with no pin is not live.
     if (!haveShop) return { state: "known", express: false, standard: false, standardDays: DEFAULT_STANDARD_DAYS, distanceKm: null, expressRadiusKm: null, standardRadiusKm: null };
     if (!coords || coords.lat == null || coords.lng == null) return { state: "no_location" };
-    const v = verdictInAreas(zone.areas, { lat: zone.lat, lng: zone.lng, expressMode: zone.expressMode, expressMaxKm: zone.expressMaxKm }, { lat: coords.lat, lng: coords.lng });
+    const v = verdictInAreas(zone.areas, { lat: zone.lat, lng: zone.lng, expressMode: zone.expressMode, expressMaxKm: zone.expressMaxKm }, { lat: coords.lat, lng: coords.lng }, zone.etaCap);
     return { state: "known", express: v.express, standard: v.standard, standardDays: v.standardDays, distanceKm: v.distanceKm, expressRadiusKm: v.expressLimitKm, standardRadiusKm: null };
   }
 

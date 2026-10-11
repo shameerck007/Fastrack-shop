@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { distanceKm, type Coords, type ZoneVerdict } from "@/lib/delivery-geo";
 import { DEFAULT_STANDARD_DAYS, methodsFor, type DeliveryMethods, type DeliveryZone } from "@/lib/delivery-methods";
 import { parseAreas, verdictInAreas, type DeliveryArea } from "@/lib/delivery-areas";
+import { DEFAULT_ETA_SETTINGS, EXPRESS_MAX_MINUTES, type EtaSettings } from "@/lib/eta";
+import { getCompanySettings } from "@/lib/company-settings";
 
 // A delivery boundary is a circle around a warehouse (each merchant store
 // has its own warehouse; FasTrack's own dark store is the default one).
@@ -25,6 +27,19 @@ export interface WarehouseZone {
   expressMode: "auto" | "off";
   expressMaxKm: number | null;
 }
+
+/** The time cap for Express in zone mode, with this market's delivery time settings (preparation, rider speed, buffer). */
+export const loadEtaCap = cache(async (): Promise<{ maxMinutes: number; eta: EtaSettings }> => {
+  const company = await getCompanySettings().catch(() => null);
+  return {
+    maxMinutes: EXPRESS_MAX_MINUTES,
+    eta: {
+      prepMinutes: Number(company?.prep_minutes ?? DEFAULT_ETA_SETTINGS.prepMinutes),
+      speedKmh: Number(company?.rider_speed_kmh ?? DEFAULT_ETA_SETTINGS.speedKmh),
+      bufferMinutes: Number(company?.eta_buffer_minutes ?? DEFAULT_ETA_SETTINGS.bufferMinutes),
+    },
+  };
+});
 
 /** The common delivery areas (migration 0074); empty until the admin creates any, which keeps the old per-shop boundaries in use. */
 export const loadAreas = cache(async (): Promise<DeliveryArea[]> => {
@@ -111,10 +126,11 @@ async function loadZonesImpl(): Promise<Map<string, WarehouseZone>> {
 /** One query per request, however many addresses or products are checked. */
 export const loadZones = cache(loadZonesImpl);
 
-export function toDeliveryZone(zone: WarehouseZone | undefined, areas: DeliveryArea[] = []): DeliveryZone | undefined {
+export function toDeliveryZone(zone: WarehouseZone | undefined, areas: DeliveryArea[] = [], etaCap?: { maxMinutes: number; eta: EtaSettings }): DeliveryZone | undefined {
   if (!zone) return undefined;
   return {
     areas,
+    etaCap,
     expressMode: zone.expressMode,
     expressMaxKm: zone.expressMaxKm,
     lat: zone.lat,
@@ -182,10 +198,11 @@ async function resolveFastrackWarehouse(
   // Common delivery areas: the nearest location that can offer Express here, else the nearest that can offer Standard, else the nearest.
   const areas = await loadAreas();
   if (areas.length > 0) {
+    const etaCap = await loadEtaCap();
     const ranked = own
       .filter((w) => w.lat != null && w.lng != null)
       .map((w) => {
-        const v = verdictInAreas(areas, { lat: w.lat, lng: w.lng, expressMode: w.express_mode, expressMaxKm: w.express_max_km == null ? null : Number(w.express_max_km) }, { lat: coords.lat as number, lng: coords.lng as number });
+        const v = verdictInAreas(areas, { lat: w.lat, lng: w.lng, expressMode: w.express_mode, expressMaxKm: w.express_max_km == null ? null : Number(w.express_max_km) }, { lat: coords.lat as number, lng: coords.lng as number }, etaCap);
         return { id: w.id, distance: v.distanceKm ?? Infinity, rank: v.express ? 0 : v.standard ? 1 : 2 };
       })
       .sort((a, b) => a.rank - b.rank || a.distance - b.distance);
@@ -255,12 +272,12 @@ export async function checkProductsDeliverable(
   coords: Coords | null
 ): Promise<Map<string, Deliverability>> {
   if (products.length === 0) return new Map();
-  const [zones, warehouseByProduct, areas] = await Promise.all([loadZones(), resolveProductWarehouses(products, coords), loadAreas()]);
+  const [zones, warehouseByProduct, areas, etaCap] = await Promise.all([loadZones(), resolveProductWarehouses(products, coords), loadAreas(), loadEtaCap()]);
   return new Map(
     products.map((p) => {
       const wid = warehouseByProduct.get(p.id);
       const zone = wid ? zones.get(wid) : undefined;
-      const methods = methodsFor(toDeliveryZone(zone, areas), coords);
+      const methods = methodsFor(toDeliveryZone(zone, areas, etaCap), coords);
       let verdict: ZoneVerdict;
       if (methods.state === "no_location") verdict = { ok: false, reason: "no_location" };
       else if (methods.express || methods.standard) verdict = { ok: true };

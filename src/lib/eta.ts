@@ -15,6 +15,10 @@ export const DEFAULT_ETA_SETTINGS: EtaSettings = { prepMinutes: 10, speedKmh: 20
 
 /** Roads are longer than the straight line between two points. */
 const ROAD_FACTOR = 1.3;
+/** Common delivery zones: Express is only offered when the delivery time (preparation + travel + buffer) is within this many minutes,
+ * so a customer at the far edge of a big zone is served Standard instead of getting a long "express" promise. */
+export const EXPRESS_MAX_MINUTES = 60;
+
 /** Past this, Express is not a sensible promise to show. */
 const MAX_SHOWN_MINUTES = 120;
 
