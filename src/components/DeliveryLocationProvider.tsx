@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { methodsFor, type DeliveryZone } from "@/lib/delivery-methods";
+import type { DeliveryArea } from "@/lib/delivery-areas";
 import { DEFAULT_ETA_SETTINGS, etaRange, fastestEta, slowestEta, type EtaRange, type EtaSettings } from "@/lib/eta";
 import { distanceKm as kmBetween } from "@/lib/delivery-geo";
 import { reverseAreaName } from "@/lib/map-config";
@@ -23,8 +24,11 @@ const NEARBY_CHECKED_KEY = "fastrack:nearby-checked";
 // Far enough from the saved spot to be worth asking about (normal GPS drift is well under this).
 const NEARBY_MIN_KM = 0.5;
 // Pages where prompting a shopper for a delivery location makes no sense.
-function toZone(z: ZoneRow): DeliveryZone {
+function toZone(z: ZoneRow, areas: DeliveryArea[] = []): DeliveryZone {
   return {
+    areas,
+    expressMode: z.expressMode,
+    expressMaxKm: z.expressMaxKm,
     lat: z.lat,
     lng: z.lng,
     expressRadiusKm: z.radiusKm,
@@ -53,6 +57,8 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
   const [location, setLocationState] = useState<DeliveryLocation | null>(null);
   const [ready, setReady] = useState(false);
   const [zones, setZones] = useState<ZoneRow[] | null>(null);
+  // Common delivery areas: when any exist they decide delivery, otherwise each shop's own boundary does.
+  const [areas, setAreas] = useState<DeliveryArea[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   // Device position that differs from the saved address, offered to the shopper (Keeta/Noon style) but never applied silently.
   const [nearby, setNearby] = useState<{ lat: number; lng: number; label: string | null; mode: "differs" | "ask" } | null>(null);
@@ -112,8 +118,13 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
     let cancelled = false;
     fetch("/api/delivery-zones")
       .then((r) => (r.ok ? r.json() : []))
-      .then((rows: ZoneRow[]) => {
-        if (!cancelled) setZones(rows);
+      .then((payload: ZoneRow[] | { zones: ZoneRow[]; areas?: DeliveryArea[] }) => {
+        if (cancelled) return;
+        if (Array.isArray(payload)) setZones(payload);
+        else {
+          setZones(payload.zones ?? []);
+          setAreas(payload.areas ?? []);
+        }
       })
       .catch(() => {
         if (!cancelled) setZones([]);
@@ -333,7 +344,7 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
       let nearestOutside: { distanceKm: number; radiusKm: number } | null = null;
       let sawKnown = false;
       for (const zone of candidates) {
-        const m = methodsFor(toZone(zone), location);
+        const m = methodsFor(toZone(zone, areas), location);
         if (m.state === "no_location") continue;
         sawKnown = true;
         if (m.express) {
@@ -353,7 +364,7 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
       if (express || standard) return { state: "ok", express, standard, standardDays: days ?? 2, expressRadiusKm };
       return { state: "outside", ...(nearestOutside ?? { distanceKm: 0, radiusKm: 0 }) };
     },
-    [zones, location]
+    [zones, areas, location]
   );
 
   // Is this location reached by anyone, by Express or Standard?
@@ -362,21 +373,21 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
       if (!zones) return null;
       if (zones.length === 0) return true;
       return zones.some((z) => {
-        const m = methodsFor(toZone(z), { lat, lng });
+        const m = methodsFor(toZone(z, areas), { lat, lng });
         return m.state === "known" && (m.express || m.standard);
       });
     },
-    [zones]
+    [zones, areas]
   );
 
   const serviceable = useMemo(() => {
     if (!zones || !location) return null;
     if (zones.length === 0) return true;
     return zones.some((z) => {
-      const m = methodsFor(toZone(z), location);
+      const m = methodsFor(toZone(z, areas), location);
       return m.state === "known" && (m.express || m.standard);
     });
-  }, [zones, location]);
+  }, [zones, areas, location]);
 
   // Express time for one seller at some coordinates: the nearest of its zones that offers Express there.
   const etaAtCoords = useCallback(
@@ -384,14 +395,14 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
       if (!zones) return null;
       let best: number | null = null;
       for (const zone of zones.filter((z) => z.storeId === storeId)) {
-        const m = methodsFor(toZone(zone), { lat, lng });
+        const m = methodsFor(toZone(zone, areas), { lat, lng });
         if (m.state !== "known" || !m.express || zone.lat == null || zone.lng == null) continue;
         const d = kmBetween(zone.lat, zone.lng, lat, lng);
         if (best == null || d < best) best = d;
       }
       return best == null ? null : etaRange(best, eta);
     },
-    [zones, eta]
+    [zones, areas, eta]
   );
 
   const etaForStore = useCallback(
@@ -403,7 +414,7 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
     if (!zones || !location) return null;
     const ids = [...new Set(zones.map((z) => z.storeId))];
     return fastestEta(ids.map((id) => etaAtCoords(id, location.lat, location.lng)));
-  }, [zones, location, etaAtCoords]);
+  }, [zones, areas, location, etaAtCoords]);
 
   const etaAt = useCallback(
     (lat: number, lng: number, storeIds: (string | null)[]): EtaRange | null =>

@@ -23,6 +23,9 @@ export interface ZoneRow {
   standardDays: number;
   /** Custom Express area drawn on the map; replaces the circle for Express when set. */
   polygon?: [number, number][] | null;
+  /** Per-shop exceptions used with the common delivery areas. */
+  expressMode?: "auto" | "off";
+  expressMaxKm?: number | null;
 }
 
 export type DeliveryStatus =

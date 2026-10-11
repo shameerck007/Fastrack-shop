@@ -4,6 +4,9 @@ import ZonesCoverageButton from "@/components/admin/ZonesCoverageButton";
 import type { OverviewZone } from "@/components/admin/ZonesOverviewMap";
 import { parsePolygon, pointInPolygon } from "@/lib/geo-polygon";
 import { distanceKm } from "@/lib/delivery-geo";
+import AreasManager, { type AreaCard } from "@/components/admin/AreasManager";
+import AreaShops, { type AreaShopRow } from "@/components/admin/AreaShops";
+import { areaAt, parseAreas } from "@/lib/delivery-areas";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -89,6 +92,19 @@ export default async function AdminZonesPage() {
     warehouseRows = legacy as typeof warehouses;
   }
   const rows = (warehouseRows ?? []) as WarehouseRow[];
+
+  // Common delivery areas (migration 0074): none until the admin adds one, which keeps the per-shop boundaries below in charge.
+  const loose = supabase as unknown as {
+    from: (t: string) => { select: (c: string) => { eq?: (c: string, v: boolean) => Promise<{ data: unknown; error: unknown }> } & Promise<{ data: unknown; error: unknown }> };
+  };
+  const [areasResult, overridesResult] = await Promise.all([
+    loose.from("delivery_areas").select("*"),
+    loose.from("warehouses").select("id, express_mode, express_max_km"),
+  ]);
+  const areas = areasResult.error ? [] : parseAreas(areasResult.data).filter((a) => (areasResult.data as { id: string; is_active?: boolean }[]).find((r) => r.id === a.id)?.is_active !== false);
+  const overrides = new Map(
+    ((overridesResult.error ? [] : overridesResult.data) as { id: string; express_mode?: "auto" | "off"; express_max_km?: number | string | null }[]).map((o) => [o.id, o])
+  );
   const storeByWarehouse = new Map((stores ?? []).map((s) => [s.warehouse_id, s]));
 
   const productsByStore = new Map<string | null, number>();
@@ -98,6 +114,39 @@ export default async function AdminZonesPage() {
     if (o.warehouse_id) ordersByWarehouse.set(o.warehouse_id, (ordersByWarehouse.get(o.warehouse_id) ?? 0) + 1);
   }
   const pins = ((addresses ?? []) as { lat: number; lng: number }[]).filter((a) => a.lat != null && a.lng != null);
+
+  const areaCards: AreaCard[] = areas.map((a, i) => ({
+    ...a,
+    nameAr: a.nameAr ?? null,
+    color: COLORS[i % COLORS.length],
+    shops: rows.filter((w) => areaAt(areas, w.lat, w.lng)?.id === a.id).length,
+    customers: pins.filter((p) => areaAt(areas, p.lat, p.lng)?.id === a.id).length,
+  }));
+  const areaColor = new Map(areaCards.map((a) => [a.id, a.color]));
+  const storeOfWarehouse = new Map((stores ?? []).map((st) => [st.warehouse_id, st]));
+  const shopRows: AreaShopRow[] = rows.map((w) => {
+    const area = areaAt(areas, w.lat, w.lng);
+    const o = overrides.get(w.id);
+    const mode: "auto" | "off" = o?.express_mode === "off" ? "off" : "auto";
+    const own = o?.express_max_km == null ? null : Number(o.express_max_km);
+    const reach = area ? Math.min(area.expressMaxKm, own ?? Infinity) : null;
+    const st = storeOfWarehouse.get(w.id);
+    return {
+      id: w.id,
+      name: st?.name ?? w.name,
+      kind: st ? "supplier" : "fastrack",
+      address: st?.address_line ?? w.address_line ?? null,
+      lat: w.lat,
+      lng: w.lng,
+      areaName: area?.name ?? null,
+      areaColor: area ? (areaColor.get(area.id) ?? null) : null,
+      expressMode: mode,
+      expressMaxKm: own,
+      expressReachKm: reach,
+      expressOn: mode !== "off" && !!area && area.expressEnabled,
+      standardOn: area ? area.standardEnabled : true,
+    };
+  });
 
   const cards = rows.map((w, index) => {
     const store = storeByWarehouse.get(w.id);
@@ -189,12 +238,20 @@ export default async function AdminZonesPage() {
             <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">{t("admin.zones_subtitle")}</p>
           </div>
         </div>
-        <ZonesCoverageButton
-          zones={overviewZones}
-          customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}
-        />
+        {areas.length === 0 && (
+          <ZonesCoverageButton
+            zones={overviewZones}
+            customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}
+          />
+        )}
       </div>
 
+      <AreasManager areas={areaCards} />
+
+      {areas.length > 0 ? (
+        <AreaShops rows={shopRows} />
+      ) : (
+      <>
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat icon="🏪" label={t("admin.stores_warehouses")} value={cards.length} accent="#2563eb" />
         <Stat
@@ -231,6 +288,8 @@ export default async function AdminZonesPage() {
       </div>
 
       <ZonesList cards={listCards} />
+      </>
+      )}
     </div>
   );
 }

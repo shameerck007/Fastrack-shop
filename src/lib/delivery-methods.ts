@@ -11,6 +11,7 @@
 import { distanceKm, type Coords } from "@/lib/delivery-geo";
 import { DEFAULT_OFFSET_MINUTES } from "@/lib/timezone";
 import { pointInPolygon, type LatLng } from "@/lib/geo-polygon";
+import { verdictInAreas, type DeliveryArea } from "@/lib/delivery-areas";
 
 export interface DeliveryZone {
   lat: number | null;
@@ -24,6 +25,11 @@ export interface DeliveryZone {
   standardRadiusKm: number | null;
   /** Estimated days for Standard delivery. */
   standardDays: number;
+  /** Common delivery areas (migration 0074). When there are any they decide everything and the shop's own boundary is ignored. */
+  areas?: DeliveryArea[];
+  /** Per-shop exceptions used with areas. */
+  expressMode?: "auto" | "off" | null;
+  expressMaxKm?: number | null;
 }
 
 export const DEFAULT_STANDARD_DAYS = 2;
@@ -43,6 +49,16 @@ export type DeliveryMethods =
 
 /** Which delivery methods this zone offers at these coordinates. */
 export function methodsFor(zone: DeliveryZone | undefined, coords: Coords | null): DeliveryMethods {
+  // Common delivery areas decide when the admin has set any up: a shop only needs its GPS pin.
+  if (zone && zone.areas && zone.areas.length > 0) {
+    const haveShop = zone.lat != null && zone.lng != null;
+    // A shop with no pin is not live.
+    if (!haveShop) return { state: "known", express: false, standard: false, standardDays: DEFAULT_STANDARD_DAYS, distanceKm: null, expressRadiusKm: null, standardRadiusKm: null };
+    if (!coords || coords.lat == null || coords.lng == null) return { state: "no_location" };
+    const v = verdictInAreas(zone.areas, { lat: zone.lat, lng: zone.lng, expressMode: zone.expressMode, expressMaxKm: zone.expressMaxKm }, { lat: coords.lat, lng: coords.lng });
+    return { state: "known", express: v.express, standard: v.standard, standardDays: v.standardDays, distanceKm: v.distanceKm, expressRadiusKm: v.expressLimitKm, standardRadiusKm: null };
+  }
+
   // No boundary information at all: unrestricted, both methods.
   if (!zone) {
     return { state: "known", express: true, standard: true, standardDays: DEFAULT_STANDARD_DAYS, distanceKm: null, expressRadiusKm: null, standardRadiusKm: null };

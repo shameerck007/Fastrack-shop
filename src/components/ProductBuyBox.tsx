@@ -44,9 +44,11 @@ export default function ProductBuyBox({
         <p className="font-medium text-neutral-900">
           {t("product.not_available_in", { area: location?.label ?? "—" })}
         </p>
-        <p className="mt-1 text-neutral-600">
-          {t("product.delivers_within", { radius: status.radiusKm, distance: status.distanceKm.toFixed(1) })}
-        </p>
+        {status.radiusKm > 0 && (
+          <p className="mt-1 text-neutral-600">
+            {t("product.delivers_within", { radius: status.radiusKm, distance: status.distanceKm.toFixed(1) })}
+          </p>
+        )}
         <button
           onClick={openPicker}
           className="mt-3 w-full rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"

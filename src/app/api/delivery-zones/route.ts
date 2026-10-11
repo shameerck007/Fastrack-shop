@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { parsePolygon } from "@/lib/geo-polygon";
+import { parseAreas } from "@/lib/delivery-areas";
 
 // Public: one row per approved store (its warehouse's centre + radius) plus a
 // storeId-null row for FasTrack's own products. The browser uses this to tell
 // shoppers what can be delivered to their location.
 export async function GET() {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("public_delivery_zones");
+  const [{ data, error }, areasResult] = await Promise.all([supabase.rpc("public_delivery_zones"), supabase.rpc("public_delivery_areas" as never)]);
   if (error) return NextResponse.json({ error: "Could not load delivery zones" }, { status: 500 });
 
   const rows = ((data ?? []) as {
@@ -19,6 +20,8 @@ export async function GET() {
     standard_radius_km?: number | null;
     standard_days?: number;
     polygon?: unknown;
+    express_mode?: "auto" | "off";
+    express_max_km?: number | string | null;
   }[]).map(
     (r) => ({
       storeId: r.store_id,
@@ -30,8 +33,12 @@ export async function GET() {
       standardRadiusKm: r.standard_radius_km == null ? null : Number(r.standard_radius_km),
       standardDays: r.standard_days ?? 2,
       polygon: parsePolygon(r.polygon),
+      expressMode: r.express_mode === "off" ? ("off" as const) : ("auto" as const),
+      expressMaxKm: r.express_max_km == null ? null : Number(r.express_max_km),
     })
   );
+  // Common delivery areas (migration 0074); empty until the admin creates any.
+  const areas = areasResult.error ? [] : parseAreas(areasResult.data);
 
-  return NextResponse.json(rows, { headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } });
+  return NextResponse.json({ zones: rows, areas }, { headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } });
 }

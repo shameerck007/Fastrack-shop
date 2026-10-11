@@ -3,6 +3,7 @@ import { parsePolygon, pointInPolygon, type LatLng } from "@/lib/geo-polygon";
 import { createClient } from "@/lib/supabase/server";
 import { distanceKm, type Coords, type ZoneVerdict } from "@/lib/delivery-geo";
 import { DEFAULT_STANDARD_DAYS, methodsFor, type DeliveryMethods, type DeliveryZone } from "@/lib/delivery-methods";
+import { parseAreas, verdictInAreas, type DeliveryArea } from "@/lib/delivery-areas";
 
 // A delivery boundary is a circle around a warehouse (each merchant store
 // has its own warehouse; FasTrack's own dark store is the default one).
@@ -20,7 +21,22 @@ export interface WarehouseZone {
   standardDays: number;
   /** A custom Express area drawn on the map (replaces the circle for Express). */
   polygon: LatLng[] | null;
+  /** Per-shop exceptions to the common area rules (migration 0074). */
+  expressMode: "auto" | "off";
+  expressMaxKm: number | null;
 }
+
+/** The common delivery areas (migration 0074); empty until the admin creates any, which keeps the old per-shop boundaries in use. */
+export const loadAreas = cache(async (): Promise<DeliveryArea[]> => {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("public_delivery_areas" as never);
+    if (error) return [];
+    return parseAreas(data);
+  } catch {
+    return [];
+  }
+});
 
 export function verdictMessage(verdict: ZoneVerdict, itemName?: string): string | null {
   if (verdict.ok) return null;
@@ -43,11 +59,20 @@ async function loadZonesImpl(): Promise<Map<string, WarehouseZone>> {
     standard_radius_km?: number | null;
     standard_delivery_days?: number;
     delivery_polygon?: unknown;
+    express_mode?: "auto" | "off";
+    express_max_km?: number | string | null;
   };
-  let { data, error } = await supabase
+  // Exceptions for the common areas arrive with migration 0074; read without them until then.
+  let { data, error } = (await supabase
     .from("warehouses")
-    .select("id, name, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days, delivery_polygon, is_active")
-    .eq("is_active", true);
+    .select("id, name, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days, delivery_polygon, express_mode, express_max_km, is_active")
+    .eq("is_active", true)) as unknown as { data: Row[] | null; error: { code?: string } | null };
+  if (error?.code === "42703") {
+    ({ data, error } = (await supabase
+      .from("warehouses")
+      .select("id, name, lat, lng, delivery_radius_km, standard_delivery_enabled, standard_radius_km, standard_delivery_days, delivery_polygon, is_active")
+      .eq("is_active", true)) as unknown as { data: Row[] | null; error: { code?: string } | null });
+  }
   // The custom-area column arrives with migration 0059; until then read the shape without it.
   if (error?.code === "42703") {
     ({ data, error } = (await supabase
@@ -76,6 +101,8 @@ async function loadZonesImpl(): Promise<Map<string, WarehouseZone>> {
         standardRadiusKm: w.standard_radius_km == null ? null : Number(w.standard_radius_km),
         standardDays: w.standard_delivery_days ?? DEFAULT_STANDARD_DAYS,
         polygon: parsePolygon(w.delivery_polygon),
+        expressMode: w.express_mode === "off" ? "off" : "auto",
+        expressMaxKm: w.express_max_km == null ? null : Number(w.express_max_km),
       },
     ])
   );
@@ -84,9 +111,12 @@ async function loadZonesImpl(): Promise<Map<string, WarehouseZone>> {
 /** One query per request, however many addresses or products are checked. */
 export const loadZones = cache(loadZonesImpl);
 
-export function toDeliveryZone(zone: WarehouseZone | undefined): DeliveryZone | undefined {
+export function toDeliveryZone(zone: WarehouseZone | undefined, areas: DeliveryArea[] = []): DeliveryZone | undefined {
   if (!zone) return undefined;
   return {
+    areas,
+    expressMode: zone.expressMode,
+    expressMaxKm: zone.expressMaxKm,
     lat: zone.lat,
     lng: zone.lng,
     expressRadiusKm: zone.radiusKm,
@@ -110,15 +140,17 @@ export function toDeliveryZone(zone: WarehouseZone | undefined): DeliveryZone | 
 /** The stores' warehouse ids and every active warehouse: the same for every address, so asked once per request. */
 const loadFastrackCandidates = cache(async () => {
   const supabase = await createClient();
-  type W = { id: string; lat: number | null; lng: number | null; delivery_radius_km: number | null; delivery_polygon?: unknown };
+  type W = { id: string; lat: number | null; lng: number | null; delivery_radius_km: number | null; delivery_polygon?: unknown; express_mode?: "auto" | "off"; express_max_km?: number | string | null };
   const [{ data: stores }, withShape] = await Promise.all([
     supabase.from("stores").select("warehouse_id"),
-    supabase.from("warehouses").select("id, lat, lng, delivery_radius_km, delivery_polygon").eq("is_active", true),
+    supabase.from("warehouses").select("id, lat, lng, delivery_radius_km, delivery_polygon, express_mode, express_max_km").eq("is_active", true),
   ]);
-  let warehouses = withShape.data as W[] | null;
-  // The custom-area column arrives with migration 0059.
+  let warehouses = withShape.data as unknown as W[] | null;
+  // The custom-area column arrives with migration 0059, the exception columns with 0074.
   if (withShape.error?.code === "42703") {
-    warehouses = (await supabase.from("warehouses").select("id, lat, lng, delivery_radius_km").eq("is_active", true)).data as W[] | null;
+    let retry = await supabase.from("warehouses").select("id, lat, lng, delivery_radius_km, delivery_polygon").eq("is_active", true);
+    if (retry.error?.code === "42703") retry = (await supabase.from("warehouses").select("id, lat, lng, delivery_radius_km").eq("is_active", true)) as unknown as typeof retry;
+    warehouses = retry.data as unknown as W[] | null;
   }
   return { stores: stores ?? [], warehouses: warehouses ?? [] };
 });
@@ -146,6 +178,20 @@ async function resolveFastrackWarehouse(
   };
 
   if (!coords || coords.lat == null || coords.lng == null) return legacyDefault();
+
+  // Common delivery areas: the nearest location that can offer Express here, else the nearest that can offer Standard, else the nearest.
+  const areas = await loadAreas();
+  if (areas.length > 0) {
+    const ranked = own
+      .filter((w) => w.lat != null && w.lng != null)
+      .map((w) => {
+        const v = verdictInAreas(areas, { lat: w.lat, lng: w.lng, expressMode: w.express_mode, expressMaxKm: w.express_max_km == null ? null : Number(w.express_max_km) }, { lat: coords.lat as number, lng: coords.lng as number });
+        return { id: w.id, distance: v.distanceKm ?? Infinity, rank: v.express ? 0 : v.standard ? 1 : 2 };
+      })
+      .sort((a, b) => a.rank - b.rank || a.distance - b.distance);
+    if (ranked[0]) return ranked[0].id;
+    return legacyDefault();
+  }
 
   const withDistance = own
     .filter((w) => w.lat != null && w.lng != null)
@@ -209,16 +255,22 @@ export async function checkProductsDeliverable(
   coords: Coords | null
 ): Promise<Map<string, Deliverability>> {
   if (products.length === 0) return new Map();
-  const [zones, warehouseByProduct] = await Promise.all([loadZones(), resolveProductWarehouses(products, coords)]);
+  const [zones, warehouseByProduct, areas] = await Promise.all([loadZones(), resolveProductWarehouses(products, coords), loadAreas()]);
   return new Map(
     products.map((p) => {
       const wid = warehouseByProduct.get(p.id);
       const zone = wid ? zones.get(wid) : undefined;
-      const methods = methodsFor(toDeliveryZone(zone), coords);
+      const methods = methodsFor(toDeliveryZone(zone, areas), coords);
       let verdict: ZoneVerdict;
       if (methods.state === "no_location") verdict = { ok: false, reason: "no_location" };
       else if (methods.express || methods.standard) verdict = { ok: true };
-      else {
+      else if (areas.length > 0) {
+        // Common areas: say what is actually wrong instead of a distance and radius.
+        const subject = p.name ? `${p.name} isn't` : "This isn't";
+        const noPin = !zone || zone.lat == null || zone.lng == null;
+        verdict = { ok: false, reason: "outside", distanceKm: methods.distanceKm ?? 0, radiusKm: 0 };
+        return [p.id, { verdict, message: noPin ? `${subject} available yet.` : `${subject} deliverable to your location. We don't deliver there yet.`, methods }];
+      } else {
         verdict = {
           ok: false,
           reason: "outside",

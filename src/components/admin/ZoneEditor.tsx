@@ -27,8 +27,13 @@ export default function ZoneEditor({
   initialLng,
   initialRadiusKm,
   initialPolygon = null,
+  onSave,
+  saveLabel,
 }: {
   warehouseId: string;
+  /** Saves somewhere else (a common delivery area) instead of a warehouse's own boundary. */
+  onSave?: (zone: { lat: number; lng: number; radiusKm: number; polygon: LatLng[] | null }) => Promise<void>;
+  saveLabel?: string;
   storeAddress: string | null;
   initialLat: number | null;
   initialLng: number | null;
@@ -259,7 +264,8 @@ export default function ZoneEditor({
       try {
         const polygon = mode === "area" ? points : null;
         const pin = polygon ? polygonCenter(polygon) : (center as [number, number]);
-        await updateWarehouseZone(warehouseId, { lat: pin[0], lng: pin[1], radiusKm: radius, polygon });
+        if (onSave) await onSave({ lat: pin[0], lng: pin[1], radiusKm: radius, polygon });
+        else await updateWarehouseZone(warehouseId, { lat: pin[0], lng: pin[1], radiusKm: radius, polygon });
         setMessage({ ok: true, text: t("zone_editor.boundary_saved") });
         router.refresh();
       } catch (err) {
@@ -442,9 +448,9 @@ export default function ZoneEditor({
           disabled={pending}
           className="rounded-full bg-blue-700 px-5 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
         >
-          {pending ? t("common.saving") : t("zone_editor.save_boundary")}
+          {pending ? t("common.saving") : (saveLabel ?? t("zone_editor.save_boundary"))}
         </button>
-        {initialRadiusKm != null && (
+        {!onSave && initialRadiusKm != null && (
           <button
             onClick={clear}
             disabled={pending}
