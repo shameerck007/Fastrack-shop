@@ -122,3 +122,16 @@ export async function deleteOffer(id: string): Promise<{ error?: string }> {
   revalidatePath("/admin/offers");
   return {};
 }
+
+/** The maximum order quantity a new product starts with in this market (each product can then be changed). */
+export async function saveDefaultMaxOrderQty(qty: number): Promise<{ error?: string }> {
+  if (!(Number.isInteger(qty) && qty >= 1 && qty <= 10000)) return { error: "Enter a whole number of 1 or more." };
+  const tenant = await getCurrentTenant();
+  if (!tenant) return { error: "No market selected." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("company_settings").update({ default_max_order_qty: qty } as never).eq("tenant_id", tenant.id);
+  if (error) return { error: missing(error.code) ? "Run database migration 0087 first." : error.message };
+  revalidatePath("/admin/settings");
+  revalidatePath("/", "layout");
+  return {};
+}

@@ -116,7 +116,7 @@ export default async function RootLayout({
           <NavProgress />
         </Suspense>
         <LocaleProvider locale={locale}>
-        <MoneyProvider currency={currency} countryCode={marketCountry} pricing={pricingFromSettings(marketCountry, company)}>
+        <MoneyProvider currency={currency} countryCode={marketCountry} pricing={pricingFromSettings(marketCountry, company)} defaultMaxQty={Number(company?.default_max_order_qty ?? 2)}>
         <DefaultCountryProvider countryCode={countryCode}>
         <CustomerStateProvider>
         <StoreDirectoryProvider>

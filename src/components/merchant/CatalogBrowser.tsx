@@ -143,7 +143,7 @@ export default function CatalogBrowser({
       {list.failed && <p className="rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-900">Could not load the list. Check your connection and try again.</p>}
       <CatalogPager page={list.state.page} pageSize={pageSize} total={list.total} busy={list.loading} onPage={(p) => list.update({ page: p })} />
 
-      {adding && <OfferModal product={adding} currency={currency} title={`Add ${adding.name}`} submitLabel="Add to my store" onSubmit={(offers) => addMasterToStore(adding.id, offers)} onClose={() => setAdding(null)} onDone={() => { setAdding(null); router.refresh(); list.reload(); }} />}
+      {adding && <OfferModal product={adding} currency={currency} title={`Add ${adding.name}`} submitLabel="Add to my store" onSubmit={(offers, maxQty) => addMasterToStore(adding.id, offers, maxQty)} onClose={() => setAdding(null)} onDone={() => { setAdding(null); router.refresh(); list.reload(); }} />}
       {requesting && <RequestModal categories={categories} onClose={() => setRequesting(false)} onDone={() => { setRequesting(false); router.refresh(); list.reload(); }} />}
     </div>
   );

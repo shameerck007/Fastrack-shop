@@ -290,8 +290,9 @@ export interface FastrackOfferInput {
  * FasTrack sells a catalog product itself: creates FasTrack's own product (no supplier), linked to the catalog entry, with
  * the price and the opening stock in the chosen FasTrack location (the other FasTrack locations start at 0, as new ones do).
  */
-export async function addMasterToFastrack(masterId: string, warehouseId: string, offers: FastrackOfferInput[]): Promise<{ error?: string }> {
+export async function addMasterToFastrack(masterId: string, warehouseId: string, offers: FastrackOfferInput[], maxOrderQty?: number): Promise<{ error?: string }> {
   try {
+    if (maxOrderQty !== undefined && !(Number.isInteger(maxOrderQty) && maxOrderQty >= 1)) return { error: "The maximum order quantity must be a whole number of 1 or more." };
     const chosen = offers.filter((o) => o.price > 0);
     if (chosen.length === 0) return { error: "Enter a price for at least one pack size." };
     if (!warehouseId) return { error: "Choose the FasTrack location that holds the stock." };
@@ -320,6 +321,7 @@ export async function addMasterToFastrack(masterId: string, warehouseId: string,
       .insert({
         category_id: master.category_id, master_id: master.id, name: master.name, name_ar: master.name_ar, brand: master.brand, brand_ar: master.brand_ar,
         description: master.description, description_ar: master.description_ar, image_url: master.image_url, barcode: master.barcode, tax_rate: master.tax_rate, hsn_code: master.hsn_code,
+        max_order_qty: maxOrderQty ?? null,
       } as never)
       .select("id")
       .single();

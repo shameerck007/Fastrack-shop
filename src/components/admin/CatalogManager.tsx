@@ -209,7 +209,7 @@ export default function CatalogManager({
               </label>
             ) : null
           }
-          onSubmit={(offers) => addMasterToFastrack(selling.id, location, offers)}
+          onSubmit={(offers, maxQty) => addMasterToFastrack(selling.id, location, offers, maxQty)}
           onClose={() => setSelling(null)}
           onDone={() => {
             setSelling(null);

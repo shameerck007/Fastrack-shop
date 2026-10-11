@@ -26,8 +26,9 @@ export interface OfferInput {
  * Sells a catalog product: creates the supplier's product (linked to the master, with the shared name, photo, category and
  * tax) with their price and stock for the pack sizes they choose. Only price and stock are theirs to set.
  */
-export async function addMasterToStore(masterId: string, offers: OfferInput[]): Promise<{ error?: string }> {
+export async function addMasterToStore(masterId: string, offers: OfferInput[], maxOrderQty?: number): Promise<{ error?: string }> {
   try {
+    if (maxOrderQty !== undefined && !(Number.isInteger(maxOrderQty) && maxOrderQty >= 1)) return { error: "The maximum order quantity must be a whole number of 1 or more." };
     const { supabase, store } = await myApprovedStore();
     const chosen = offers.filter((o) => o.price > 0);
     if (chosen.length === 0) return { error: "Enter a price for at least one pack size." };
@@ -74,6 +75,7 @@ export async function addMasterToStore(masterId: string, offers: OfferInput[]): 
         barcode: master.barcode,
         tax_rate: master.tax_rate,
         hsn_code: master.hsn_code,
+        max_order_qty: maxOrderQty ?? null,
       } as never)
       .select("id")
       .single();

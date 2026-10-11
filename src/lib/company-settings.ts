@@ -38,6 +38,8 @@ export interface CompanySettings {
   delivery_fee_standard?: number | null;
   free_delivery_over?: number | null;
   free_delivery_enabled?: boolean | null;
+  /** The maximum order quantity a new product starts with (migration 0087). */
+  default_max_order_qty?: number | null;
 }
 
 const FALLBACK: CompanySettings = {

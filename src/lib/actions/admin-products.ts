@@ -43,7 +43,7 @@ export async function createProduct(input: {
       image_url: input.imageUrl ?? null,
       tax_rate: input.taxRate ?? null,
       hsn_code: input.hsnCode?.trim() || null,
-      max_order_qty: input.maxOrderQty ?? null,
+      max_order_qty: input.maxOrderQty ?? null, // empty = the market's default (set by the database)
     })
     .select("id")
     .single();
@@ -115,7 +115,7 @@ export async function updateProduct(
       image_url: input.imageUrl ?? null,
       tax_rate: input.taxRate ?? null,
       hsn_code: input.hsnCode?.trim() || null,
-      max_order_qty: input.maxOrderQty ?? null,
+      max_order_qty: input.maxOrderQty ?? null, // empty = the market's default (set by the database)
     })
     .eq("id", productId);
   if (productError) throw productError;

@@ -11,7 +11,7 @@ import type { Category } from "@/types/database";
 import type { MerchantProduct } from "@/lib/merchant";
 import { orderedCategories } from "@/lib/category-tree";
 import { useLocale } from "@/components/LocaleProvider";
-import { useCurrency } from "@/components/MoneyProvider";
+import { useCurrency, useDefaultMaxQty } from "@/components/MoneyProvider";
 import { localizedName } from "@/lib/i18n/localized";
 import Select from "@/components/ui/Select";
 import ArabicInput from "@/components/ui/ArabicInput";
@@ -28,6 +28,7 @@ export default function MerchantProductForm({
   onDone?: () => void;
 }) {
   const { t, locale } = useLocale();
+  const defaultMaxQty = useDefaultMaxQty();
   const currency = useCurrency();
   const [open, setOpen] = useState(false);
   const existingVariant = existing?.product_variants[0];
@@ -42,7 +43,7 @@ export default function MerchantProductForm({
   const [descriptionAr, setDescriptionAr] = useState(existing?.description_ar ?? "");
   const [taxRate, setTaxRate] = useState(existing?.tax_rate != null ? String(existing.tax_rate) : "");
   const [hsnCode, setHsnCode] = useState(existing?.hsn_code ?? "");
-  const [maxOrderQty, setMaxOrderQty] = useState(existing?.max_order_qty != null ? String(existing.max_order_qty) : "");
+  const [maxOrderQty, setMaxOrderQty] = useState(String(existing?.max_order_qty ?? defaultMaxQty));
   const [categoryId, setCategoryId] = useState(existing?.category_id ?? categories[0]?.id ?? "");
   const [variantLabel, setVariantLabel] = useState(existingVariant?.label ?? "1 unit");
   const [variantLabelAr, setVariantLabelAr] = useState(existingVariant?.label_ar ?? "");
@@ -68,7 +69,7 @@ export default function MerchantProductForm({
     setDescription("");
     setDescriptionAr("");
     setVariantLabelAr("");
-    setMaxOrderQty("");
+    setMaxOrderQty(String(defaultMaxQty));
     setPrice("");
     setCompareAtPrice("");
     setStock("");
@@ -81,8 +82,8 @@ export default function MerchantProductForm({
       setError(t("product_form.fill_required"));
       return;
     }
-    if (maxOrderQty !== "" && !(Number(maxOrderQty) >= 1)) {
-      setError("The maximum order quantity must be 1 or more, or empty for no limit.");
+    if (!Number.isInteger(Number(maxOrderQty)) || !(Number(maxOrderQty) >= 1)) {
+      setError("Enter the maximum order quantity: a whole number of 1 or more.");
       return;
     }
     startTransition(async () => {
@@ -100,7 +101,7 @@ export default function MerchantProductForm({
             imageUrl: imageUrl || undefined,
             taxRate: taxRate === "" ? null : Number(taxRate),
             hsnCode: hsnCode || undefined,
-            maxOrderQty: maxOrderQty === "" ? null : Number(maxOrderQty),
+            maxOrderQty: Number(maxOrderQty),
             price: Number(price),
             compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
             variantLabel,
@@ -122,7 +123,7 @@ export default function MerchantProductForm({
             imageUrl: imageUrl || undefined,
             taxRate: taxRate === "" ? null : Number(taxRate),
             hsnCode: hsnCode || undefined,
-            maxOrderQty: maxOrderQty === "" ? null : Number(maxOrderQty),
+            maxOrderQty: Number(maxOrderQty),
             price: Number(price),
             compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
             variantLabel,

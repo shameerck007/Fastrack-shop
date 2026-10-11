@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Modal from "@/components/Modal";
+import { useDefaultMaxQty } from "@/components/MoneyProvider";
 import type { MasterProduct } from "@/lib/master-catalog";
 
 const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
@@ -32,19 +33,25 @@ export default function OfferModal({
   note?: string;
   /** Extra control shown above the pack sizes (for example the FasTrack location). */
   extra?: React.ReactNode;
-  onSubmit: (offers: OfferRow[]) => Promise<{ error?: string }>;
+  onSubmit: (offers: OfferRow[], maxOrderQty: number) => Promise<{ error?: string }>;
   onClose: () => void;
   onDone: () => void;
 }) {
   const [rows, setRows] = useState(product.variants.map((v) => ({ id: v.id, label: v.label, price: "", compare: "", stock: "" })));
+  const defaultMaxQty = useDefaultMaxQty();
+  const [maxQty, setMaxQty] = useState(String(defaultMaxQty));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!Number.isInteger(Number(maxQty)) || !(Number(maxQty) >= 1)) {
+      setError("Enter the maximum order quantity: a whole number of 1 or more.");
+      return;
+    }
     setSaving(true);
     setError(null);
-    const res = await onSubmit(rows.map((r) => ({ masterVariantId: r.id, price: Number(r.price) || 0, compareAtPrice: Number(r.compare) || undefined, stock: Number(r.stock) || 0 })));
+    const res = await onSubmit(rows.map((r) => ({ masterVariantId: r.id, price: Number(r.price) || 0, compareAtPrice: Number(r.compare) || undefined, stock: Number(r.stock) || 0 })), Number(maxQty));
     setSaving(false);
     if (res.error) {
       setError(res.error);
@@ -81,6 +88,11 @@ export default function OfferModal({
             </div>
           ))}
         </div>
+        <label className="text-xs font-medium text-neutral-500">
+          Maximum order quantity <span className="text-blue-700">*</span>
+          <input type="number" min={1} step={1} required value={maxQty} onChange={(e) => setMaxQty(e.target.value.replace(/[^0-9]/g, ""))} className={`${field} mt-1`} />
+          <span className="mt-1 block text-[11px] text-neutral-400">The most a customer can buy of this product in one order. You can change it later.</span>
+        </label>
         {error && <p className="text-sm text-blue-900">{error}</p>}
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-semibold text-neutral-700">

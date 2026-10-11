@@ -1,6 +1,7 @@
 import { getCompanySettings } from "@/lib/company-settings";
 import { PageHeader } from "@/components/admin/AdminUi";
 import CompanySettingsForm from "@/components/admin/CompanySettingsForm";
+import DefaultMaxQtyCard from "@/components/admin/DefaultMaxQtyCard";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -14,6 +15,9 @@ export default async function AdminSettingsPage() {
       <PageHeader icon="⚙️" title={t("admin.business_settings_title")} subtitle="Company details on invoices, rider settings and delivery time." />
       <div className="mt-3 max-w-2xl">
         <CompanySettingsForm settings={settings} />
+        <div className="mt-4">
+          <DefaultMaxQtyCard value={Number((settings as { default_max_order_qty?: number | null }).default_max_order_qty ?? 2)} />
+        </div>
       </div>
     </div>
   );
