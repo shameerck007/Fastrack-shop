@@ -21,6 +21,12 @@ export interface TrackingRider {
   phone: string | null;
   lat: number | null;
   lng: number | null;
+  /** Shown on the rider card (from order_rider_card). */
+  rating?: number | null;
+  ratingCount?: number;
+  deliveries?: number;
+  vehicle?: string | null;
+  plateEnd?: string | null;
 }
 
 // Straight-line distance understates road distance; scooter speed in city traffic.
@@ -67,6 +73,7 @@ export default function OrderTrackingHero({
   shop,
   promisedAt = null,
   liveEtaAt = null,
+  liveStops = null,
 }: {
   orderId: string;
   orderNumber: string;
@@ -78,6 +85,8 @@ export default function OrderTrackingHero({
   promisedAt?: string | null;
   /** The arrival time the system last worked out from the rider's real position (ISO). */
   liveEtaAt?: string | null;
+  /** How many deliveries the rider makes up to and including this one (1 = this order is next). */
+  liveStops?: number | null;
 }) {
   const { t, locale } = useLocale();
   const [status, setStatus] = useState(initialStatus);
@@ -86,6 +95,7 @@ export default function OrderTrackingHero({
   );
   const [live, setLive] = useState(false);
   const [liveEta, setLiveEta] = useState<string | null>(liveEtaAt);
+  const [stops, setStops] = useState<number>(liveStops ?? 1);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const riderMarker = useRef<Marker | null>(null);
@@ -112,9 +122,10 @@ export default function OrderTrackingHero({
       channel = supabase
         .channel(`order-tracking-${orderId}`)
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${orderId}` }, (payload) => {
-          const next = payload.new as { status?: OrderStatus; live_eta_at?: string | null };
+          const next = payload.new as { status?: OrderStatus; live_eta_at?: string | null; live_eta_stops?: number | null };
           if (next.status) setStatus(next.status);
           if (next.live_eta_at) setLiveEta(next.live_eta_at);
+          if (next.live_eta_stops) setStops(next.live_eta_stops);
         });
       if (riderId) {
         channel = channel.on(
@@ -283,7 +294,9 @@ export default function OrderTrackingHero({
     const shopKey = shop ? `${shop.lat.toFixed(5)},${shop.lng.toFixed(5)}` : "";
     const roadMin = road && road.sec > 0 ? road.sec / 60 : null;
     let minutes: number | null = null;
-    if (status === "out_for_delivery" && riderPos) minutes = roadMin != null && road?.target === destKey ? roadMin : leg(riderPos, dest);
+    const onRoute = stops > 1 && !!liveEta && (status === "rider_assigned" || status === "out_for_delivery");
+    if (onRoute) minutes = (new Date(liveEta as string).getTime() - now) / 60_000;
+    else if (status === "out_for_delivery" && riderPos) minutes = roadMin != null && road?.target === destKey ? roadMin : leg(riderPos, dest);
     else if (status === "rider_assigned" && riderPos && shop)
       minutes = (roadMin != null && road?.target === shopKey ? roadMin : leg(riderPos, shop)) + 3 + leg(shop, dest);
     if (minutes == null && liveEta && (status === "rider_assigned" || status === "out_for_delivery")) minutes = (new Date(liveEta).getTime() - now) / 60_000;
@@ -291,7 +304,7 @@ export default function OrderTrackingHero({
     if (minutes == null && shop) minutes = estimateMinutes(distanceKm(shop.lat, shop.lng, dest.lat, dest.lng));
     if (minutes == null) return null;
     return Math.max(2, Math.round(minutes));
-  }, [status, riderPos, dest, shop, done, road, promisedAt, liveEta, now]);
+  }, [status, riderPos, dest, shop, done, road, promisedAt, liveEta, stops, now]);
 
   const arrival = useMemo(() => {
     if (etaMinutes == null) return null;
@@ -389,6 +402,10 @@ export default function OrderTrackingHero({
               </div>
             </div>
 
+            {stops > 1 && (
+              <p className="mt-3 rounded-xl bg-white/15 px-3 py-1.5 text-xs font-semibold text-white">🛵 {t("tracking.stops_before", { count: stops - 1, plural: stops - 1 === 1 ? "" : "s" })}</p>
+            )}
+
             <div className="mt-5">
               <div className="relative h-10">
                 <div className="absolute inset-x-3 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white/25" />
@@ -433,24 +450,35 @@ export default function OrderTrackingHero({
 
         {rider && !done && (
           <div className="mt-4 flex items-center gap-3 rounded-2xl border border-neutral-200 p-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-blue-700">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 text-lg font-bold text-blue-700">
               {(rider.name ?? "R").charAt(0).toUpperCase()}
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-neutral-500">{t("tracking.rider_label")}</p>
               <p className="truncate font-bold text-neutral-900">{rider.name ?? "—"}</p>
+              <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-neutral-500">
+                {rider.rating != null && Number(rider.rating) > 0 ? (
+                  <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
+                    ★ {Number(rider.rating).toFixed(1)}
+                    {rider.ratingCount ? <span className="font-normal text-neutral-400">({rider.ratingCount})</span> : null}
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700">New rider</span>
+                )}
+                {rider.deliveries ? <span>{rider.deliveries} deliveries</span> : null}
+                {rider.vehicle || rider.plateEnd ? (
+                  <span>
+                    🛵 {rider.vehicle ?? "Bike"}
+                    {rider.plateEnd ? ` · plate …${rider.plateEnd}` : ""}
+                  </span>
+                ) : null}
+              </p>
             </div>
-            <a
-              href="#order-chat"
-              className="flex h-10 items-center rounded-full border border-neutral-300 px-4 text-sm font-semibold text-neutral-700 active:scale-95"
-            >
+            <a href="#order-chat" className="flex h-10 items-center rounded-full border border-neutral-300 px-4 text-sm font-semibold text-neutral-700 active:scale-95">
               {t("tracking.chat")}
             </a>
             {rider.phone && (
-              <a
-                href={`tel:${rider.phone}`}
-                className="flex h-10 items-center rounded-full bg-blue-700 px-4 text-sm font-semibold text-white active:scale-95"
-              >
+              <a href={`tel:${rider.phone}`} className="flex h-10 items-center rounded-full bg-blue-700 px-4 text-sm font-semibold text-white active:scale-95">
                 {t("tracking.call")}
               </a>
             )}

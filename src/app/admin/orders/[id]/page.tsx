@@ -9,7 +9,15 @@ import { getAdminOrderDetail } from "@/lib/admin-orders";
 import { ORDER_STATUS_FLOW, PAYMENT_METHOD_LABELS } from "@/lib/utils";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
-import { getMoney } from "@/lib/tenant-server";
+import { getCurrentTenant, getMoney } from "@/lib/tenant-server";
+import LiveEtaChip from "@/components/LiveEtaChip";
+import { clockIn, liveEtaOf } from "@/lib/live-eta";
+import { timeZoneFor } from "@/lib/admin-dashboard";
+
+/** The current time, read outside the page so rendering stays predictable. */
+function currentMs(): number {
+  return Date.now();
+}
 
 const DELIVERY_TYPE_KEY: Record<string, string> = {
   express: "admin.delivery_express",
@@ -57,6 +65,10 @@ export default async function AdminOrderDetailPage({
   const merchantNames = [...new Set(order.items.filter((i) => i.store_name).map((i) => i.store_name as string))];
   const fromFastrack = order.items.some((i) => !i.store_name);
   const fulfillment = { fromFastrack, merchantNames };
+  const tz = timeZoneFor((await getCurrentTenant())?.country_code);
+  const live = liveEtaOf(order as never, currentMs());
+  const promisedAt = (order as unknown as { estimated_delivery_at?: string | null }).estimated_delivery_at ?? null;
+  const promisedClock = promisedAt ? clockIn(promisedAt, tz, locale) : null;
 
   return (
     <div>
@@ -211,6 +223,17 @@ export default async function AdminOrderDetailPage({
         </div>
 
         <div className="flex flex-col gap-4">
+          {live && (
+            <Card title="Live delivery">
+              <Row label="Arriving">
+                <LiveEtaChip clock={clockIn(live.at, tz, locale)} lateBy={live.lateBy} stopsBefore={live.stopsBefore} label="ETA" stopsText={`${live.stopsBefore} stop${live.stopsBefore === 1 ? "" : "s"} first`} />
+              </Row>
+              {promisedClock && <Row label="Promised at checkout">{promisedClock}</Row>}
+              {live.km != null && <Row label="Distance left">{live.km.toFixed(1)} km</Row>}
+              {live.ageSec != null && <Row label="Updated">{live.ageSec < 90 ? `${live.ageSec} s ago` : `${Math.round(live.ageSec / 60)} min ago`}</Row>}
+            </Card>
+          )}
+
           <Card title={t("admin.customer")}>
             <p className="font-medium">{order.profiles?.full_name ?? "—"}</p>
             {order.profiles?.phone ? (

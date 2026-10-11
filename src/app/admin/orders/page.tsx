@@ -1,3 +1,6 @@
+import { clockIn, liveEtaOf } from "@/lib/live-eta";
+import { timeZoneFor } from "@/lib/admin-dashboard";
+import { getCurrentTenant } from "@/lib/tenant-server";
 import OrdersExplorer, { type ExplorerOrder } from "@/components/admin/OrdersExplorer";
 import OrdersLiveRefresher from "@/components/admin/OrdersLiveRefresher";
 import { PageHeader } from "@/components/admin/AdminUi";
@@ -20,12 +23,20 @@ function fulfilment(f: FulfillmentSummary, t: (k: string, v?: Record<string, str
   return { text: t("fulfillment.mixed", { count: f.merchantNames.length + (f.fromFastrack ? 1 : 0) }), tone: "mixed" };
 }
 
+/** The current time, read outside the page so rendering stays predictable. */
+function currentMs(): number {
+  return Date.now();
+}
+
 export default async function AdminOrdersPage() {
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const [kpis, orders] = await Promise.all([getAdminOrderKPIs(), getAdminOrders(100)]);
 
+  const nowMs = currentMs();
+  const tz = timeZoneFor((await getCurrentTenant())?.country_code);
   const rows: ExplorerOrder[] = orders.map((order) => {
+    const live = liveEtaOf(order as never, nowMs);
     const payment = order.payments[0];
     const names = order.order_items.map((i) => (i.product_variants?.products ? localizedName(i.product_variants.products, locale) : i.product_name));
     return {
@@ -45,6 +56,7 @@ export default async function AdminOrdersPage() {
       paid: payment?.status === "paid" || (payment?.method === "cash_on_delivery" && order.status === "delivered"),
       fulfilledBy: fulfilment(order.fulfillment, t),
       total: Number(order.total),
+      eta: live ? { clock: clockIn(live.at, tz, locale), lateBy: live.lateBy, stopsBefore: live.stopsBefore } : null,
     };
   });
 

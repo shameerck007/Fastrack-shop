@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "@/components/Link";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
+import LiveEtaChip from "@/components/LiveEtaChip";
 import { useLocale } from "@/components/LocaleProvider";
 import { useMoney } from "@/components/MoneyProvider";
 import type { OrderStatus } from "@/types/database";
@@ -23,6 +24,8 @@ export interface ExplorerOrder {
   paid: boolean;
   fulfilledBy: { text: string; tone: "fastrack" | "merchant" | "mixed" | "none" };
   total: number;
+  /** The live arrival estimate, while a rider has the order. */
+  eta?: { clock: string; lateBy: number; stopsBefore: number } | null;
 }
 
 export interface ExplorerCounts {
@@ -282,6 +285,7 @@ export default function OrdersExplorer({
                       <td className="px-3 py-3 text-end font-extrabold text-neutral-900">{money(o.total)}</td>
                       <td className="px-4 py-3">
                         <span className={`mb-1.5 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1 ${STATUS_BADGE[o.status]}`}>{t(`order_status.${o.status}`)}</span>
+                        {o.eta && <LiveEtaChip className="mb-1.5 block w-fit" clock={o.eta.clock} lateBy={o.eta.lateBy} stopsBefore={o.eta.stopsBefore} label="ETA" stopsText={`${o.eta.stopsBefore} stop${o.eta.stopsBefore === 1 ? "" : "s"} first`} />}
                         <div>
                           <OrderStatusSelect orderId={o.id} status={o.status} />
                         </div>
@@ -309,6 +313,7 @@ export default function OrdersExplorer({
                     </div>
                     <div className="text-end">
                       <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1 ${STATUS_BADGE[o.status]}`}>{t(`order_status.${o.status}`)}</span>
+                      {o.eta && <LiveEtaChip className="mt-1 block w-fit" clock={o.eta.clock} lateBy={o.eta.lateBy} stopsBefore={o.eta.stopsBefore} label="ETA" stopsText={`${o.eta.stopsBefore} stop${o.eta.stopsBefore === 1 ? "" : "s"} first`} />}
                       {isOpen(o.status) && <p className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${a.tone}`}>⏱ {a.label}</p>}
                     </div>
                   </div>

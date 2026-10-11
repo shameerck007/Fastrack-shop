@@ -12,6 +12,14 @@ import { moneyFor } from "@/lib/money";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { findCountry } from "@/lib/countries";
 import Flag from "@/components/Flag";
+import LiveEtaChip from "@/components/LiveEtaChip";
+import { clockIn, liveEtaOf } from "@/lib/live-eta";
+import { timeZoneFor } from "@/lib/admin-dashboard";
+
+/** The current time, read outside the page so rendering stays predictable. */
+function currentMs(): number {
+  return Date.now();
+}
 
 const ACTIVE_STATUSES: OrderStatus[] = [
   "pending",
@@ -64,6 +72,8 @@ export default async function OrdersPage({
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const orders = await getMyOrders();
   const visible = orders.filter((o) => matchesFilter(o, filter));
+  const nowMs = currentMs();
+  const tz = timeZoneFor(marketCountry);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
@@ -101,6 +111,7 @@ export default async function OrdersPage({
                 const extraCount = order.order_items.length - thumbnails.length;
                 const shipTo = order.addresses?.short_address || order.addresses?.city;
                 const head = headline(order, locale, t);
+                const live = liveEtaOf(order as never, nowMs);
 
                 return (
                   <div key={order.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
@@ -171,6 +182,9 @@ export default async function OrdersPage({
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className={`font-semibold ${head.color}`}>{head.text}</p>
+                          {live && (
+                            <LiveEtaChip className="my-1" clock={clockIn(live.at, tz, locale)} lateBy={live.lateBy} stopsBefore={live.stopsBefore} label={t("tracking.arriving_about")} onTime={t("tracking.on_time")} lateText={t("tracking.late_word")} stopsText={t("tracking.stops_before", { count: live.stopsBefore, plural: live.stopsBefore === 1 ? "" : "s" })} />
+                          )}
                           <p className="truncate text-sm text-neutral-500">
                             {order.order_items
                               .map((i) => (i.product_variants?.products ? localizedName(i.product_variants.products, locale) : i.product_name))

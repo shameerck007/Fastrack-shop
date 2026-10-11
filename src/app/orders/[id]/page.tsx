@@ -55,6 +55,10 @@ export default async function OrderDetailPage({
 
   const rider = order.delivery_assignments?.delivery_partners ?? null;
   const showTrackingExtras = ["rider_assigned", "out_for_delivery"].includes(order.status);
+  // The rider's rating, deliveries and vehicle (the rider card). Skipped quietly until migration 0090 is applied.
+  const riderCard = rider && order.delivery_assignments?.rider_id
+    ? (((await supabase.rpc("order_rider_card" as never, { p_order: order.id } as never)).data ?? null) as { rating?: number | null; rating_count?: number; deliveries?: number; vehicle?: string | null; vehicle_type?: string | null; plate_end?: string | null } | null)
+    : null;
   const messages = rider && user ? await getOrderMessages(order.id) : [];
   const myRating = order.status === "delivered" ? await getMyOrderRating(order.id) : null;
 
@@ -86,6 +90,11 @@ export default async function OrderDetailPage({
                   phone: rider.profiles.phone,
                   lat: rider.current_lat,
                   lng: rider.current_lng,
+                  rating: riderCard?.rating ?? null,
+                  ratingCount: riderCard?.rating_count ?? 0,
+                  deliveries: riderCard?.deliveries ?? 0,
+                  vehicle: riderCard?.vehicle ?? (riderCard?.vehicle_type ? riderCard.vehicle_type.replace(/_/g, " ") : null),
+                  plateEnd: riderCard?.plate_end ?? null,
                 }
               : null
           }
@@ -93,6 +102,7 @@ export default async function OrderDetailPage({
           shop={shop}
           promisedAt={(order as unknown as { estimated_delivery_at?: string | null }).estimated_delivery_at ?? null}
           liveEtaAt={(order as unknown as { live_eta_at?: string | null }).live_eta_at ?? null}
+          liveStops={(order as unknown as { live_eta_stops?: number | null }).live_eta_stops ?? null}
         />
       )}
       <h1 className="mb-1 text-2xl font-semibold">{t("orders.order_details_title")}</h1>
