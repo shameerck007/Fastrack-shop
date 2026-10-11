@@ -7,6 +7,7 @@ import Modal from "@/components/Modal";
 import ImageUploader from "@/components/ImageUploader";
 import { addMasterToStore, requestMasterProduct } from "@/lib/actions/merchant-catalog";
 import OfferModal from "@/components/OfferModal";
+import ArabicInput from "@/components/ui/ArabicInput";
 import { useCurrency } from "@/components/MoneyProvider";
 import type { MasterProduct } from "@/lib/master-catalog";
 import Select from "@/components/ui/Select";
@@ -162,7 +163,7 @@ function RequestModal({ categories, onClose, onDone }: { categories: Cat[]; onCl
           <ImageUploader value={imageUrl} onChange={setImageUrl} />
           <div className="grid gap-3 sm:grid-cols-2">
             <input required placeholder="Product name *" value={name} onChange={(e) => setName(e.target.value)} className={field} />
-            <input placeholder="Name in Arabic" dir="rtl" value={nameAr} onChange={(e) => setNameAr(e.target.value)} className={field} />
+            <ArabicInput english={name} value={nameAr} onChange={setNameAr} placeholder="Name in Arabic" className={field} />
             <input placeholder="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} className={field} />
             <input placeholder="Barcode (EAN / GTIN)" value={barcode} onChange={(e) => setBarcode(e.target.value)} className={field} />
             <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={`${field} bg-white sm:col-span-2`}>

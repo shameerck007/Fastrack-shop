@@ -7,6 +7,7 @@ import ImageUploader from "@/components/ImageUploader";
 import { createMasterProduct, updateMasterProduct, type MasterVariantInput } from "@/lib/actions/admin-catalog";
 import type { MasterProduct } from "@/lib/master-catalog";
 import Select from "@/components/ui/Select";
+import ArabicInput from "@/components/ui/ArabicInput";
 
 const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 const lab = "mb-1 block text-xs font-medium text-neutral-500";
@@ -103,7 +104,7 @@ export default function MasterProductForm({
             </div>
             <div>
               <label className={lab}>Name in Arabic</label>
-              <input value={nameAr} onChange={(e) => setNameAr(e.target.value)} dir="rtl" className={field} />
+              <ArabicInput english={name} value={nameAr} onChange={setNameAr} className={field} />
             </div>
             <div>
               <label className={lab}>Brand</label>
@@ -111,7 +112,7 @@ export default function MasterProductForm({
             </div>
             <div>
               <label className={lab}>Brand in Arabic</label>
-              <input value={brandAr} onChange={(e) => setBrandAr(e.target.value)} dir="rtl" className={field} />
+              <ArabicInput english={brand} value={brandAr} onChange={setBrandAr} className={field} />
             </div>
             <div>
               <label className={lab}>Category</label>
@@ -153,7 +154,7 @@ export default function MasterProductForm({
           </div>
           <div>
             <label className={lab}>Description in Arabic</label>
-            <textarea rows={3} value={descriptionAr} onChange={(e) => setDescriptionAr(e.target.value)} dir="rtl" className={field} />
+            <ArabicInput multiline rows={3} english={description} value={descriptionAr} onChange={setDescriptionAr} className={field} />
           </div>
         </div>
 
@@ -163,7 +164,7 @@ export default function MasterProductForm({
             {variants.map((v, i) => (
               <div key={i} className="grid grid-cols-2 gap-2 rounded-xl border border-neutral-200 p-2.5 sm:grid-cols-[1.4fr_1fr_80px_90px_1fr_auto]">
                 <input placeholder="Label, e.g. 1 L" value={v.label} onChange={(e) => setVariant(i, { label: e.target.value })} className={field} />
-                <input placeholder="Arabic label" dir="rtl" value={v.labelAr ?? ""} onChange={(e) => setVariant(i, { labelAr: e.target.value })} className={field} />
+                <ArabicInput compact english={v.label} value={v.labelAr ?? ""} onChange={(x) => setVariant(i, { labelAr: x })} placeholder="Arabic label" className={field} />
                 <input type="number" min={0} step="any" placeholder="Qty" value={v.quantity ?? 1} onChange={(e) => setVariant(i, { quantity: Number(e.target.value) })} className={field} />
                 <input placeholder="Unit" value={v.unit ?? ""} onChange={(e) => setVariant(i, { unit: e.target.value })} className={field} />
                 <input placeholder="Barcode" value={v.barcode ?? ""} onChange={(e) => setVariant(i, { barcode: e.target.value })} className={field} />

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import ZoneEditor from "@/components/admin/ZoneEditor";
 import Select from "@/components/ui/Select";
+import ArabicInput from "@/components/ui/ArabicInput";
 import { Field, inputClass, primaryButton, secondaryButton } from "@/components/ui/Form";
 import { deleteDeliveryArea, saveDeliveryArea } from "@/lib/actions/admin-areas";
 import { polygonCenter, type LatLng } from "@/lib/geo-polygon";
@@ -168,7 +169,7 @@ function AreaEditorModal({ initial, onClose, onSaved }: { initial: Partial<AreaC
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Riyadh North" className={inputClass} />
           </Field>
           <Field label="Name in Arabic">
-            <input value={nameAr} onChange={(e) => setNameAr(e.target.value)} dir="rtl" className={inputClass} />
+            <ArabicInput english={name} value={nameAr} onChange={setNameAr} className={inputClass} />
           </Field>
           <Field label="Express delivery" hint="Express applies inside this zone: when the shop and the customer are both in it.">
             <OnOff value={expressEnabled} onChange={setExpressEnabled} />
