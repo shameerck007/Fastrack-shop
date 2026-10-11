@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { approveStore, rejectStore, suspendStore, reinstateStore } from "@/lib/actions/admin-merchants";
@@ -20,7 +22,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
         await action();
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("store_status.action_failed"));
+        setError(errorText(err, t("store_status.action_failed")));
       }
     });
   }
@@ -36,7 +38,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
         />
         <div className="flex gap-2">
           <button
-            onClick={() => run(() => rejectStore(storeId, reason))}
+            onClick={() => run(() => unwrapAction(rejectStore)(storeId, reason))}
             disabled={pending}
             className="rounded-full bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
           >
@@ -60,7 +62,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
         {status === "pending" && (
           <>
             <button
-              onClick={() => run(() => approveStore(storeId))}
+              onClick={() => run(() => unwrapAction(approveStore)(storeId))}
               disabled={pending}
               className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
             >
@@ -77,7 +79,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
         )}
         {status === "approved" && (
           <button
-            onClick={() => run(() => suspendStore(storeId))}
+            onClick={() => run(() => unwrapAction(suspendStore)(storeId))}
             disabled={pending}
             className="rounded-full border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
           >
@@ -86,7 +88,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
         )}
         {status === "suspended" && (
           <button
-            onClick={() => run(() => reinstateStore(storeId))}
+            onClick={() => run(() => unwrapAction(reinstateStore)(storeId))}
             disabled={pending}
             className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
           >
@@ -95,7 +97,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
         )}
         {status === "rejected" && (
           <button
-            onClick={() => run(() => approveStore(storeId))}
+            onClick={() => run(() => unwrapAction(approveStore)(storeId))}
             disabled={pending}
             className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
           >

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -33,7 +35,7 @@ export default function NotificationBell() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchUnreadNotificationCount()
+    unwrapAction(fetchUnreadNotificationCount)()
       .then((n) => {
         if (!cancelled) setUnreadCount(n);
       })
@@ -41,7 +43,7 @@ export default function NotificationBell() {
         /* not signed in, or transient — badge just stays at 0 */
       });
     const interval = setInterval(() => {
-      fetchUnreadNotificationCount()
+      unwrapAction(fetchUnreadNotificationCount)()
         .then((n) => {
           if (!cancelled) setUnreadCount(n);
         })
@@ -65,11 +67,11 @@ export default function NotificationBell() {
     const next = !open;
     setOpen(next);
     if (next) {
-      const { items: rows, unreadCount: n } = await fetchNotifications();
+      const { items: rows, unreadCount: n } = await unwrapAction(fetchNotifications)();
       setItems(rows);
       setUnreadCount(n);
       if (n > 0) {
-        markAllNotificationsRead()
+        unwrapAction(markAllNotificationsRead)()
           .then(() => setUnreadCount(0))
           .catch(() => {});
       }

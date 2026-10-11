@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getVapidPublicKey, subscribeToPush } from "@/lib/actions/push";
@@ -30,7 +32,7 @@ async function ensureSubscribed(vapidPublicKey: string) {
 
   const json = subscription.toJSON();
   if (json.endpoint && json.keys?.p256dh && json.keys?.auth) {
-    await subscribeToPush({ endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } });
+    await unwrapAction(subscribeToPush)({ endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } });
   }
 }
 
@@ -87,7 +89,7 @@ export default function PushOptIn() {
 
       if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
 
-      const vapidPublicKey = await getVapidPublicKey();
+      const vapidPublicKey = await unwrapAction(getVapidPublicKey)();
       if (!vapidPublicKey || cancelled) return;
 
       if (Notification.permission === "granted") {
@@ -114,7 +116,7 @@ export default function PushOptIn() {
     setBusy(true);
     setError(null);
     try {
-      const vapidPublicKey = await getVapidPublicKey();
+      const vapidPublicKey = await unwrapAction(getVapidPublicKey)();
       if (!vapidPublicKey) throw new Error("Notifications aren't set up yet.");
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
@@ -124,7 +126,7 @@ export default function PushOptIn() {
       await ensureSubscribed(vapidPublicKey);
       setVisible(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("push.could_not_enable"));
+      setError(errorText(err, t("push.could_not_enable")));
     } finally {
       setBusy(false);
     }

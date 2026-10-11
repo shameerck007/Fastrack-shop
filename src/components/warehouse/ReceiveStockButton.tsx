@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { receiveStock } from "@/lib/actions/transfers";
@@ -16,7 +18,7 @@ export default function ReceiveStockButton({ inventoryId }: { inventoryId: strin
 
   async function save(): Promise<string | void> {
     if (!(Number(qty) > 0)) return "Enter the quantity received.";
-    const res = await receiveStock(inventoryId, Number(qty), batch, expiry || undefined);
+    const res = await unwrapAction(receiveStock)(inventoryId, Number(qty), batch, expiry || undefined);
     if (res.error) return res.error;
     setQty("");
     setBatch("");

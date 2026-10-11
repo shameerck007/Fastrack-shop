@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { RiderStatus } from "@/types/database";
 
@@ -32,7 +33,7 @@ export interface RiderSettlementSummary {
 export async function getRiderSettlementSummary(riderId: string): Promise<RiderSettlementSummary | null> {
   const db = await loose();
   const { data, error } = await db.rpc("rider_settlement_summary", { target_rider_id: riderId });
-  if (error) throw new Error(error.message);
+  if (error) throw toUserError(error);
   const r = (data as Record<string, number>[] | null)?.[0];
   if (!r) return null;
   return {
@@ -61,7 +62,7 @@ export interface RiderSettlementOrder {
 export async function getRiderSettlementOrders(riderId: string): Promise<RiderSettlementOrder[]> {
   const db = await loose();
   const { data, error } = await db.rpc("rider_settlement_orders", { target_rider_id: riderId });
-  if (error) throw new Error(error.message);
+  if (error) throw toUserError(error);
   return ((data ?? []) as Record<string, string | number | null>[]).map((r) => ({
     orderId: String(r.order_id),
     orderNumber: String(r.order_number),
@@ -89,7 +90,7 @@ export async function getRiderSettlementEntries(riderId: string): Promise<RiderS
     .select("id, kind, amount, method, reference, note, created_at")
     .eq("rider_id", riderId)
     .order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) throw toUserError(error);
   return ((data ?? []) as Record<string, string | number | null>[]).map((r) => ({
     id: String(r.id),
     kind: r.kind as RiderSettlementEntry["kind"],
@@ -112,7 +113,7 @@ export interface RiderSettlementOverviewRow extends RiderSettlementSummary {
 export async function getRiderSettlementOverview(): Promise<RiderSettlementOverviewRow[]> {
   const db = await loose();
   const { data, error } = await db.rpc("admin_rider_settlement_overview");
-  if (error) throw new Error(error.message);
+  if (error) throw toUserError(error);
   return ((data ?? []) as Record<string, string | number>[]).map((r) => ({
     riderId: String(r.rider_id),
     riderName: String(r.rider_name),
@@ -139,7 +140,7 @@ export async function getAllRiderSettlementEntries(): Promise<(RiderSettlementEn
     .from("rider_settlement_entries")
     .select("id, rider_id, kind, amount, method, reference, note, created_at")
     .order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) throw toUserError(error);
   return ((data ?? []) as Record<string, string | number | null>[]).map((r) => ({
     id: String(r.id),
     riderId: String(r.rider_id),

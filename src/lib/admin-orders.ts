@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type {
   Order,
@@ -74,7 +75,7 @@ export async function getAdminOrders(limit = 100): Promise<AdminOrderListRow[]> 
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   const orders = (data as unknown as (AdminOrderListRow & { order_items: { id: string; ordered_quantity: number; variant_id: string }[] })[]) ?? [];
 
   const fulfillmentByOrder = await resolveFulfillment(
@@ -115,7 +116,7 @@ export async function getAdminOrdersQueue(): Promise<AdminQueueOrder[]> {
     .not("status", "in", "(delivered,cancelled)")
     .order("created_at", { ascending: true });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   const rows = (data ?? []) as unknown as {
     id: string;
     order_number: string;
@@ -237,7 +238,7 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
     .eq("id", orderId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   if (!data) return null;
 
   const order = data as unknown as Omit<AdminOrderDetail, "items">;

@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { CartItemWithVariant } from "@/types/database";
 
@@ -23,7 +24,7 @@ export async function getCartItems(): Promise<CartItemWithVariant[]> {
     .eq("cart_id", cart.id)
     .order("created_at", { ascending: true });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as CartItemWithVariant[]) ?? [];
 }
 
@@ -49,6 +50,6 @@ export async function getCartItemCount(): Promise<number> {
 
   const { data, error } = await supabase.from("cart_items").select("quantity").eq("cart_id", cart.id);
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data ?? []).reduce((sum, item) => sum + item.quantity, 0);
 }

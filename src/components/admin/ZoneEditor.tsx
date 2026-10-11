@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Circle, LayerGroup, Map as LeafletMap, Marker, Polygon, Polyline } from "leaflet";
@@ -265,11 +267,11 @@ export default function ZoneEditor({
         const polygon = mode === "area" ? points : null;
         const pin = polygon ? polygonCenter(polygon) : (center as [number, number]);
         if (onSave) await onSave({ lat: pin[0], lng: pin[1], radiusKm: radius, polygon });
-        else await updateWarehouseZone(warehouseId, { lat: pin[0], lng: pin[1], radiusKm: radius, polygon });
+        else await unwrapAction(updateWarehouseZone)(warehouseId, { lat: pin[0], lng: pin[1], radiusKm: radius, polygon });
         setMessage({ ok: true, text: t("zone_editor.boundary_saved") });
         router.refresh();
       } catch (err) {
-        setMessage({ ok: false, text: err instanceof Error ? err.message : t("zone_editor.could_not_save") });
+        setMessage({ ok: false, text: errorText(err, t("zone_editor.could_not_save"))});
       }
     });
   }
@@ -278,11 +280,11 @@ export default function ZoneEditor({
     if (!confirm(t("zone_editor.confirm_remove"))) return;
     startTransition(async () => {
       try {
-        await updateWarehouseZone(warehouseId, null);
+        await unwrapAction(updateWarehouseZone)(warehouseId, null);
         setMessage({ ok: true, text: t("zone_editor.boundary_removed") });
         router.refresh();
       } catch (err) {
-        setMessage({ ok: false, text: err instanceof Error ? err.message : t("zone_editor.could_not_remove") });
+        setMessage({ ok: false, text: errorText(err, t("zone_editor.could_not_remove"))});
       }
     });
   }

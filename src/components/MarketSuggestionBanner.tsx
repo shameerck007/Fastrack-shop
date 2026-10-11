@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { dismissMarketSuggestion, setMarket } from "@/lib/actions/tenant";
 import { findCountry } from "@/lib/countries";
@@ -29,7 +31,7 @@ export default function MarketSuggestionBanner({ suggested }: { suggested: Tenan
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
-                const res = await setMarket(suggested.id);
+                const res = await unwrapAction(setMarket)(suggested.id);
                 if (!res.error) {
                   try {
                     sessionStorage.setItem(MARKET_TOAST_KEY, JSON.stringify({ code: suggested.country_code, name: country.name }));
@@ -47,7 +49,7 @@ export default function MarketSuggestionBanner({ suggested }: { suggested: Tenan
             type="button"
             onClick={() => {
               setHidden(true);
-              dismissMarketSuggestion();
+              unwrapAction(dismissMarketSuggestion)();
             }}
             className="rounded-full border border-blue-200 bg-white px-4 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-100"
           >

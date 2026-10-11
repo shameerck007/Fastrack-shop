@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,13 +15,14 @@ async function requireUser(supabase: Awaited<ReturnType<typeof createClient>>) {
       data: { user },
     } = await supabase.auth.getUser());
   } catch {
-    throw new Error("You must be logged in.");
+    throw new UserError("You must be logged in.");
   }
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
   return user;
 }
 
 export async function toggleWishlist(productId: string): Promise<{ inList: boolean }> {
+  try {
   const supabase = await createClient();
   const user = await requireUser(supabase);
 
@@ -34,16 +37,21 @@ export async function toggleWishlist(productId: string): Promise<{ inList: boole
     const { error } = await supabase.from("wishlist_items").delete().eq("id", existing.id);
     if (error) throw error;
     revalidatePath("/account/lists");
-    return { inList: false };
+    return await { inList: false };
   }
 
   const { error } = await supabase.from("wishlist_items").insert({ user_id: user.id, product_id: productId });
   if (error) throw error;
   revalidatePath("/account/lists");
-  return { inList: true };
+  return await { inList: true };
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function removeFromWishlist(productId: string) {
+  try {
   const supabase = await createClient();
   const user = await requireUser(supabase);
 
@@ -54,4 +62,8 @@ export async function removeFromWishlist(productId: string) {
     .eq("product_id", productId);
   if (error) throw error;
   revalidatePath("/account/lists");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

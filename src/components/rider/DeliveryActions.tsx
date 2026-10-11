@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { markPickedUp, completeDelivery } from "@/lib/actions/rider";
@@ -15,7 +17,7 @@ export default function DeliveryActions({ orderId, status }: { orderId: string; 
 
   function handlePickedUp() {
     startTransition(async () => {
-      await markPickedUp(orderId);
+      await unwrapAction(markPickedUp)(orderId);
       router.refresh();
     });
   }
@@ -25,10 +27,10 @@ export default function DeliveryActions({ orderId, status }: { orderId: string; 
     setError(null);
     startTransition(async () => {
       try {
-        await completeDelivery(orderId, otp);
+        await unwrapAction(completeDelivery)(orderId, otp);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("rider.could_not_complete"));
+        setError(errorText(err, t("rider.could_not_complete")));
       }
     });
   }

@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import type { Address } from "@/types/database";
@@ -15,7 +16,7 @@ export async function getAddresses(): Promise<Address[]> {
     .eq("user_id", user.id)
     .order("is_default", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   // One account, several markets: show only the addresses that belong to the market being shopped.
   // Indian addresses always carry a state (the Saudi form has none), which tells them apart.
   const country = (await getCurrentTenant())?.country_code ?? "SA";

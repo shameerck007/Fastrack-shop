@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
@@ -7,7 +9,7 @@ async function getOwnApprovedStore(supabase: Awaited<ReturnType<typeof createCli
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
   const { data: store, error } = await supabase
     .from("stores")
@@ -16,7 +18,7 @@ async function getOwnApprovedStore(supabase: Awaited<ReturnType<typeof createCli
     .maybeSingle();
   if (error) throw error;
   if (!store || store.status !== "approved" || !store.warehouse_id) {
-    throw new Error("Your store isn't approved yet.");
+    throw new UserError("Your store isn't approved yet.");
   }
   return store as { id: string; warehouse_id: string; status: string };
 }
@@ -44,6 +46,7 @@ export async function createMerchantProduct(input: {
   quantity?: number;
   stock: number;
 }) {
+  try {
   const supabase = await createClient();
   // Deriving store/warehouse server-side from the authenticated user (rather
   // than trusting client-supplied ids) — RLS would reject a mismatched
@@ -96,6 +99,10 @@ export async function createMerchantProduct(input: {
   if (inventoryError) throw inventoryError;
 
   revalidatePath("/merchant/products");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function updateMerchantProduct(
@@ -122,6 +129,7 @@ export async function updateMerchantProduct(
     quantity?: number;
   }
 ) {
+  try {
   const supabase = await createClient();
   const store = await getOwnApprovedStore(supabase);
 
@@ -136,7 +144,7 @@ export async function updateMerchantProduct(
     .maybeSingle();
   if (fetchError) throw fetchError;
   if (!product || product.store_id !== store.id) {
-    throw new Error("You can only edit your own products.");
+    throw new UserError("You can only edit your own products.");
   }
 
   // A product linked to the master catalog keeps its shared details (name, brand, photo, category, tax): only the price
@@ -189,16 +197,26 @@ export async function updateMerchantProduct(
   if (variantError) throw variantError;
 
   revalidatePath("/merchant/products");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function updateMerchantProductStock(inventoryId: string, stock: number) {
+  try {
   const supabase = await createClient();
   const { error } = await supabase.from("inventory").update({ stock }).eq("id", inventoryId);
   if (error) throw error;
   revalidatePath("/merchant/products");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function toggleMerchantProductActive(productId: string, isActive: boolean) {
+  try {
   const supabase = await createClient();
   const { error } = await supabase
     .from("products")
@@ -206,4 +224,8 @@ export async function toggleMerchantProductActive(productId: string, isActive: b
     .eq("id", productId);
   if (error) throw error;
   revalidatePath("/merchant/products");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { Order, OrderStatus } from "@/types/database";
 
@@ -40,7 +41,7 @@ export async function getMerchantOrders(limit = 50, scope: "all" | "active" | "d
   if (scope === "done") q = q.in("status", ["delivered", "cancelled"]);
   const { data, error } = await q.order("created_at", { ascending: false }).limit(limit);
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as unknown as MerchantOrderRow[]) ?? [];
 }
 

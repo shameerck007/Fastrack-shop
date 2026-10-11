@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateRiderPay } from "@/lib/actions/admin-rider-pay";
@@ -30,7 +32,7 @@ export default function RiderPayForm({
 
   async function save(): Promise<string | void> {
     if (payType === "salary" && salary === "") return "Enter the monthly salary.";
-    const res = await updateRiderPay({ riderId, payType, monthlySalary: salary === "" ? null : Number(salary), deliveriesEarnExtra: extra });
+    const res = await unwrapAction(updateRiderPay)({ riderId, payType, monthlySalary: salary === "" ? null : Number(salary), deliveriesEarnExtra: extra });
     if (res.error) return res.error;
     setSaved({ payType, salary: salary === "" ? null : Number(salary), extra });
     router.refresh();

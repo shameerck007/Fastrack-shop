@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 
 export interface AdminProduct {
@@ -37,6 +38,6 @@ export async function getAdminProducts(): Promise<AdminProduct[]> {
     )
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as unknown as AdminProduct[]) ?? [];
 }

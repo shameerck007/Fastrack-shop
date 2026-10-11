@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -265,13 +267,13 @@ export default function OffersManager({ offers, categories, stores, disabled }: 
                       <button type="button" disabled={pending} onClick={() => setEditing(draftOf(o))} className="h-8 rounded-full border border-neutral-300 px-3 text-xs font-bold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50">
                         Edit
                       </button>
-                      <button type="button" disabled={pending} onClick={() => act(() => setOfferActive(o.id, !o.is_active), o.is_active ? "Offer switched off." : "Offer switched on.")} className="h-8 rounded-full border border-neutral-300 px-3 text-xs font-bold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50">
+                      <button type="button" disabled={pending} onClick={() => act(() => unwrapAction(setOfferActive)(o.id, !o.is_active), o.is_active ? "Offer switched off." : "Offer switched on.")} className="h-8 rounded-full border border-neutral-300 px-3 text-xs font-bold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50">
                         {o.is_active ? "Switch off" : "Switch on"}
                       </button>
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => confirm(`Delete "${o.name}"? Orders that used it keep their discount.`) && act(() => deleteOffer(o.id), "Offer deleted.")}
+                        onClick={() => confirm(`Delete "${o.name}"? Orders that used it keep their discount.`) && act(() => unwrapAction(deleteOffer)(o.id), "Offer deleted.")}
                         className="h-8 rounded-full border border-neutral-300 px-3 text-xs font-bold text-neutral-500 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50"
                       >
                         Delete
@@ -318,7 +320,7 @@ function OfferModal({ draft, categories, stores, onClose, onSaved }: { draft: Dr
   function save() {
     setError(null);
     start(async () => {
-      const res = await saveOffer({
+      const res = await unwrapAction(saveOffer)({
         id: d.id,
         name: d.name,
         nameAr: d.nameAr,

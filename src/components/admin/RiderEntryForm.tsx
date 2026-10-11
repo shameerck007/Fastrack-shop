@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { recordRiderSettlementEntry } from "@/lib/actions/admin-rider-settlements";
@@ -53,7 +55,7 @@ export default function RiderEntryForm({
   async function save(): Promise<string | void> {
     const parsed = Number(amount);
     if (!(parsed > 0)) return "Enter an amount greater than zero.";
-    const res = await recordRiderSettlementEntry({ riderId, kind, amount: parsed, method, reference, note });
+    const res = await unwrapAction(recordRiderSettlementEntry)({ riderId, kind, amount: parsed, method, reference, note });
     if (res.error) return res.error;
     setReference("");
     setNote("");

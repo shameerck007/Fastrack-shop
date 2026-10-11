@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { toggleWishlist } from "@/lib/actions/wishlist";
@@ -40,12 +42,12 @@ export default function WishlistButton({
 
       setInList(!prev); // optimistic
       try {
-        const result = await toggleWishlist(productId);
+        const result = await unwrapAction(toggleWishlist)(productId);
         setInList(result.inList);
         router.refresh();
       } catch (err) {
         setInList(prev);
-        const msg = err instanceof Error ? err.message : "";
+        const msg = errorText(err, "");
         if (msg.toLowerCase().includes("logged in")) {
           router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
         }

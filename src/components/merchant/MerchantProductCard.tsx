@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toggleMerchantProductActive, updateMerchantProduct, updateMerchantProductStock } from "@/lib/actions/merchant-products";
@@ -48,7 +50,7 @@ export default function MerchantProductCard({
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
-                await toggleMerchantProductActive(product.id, !product.is_active);
+                await unwrapAction(toggleMerchantProductActive)(product.id, !product.is_active);
                 router.refresh();
               })
             }
@@ -78,7 +80,7 @@ export default function MerchantProductCard({
               inventoryId={inv.id}
               stock={inv.stock}
               minStock={inv.min_stock}
-              updateAction={updateMerchantProductStock}
+              updateAction={unwrapAction(updateMerchantProductStock)}
             />
           ) : (
             <span className="text-xs text-neutral-400">{t("product_card_admin.no_stock_row")}</span>
@@ -98,7 +100,7 @@ export default function MerchantProductCard({
         categories={categories}
         onClose={() => setEditing(false)}
         onSave={async (v) => {
-          await updateMerchantProduct(product.id, variant.id, v);
+          await unwrapAction(updateMerchantProduct)(product.id, variant.id, v);
           router.refresh();
         }}
       />

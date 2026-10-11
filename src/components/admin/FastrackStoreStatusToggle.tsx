@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { adminSetWarehouseActive } from "@/lib/actions/admin-fastrack-store";
@@ -15,10 +17,10 @@ export default function FastrackStoreStatusToggle({ warehouseId, isActive }: { w
     setError(null);
     startTransition(async () => {
       try {
-        await adminSetWarehouseActive(warehouseId, !isActive);
+        await unwrapAction(adminSetWarehouseActive)(warehouseId, !isActive);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("fastrack_stores.could_not_update"));
+        setError(errorText(err, t("fastrack_stores.could_not_update")));
       }
     });
   }

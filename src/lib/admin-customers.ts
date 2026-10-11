@@ -1,3 +1,4 @@
+import { friendlyMessage } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 
 export interface CustomerRow {
@@ -40,7 +41,7 @@ export async function getCustomers(opts: { q?: string; filter?: string; page?: n
   const { data, error } = await supabase.rpc("admin_customers" as never, { p_q: opts.q ?? null, p_filter: opts.filter ?? "all", p_limit: pageSize, p_offset: (page - 1) * pageSize } as never);
   if (error) {
     if (error.code === "42883" || error.code === "PGRST202") return null;
-    return { error: error.message };
+    return { error: friendlyMessage(error) };
   }
   const d = data as unknown as { total: number; items: CustomerRow[] };
   return { items: d.items ?? [], total: Number(d.total ?? 0) };

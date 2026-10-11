@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { ProductWithVariants } from "@/types/database";
 
@@ -14,7 +15,7 @@ export async function getWishlistProducts(): Promise<ProductWithVariants[]> {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
 
   const products: ProductWithVariants[] = [];
   for (const row of data ?? []) {

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { acceptExpressOffer, declineExpressOffer } from "@/lib/actions/rider";
@@ -29,7 +31,7 @@ export default function ExpressOfferCard({ offer, salaryOnly = false }: { offer:
   useEffect(() => {
     if (left > 0 || done.current) return;
     done.current = true;
-    declineExpressOffer(offer.id)
+    unwrapAction(declineExpressOffer)(offer.id)
       .catch(() => {})
       .finally(() => router.refresh());
   }, [left, offer.id, router]);
@@ -42,11 +44,11 @@ export default function ExpressOfferCard({ offer, salaryOnly = false }: { offer:
     startTransition(async () => {
       try {
         done.current = true;
-        await acceptExpressOffer(offer.id);
+        await unwrapAction(acceptExpressOffer)(offer.id);
         router.refresh();
       } catch (e) {
         done.current = false;
-        setError(e instanceof Error ? e.message : "Could not accept this order.");
+        setError(errorText(e, "Could not accept this order."));
         router.refresh();
       }
     });
@@ -56,7 +58,7 @@ export default function ExpressOfferCard({ offer, salaryOnly = false }: { offer:
     if (done.current) return;
     done.current = true;
     startTransition(async () => {
-      await declineExpressOffer(offer.id).catch(() => {});
+      await unwrapAction(declineExpressOffer)(offer.id).catch(() => {});
       router.refresh();
     });
   }

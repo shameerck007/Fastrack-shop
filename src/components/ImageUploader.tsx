@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText } from "@/lib/errors";
 import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -85,7 +87,7 @@ export default function ImageUploader({
       const { data } = supabase.storage.from("product-images").getPublicUrl(path);
       onChange(data.publicUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
+      setError(errorText(err, "Upload failed."));
     } finally {
       setUploading(false);
     }

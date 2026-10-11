@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import Modal from "@/components/Modal";
 import { setMarket } from "@/lib/actions/tenant";
@@ -30,7 +32,7 @@ export default function MarketSwitchDialog({
   function confirm() {
     setError(null);
     startTransition(async () => {
-      const res = await setMarket(target!.id);
+      const res = await unwrapAction(setMarket)(target!.id);
       if (res.error) {
         setError(res.error);
         return;

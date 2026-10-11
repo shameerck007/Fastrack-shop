@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toggleProductActive, updateProduct, updateProductStock } from "@/lib/actions/admin-products";
@@ -50,7 +52,7 @@ export default function AdminProductCard({
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
-                await toggleProductActive(product.id, !product.is_active);
+                await unwrapAction(toggleProductActive)(product.id, !product.is_active);
                 router.refresh();
               })
             }
@@ -80,7 +82,7 @@ export default function AdminProductCard({
               inventoryId={inv.id}
               stock={inv.stock}
               minStock={inv.min_stock}
-              updateAction={updateProductStock}
+              updateAction={unwrapAction(updateProductStock)}
             />
           ) : (
             <span className="text-xs text-neutral-400">{t("product_card_admin.no_stock_row")}</span>
@@ -100,7 +102,7 @@ export default function AdminProductCard({
         categories={categories}
         onClose={() => setEditing(false)}
         onSave={async (v) => {
-          await updateProduct(product.id, variant.id, v);
+          await unwrapAction(updateProduct)(product.id, variant.id, v);
           router.refresh();
         }}
       />

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { markRoutePickedUp } from "@/lib/actions/rider";
@@ -14,10 +16,10 @@ export default function RoutePickupButton({ routeId, count }: { routeId: string;
     setError(null);
     startTransition(async () => {
       try {
-        await markRoutePickedUp(routeId);
+        await unwrapAction(markRoutePickedUp)(routeId);
         router.refresh();
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not update the route.");
+        setError(errorText(e, "Could not update the route."));
       }
     });
   }

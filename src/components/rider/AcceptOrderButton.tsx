@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { acceptOrder } from "@/lib/actions/rider";
@@ -15,10 +17,10 @@ export default function AcceptOrderButton({ orderId, full = false }: { orderId: 
     setError(null);
     startTransition(async () => {
       try {
-        await acceptOrder(orderId);
+        await unwrapAction(acceptOrder)(orderId);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("rider.could_not_accept"));
+        setError(errorText(err, t("rider.could_not_accept")));
       }
     });
   }

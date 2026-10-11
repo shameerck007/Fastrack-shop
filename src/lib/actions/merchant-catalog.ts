@@ -1,5 +1,9 @@
 "use server";
 
+
+
+import { friendlyMessage } from "@/lib/errors";
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyAdmins } from "@/lib/push";
@@ -9,9 +13,9 @@ async function myApprovedStore() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
   const { data: store } = await supabase.from("stores").select("id, warehouse_id, status, name").eq("owner_id", user.id).maybeSingle();
-  if (!store || store.status !== "approved" || !store.warehouse_id) throw new Error("Your store isn't approved yet.");
+  if (!store || store.status !== "approved" || !store.warehouse_id) throw new UserError("Your store isn't approved yet.");
   return { supabase, store: store as { id: string; warehouse_id: string; status: string; name: string } };
 }
 
@@ -28,10 +32,11 @@ export interface OfferInput {
  */
 export async function addMasterToStore(masterId: string, offers: OfferInput[], maxOrderQty?: number): Promise<{ error?: string }> {
   try {
-    if (maxOrderQty !== undefined && !(Number.isInteger(maxOrderQty) && maxOrderQty >= 1)) return { error: "The maximum order quantity must be a whole number of 1 or more." };
+  try {
+    if (maxOrderQty !== undefined && !(Number.isInteger(maxOrderQty) && maxOrderQty >= 1)) return await { error: "The maximum order quantity must be a whole number of 1 or more." };
     const { supabase, store } = await myApprovedStore();
     const chosen = offers.filter((o) => o.price > 0);
-    if (chosen.length === 0) return { error: "Enter a price for at least one pack size." };
+    if (chosen.length === 0) return await { error: "Enter a price for at least one pack size." };
 
     const loose = supabase as unknown as {
       from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: unknown }> }; maybeSingle: () => Promise<{ data: unknown }> } } };
@@ -57,7 +62,7 @@ export async function addMasterToStore(masterId: string, offers: OfferInput[], m
       status: string;
       master_variants: { id: string; label: string; label_ar: string | null; unit: string; quantity: number; is_default: boolean }[];
     } | null;
-    if (!master || master.status !== "approved") return { error: "This product is not in the catalog." };
+    if (!master || master.status !== "approved") return await { error: "This product is not in the catalog." };
 
     const { data: product, error: pErr } = await supabase
       .from("products")
@@ -80,8 +85,8 @@ export async function addMasterToStore(masterId: string, offers: OfferInput[], m
       .select("id")
       .single();
     if (pErr) {
-      if (pErr.code === "23505") return { error: "You already sell this product." };
-      return { error: pErr.message };
+      if (pErr.code === "23505") return await { error: "You already sell this product." };
+      return await { error: friendlyMessage(pErr) };
     }
 
     const byId = new Map(master.master_variants.map((v) => [v.id, v]));
@@ -104,15 +109,19 @@ export async function addMasterToStore(masterId: string, offers: OfferInput[], m
         } as never)
         .select("id")
         .single();
-      if (vErr) return { error: vErr.message };
+      if (vErr) return await { error: friendlyMessage(vErr) };
       const { error: iErr } = await supabase.from("inventory").insert({ variant_id: variant.id, warehouse_id: store.warehouse_id, stock: Math.max(0, o.stock || 0) });
-      if (iErr) return { error: iErr.message };
+      if (iErr) return await { error: friendlyMessage(iErr) };
     }
     revalidatePath("/merchant/products");
     revalidatePath("/merchant/catalog");
-    return {};
+    return await {};
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Could not add this product." };
+    return await { error: friendlyMessage(e, "Could not add this product.")};
+  }
+
+  } catch (e) {
+    return failure(e) as never;
   }
 }
 
@@ -130,11 +139,12 @@ export interface ProductRequestInput {
 /** A product that is not in the catalog: sent to FasTrack for review before anyone can sell it. */
 export async function requestMasterProduct(input: ProductRequestInput): Promise<{ error?: string }> {
   try {
+  try {
     const { supabase, store } = await myApprovedStore();
     const name = input.name.trim();
-    if (!name) return { error: "Enter the product name." };
+    if (!name) return await { error: "Enter the product name." };
     const variants = input.variants.filter((v) => v.label.trim());
-    if (variants.length === 0) return { error: "Add at least one pack size, for example 1 L or 500 g." };
+    if (variants.length === 0) return await { error: "Add at least one pack size, for example 1 L or 500 g." };
     const loose = supabase as unknown as {
       from: (t: string) => {
         insert: (r: object | object[]) => { select: (c: string) => { single: () => Promise<{ data: { id: string } | null; error: { message: string; code?: string } | null }> } } & Promise<{ error: { message: string } | null }>;
@@ -156,28 +166,37 @@ export async function requestMasterProduct(input: ProductRequestInput): Promise<
       .select("id")
       .single();
     if (error || !data) {
-      if (error?.code === "23505") return { error: "A product with this barcode is already in the catalog. Search for it and add it to your store." };
-      if (error?.code === "42P01") return { error: "The master catalog needs the latest database update (migration 0067)." };
-      return { error: error?.message ?? "Could not send the request." };
+      if (error?.code === "23505") return await { error: "A product with this barcode is already in the catalog. Search for it and add it to your store." };
+      if (error?.code === "42P01") return await { error: "The master catalog needs the latest database update (migration 0067)." };
+      return await { error: error?.message ?? "Could not send the request." };
     }
     const { error: vError } = (await loose.from("master_variants").insert(
       variants.map((v, i) => ({ master_id: data.id, label: v.label.trim(), unit: v.unit?.trim() || "unit", quantity: v.quantity && v.quantity > 0 ? v.quantity : 1, is_default: i === 0, sort_order: i }))
     )) as unknown as { error: { message: string } | null };
-    if (vError) return { error: vError.message };
+    if (vError) return await { error: friendlyMessage(vError) };
     await notifyAdmins({ title: "New product request", body: `${store.name} asked to add ${name} to the catalog.`, url: "/admin/catalog" });
     revalidatePath("/merchant/catalog");
     revalidatePath("/admin/catalog");
-    return {};
+    return await {};
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Could not send the request." };
+    return await { error: friendlyMessage(e, "Could not send the request.")};
+  }
+
+  } catch (e) {
+    return failure(e) as never;
   }
 }
 
 /** The commission that applies to this supplier for each catalog product (shown before they list it). Empty until migration 0079. */
 export async function getMyCommissionRates(masterIds: string[]): Promise<Record<string, number>> {
-  if (masterIds.length === 0) return {};
+  try {
+  if (masterIds.length === 0) return await {};
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("commission_preview" as never, { p_master_ids: masterIds.slice(0, 100) } as never);
-  if (error || !data) return {};
-  return data as unknown as Record<string, number>;
+  if (error || !data) return await {};
+  return await data as unknown as Record<string, number>;
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createCategory, updateCategory } from "@/lib/actions/admin-categories";
@@ -46,7 +48,7 @@ export default function CategoryForm({
     startTransition(async () => {
       try {
         if (existing) {
-          await updateCategory(existing.id, {
+          await unwrapAction(updateCategory)(existing.id, {
             name,
             nameAr: nameAr || undefined,
             slug,
@@ -57,7 +59,7 @@ export default function CategoryForm({
           });
           onDone?.();
         } else {
-          await createCategory({
+          await unwrapAction(createCategory)({
             name,
             nameAr: nameAr || undefined,
             slug: slug || undefined,
@@ -77,7 +79,7 @@ export default function CategoryForm({
         }
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("category_form.could_not_save"));
+        setError(errorText(err, t("category_form.could_not_save")));
       }
     });
   }

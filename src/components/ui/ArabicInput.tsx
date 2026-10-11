@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useEffect, useRef, useState } from "react";
 import { autoTranslateToArabic } from "@/lib/actions/translate";
 
@@ -42,7 +44,7 @@ export default function ArabicInput({
     setBusy(true);
     setNote(null);
     try {
-      const out = await autoTranslateToArabic(text);
+      const out = await unwrapAction(autoTranslateToArabic)(text);
       if (my !== seq.current) return;
       if (out) {
         last.current = text;

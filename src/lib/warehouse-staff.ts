@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { Order, OrderStatus, Warehouse } from "@/types/database";
 
@@ -13,7 +14,7 @@ export async function getMyStaffWarehouse(): Promise<Warehouse | null> {
     .select("warehouse_id")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (staffError) throw staffError;
+  if (staffError) throw toUserError(staffError);
   if (!staff) return null;
 
   const { data: warehouse, error } = await supabase
@@ -21,7 +22,7 @@ export async function getMyStaffWarehouse(): Promise<Warehouse | null> {
     .select("*")
     .eq("id", staff.warehouse_id)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return warehouse;
 }
 
@@ -63,7 +64,7 @@ export async function getWarehouseOrders(limit = 100): Promise<WarehouseOrderRow
   if (user) query = query.neq("user_id", user.id);
 
   const { data, error } = await query;
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as unknown as WarehouseOrderRow[]) ?? [];
 }
 
@@ -105,7 +106,7 @@ export async function getWarehouseStock(warehouseId: string): Promise<WarehouseS
       "id, stock, min_stock, product_variants!variant_id(id, label, label_ar, products(id, name, name_ar, image_url, store_id))"
     )
     .eq("warehouse_id", warehouseId);
-  if (error) throw error;
+  if (error) throw toUserError(error);
 
   type Row = {
     id: string;

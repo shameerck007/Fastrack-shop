@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteAddress, setDefaultAddress } from "@/lib/actions/addresses";
@@ -75,7 +77,7 @@ export default function AddressCard({ address }: { address: Address }) {
               disabled={pending}
               onClick={() =>
                 startTransition(async () => {
-                  await setDefaultAddress(address.id);
+                  await unwrapAction(setDefaultAddress)(address.id);
                   router.refresh();
                 })
               }
@@ -89,7 +91,7 @@ export default function AddressCard({ address }: { address: Address }) {
             onClick={() =>
               startTransition(async () => {
                 if (!confirm(t("addresses.confirm_delete"))) return;
-                await deleteAddress(address.id);
+                await unwrapAction(deleteAddress)(address.id);
                 router.refresh();
               })
             }

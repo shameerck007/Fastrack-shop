@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -33,7 +35,7 @@ export function ContactCard({ id, phoneMasked, emailMasked, canReveal }: { id: s
             disabled={pending}
             onClick={() =>
               start(async () => {
-                const res = await revealCustomerContact(id);
+                const res = await unwrapAction(revealCustomerContact)(id);
                 if ("phone" in res) setFull({ phone: res.phone, email: res.email });
                 else setError(res.error);
               })
@@ -63,7 +65,7 @@ export function BlockButton({ id, blocked, name }: { id: string; blocked: boolea
   function submit(next: boolean) {
     setError(null);
     start(async () => {
-      const res = await setCustomerBlocked(id, next, reason);
+      const res = await unwrapAction(setCustomerBlocked)(id, next, reason);
       if (res.error) setError(res.error);
       else {
         setOpen(false);
@@ -121,7 +123,7 @@ export function NoteForm({ id }: { id: string }) {
         e.preventDefault();
         setError(null);
         start(async () => {
-          const res = await addCustomerNote(id, body);
+          const res = await unwrapAction(addCustomerNote)(id, body);
           if (res.error) setError(res.error);
           else {
             setBody("");

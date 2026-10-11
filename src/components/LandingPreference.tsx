@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { setLandingPreference } from "@/lib/actions/landing";
 
@@ -21,7 +23,7 @@ export default function LandingPreference({
     setValue(next);
     setError(null);
     startTransition(async () => {
-      const res = await setLandingPreference(next);
+      const res = await unwrapAction(setLandingPreference)(next);
       if (res.error) {
         setValue(previous);
         setError(res.error);

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { setDefaultAddress } from "@/lib/actions/addresses";
@@ -66,7 +68,7 @@ export default function DeliveryGate({ children }: { children: React.ReactNode }
     if (a.lat == null || a.lng == null) return;
     const labelText = a.label.charAt(0).toUpperCase() + a.label.slice(1);
     setLocation({ lat: a.lat, lng: a.lng, label: labelText, addressId: a.id });
-    setDefaultAddress(a.id).catch(() => {});
+    unwrapAction(setDefaultAddress)(a.id).catch(() => {});
   }
 
   if (!blocked) return <>{children}</>;

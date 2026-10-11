@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { Suspense, useState } from "react";
 import Link from "@/components/Link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -67,7 +69,7 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
         return;
       }
       setLoading(true);
-      const exists = await emailHasAccount(email);
+      const exists = await unwrapAction(emailHasAccount)(email);
       setLoading(false);
       // false = definitely no account; null = could not check, so carry on to the password as before.
       if (exists === false) {
@@ -86,7 +88,7 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
     }
 
     setLoading(true);
-    const email = await resolveLoginEmail(normalized);
+    const email = await unwrapAction(resolveLoginEmail)(normalized);
     setPhone(normalized);
 
     if (!email) {

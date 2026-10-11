@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { markOrderRefunded } from "@/lib/actions/admin-orders";
@@ -17,11 +19,11 @@ export default function RefundOrderButton({ orderId }: { orderId: string }) {
     setError(null);
     startTransition(async () => {
       try {
-        await markOrderRefunded(orderId, reason.trim());
+        await unwrapAction(markOrderRefunded)(orderId, reason.trim());
         setOpen(false);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("admin.could_not_refund"));
+        setError(errorText(err, t("admin.could_not_refund")));
       }
     });
   }

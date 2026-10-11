@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { addToCart } from "@/lib/actions/cart";
@@ -54,7 +56,7 @@ export default function AddToCartForm({
     setMessage(null);
     startTransition(async () => {
       try {
-        const result = await addToCart(variantId, quantity, location ? { lat: location.lat, lng: location.lng } : undefined);
+        const result = await unwrapAction(addToCart)(variantId, quantity, location ? { lat: location.lat, lng: location.lng } : undefined);
         if (result.error) {
           setMessage(result.error);
           return;
@@ -62,7 +64,7 @@ export default function AddToCartForm({
         setMessage(t("product.added_to_cart"));
         notifyCartChanged();
       } catch (err) {
-        setMessage(err instanceof Error ? err.message : t("product.could_not_add"));
+        setMessage(errorText(err, t("product.could_not_add")));
       }
     });
   }

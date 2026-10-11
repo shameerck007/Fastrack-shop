@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -137,17 +139,17 @@ export default function TransferManager({
               {(t.status === "draft" || t.status === "in_transit") && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {t.status === "draft" && canSend(t) && (
-                    <button type="button" disabled={busy === t.id} onClick={() => act(t.id, () => sendStockTransfer(t.id))} className="rounded-full bg-blue-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
+                    <button type="button" disabled={busy === t.id} onClick={() => act(t.id, () => unwrapAction(sendStockTransfer)(t.id))} className="rounded-full bg-blue-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
                       Send now (stock leaves {t.fromName})
                     </button>
                   )}
                   {t.status === "in_transit" && canReceive(t) && (
-                    <button type="button" disabled={busy === t.id} onClick={() => act(t.id, () => receiveStockTransfer(t.id))} className="rounded-full bg-blue-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
+                    <button type="button" disabled={busy === t.id} onClick={() => act(t.id, () => unwrapAction(receiveStockTransfer)(t.id))} className="rounded-full bg-blue-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
                       Receive all at {t.toName}
                     </button>
                   )}
                   {canSend(t) && (
-                    <button type="button" disabled={busy === t.id} onClick={() => act(t.id, () => cancelStockTransfer(t.id))} className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-bold text-neutral-700 disabled:opacity-50">
+                    <button type="button" disabled={busy === t.id} onClick={() => act(t.id, () => unwrapAction(cancelStockTransfer)(t.id))} className="rounded-full border border-neutral-300 px-4 py-2 text-xs font-bold text-neutral-700 disabled:opacity-50">
                       Cancel{t.status === "in_transit" ? " (stock returns)" : ""}
                     </button>
                   )}
@@ -208,7 +210,7 @@ function NewTransfer({
   async function submit() {
     setSaving(true);
     setError(null);
-    const res = await createStockTransfer({
+    const res = await unwrapAction(createStockTransfer)({
       fromId,
       toId,
       items: chosen.map(([variantId, v]) => ({ variantId, quantity: Number(v) })),

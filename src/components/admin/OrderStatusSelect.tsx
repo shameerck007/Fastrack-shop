@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateOrderStatus } from "@/lib/actions/admin-orders";
@@ -25,7 +27,7 @@ export default function OrderStatusSelect({ orderId, status }: { orderId: string
 
   function handleChange(next: OrderStatus) {
     startTransition(async () => {
-      await updateOrderStatus(orderId, next);
+      await unwrapAction(updateOrderStatus)(orderId, next);
       router.refresh();
     });
   }

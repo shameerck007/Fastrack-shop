@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { addReview } from "@/lib/actions/reviews";
@@ -37,12 +39,12 @@ export default function ReviewForm({
     setError(null);
     startTransition(async () => {
       try {
-        await addReview(productId, rating, comment);
+        await unwrapAction(addReview)(productId, rating, comment);
         setComment("");
         setSubmitted(true);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("reviews.could_not_submit"));
+        setError(errorText(err, t("reviews.could_not_submit")));
       }
     });
   }

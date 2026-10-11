@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -75,7 +77,7 @@ export default function MasterProductForm({
       taxRate: tax.trim() === "" ? null : Number(tax),
       variants,
     };
-    const res = existing ? await updateMasterProduct(existing.id, payload) : await createMasterProduct(payload);
+    const res = existing ? await unwrapAction(updateMasterProduct)(existing.id, payload) : await unwrapAction(createMasterProduct)(payload);
     setSaving(false);
     if (res.error) {
       setError(res.error);

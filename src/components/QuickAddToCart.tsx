@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { addToCart, updateCartItemQuantity } from "@/lib/actions/cart";
@@ -57,7 +59,7 @@ export default function QuickAddToCart({
     setOptimisticQty(Math.max(0, qty - 1));
     startTransition(async () => {
       try {
-        const res = await updateCartItemQuantity(line.id, qty - 1);
+        const res = await unwrapAction(updateCartItemQuantity)(line.id, qty - 1);
         if (res.error) {
           setOptimisticQty(null);
           setError(res.error);
@@ -113,7 +115,7 @@ export default function QuickAddToCart({
         }
 
         if (qty > 0) setOptimisticQty(qty + 1);
-        const result = await addToCart(variantId, 1, location ? { lat: location.lat, lng: location.lng } : undefined);
+        const result = await unwrapAction(addToCart)(variantId, 1, location ? { lat: location.lat, lng: location.lng } : undefined);
         if (result.error) {
           setOptimisticQty(null);
           if (result.error.toLowerCase().includes("logged in")) {
@@ -126,7 +128,7 @@ export default function QuickAddToCart({
         notifyCartChanged();
         setJustAdded(true);
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "";
+        const msg = errorText(err, "");
         if (msg.toLowerCase().includes("logged in")) {
           router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
         } else {

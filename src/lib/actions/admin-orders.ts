@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyOrderStatusChange, notifyUsers, notifyNearbyRidersOfNewOrder } from "@/lib/push";
@@ -12,6 +14,7 @@ import type { OrderStatus } from "@/types/database";
 // place to notify the customer without duplicating the push/email call at
 // each call site.
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
+  try {
   const supabase = await createClient();
 
   const { data: previous } = await supabase.from("orders").select("status").eq("id", orderId).maybeSingle();
@@ -31,6 +34,10 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 
   revalidatePath("/admin/orders");
   revalidatePath(`/orders/${orderId}`);
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 // A merchant or FasTrack warehouse's staff were already told a new order
@@ -100,6 +107,7 @@ async function restockCancelledOrder(orderId: string) {
 // transaction: admin marks the order as refunded (cash returned or waived
 // outside the app) and the customer gets notified on all three channels.
 export async function markOrderRefunded(orderId: string, reason: string) {
+  try {
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -110,7 +118,7 @@ export async function markOrderRefunded(orderId: string, reason: string) {
     .select("id")
     .maybeSingle();
   if (error) throw error;
-  if (!data) throw new Error("This order has no payment record, or was already refunded.");
+  if (!data) throw new UserError("This order has no payment record, or was already refunded.");
 
   revalidatePath("/admin/orders");
   revalidatePath(`/orders/${orderId}`);
@@ -124,9 +132,14 @@ export async function markOrderRefunded(orderId: string, reason: string) {
     });
   }
   await sendRefundEmail(orderId, reason);
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function assignRider(orderId: string, riderId: string) {
+  try {
   const supabase = await createClient();
 
   const { error } = await supabase.from("delivery_assignments").upsert(
@@ -136,4 +149,8 @@ export async function assignRider(orderId: string, riderId: string) {
   if (error) throw error;
 
   await updateOrderStatus(orderId, "rider_assigned");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

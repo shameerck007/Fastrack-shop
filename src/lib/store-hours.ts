@@ -1,3 +1,4 @@
+import { UserError } from "@/lib/errors";
 // Opening hours for supplier stores. Weekday keys are "0" (Sunday) .. "6"
 // (Saturday); times are 24h "HH:MM" on the market's clock (Riyadh time in Saudi Arabia, IST in India) (Saudi Arabia has no DST,
 // so this is a fixed UTC+3). A close time earlier than the open time means
@@ -50,19 +51,19 @@ const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 /** Server-side guard for hours coming from a form: returns a clean copy or throws. */
 export function sanitizeOpeningHours(input: unknown): Record<string, DayHours> | null {
   if (input == null) return null;
-  if (typeof input !== "object") throw new Error("Invalid opening hours.");
+  if (typeof input !== "object") throw new UserError("Invalid opening hours.");
   const out: Record<string, DayHours> = {};
   for (const key of DAY_KEYS) {
     const day = (input as Record<string, Partial<DayHours>>)[key];
-    if (!day) throw new Error("Opening hours must cover every day of the week.");
+    if (!day) throw new UserError("Opening hours must cover every day of the week.");
     const closed = !!day.closed;
     const raw: Shift[] = [{ open: String(day.open ?? ""), close: String(day.close ?? "") }];
     if (Array.isArray(day.more)) {
       for (const m of day.more) raw.push({ open: String(m?.open ?? ""), close: String(m?.close ?? "") });
     }
-    if (raw.length > MAX_SHIFTS_PER_DAY) throw new Error(`At most ${MAX_SHIFTS_PER_DAY} opening periods per day.`);
+    if (raw.length > MAX_SHIFTS_PER_DAY) throw new UserError(`At most ${MAX_SHIFTS_PER_DAY} opening periods per day.`);
     if (!closed && raw.some((r) => !TIME_RE.test(r.open) || !TIME_RE.test(r.close))) {
-      throw new Error("Opening and closing times must look like 09:00.");
+      throw new UserError("Opening and closing times must look like 09:00.");
     }
     out[key] = closed
       ? { closed: true, open: TIME_RE.test(raw[0].open) ? raw[0].open : "09:00", close: TIME_RE.test(raw[0].close) ? raw[0].close : "23:00" }

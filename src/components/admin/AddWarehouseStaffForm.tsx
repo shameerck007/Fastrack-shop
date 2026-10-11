@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -35,11 +37,11 @@ export default function AddWarehouseStaffForm({ warehouseId }: { warehouseId: st
     setError(null);
     startSearch(async () => {
       try {
-        const user = await findUserByEmailForWarehouse(email);
+        const user = await unwrapAction(findUserByEmailForWarehouse)(email);
         setFound(user);
         if (!user) setError(t("warehouse_staff.no_account"));
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("warehouse_staff.lookup_failed"));
+        setError(errorText(err, t("warehouse_staff.lookup_failed")));
       }
     });
   }
@@ -49,11 +51,11 @@ export default function AddWarehouseStaffForm({ warehouseId }: { warehouseId: st
     setError(null);
     startSave(async () => {
       try {
-        await adminAssignWarehouseStaff(warehouseId, found.id);
+        await unwrapAction(adminAssignWarehouseStaff)(warehouseId, found.id);
         close();
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("warehouse_staff.could_not_assign"));
+        setError(errorText(err, t("warehouse_staff.could_not_assign")));
       }
     });
   }

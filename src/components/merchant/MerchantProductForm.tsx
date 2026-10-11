@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import OrderLimitField from "@/components/admin/OrderLimitField";
 import TaxFields from "@/components/admin/TaxFields";
@@ -89,7 +91,7 @@ export default function MerchantProductForm({
     startTransition(async () => {
       try {
         if (existing && existingVariant) {
-          await updateMerchantProduct(existing.id, existingVariant.id, {
+          await unwrapAction(updateMerchantProduct)(existing.id, existingVariant.id, {
             categoryId,
             name,
             nameAr: nameAr || undefined,
@@ -111,7 +113,7 @@ export default function MerchantProductForm({
           });
           onDone?.();
         } else {
-          await createMerchantProduct({
+          await unwrapAction(createMerchantProduct)({
             categoryId,
             name,
             nameAr: nameAr || undefined,
@@ -137,7 +139,7 @@ export default function MerchantProductForm({
         }
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("product_form.could_not_save"));
+        setError(errorText(err, t("product_form.could_not_save")));
       }
     });
   }

@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { checkCrNumber, checkVatNumber } from "@/lib/saudi-tax";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { checkFssai, checkGstin, checkIndianBankDetails, checkPan, validateIndiaSupplier, type IndiaSupplierValue } from "@/lib/india-business";
@@ -41,6 +43,7 @@ async function finalizeApproval(
 }
 
 export async function approveStore(storeId: string) {
+  try {
   const supabase = await createClient();
 
   const { data: store, error: fetchError } = await supabase
@@ -49,7 +52,7 @@ export async function approveStore(storeId: string) {
     .eq("id", storeId)
     .maybeSingle();
   if (fetchError) throw fetchError;
-  if (!store) throw new Error("Store not found.");
+  if (!store) throw new UserError("Store not found.");
 
   await finalizeApproval(supabase, store);
   revalidatePath("/admin/merchants");
@@ -65,9 +68,14 @@ export async function approveStore(storeId: string) {
     `${store.name} has been approved. You can now add products and start selling.`,
     "/merchant"
   );
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function rejectStore(storeId: string, reason: string) {
+  try {
   const supabase = await createClient();
   const rejectionReason = reason || "Application did not meet requirements.";
   const { data: store, error } = await supabase
@@ -93,9 +101,14 @@ export async function rejectStore(storeId: string, reason: string) {
       "/sell"
     );
   }
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function suspendStore(storeId: string) {
+  try {
   const supabase = await createClient();
   const { data: store, error } = await supabase
     .from("stores")
@@ -119,9 +132,14 @@ export async function suspendStore(storeId: string) {
       "/merchant"
     );
   }
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function reinstateStore(storeId: string) {
+  try {
   const supabase = await createClient();
   const { data: store, error } = await supabase
     .from("stores")
@@ -145,6 +163,10 @@ export async function reinstateStore(storeId: string) {
       "/merchant"
     );
   }
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export interface FoundUser {
@@ -156,12 +178,17 @@ export interface FoundUser {
 
 /** Looks up an existing registered user by email — the admin picks who owns the store being added manually. */
 export async function findUserByEmail(email: string): Promise<FoundUser | null> {
+  try {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("admin_find_user_by_email", { p_email: email.trim() });
   if (error) throw error;
   const row = data?.[0];
-  if (!row) return null;
-  return { id: row.id, fullName: row.full_name, role: row.role, hasStore: row.has_store };
+  if (!row) return await null;
+  return await { id: row.id, fullName: row.full_name, role: row.role, hasStore: row.has_store };
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export interface AdminCreateMerchantInput {
@@ -179,15 +206,16 @@ export interface AdminCreateMerchantInput {
 
 /** Admin adding a merchant directly: skips the applicant flow and is approved immediately. */
 export async function adminCreateMerchant(input: AdminCreateMerchantInput) {
+  try {
   const supabase = await createClient();
   // The market being administered decides which business details apply.
   const isIndia = ((await getCurrentTenant())?.country_code ?? "SA") === "IN";
 
   let identity: Record<string, string | null>;
   if (isIndia) {
-    if (!input.india) throw new Error("Please fill in the GST, PAN and bank details.");
+    if (!input.india) throw new UserError("Please fill in the GST, PAN and bank details.");
     const problem = validateIndiaSupplier(input.india);
-    if (problem) throw new Error(problem);
+    if (problem) throw new UserError(problem);
     const bank = checkIndianBankDetails({
       bankName: input.india.bankName,
       accountNumber: input.india.accountNumber,
@@ -210,7 +238,7 @@ export async function adminCreateMerchant(input: AdminCreateMerchantInput) {
   } else {
     if ((input.country || "Saudi Arabia").trim().toLowerCase() === "saudi arabia") {
       const problem = checkCrNumber(input.crNumber).error ?? checkVatNumber(input.vatNumber ?? "").error;
-      if (problem) throw new Error(problem);
+      if (problem) throw new UserError(problem);
     }
     identity = {
       cr_number: input.crNumber,
@@ -225,7 +253,7 @@ export async function adminCreateMerchant(input: AdminCreateMerchantInput) {
     .select("id")
     .eq("owner_id", input.ownerId)
     .maybeSingle();
-  if (existing) throw new Error("This user already has a store.");
+  if (existing) throw new UserError("This user already has a store.");
 
   const { data: store, error: insertError } = await supabase
     .from("stores")
@@ -243,7 +271,11 @@ export async function adminCreateMerchant(input: AdminCreateMerchantInput) {
 
   await finalizeApproval(supabase, store);
   revalidatePath("/admin/merchants");
-  return store.id as string;
+  return await store.id as string;
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 /** Admin editing a shop's page on its behalf: logo, cover, tagline, opening
@@ -257,6 +289,7 @@ export async function adminUpdateStoreProfile(input: {
   openingHours: unknown;
   acceptingOrders: boolean;
 }) {
+  try {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("stores")
@@ -270,9 +303,13 @@ export async function adminUpdateStoreProfile(input: {
     .eq("id", input.storeId)
     .select("id");
   if (error) throw error;
-  if (!data || data.length === 0) throw new Error("Only admins can edit a shop's page.");
+  if (!data || data.length === 0) throw new UserError("Only admins can edit a shop's page.");
 
   revalidatePath(`/admin/merchants/${input.storeId}`);
   revalidatePath("/admin/merchants");
   revalidatePath(`/store/${input.storeId}`);
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

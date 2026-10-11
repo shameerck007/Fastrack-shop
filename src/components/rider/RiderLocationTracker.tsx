@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useEffect, useRef, useState } from "react";
 import { updateRiderLocation } from "@/lib/actions/rider-location";
 
@@ -20,7 +22,7 @@ export default function RiderLocationTracker() {
         const now = Date.now();
         if (now - lastSentAt.current < MIN_UPDATE_INTERVAL_MS) return;
         lastSentAt.current = now;
-        updateRiderLocation(pos.coords.latitude, pos.coords.longitude).catch(() => {
+        unwrapAction(updateRiderLocation)(pos.coords.latitude, pos.coords.longitude).catch(() => {
           // best-effort — a missed location update isn't worth surfacing to the rider
         });
       },

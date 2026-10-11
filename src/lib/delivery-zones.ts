@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { cache } from "react";
 import { parsePolygon, pointInPolygon, type LatLng } from "@/lib/geo-polygon";
 import { createClient } from "@/lib/supabase/server";
@@ -102,7 +103,7 @@ async function loadZonesImpl(): Promise<Map<string, WarehouseZone>> {
       .select("id, name, lat, lng, delivery_radius_km, is_active")
       .eq("is_active", true)) as unknown as { data: typeof data; error: typeof error });
   }
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return new Map(
     ((data ?? []) as unknown as Row[]).map((w) => [
       w.id,

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "@/components/Link";
@@ -116,10 +118,10 @@ export default function BusinessSettings({ settings }: { settings: CompanySettin
     const d = draft;
     if (!d.tradingName.trim()) return "Trading name is required.";
     if (open === "ordering") {
-      const res = await saveDefaultMaxOrderQty(Number(d.maxQty));
+      const res = await unwrapAction(saveDefaultMaxOrderQty)(Number(d.maxQty));
       if (res.error) return res.error;
     } else {
-      await updateCompanySettings({
+      await unwrapAction(updateCompanySettings)({
         tradingName: d.tradingName,
         crNumber: d.crNumber,
         vatNumber: d.vatNumber,

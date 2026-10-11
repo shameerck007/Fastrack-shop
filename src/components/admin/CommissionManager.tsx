@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -111,7 +113,7 @@ export default function CommissionManager({ categories, stores, rules, defaultRa
       )}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <DefaultRate defaultRate={defaultRate} disabled={disabled || pending} onSave={(r) => run(() => saveDefaultCommission(r), "Default rate saved.")} />
+        <DefaultRate defaultRate={defaultRate} disabled={disabled || pending} onSave={(r) => run(() => unwrapAction(saveDefaultCommission)(r), "Default rate saved.")} />
         <Stat label="Average category rate" value={`${Math.round(average * 10) / 10}%`} hint={`${rated.length} of ${categories.length} categories have a rate`} tone="text-blue-700" />
         <Stat label="Supplier exceptions" value={String(exceptions.length)} hint={exceptions.length ? "Override the category rate" : "None yet"} tone="text-amber-600" />
         <div className="col-span-2 rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm lg:col-span-1">
@@ -156,7 +158,7 @@ export default function CommissionManager({ categories, stores, rules, defaultRa
           disabled={disabled}
           pending={pending}
           onAdd={() => setAdding(true)}
-          onRemove={(id) => run(() => deleteCommissionRule(id), "Exception removed.")}
+          onRemove={(id) => run(() => unwrapAction(deleteCommissionRule)(id), "Exception removed.")}
         />
       )}
 
@@ -232,7 +234,7 @@ function CategoryRates({ categories, categoryRule, defaultRate, disabled, onSave
     const items = dirtyIds.map((id) => ({ categoryId: id, rate: drafts[id].trim() === "" ? null : Number(drafts[id]) }));
     if (items.some((i) => i.rate !== null && !(i.rate >= 0 && i.rate <= 100))) return onError("Every rate must be between 0 and 100.");
     start(async () => {
-      const res = await saveCategoryRates(items);
+      const res = await unwrapAction(saveCategoryRates)(items);
       if (res.error) onError(res.error);
       else {
         setDrafts({});
@@ -447,7 +449,7 @@ function Simulator({ stores, categories, disabled }: { stores: StoreOption[]; ca
         <Field label="Selling price">
           <input type="number" min={0} step="any" value={price} onChange={(e) => setPrice(e.target.value)} className={inputClass} />
         </Field>
-        <button type="button" disabled={disabled || pending || !storeId} onClick={() => start(async () => setResult(await previewCommission({ storeId, categoryId: categoryId || null, price: Number(price) })))} className={primaryButton}>
+        <button type="button" disabled={disabled || pending || !storeId} onClick={() => start(async () => setResult(await unwrapAction(previewCommission)({ storeId, categoryId: categoryId || null, price: Number(price) })))} className={primaryButton}>
           {pending ? "…" : "Check"}
         </button>
       </div>
@@ -523,7 +525,7 @@ function ExceptionModal({ stores, categories, onClose, onSaved }: { stores: Stor
             className={primaryButton}
             onClick={() =>
               start(async () => {
-                const res = await addCommissionException({ storeId, categoryId: categoryId || null, rate: Number(rate), startsOn, endsOn, note });
+                const res = await unwrapAction(addCommissionException)({ storeId, categoryId: categoryId || null, rate: Number(rate), startsOn, endsOn, note });
                 if (res.error) setError(res.error);
                 else onSaved();
               })

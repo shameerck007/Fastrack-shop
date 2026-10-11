@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { ProductWithVariants } from "@/types/database";
 
@@ -11,7 +12,7 @@ export async function getVariantStockMap(variantIds: string[]): Promise<Map<stri
     .select("variant_id, stock")
     .in("variant_id", variantIds);
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   for (const row of data ?? []) {
     map.set(row.variant_id, (map.get(row.variant_id) ?? 0) + Number(row.stock));
   }

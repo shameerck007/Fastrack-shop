@@ -1,5 +1,9 @@
 "use server";
 
+
+
+import { friendlyMessage, unwrapAction } from "@/lib/errors";
+import { UserError, failure } from "@/lib/errors";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -35,17 +39,17 @@ async function placeOrderOrThrow(input: {
   // No payment gateway is wired up yet — the checkout UI only offers Cash
   // on Delivery, but enforce it here too rather than trusting the client.
   if (input.paymentMethod !== "cash_on_delivery") {
-    throw new Error("Only Cash on Delivery is available right now.");
+    throw new UserError("Only Cash on Delivery is available right now.");
   }
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
   const items = await getCartItems();
-  if (items.length === 0) throw new Error("Your cart is empty.");
+  if (items.length === 0) throw new UserError("Your cart is empty.");
 
   // Re-validate stock at checkout time — the cart page only warns, this is
   // the actual gate. decrement_stock() below is the race-safe check for
@@ -55,14 +59,14 @@ async function placeOrderOrThrow(input: {
   const shortItems = items.filter((item) => item.quantity > (stockMap.get(item.variant_id) ?? 0));
   if (shortItems.length > 0) {
     const names = shortItems.map((item) => item.product_variants.products.name).join(", ");
-    throw new Error(`Not enough stock for: ${names}. Please update your cart.`);
+    throw new UserError(`Not enough stock for: ${names}. Please update your cart.`);
   }
 
   // A product can carry a limit on how many one order may hold (per size); checked here as well as when adding to the cart.
   const overLimit = items.filter((item) => item.product_variants.products.max_order_qty != null && item.quantity > (item.product_variants.products.max_order_qty as number));
   if (overLimit.length > 0) {
     const list = overLimit.map((item) => `${item.product_variants.products.name} (up to ${item.product_variants.products.max_order_qty})`).join(", ");
-    throw new Error(`Some items are over the limit for one order: ${list}. Please lower the quantity in your cart.`);
+    throw new UserError(`Some items are over the limit for one order: ${list}. Please lower the quantity in your cart.`);
   }
 
   // Product prices are VAT-inclusive (what's shown in the catalog is what
@@ -77,7 +81,7 @@ async function placeOrderOrThrow(input: {
   const lineTotals = items.map((item) => Math.round(item.quantity * item.product_variants.price * 100) / 100);
   const offerCode = input.offerCode?.trim() || null;
   const quote = await quoteForCart(offerCode, items);
-  if (offerCode && !quote.ok) throw new Error(OFFER_REASON_EN[quote.reason ?? "invalid"] ?? OFFER_REASON_EN.invalid);
+  if (offerCode && !quote.ok) throw new UserError(OFFER_REASON_EN[quote.reason ?? "invalid"] ?? OFFER_REASON_EN.invalid);
   const applied = quote.ok ? quote : null;
   const lineDiscount = applied?.lineDiscount ?? lineTotals.map(() => 0);
   // The tax inside a line is on what the customer pays for it, after the discount.
@@ -96,7 +100,7 @@ async function placeOrderOrThrow(input: {
     .eq("id", input.addressId)
     .maybeSingle();
   if (!stateInServiceArea(orderTenant?.country_code, (chosenAddress as { state?: string | null } | null)?.state)) {
-    throw new Error(SERVICE_AREA_MESSAGE);
+    throw new UserError(SERVICE_AREA_MESSAGE);
   }
   const coords = chosenAddress ? { lat: chosenAddress.lat, lng: chosenAddress.lng } : null;
 
@@ -126,7 +130,7 @@ async function placeOrderOrThrow(input: {
   const itemWarehouseIds = items.map((item) => {
     const warehouseId = warehouseByProduct.get(item.product_variants.products.id) ?? null;
     if (!warehouseId) {
-      throw new Error(`${item.product_variants.products.name} isn't available from its seller right now.`);
+      throw new UserError(`${item.product_variants.products.name} isn't available from its seller right now.`);
     }
     return warehouseId;
   });
@@ -135,7 +139,7 @@ async function placeOrderOrThrow(input: {
   const deliverability = await checkProductsDeliverable(productRefs, coords, needs);
   const blocked = [...deliverability.values()].filter((d) => d.message);
   if (blocked.length > 0) {
-    throw new Error(
+    throw new UserError(
       `We can't deliver some items to this address: ${blocked.map((d) => d.message).join(" ")} Please remove them or choose another address.`
     );
   }
@@ -164,14 +168,14 @@ async function placeOrderOrThrow(input: {
   for (const [key, idxs] of groups) {
     const m = methodsOfItems(idxs);
     if (input.deliveryType === "scheduled") {
-      if (!m.standard) throw new Error("Scheduled delivery isn't available for part of your cart at this address. Choose delivery as soon as possible or another address.");
+      if (!m.standard) throw new UserError("Scheduled delivery isn't available for part of your cart at this address. Choose delivery as soon as possible or another address.");
       typeByGroup.set(key, "scheduled");
     } else if (m.express) {
       typeByGroup.set(key, "express");
     } else if (m.standard) {
       typeByGroup.set(key, "standard");
     } else {
-      throw new Error("We can't deliver part of your cart to this address. Please remove those items or choose another address.");
+      throw new UserError("We can't deliver part of your cart to this address. Please remove those items or choose another address.");
     }
   }
 
@@ -235,7 +239,7 @@ async function placeOrderOrThrow(input: {
         const { error: stockError } = await supabase.rpc("decrement_stock", { p_variant_id: item.variant_id, p_warehouse_id: itemWarehouseIds[i], p_qty: item.quantity });
         if (stockError) {
           await restoreStock();
-          throw new Error(`${item.product_variants.products.name} has just sold out. Please remove it from your cart (or lower the quantity) and try again.`);
+          throw new UserError(`${item.product_variants.products.name} has just sold out. Please remove it from your cart (or lower the quantity) and try again.`);
         }
         reserved.push({ variantId: item.variant_id, warehouseId: itemWarehouseIds[i], qty: item.quantity });
       }
@@ -342,9 +346,9 @@ async function placeOrderOrThrow(input: {
   } catch (err) {
     const digest = (err as { digest?: string } | null)?.digest;
     if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) throw err;
-    const message = err instanceof Error ? err.message : "Could not place your order.";
+    const message = friendlyMessage(err, "Could not place your order.");
     if (placedIds.length > 0) {
-      throw new Error(`${placedIds.length} of your ${groups.size} orders were placed (see My orders). The rest is still in your cart: ${message}`);
+      throw new UserError(`${placedIds.length} of your ${groups.size} orders were placed (see My orders). The rest is still in your cart: ${message}`);
     }
     throw err;
   }
@@ -360,24 +364,25 @@ async function placeOrderOrThrow(input: {
  * so the UI can say "2 of 3 items added" instead of silently dropping
  * items or hard-failing on the first problem. */
 export async function reorderItems(orderId: string) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
   const { data: order } = await supabase
     .from("orders")
     .select("id, user_id, order_items(variant_id, ordered_quantity)")
     .eq("id", orderId)
     .maybeSingle();
-  if (!order || order.user_id !== user.id) throw new Error("Order not found.");
+  if (!order || order.user_id !== user.id) throw new UserError("Order not found.");
 
   let added = 0;
   let skipped = 0;
   for (const item of order.order_items as { variant_id: string; ordered_quantity: number }[]) {
     try {
-      const result = await addToCart(item.variant_id, item.ordered_quantity);
+      const result = await unwrapAction(addToCart)(item.variant_id, item.ordered_quantity);
       if (result.error) skipped++;
       else added++;
     } catch {
@@ -386,7 +391,11 @@ export async function reorderItems(orderId: string) {
   }
 
   revalidatePath("/cart");
-  return { added, skipped };
+  return await { added, skipped };
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 /** Same reason as addToCart: expected refusals (closed shop, no stock, outside
@@ -394,11 +403,16 @@ export async function reorderItems(orderId: string) {
  * production. On success placeOrderOrThrow redirects, which must propagate. */
 export async function placeOrder(input: Parameters<typeof placeOrderOrThrow>[0]): Promise<{ error: string }> {
   try {
+  try {
     await placeOrderOrThrow(input);
-    return { error: "" };
+    return await { error: "" };
   } catch (err) {
     const digest = (err as { digest?: string } | null)?.digest;
     if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) throw err;
-    return { error: err instanceof Error ? err.message : "Could not place your order." };
+    return await { error: friendlyMessage(err, "Could not place your order.")};
+  }
+
+  } catch (e) {
+    return failure(e) as never;
   }
 }

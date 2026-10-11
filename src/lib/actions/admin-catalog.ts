@@ -1,5 +1,9 @@
 "use server";
 
+
+
+import { friendlyMessage } from "@/lib/errors";
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyUsers } from "@/lib/push";
@@ -39,10 +43,10 @@ type Loose = {
 
 function clean(input: MasterProductInput) {
   const name = input.name.trim();
-  if (!name) throw new Error("Enter the product name.");
+  if (!name) throw new UserError("Enter the product name.");
   const variants = input.variants.filter((v) => v.label.trim());
-  if (variants.length === 0) throw new Error("Add at least one pack size, for example 1 L or 500 g.");
-  if (input.taxRate != null && !(input.taxRate >= 0 && input.taxRate <= 100)) throw new Error("Tax must be between 0 and 100.");
+  if (variants.length === 0) throw new UserError("Add at least one pack size, for example 1 L or 500 g.");
+  if (input.taxRate != null && !(input.taxRate >= 0 && input.taxRate <= 100)) throw new UserError("Tax must be between 0 and 100.");
   return {
     row: {
       name,
@@ -84,29 +88,35 @@ function friendly(error: { message: string; code?: string }): string {
 
 export async function createMasterProduct(input: MasterProductInput): Promise<{ error?: string; id?: string }> {
   try {
+  try {
     const { row, variants } = clean(input);
     const supabase = (await createClient()) as unknown as Loose;
     const {
       data: { user },
     } = await (await createClient()).auth.getUser();
     const { data, error } = await supabase.from("master_products").insert({ ...row, status: "approved", created_by: user?.id ?? null }).select("id").single();
-    if (error || !data) return { error: friendly(error ?? { message: "Could not save the product." }) };
+    if (error || !data) return await { error: friendly(error ?? { message: "Could not save the product." }) };
     const { error: vError } = await supabase.from("master_variants").insert(variantRows(data.id, variants)) as unknown as { error: { message: string } | null };
-    if (vError) return { error: vError.message };
+    if (vError) return await { error: friendlyMessage(vError) };
     revalidatePath("/admin/catalog");
-    return { id: data.id };
+    return await { id: data.id };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Could not save the product." };
+    return await { error: friendlyMessage(e, "Could not save the product.")};
+  }
+
+  } catch (e) {
+    return failure(e) as never;
   }
 }
 
 /** Edits a master product. The shared details are pushed to every supplier's linked product so they never drift apart. */
 export async function updateMasterProduct(id: string, input: MasterProductInput): Promise<{ error?: string }> {
   try {
+  try {
     const { row, variants } = clean(input);
     const supabase = (await createClient()) as unknown as Loose;
     const { error } = await supabase.from("master_products").update(row).eq("id", id);
-    if (error) return { error: friendly(error) };
+    if (error) return await { error: friendly(error) };
 
     // Pack sizes: keep existing ones (matched by label) so suppliers' prices stay, add new ones, never delete a size that is sold.
     const real = await createClient();
@@ -143,9 +153,13 @@ export async function updateMasterProduct(id: string, input: MasterProductInput)
 
     revalidatePath("/admin/catalog");
     revalidatePath("/merchant/catalog");
-    return {};
+    return await {};
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Could not save the product." };
+    return await { error: friendlyMessage(e, "Could not save the product.")};
+  }
+
+  } catch (e) {
+    return failure(e) as never;
   }
 }
 
@@ -163,26 +177,36 @@ async function ownerOfRequest(masterId: string): Promise<{ ownerId: string | nul
 
 /** Approves a supplier's request: it joins the catalog and the supplier is told they can add it. */
 export async function approveMasterProduct(id: string): Promise<{ error?: string }> {
+  try {
   const supabase = (await createClient()) as unknown as Loose;
   const { error } = await supabase.from("master_products").update({ status: "approved", rejection_reason: null, updated_at: new Date().toISOString() }).eq("id", id);
-  if (error) return { error: friendly(error) };
+  if (error) return await { error: friendly(error) };
   const { ownerId, name } = await ownerOfRequest(id);
   if (ownerId) await notifyUsers([ownerId], { title: "Product approved", body: `${name} is now in the catalog. Add it to your store.`, url: "/merchant/catalog" });
   revalidatePath("/admin/catalog");
   revalidatePath("/merchant/catalog");
-  return {};
+  return await {};
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function rejectMasterProduct(id: string, reason: string): Promise<{ error?: string }> {
-  if (!reason.trim()) return { error: "Say why, so the supplier can fix the request." };
+  try {
+  if (!reason.trim()) return await { error: "Say why, so the supplier can fix the request." };
   const supabase = (await createClient()) as unknown as Loose;
   const { error } = await supabase.from("master_products").update({ status: "rejected", rejection_reason: reason.trim(), updated_at: new Date().toISOString() }).eq("id", id);
-  if (error) return { error: friendly(error) };
+  if (error) return await { error: friendly(error) };
   const { ownerId, name } = await ownerOfRequest(id);
   if (ownerId) await notifyUsers([ownerId], { title: "Product request declined", body: `${name}: ${reason.trim()}`, url: "/merchant/catalog" });
   revalidatePath("/admin/catalog");
   revalidatePath("/merchant/catalog");
-  return {};
+  return await {};
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 /**
@@ -191,6 +215,7 @@ export async function rejectMasterProduct(id: string, reason: string): Promise<{
  * Safe to run again: products that are already linked are skipped.
  */
 export async function buildCatalogFromProducts(): Promise<{ error?: string; created?: number; linked?: number }> {
+  try {
   try {
     const real = await createClient();
     const loose = real as unknown as {
@@ -203,7 +228,7 @@ export async function buildCatalogFromProducts(): Promise<{ error?: string; crea
       .select("id, store_id, name, name_ar, brand, brand_ar, description, description_ar, category_id, image_url, barcode, hsn_code, tax_rate, product_variants(id, label, label_ar, unit, quantity)")
       .is("master_id", null)
       .limit(5000);
-    if (error) return { error: friendly(error) };
+    if (error) return await { error: friendly(error) };
     type P = {
       id: string;
       store_id: string | null;
@@ -273,9 +298,13 @@ export async function buildCatalogFromProducts(): Promise<{ error?: string; crea
       }
     }
     revalidatePath("/admin/catalog");
-    return { created, linked };
+    return await { created, linked };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Could not build the catalog." };
+    return await { error: friendlyMessage(e, "Could not build the catalog.")};
+  }
+
+  } catch (e) {
+    return failure(e) as never;
   }
 }
 
@@ -292,10 +321,11 @@ export interface FastrackOfferInput {
  */
 export async function addMasterToFastrack(masterId: string, warehouseId: string, offers: FastrackOfferInput[], maxOrderQty?: number): Promise<{ error?: string }> {
   try {
-    if (maxOrderQty !== undefined && !(Number.isInteger(maxOrderQty) && maxOrderQty >= 1)) return { error: "The maximum order quantity must be a whole number of 1 or more." };
+  try {
+    if (maxOrderQty !== undefined && !(Number.isInteger(maxOrderQty) && maxOrderQty >= 1)) return await { error: "The maximum order quantity must be a whole number of 1 or more." };
     const chosen = offers.filter((o) => o.price > 0);
-    if (chosen.length === 0) return { error: "Enter a price for at least one pack size." };
-    if (!warehouseId) return { error: "Choose the FasTrack location that holds the stock." };
+    if (chosen.length === 0) return await { error: "Enter a price for at least one pack size." };
+    if (!warehouseId) return await { error: "Choose the FasTrack location that holds the stock." };
     const supabase = await createClient();
     const loose = supabase as unknown as {
       from: (t: string) => {
@@ -303,7 +333,7 @@ export async function addMasterToFastrack(masterId: string, warehouseId: string,
       };
     };
     const { data: already } = await loose.from("products").select("id").eq("master_id", masterId).is("store_id", null).limit(1);
-    if ((already ?? []).length > 0) return { error: "FasTrack already sells this product." };
+    if ((already ?? []).length > 0) return await { error: "FasTrack already sells this product." };
     const { data: m } = await loose
       .from("master_products")
       .select("id, name, name_ar, brand, brand_ar, description, description_ar, category_id, image_url, barcode, hsn_code, tax_rate, status, master_variants(id, label, label_ar, unit, quantity, is_default)")
@@ -314,7 +344,7 @@ export async function addMasterToFastrack(masterId: string, warehouseId: string,
       category_id: string | null; image_url: string | null; barcode: string | null; hsn_code: string | null; tax_rate: number | null; status: string;
       master_variants: { id: string; label: string; label_ar: string | null; unit: string; quantity: number; is_default: boolean }[];
     } | null;
-    if (!master || master.status !== "approved") return { error: "This product is not in the catalog." };
+    if (!master || master.status !== "approved") return await { error: "This product is not in the catalog." };
 
     const { data: product, error: pErr } = await supabase
       .from("products")
@@ -325,7 +355,7 @@ export async function addMasterToFastrack(masterId: string, warehouseId: string,
       } as never)
       .select("id")
       .single();
-    if (pErr) return { error: pErr.message };
+    if (pErr) return await { error: friendlyMessage(pErr) };
 
     // FasTrack's own locations = warehouses no supplier owns.
     const { data: stores } = await supabase.from("stores").select("warehouse_id");
@@ -347,16 +377,20 @@ export async function addMasterToFastrack(masterId: string, warehouseId: string,
         } as never)
         .select("id")
         .single();
-      if (vErr) return { error: vErr.message };
+      if (vErr) return await { error: friendlyMessage(vErr) };
       const { error: iErr } = await supabase
         .from("inventory")
         .insert(ownWarehouseIds.map((wid) => ({ variant_id: variant.id, warehouse_id: wid, stock: wid === warehouseId ? Math.max(0, o.stock || 0) : 0 })));
-      if (iErr) return { error: iErr.message };
+      if (iErr) return await { error: friendlyMessage(iErr) };
     }
     revalidatePath("/admin/products");
     revalidatePath("/admin/catalog");
-    return {};
+    return await {};
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Could not add this product." };
+    return await { error: friendlyMessage(e, "Could not add this product.")};
+  }
+
+  } catch (e) {
+    return failure(e) as never;
   }
 }

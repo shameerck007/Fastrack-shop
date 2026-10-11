@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { validatePhone } from "@/lib/countries";
 import { checkSaudiIban, IBAN_PROBLEM_MESSAGES } from "@/lib/iban";
 import { checkBankDetails } from "@/lib/saudi-banks";
@@ -45,45 +47,46 @@ export interface RiderApplicationInput {
 }
 
 export async function applyAsRider(input: RiderApplicationInput) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
-  if (!input.fullName.trim()) throw new Error("Enter your full name.");
+  if (!input.fullName.trim()) throw new UserError("Enter your full name.");
   const phoneCheck = { ...validatePhone(input.phone.trim()), value: input.phone.trim() };
-  if (!phoneCheck.ok) throw new Error(phoneCheck.error ?? "Enter a valid mobile number.");
+  if (!phoneCheck.ok) throw new UserError(phoneCheck.error ?? "Enter a valid mobile number.");
   const country = (await getCurrentTenant())?.country_code ?? "SA";
   const isIndia = country === "IN";
   if (isIndia ? !["aadhaar", "pan"].includes(input.idType) : !["national_id", "iqama"].includes(input.idType)) {
-    throw new Error("Choose a valid ID type for your country.");
+    throw new UserError("Choose a valid ID type for your country.");
   }
   const idCheck = checkIdNumber(input.idType, input.idNumber);
-  if (!idCheck.ok) throw new Error(idCheck.error ?? "Check the ID number.");
+  if (!idCheck.ok) throw new UserError(idCheck.error ?? "Check the ID number.");
   const ageProblem = checkAdult(input.dateOfBirth);
-  if (ageProblem) throw new Error(ageProblem);
-  if (!input.idFrontPath || (input.idType !== "pan" && !input.idBackPath)) throw new Error("Upload the front and back of your ID.");
-  if (!input.selfiePath) throw new Error("Upload a selfie.");
+  if (ageProblem) throw new UserError(ageProblem);
+  if (!input.idFrontPath || (input.idType !== "pan" && !input.idBackPath)) throw new UserError("Upload the front and back of your ID.");
+  if (!input.selfiePath) throw new UserError("Upload a selfie.");
   if (isIndia) {
     const licence = checkIndianLicence(input.licenseNumber);
-    if (!licence.ok) throw new Error(licence.error ?? "Check the driving licence number.");
-  } else if (!input.licenseNumber.trim()) throw new Error("Enter your driving licence number.");
+    if (!licence.ok) throw new UserError(licence.error ?? "Check the driving licence number.");
+  } else if (!input.licenseNumber.trim()) throw new UserError("Enter your driving licence number.");
   const licenseProblem = checkNotExpired(input.licenseExpiry, "driving licence");
-  if (licenseProblem) throw new Error(licenseProblem);
-  if (!input.licenseDocumentPath) throw new Error("Please upload a photo of your driver's license.");
+  if (licenseProblem) throw new UserError(licenseProblem);
+  if (!input.licenseDocumentPath) throw new UserError("Please upload a photo of your driver's license.");
 
   if (needsVehicleDocs(input.vehicleType)) {
     const plateProblem = isIndia ? checkIndianPlate(input.vehiclePlate ?? "") : checkPlate(input.vehiclePlate ?? "");
-    if (plateProblem) throw new Error(plateProblem);
-    if (!input.registrationPath) throw new Error("Upload the vehicle registration (Istimara).");
+    if (plateProblem) throw new UserError(plateProblem);
+    if (!input.registrationPath) throw new UserError("Upload the vehicle registration (Istimara).");
     const regProblem = checkNotExpired(input.registrationExpiry ?? "", "vehicle registration");
-    if (regProblem) throw new Error(regProblem);
+    if (regProblem) throw new UserError(regProblem);
   }
 
   const emergencyPhone = validatePhone(input.emergencyContactPhone.trim());
   if (!input.emergencyContactName.trim() || !emergencyPhone.ok) {
-    throw new Error("Enter an emergency contact name and a valid mobile number.");
+    throw new UserError("Enter an emergency contact name and a valid mobile number.");
   }
 
   let bankName: string | null = null;
@@ -98,7 +101,7 @@ export async function applyAsRider(input: RiderApplicationInput) {
       ifsc: input.bankIfsc ?? "",
       holder: input.bankAccountHolder ?? "",
     });
-    if (!bank.ok) throw new Error(bank.error ?? "Check the bank details.");
+    if (!bank.ok) throw new UserError(bank.error ?? "Check the bank details.");
     bankName = input.bankName!.trim();
     bankHolder = input.bankAccountHolder!.trim();
     bankAccountNumber = bank.accountNumber;
@@ -106,15 +109,15 @@ export async function applyAsRider(input: RiderApplicationInput) {
   }
   if (input.payoutMethod === "bank" && !isIndia) {
     const ibanShape = checkSaudiIban(input.bankIban ?? "");
-    if (!ibanShape.ok) throw new Error(IBAN_PROBLEM_MESSAGES[ibanShape.problem!]);
+    if (!ibanShape.ok) throw new UserError(IBAN_PROBLEM_MESSAGES[ibanShape.problem!]);
     const bankCheck = checkBankDetails(input.bankName?.trim() ?? "", input.bankIban ?? "");
-    if (!bankCheck.ok) throw new Error(bankCheck.error ?? "Check the bank details.");
-    if (!input.bankAccountHolder?.trim()) throw new Error("Enter the account holder name.");
+    if (!bankCheck.ok) throw new UserError(bankCheck.error ?? "Check the bank details.");
+    if (!input.bankAccountHolder?.trim()) throw new UserError("Enter the account holder name.");
     bankName = input.bankName!.trim();
     bankIban = bankCheck.iban;
     bankHolder = input.bankAccountHolder.trim();
   }
-  if (!input.acceptedTerms) throw new Error("Please accept the rider terms to continue.");
+  if (!input.acceptedTerms) throw new UserError("Please accept the rider terms to continue.");
 
   // Keep the profile's own name/phone in sync — riders never got a separate
   // profile-edit page, so the application form doubles as one.
@@ -170,7 +173,7 @@ export async function applyAsRider(input: RiderApplicationInput) {
 
   if (error) {
     if (error.code === "23505") {
-      throw new Error("You've already submitted a rider application.");
+      throw new UserError("You've already submitted a rider application.");
     }
     throw error;
   }
@@ -187,4 +190,8 @@ export async function applyAsRider(input: RiderApplicationInput) {
     `${input.fullName.trim()} applied to ride for FasTrack.`,
     "/admin/riders"
   );
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

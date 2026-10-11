@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -146,7 +148,7 @@ export function PinModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose:
             onClick={() =>
               start(async () => {
                 if (!pos) return;
-                const res = await setWarehouseLocation(row.id, pos.lat, pos.lng);
+                const res = await unwrapAction(setWarehouseLocation)(row.id, pos.lat, pos.lng);
                 if (res.error) setError(res.error);
                 else onSaved();
               })
@@ -186,7 +188,7 @@ export function RuleModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose
             className={primaryButton}
             onClick={() =>
               start(async () => {
-                const res = await setWarehouseExpressOverride(row.id, mode, null);
+                const res = await unwrapAction(setWarehouseExpressOverride)(row.id, mode, null);
                 if (res.error) setError(res.error);
                 else onSaved();
               })

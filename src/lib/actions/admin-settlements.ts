@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,7 +15,8 @@ export interface RecordPayoutInput {
 
 /** Admin marks a payout as made to a merchant — RLS ("admins manage settlement payouts") is the real authorization boundary. */
 export async function recordSettlementPayout(input: RecordPayoutInput) {
-  if (!(input.amount > 0)) throw new Error("Enter a payout amount greater than zero.");
+  try {
+  if (!(input.amount > 0)) throw new UserError("Enter a payout amount greater than zero.");
 
   const supabase = await createClient();
   const {
@@ -33,4 +36,8 @@ export async function recordSettlementPayout(input: RecordPayoutInput) {
   revalidatePath("/admin/settlements");
   revalidatePath(`/admin/settlements/${input.storeId}`);
   revalidatePath("/merchant/settlements");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 
 export interface NotificationRow {
@@ -21,7 +22,7 @@ export async function getMyNotifications(limit = 20): Promise<NotificationRow[]>
     .select("id, title, body, url, read_at, created_at")
     .order("created_at", { ascending: false })
     .limit(limit);
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data ?? [];
 }
 
@@ -36,6 +37,6 @@ export async function getUnreadNotificationCount(): Promise<number> {
     .from("notifications")
     .select("id", { count: "exact", head: true })
     .is("read_at", null);
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return count ?? 0;
 }

@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { AddressLabel } from "@/types/database";
@@ -49,16 +51,16 @@ function toRow(input: AddressInput) {
 async function assertAddressValid(input: AddressInput) {
   const country = (await getCurrentTenant())?.country_code ?? "SA";
   if (country === "IN") {
-    if (!input.city?.trim()) throw new Error("Enter the town or city.");
-    if (!input.state || !isIndianState(input.state)) throw new Error("Choose the state.");
-    if (!stateInServiceArea(country, input.state)) throw new Error(SERVICE_AREA_MESSAGE);
+    if (!input.city?.trim()) throw new UserError("Enter the town or city.");
+    if (!input.state || !isIndianState(input.state)) throw new UserError("Choose the state.");
+    if (!stateInServiceArea(country, input.state)) throw new UserError(SERVICE_AREA_MESSAGE);
     const pin = checkPinCode(input.postalCode ?? "");
-    if (!pin.ok) throw new Error(pin.error ?? "Check the PIN code.");
-    if (!pinMatchesState(input.state, pin.value)) throw new Error(`That PIN code doesn't look like a ${input.state} PIN code.`);
+    if (!pin.ok) throw new UserError(pin.error ?? "Check the PIN code.");
+    if (!pinMatchesState(input.state, pin.value)) throw new UserError(`That PIN code doesn't look like a ${input.state} PIN code.`);
   }
   if (input.receiverPhone) {
     const phone = validatePhone(input.receiverPhone);
-    if (!phone.ok) throw new Error(phone.error ?? "Enter a valid mobile number.");
+    if (!phone.ok) throw new UserError(phone.error ?? "Enter a valid mobile number.");
   }
 }
 
@@ -70,11 +72,12 @@ function withoutNewColumns<T extends { state?: unknown; landmark?: unknown }>(ro
 
 
 export async function addAddress(input: AddressInput) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
   await assertAddressValid(input);
   let { data, error } = await supabase
@@ -95,10 +98,15 @@ export async function addAddress(input: AddressInput) {
   if (error || !data) throw error ?? new Error("Could not save the address.");
   revalidatePath("/checkout");
   revalidatePath("/addresses");
-  return data.id as string;
+  return await data.id as string;
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function updateAddress(addressId: string, input: AddressInput) {
+  try {
   const supabase = await createClient();
   await assertAddressValid(input);
   let { error } = await supabase.from("addresses").update(toRow(input)).eq("id", addressId);
@@ -108,22 +116,32 @@ export async function updateAddress(addressId: string, input: AddressInput) {
   if (error) throw error;
   revalidatePath("/checkout");
   revalidatePath("/addresses");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function deleteAddress(addressId: string) {
+  try {
   const supabase = await createClient();
   const { error } = await supabase.from("addresses").delete().eq("id", addressId);
   if (error) throw error;
   revalidatePath("/checkout");
   revalidatePath("/addresses");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function setDefaultAddress(addressId: string) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
   // Clear any existing default first — RLS scopes this to the caller's own
   // rows, so it can't touch other users' addresses.
@@ -141,4 +159,8 @@ export async function setDefaultAddress(addressId: string) {
   if (error) throw error;
   revalidatePath("/checkout");
   revalidatePath("/addresses");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

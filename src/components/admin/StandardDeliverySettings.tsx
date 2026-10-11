@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateWarehouseStandardDelivery } from "@/lib/actions/admin-zones";
@@ -30,7 +32,7 @@ export default function StandardDeliverySettings({
   const [days, setDays] = useState(String(initialDays));
 
   async function save(): Promise<string | void> {
-    const res = await updateWarehouseStandardDelivery(warehouseId, {
+    const res = await unwrapAction(updateWarehouseStandardDelivery)(warehouseId, {
       enabled,
       radiusKm: enabled && limit && radius.trim() ? Number(radius) : null,
       days: Number(days),

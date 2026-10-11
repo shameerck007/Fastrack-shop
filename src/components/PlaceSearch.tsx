@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText } from "@/lib/errors";
 import { useEffect, useRef, useState } from "react";
 import { searchPlaces, type PlaceResult } from "@/lib/map-config";
 import { useLocale } from "@/components/LocaleProvider";
@@ -39,7 +41,7 @@ export default function PlaceSearch({
           if (r.length === 0) setError(t("common.no_places_found"));
         }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : t("common.search_failed"));
+        if (!cancelled) setError(errorText(err, t("common.search_failed")));
       } finally {
         if (!cancelled) setLoading(false);
       }

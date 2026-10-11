@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { applyAsRider } from "@/lib/actions/rider-application";
@@ -165,7 +167,7 @@ export default function RiderApplicationForm() {
     setError(null);
     startTransition(async () => {
       try {
-        await applyAsRider({
+        await unwrapAction(applyAsRider)({
           fullName,
           phone,
           city,
@@ -198,7 +200,7 @@ export default function RiderApplicationForm() {
         });
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("become_rider.could_not_submit"));
+        setError(errorText(err, t("become_rider.could_not_submit")));
       }
     });
   }

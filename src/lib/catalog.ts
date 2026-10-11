@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getNotLiveStoreIds, liveProductsFilter } from "@/lib/store-live";
@@ -14,7 +15,7 @@ export async function getCategories(): Promise<Category[]> {
     .is("parent_id", null)
     .order("sort_order", { ascending: true });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data ?? [];
 }
 
@@ -26,7 +27,7 @@ export async function getSubcategories(parentId: string): Promise<Category[]> {
     .eq("parent_id", parentId)
     .order("sort_order", { ascending: true });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data ?? [];
 }
 
@@ -40,7 +41,7 @@ export interface CategoryWithChildren extends Category {
 async function getCategoriesWithChildrenImpl(): Promise<CategoryWithChildren[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("categories").select("*").order("sort_order", { ascending: true });
-  if (error) throw error;
+  if (error) throw toUserError(error);
 
   const all = (data ?? []) as Category[];
   const topLevel = all.filter((c) => !c.parent_id);
@@ -62,7 +63,7 @@ export async function getFeaturedProducts(limit = 8): Promise<ProductWithVariant
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as ProductWithVariants[]) ?? [];
 }
 
@@ -77,7 +78,7 @@ export async function getFreshTodayProducts(limit = 8): Promise<ProductWithVaria
     .eq("is_fresh", true)
     .limit(limit);
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as ProductWithVariants[]) ?? [];
 }
 
@@ -94,7 +95,7 @@ export async function getOfferProducts(limit = 8): Promise<ProductWithVariants[]
     .not("product_variants.compare_at_price", "is", null)
     .limit(limit);
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as ProductWithVariants[]) ?? [];
 }
 
@@ -134,7 +135,7 @@ export async function getProductsByCategory(slug: string): Promise<{
     .or(live)
     .eq("is_active", true);
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return { category, subcategories, parent, products: (products as ProductWithVariants[]) ?? [] };
 }
 
@@ -146,7 +147,7 @@ export async function getProductById(id: string): Promise<ProductWithVariants | 
     .eq("id", id)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   const product = (data as ProductWithVariants) ?? null;
   // A supplier's products stay hidden until an admin sets its delivery area.
   if (product?.store_id && (await getNotLiveStoreIds()).includes(product.store_id)) return null;
@@ -167,7 +168,7 @@ export async function getApprovedStoreById(storeId: string): Promise<PublicStore
     .rpc("public_store_profile", { target_store_id: storeId })
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as PublicStoreProfile | null) ?? null;
 }
 
@@ -181,7 +182,7 @@ export async function getStoreProducts(storeId: string): Promise<ProductWithVari
     .eq("is_active", true)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as ProductWithVariants[]) ?? [];
 }
 
@@ -199,7 +200,7 @@ export async function searchProducts(query: string): Promise<ProductWithVariants
     .eq("is_active", true)
     .or(`name.ilike.%${safe}%,name_ar.ilike.%${safe}%,brand.ilike.%${safe}%`);
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as ProductWithVariants[]) ?? [];
 }
 

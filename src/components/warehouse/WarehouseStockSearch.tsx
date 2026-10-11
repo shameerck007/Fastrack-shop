@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useMemo, useState } from "react";
 import StockCell from "@/components/admin/StockCell";
 import { updateWarehouseStock } from "@/lib/actions/warehouse-staff";
@@ -130,7 +132,7 @@ export default function WarehouseStockSearch({ stock, locale }: { stock: Warehou
                   inventoryId={row.inventoryId}
                   stock={row.stock}
                   minStock={row.minStock}
-                  updateAction={updateWarehouseStock}
+                  updateAction={unwrapAction(updateWarehouseStock)}
                 />
               </div>
             ))}

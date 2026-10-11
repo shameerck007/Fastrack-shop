@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
@@ -7,9 +9,10 @@ import { createClient } from "@/lib/supabase/server";
 // no new migration needed. A FasTrack-owned location is just a warehouses
 // row nothing in `stores` points at (see getFastrackWarehouses).
 export async function adminCreateFastrackWarehouse(input: { name: string; addressLine?: string }) {
+  try {
   const supabase = await createClient();
 
-  if (!input.name.trim()) throw new Error("A name is required.");
+  if (!input.name.trim()) throw new UserError("A name is required.");
 
   const { data, error } = await supabase
     .from("warehouses")
@@ -40,14 +43,23 @@ export async function adminCreateFastrackWarehouse(input: { name: string; addres
 
   revalidatePath("/admin/store");
   revalidatePath("/admin/zones");
-  return data.id as string;
+  return await data.id as string;
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function adminSetWarehouseActive(warehouseId: string, isActive: boolean) {
+  try {
   const supabase = await createClient();
   const { error } = await supabase.from("warehouses").update({ is_active: isActive }).eq("id", warehouseId);
   if (error) throw error;
 
   revalidatePath("/admin/store");
   revalidatePath("/admin/zones");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

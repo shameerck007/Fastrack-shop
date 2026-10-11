@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
@@ -9,14 +11,15 @@ import { createClient } from "@/lib/supabase/server";
 // on their own row, including `role`; the safety boundary here is entirely
 // this action never accepting or passing through a role field, not RLS.
 export async function updateProfile(input: { fullName: string; phone?: string }) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
   const fullName = input.fullName.trim();
-  if (!fullName) throw new Error("Name is required.");
+  if (!fullName) throw new UserError("Name is required.");
 
   const phone = input.phone?.trim() || null;
   if (phone) {
@@ -24,7 +27,7 @@ export async function updateProfile(input: { fullName: string; phone?: string })
       target_phone: phone,
       exclude_user_id: user.id,
     });
-    if (taken) throw new Error("This mobile number is already registered to another account.");
+    if (taken) throw new UserError("This mobile number is already registered to another account.");
   }
 
   const { error } = await supabase
@@ -35,16 +38,25 @@ export async function updateProfile(input: { fullName: string; phone?: string })
 
   revalidatePath("/account");
   revalidatePath("/account/security");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function updatePassword(newPassword: string) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
-  if (newPassword.length < 8) throw new Error("Password must be at least 8 characters.");
+  if (!user) throw new UserError("You must be logged in.");
+  if (newPassword.length < 8) throw new UserError("Password must be at least 8 characters.");
 
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) throw error;
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

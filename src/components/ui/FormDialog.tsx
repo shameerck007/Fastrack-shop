@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import Modal from "@/components/Modal";
 import { primaryButton, secondaryButton } from "@/components/ui/Form";
@@ -38,7 +40,7 @@ export default function FormDialog({
         if (typeof res === "string" && res) setError(res);
         else onClose();
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not save. Please try again.");
+        setError(errorText(e, "Could not save. Please try again."));
       }
     });
   }

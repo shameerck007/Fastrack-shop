@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText } from "@/lib/errors";
 import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -48,7 +50,7 @@ export default function DocumentUploader({
       setFileName(file.name);
       onChange(path);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
+      setError(errorText(err, "Upload failed."));
     } finally {
       setUploading(false);
     }

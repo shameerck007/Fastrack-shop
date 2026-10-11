@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { sendOrderMessage } from "@/lib/actions/order-messages";
@@ -63,9 +65,9 @@ export default function OrderChat({
     setDraft("");
     startTransition(async () => {
       try {
-        await sendOrderMessage(orderId, body);
+        await unwrapAction(sendOrderMessage)(orderId, body);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not send message.");
+        setError(errorText(err, "Could not send message."));
       }
     });
   }

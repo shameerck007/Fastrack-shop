@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -39,17 +41,17 @@ export default function AddRiderForm() {
     setError(null);
     startSearch(async () => {
       try {
-        const user = await findUserByEmail(email);
+        const user = await unwrapAction(findUserByEmail)(email);
         setFound(user);
         if (!user) {
           setError(t("add_rider.no_account"));
           return;
         }
-        const already = await isAlreadyRider(user.id);
+        const already = await unwrapAction(isAlreadyRider)(user.id);
         setAlreadyRider(already);
         if (already) setError(t("add_rider.already_a_rider"));
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("add_rider.lookup_failed"));
+        setError(errorText(err, t("add_rider.lookup_failed")));
       }
     });
   }
@@ -63,7 +65,7 @@ export default function AddRiderForm() {
     setError(null);
     startSave(async () => {
       try {
-        const riderId = await adminCreateRider({
+        const riderId = await unwrapAction(adminCreateRider)({
           userId: found.id,
           vehicleType,
           licenseNumber: licenseNumber.trim(),
@@ -71,7 +73,7 @@ export default function AddRiderForm() {
         close();
         router.push(`/admin/riders/${riderId}`);
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("add_rider.could_not_create"));
+        setError(errorText(err, t("add_rider.could_not_create")));
       }
     });
   }

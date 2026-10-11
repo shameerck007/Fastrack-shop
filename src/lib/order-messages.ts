@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { OrderMessage } from "@/types/database";
 
@@ -9,6 +10,6 @@ export async function getOrderMessages(orderId: string): Promise<OrderMessage[]>
     .eq("order_id", orderId)
     .order("created_at", { ascending: true });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data ?? [];
 }

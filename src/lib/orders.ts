@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { createClient } from "@/lib/supabase/server";
 import type { DeliveryType, Order, OrderItem, OrderStatus, OrderStatusHistory, ProductWithVariants } from "@/types/database";
@@ -68,7 +69,7 @@ export async function getMyOrders(): Promise<OrderListItem[]> {
     .eq("country_code", country)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as unknown as OrderListItem[]) ?? [];
 }
 
@@ -94,7 +95,7 @@ export async function getBuyAgainProducts(limit = 10): Promise<ProductWithVarian
     .in("order_id", orderIds)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
 
   const seen = new Set<string>();
   const products: ProductWithVariants[] = [];
@@ -119,7 +120,7 @@ export async function getOrderDetail(orderId: string): Promise<OrderDetail | nul
     .eq("id", orderId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data as unknown as OrderDetail | null;
 }
 
@@ -156,7 +157,7 @@ export async function getInvoiceData(orderId: string): Promise<InvoiceData | nul
     .eq("id", orderId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data as InvoiceData | null;
 }
 
@@ -213,7 +214,7 @@ export async function getLabelData(orderId: string): Promise<LabelData | null> {
     .eq("id", orderId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data as unknown as LabelData | null;
 }
 
@@ -233,6 +234,6 @@ export async function getMyOrderRating(orderId: string): Promise<OrderRating | n
     .eq("order_id", orderId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data;
 }

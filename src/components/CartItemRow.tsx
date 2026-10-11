@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "@/components/Link";
@@ -44,7 +46,7 @@ export default function CartItemRow({
     else setOptimisticQty(quantity);
     startTransition(async () => {
       try {
-        const res = await updateCartItemQuantity(item.id, quantity);
+        const res = await unwrapAction(updateCartItemQuantity)(item.id, quantity);
         if (res.error) {
           setRemoved(false);
           setOptimisticQty(null);
@@ -56,7 +58,7 @@ export default function CartItemRow({
       } catch (err) {
         setRemoved(false);
         setOptimisticQty(null);
-        setError(err instanceof Error ? err.message : t("cart.could_not_update_quantity"));
+        setError(errorText(err, t("cart.could_not_update_quantity")));
       }
     });
   }
@@ -65,7 +67,7 @@ export default function CartItemRow({
     setRemoved(true);
     startTransition(async () => {
       try {
-        await removeCartItem(item.id);
+        await unwrapAction(removeCartItem)(item.id);
         notifyCartChanged();
         refreshSoon(() => router.refresh());
       } catch {

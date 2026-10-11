@@ -1,5 +1,7 @@
 "use server";
 
+
+import { failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,6 +29,7 @@ export async function createProduct(input: {
   stock: number;
   warehouseId: string;
 }) {
+  try {
   const supabase = await createClient();
 
   const { data: product, error: productError } = await supabase
@@ -73,6 +76,10 @@ export async function createProduct(input: {
   if (inventoryError) throw inventoryError;
 
   revalidatePath("/admin/products");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function updateProduct(
@@ -99,6 +106,7 @@ export async function updateProduct(
     quantity?: number;
   }
 ) {
+  try {
   const supabase = await createClient();
 
   const { error: productError } = await supabase
@@ -134,16 +142,26 @@ export async function updateProduct(
   if (variantError) throw variantError;
 
   revalidatePath("/admin/products");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function updateProductStock(inventoryId: string, stock: number) {
+  try {
   const supabase = await createClient();
   const { error } = await supabase.from("inventory").update({ stock }).eq("id", inventoryId);
   if (error) throw error;
   revalidatePath("/admin/products");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function toggleProductActive(productId: string, isActive: boolean) {
+  try {
   const supabase = await createClient();
   const { error } = await supabase
     .from("products")
@@ -151,4 +169,8 @@ export async function toggleProductActive(productId: string, isActive: boolean) 
     .eq("id", productId);
   if (error) throw error;
   revalidatePath("/admin/products");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

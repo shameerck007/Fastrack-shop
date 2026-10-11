@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { reorderItems } from "@/lib/actions/orders";
@@ -29,7 +31,7 @@ export default function BuyItAgainButton({
     setMessage(null);
     startTransition(async () => {
       try {
-        const { added, skipped } = await reorderItems(orderId);
+        const { added, skipped } = await unwrapAction(reorderItems)(orderId);
         if (added === 0) {
           setMessage(t("orders.reorder_none_added"));
         } else if (skipped === 0) {

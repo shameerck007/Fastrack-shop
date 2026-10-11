@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import TaxIdInput from "@/components/TaxIdInput";
 import { checkCrNumber, checkVatNumber } from "@/lib/saudi-tax";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
@@ -60,12 +62,12 @@ export default function AddMerchantForm() {
     setError(null);
     startSearch(async () => {
       try {
-        const user = await findUserByEmail(email);
+        const user = await unwrapAction(findUserByEmail)(email);
         setFound(user);
         if (!user) setError(t("add_merchant.no_account"));
         else if (user.hasStore) setError(t("add_merchant.already_has_store"));
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("add_merchant.lookup_failed"));
+        setError(errorText(err, t("add_merchant.lookup_failed")));
       }
     });
   }
@@ -95,7 +97,7 @@ export default function AddMerchantForm() {
     setError(null);
     startSave(async () => {
       try {
-        const storeId = await adminCreateMerchant({
+        const storeId = await unwrapAction(adminCreateMerchant)({
           ownerId: found.id,
           name: name.trim(),
           crNumber: crNumber.trim(),
@@ -109,7 +111,7 @@ export default function AddMerchantForm() {
         close();
         router.push(`/admin/merchants/${storeId}`);
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("add_merchant.could_not_create"));
+        setError(errorText(err, t("add_merchant.could_not_create")));
       }
     });
   }

@@ -1,5 +1,9 @@
 "use server";
 
+
+
+import { friendlyMessage } from "@/lib/errors";
+import { failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyUsers } from "@/lib/push";
@@ -32,8 +36,9 @@ export async function createStockTransfer(input: {
   note?: string;
   sendNow: boolean;
 }): Promise<{ error?: string }> {
+  try {
   const items = input.items.filter((i) => i.quantity > 0);
-  if (items.length === 0) return { error: "Add at least one product with a quantity." };
+  if (items.length === 0) return await { error: "Add at least one product with a quantity." };
   const supabase = (await createClient()) as unknown as Rpc;
   const { data, error } = await supabase.rpc("create_stock_transfer", {
     p_from: input.fromId,
@@ -41,19 +46,24 @@ export async function createStockTransfer(input: {
     p_items: items.map((i) => ({ variant_id: i.variantId, quantity: i.quantity })),
     p_note: input.note ?? null,
   });
-  if (error) return { error: friendly(error) };
+  if (error) return await { error: friendly(error) };
   if (input.sendNow) {
     const sent = await sendStockTransfer(data as string);
-    if (sent.error) return sent;
+    if (sent.error) return await sent;
   }
   refresh();
-  return {};
+  return await {};
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function sendStockTransfer(id: string): Promise<{ error?: string }> {
+  try {
   const supabase = (await createClient()) as unknown as Rpc;
   const { error } = await supabase.rpc("send_stock_transfer", { p_id: id });
-  if (error) return { error: friendly(error) };
+  if (error) return await { error: friendly(error) };
   // Tell the receiving location it is on its way.
   const real = await createClient();
   const { data: t } = await (real as unknown as { from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { transfer_number: string; to_warehouse_id: string } | null }> } } } })
@@ -63,36 +73,55 @@ export async function sendStockTransfer(id: string): Promise<{ error?: string }>
     .maybeSingle();
   if (t) await notifyUsers(await staffOf(t.to_warehouse_id), { title: "Stock on its way", body: `Transfer ${t.transfer_number} is coming to your location. Receive it when it arrives.`, url: "/warehouse/transfers" });
   refresh();
-  return {};
+  return await {};
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function receiveStockTransfer(id: string, received?: Record<string, number>): Promise<{ error?: string }> {
+  try {
   const supabase = (await createClient()) as unknown as Rpc;
   const { error } = await supabase.rpc("receive_stock_transfer", { p_id: id, p_received: received ?? null });
-  if (error) return { error: friendly(error) };
+  if (error) return await { error: friendly(error) };
   refresh();
-  return {};
+  return await {};
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function cancelStockTransfer(id: string): Promise<{ error?: string }> {
+  try {
   const supabase = (await createClient()) as unknown as Rpc;
   const { error } = await supabase.rpc("cancel_stock_transfer", { p_id: id });
-  if (error) return { error: friendly(error) };
+  if (error) return await { error: friendly(error) };
   refresh();
-  return {};
+  return await {};
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 /** A delivery from a supplier arrives: add it to a location's stock, with optional batch and expiry. */
 export async function receiveStock(inventoryId: string, quantity: number, batch?: string, expiry?: string): Promise<{ error?: string }> {
-  if (!(quantity > 0)) return { error: "Enter the quantity received." };
+  try {
+  if (!(quantity > 0)) return await { error: "Enter the quantity received." };
   const supabase = await createClient();
   const { data: row } = await supabase.from("inventory").select("stock").eq("id", inventoryId).maybeSingle();
-  if (!row) return { error: "Could not find this stock line." };
+  if (!row) return await { error: "Could not find this stock line." };
   const { error } = await supabase
     .from("inventory")
     .update({ stock: Number(row.stock) + quantity, ...(batch?.trim() ? { batch_number: batch.trim() } : {}), ...(expiry ? { expiry_date: expiry } : {}), updated_at: new Date().toISOString() })
     .eq("id", inventoryId);
-  if (error) return { error: error.message };
+  if (error) return await { error: friendlyMessage(error) };
   refresh();
-  return {};
+  return await {};
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

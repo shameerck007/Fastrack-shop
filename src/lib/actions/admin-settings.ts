@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,25 +33,26 @@ export async function updateCompanySettings(input: {
   riderDailyTarget?: number | null;
   riderDailyBonus?: number;
 }) {
+  try {
   const { riderDailyTarget, riderDailyBonus } = input;
-  if (riderDailyTarget != null && !(Number.isInteger(riderDailyTarget) && riderDailyTarget >= 1 && riderDailyTarget <= 200)) throw new Error("The daily target must be a whole number of deliveries, 1 to 200.");
-  if (riderDailyBonus != null && !(riderDailyBonus >= 0 && riderDailyBonus <= 10000)) throw new Error("The daily bonus must be between 0 and 10,000.");
+  if (riderDailyTarget != null && !(Number.isInteger(riderDailyTarget) && riderDailyTarget >= 1 && riderDailyTarget <= 200)) throw new UserError("The daily target must be a whole number of deliveries, 1 to 200.");
+  if (riderDailyBonus != null && !(riderDailyBonus >= 0 && riderDailyBonus <= 10000)) throw new UserError("The daily bonus must be between 0 and 10,000.");
   const { riderPayBase, riderPayPerKm } = input;
-  if (riderPayBase != null && !(riderPayBase >= 0 && riderPayBase <= 10000)) throw new Error("Rider pay per delivery must be between 0 and 10,000.");
-  if (riderPayPerKm != null && !(riderPayPerKm >= 0 && riderPayPerKm <= 1000)) throw new Error("Rider pay per km must be between 0 and 1,000.");
+  if (riderPayBase != null && !(riderPayBase >= 0 && riderPayBase <= 10000)) throw new UserError("Rider pay per delivery must be between 0 and 10,000.");
+  if (riderPayPerKm != null && !(riderPayPerKm >= 0 && riderPayPerKm <= 1000)) throw new UserError("Rider pay per km must be between 0 and 1,000.");
   const { prepMinutes, riderSpeedKmh, etaBufferMinutes, expressAutoDispatch, expressRiderRadiusKm, expressOfferSeconds } = input;
-  if (expressRiderRadiusKm != null && !(expressRiderRadiusKm > 0 && expressRiderRadiusKm <= 200)) throw new Error("The Express rider distance must be between 0.5 and 200 km.");
-  if (expressOfferSeconds != null && !(expressOfferSeconds >= 10 && expressOfferSeconds <= 300)) throw new Error("The offer time must be between 10 and 300 seconds.");
-  if (prepMinutes != null && !(prepMinutes >= 0 && prepMinutes <= 120)) throw new Error("Preparation time must be between 0 and 120 minutes.");
-  if (riderSpeedKmh != null && !(riderSpeedKmh >= 5 && riderSpeedKmh <= 80)) throw new Error("Rider speed must be between 5 and 80 km/h.");
-  if (etaBufferMinutes != null && !(etaBufferMinutes >= 0 && etaBufferMinutes <= 60)) throw new Error("The extra minutes must be between 0 and 60.");
+  if (expressRiderRadiusKm != null && !(expressRiderRadiusKm > 0 && expressRiderRadiusKm <= 200)) throw new UserError("The Express rider distance must be between 0.5 and 200 km.");
+  if (expressOfferSeconds != null && !(expressOfferSeconds >= 10 && expressOfferSeconds <= 300)) throw new UserError("The offer time must be between 10 and 300 seconds.");
+  if (prepMinutes != null && !(prepMinutes >= 0 && prepMinutes <= 120)) throw new UserError("Preparation time must be between 0 and 120 minutes.");
+  if (riderSpeedKmh != null && !(riderSpeedKmh >= 5 && riderSpeedKmh <= 80)) throw new UserError("Rider speed must be between 5 and 80 km/h.");
+  if (etaBufferMinutes != null && !(etaBufferMinutes >= 0 && etaBufferMinutes <= 60)) throw new UserError("The extra minutes must be between 0 and 60.");
   const radius = input.riderPickupRadiusKm;
-  if (radius != null && !(radius >= 1 && radius <= 200)) throw new Error("The rider pickup distance must be between 1 and 200 km.");
+  if (radius != null && !(radius >= 1 && radius <= 200)) throw new UserError("The rider pickup distance must be between 1 and 200 km.");
   const supabase = await createClient();
 
-  if (!input.tradingName.trim()) throw new Error("Trading name is required.");
+  if (!input.tradingName.trim()) throw new UserError("Trading name is required.");
   const { data: tenantId } = await supabase.rpc("current_tenant_id" as never);
-  if (!tenantId) throw new Error("Could not work out which market these settings belong to.");
+  if (!tenantId) throw new UserError("Could not work out which market these settings belong to.");
 
   // Ensured by RLS ("admins manage company settings") too — this just
   // surfaces a clear error instead of a silent no-op for a non-admin.
@@ -98,4 +101,8 @@ export async function updateCompanySettings(input: {
   if (error) throw error;
 
   revalidatePath("/admin/settings");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

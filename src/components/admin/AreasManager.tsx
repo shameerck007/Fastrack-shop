@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -68,7 +70,7 @@ export default function AreasManager({ areas }: { areas: AreaCard[] }) {
   function remove(a: AreaCard) {
     if (!window.confirm(`Delete the zone "${a.name}"? Shops and customers inside it stop being covered unless another zone covers them.`)) return;
     startTransition(async () => {
-      const res = await deleteDeliveryArea(a.id);
+      const res = await unwrapAction(deleteDeliveryArea)(a.id);
       setMessage(res.error ?? null);
       router.refresh();
     });
@@ -199,7 +201,7 @@ function AreaEditorModal({ initial, onClose, onSaved }: { initial: Partial<AreaC
             initialPolygon={initial.polygon ?? null}
             saveLabel={initial.id ? "Save zone" : "Create zone"}
             onSave={async (zone) => {
-              const res = await saveDeliveryArea({
+              const res = await unwrapAction(saveDeliveryArea)({
                 id: initial.id,
                 name,
                 nameAr,

@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { approveStore, rejectStore } from "@/lib/actions/admin-merchants";
@@ -15,10 +17,10 @@ export default function StoreApprovalActions({ storeId }: { storeId: string }) {
     setError(null);
     startTransition(async () => {
       try {
-        await approveStore(storeId);
+        await unwrapAction(approveStore)(storeId);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not approve store.");
+        setError(errorText(err, "Could not approve store."));
       }
     });
   }
@@ -27,10 +29,10 @@ export default function StoreApprovalActions({ storeId }: { storeId: string }) {
     setError(null);
     startTransition(async () => {
       try {
-        await rejectStore(storeId, reason);
+        await unwrapAction(rejectStore)(storeId, reason);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not reject store.");
+        setError(errorText(err, "Could not reject store."));
       }
     });
   }

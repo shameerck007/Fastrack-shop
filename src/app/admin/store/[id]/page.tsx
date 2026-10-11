@@ -1,3 +1,4 @@
+import { unwrapAction } from "@/lib/errors";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
 import { getFastrackStoreAnalytics } from "@/lib/fastrack-store";
@@ -67,7 +68,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
 
   if (!analytics.warehouse) notFound();
   const w = analytics.warehouse;
-  const staff = await getWarehouseStaffList(w.id);
+  const staff = await unwrapAction(getWarehouseStaffList)(w.id);
   const location = await getShopLocation(w.id);
 
   const orderedStatusCounts = STATUS_ORDER.map((status) => ({

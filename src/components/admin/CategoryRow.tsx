@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteCategory } from "@/lib/actions/admin-categories";
@@ -60,10 +62,10 @@ export default function CategoryRow({
             startTransition(async () => {
               if (!confirm(t("category_form.confirm_delete", { name: category.name }))) return;
               try {
-                await deleteCategory(category.id);
+                await unwrapAction(deleteCategory)(category.id);
                 router.refresh();
               } catch (err) {
-                setError(err instanceof Error ? err.message : t("category_form.could_not_delete"));
+                setError(errorText(err, t("category_form.could_not_delete")));
               }
             })
           }

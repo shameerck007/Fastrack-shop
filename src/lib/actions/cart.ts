@@ -1,5 +1,9 @@
 "use server";
 
+
+
+import { friendlyMessage } from "@/lib/errors";
+import { UserError, failure } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import { getVariantStock } from "@/lib/inventory";
 import { checkProductsDeliverable, getCustomerLocation } from "@/lib/delivery-zones";
@@ -22,10 +26,10 @@ async function getOrCreateCartId(): Promise<string> {
       data: { user },
     } = await supabase.auth.getUser());
   } catch {
-    throw new Error("You must be logged in.");
+    throw new UserError("You must be logged in.");
   }
 
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
   const { data: existing } = await supabase
     .from("carts")
@@ -77,7 +81,7 @@ async function addToCartOrThrow(
     // address. Checkout re-checks against the actual delivery address.
     const where = location ?? (await getCustomerLocation());
     const result = (await checkProductsDeliverable([product], where)).get(product.id);
-    if (result?.message) throw new Error(result.message);
+    if (result?.message) throw new UserError(result.message);
   }
 
   const cartId = await getOrCreateCartId();
@@ -93,11 +97,11 @@ async function addToCartOrThrow(
   const limit = await maxQtyOfVariant(variantId);
   if (limit.max !== null && requestedTotal > limit.max) {
     const have = existing?.quantity ?? 0;
-    throw new Error(have >= limit.max ? `You've reached the limit of ${limit.max} per order for this item.` : `You can buy up to ${limit.max} of this item per order — you already have ${have} in your cart.`);
+    throw new UserError(have >= limit.max ? `You've reached the limit of ${limit.max} per order for this item.` : `You can buy up to ${limit.max} of this item per order — you already have ${have} in your cart.`);
   }
   const available = await getVariantStock(variantId);
   if (requestedTotal > available) {
-    throw new Error(
+    throw new UserError(
       available > 0
         ? `Only ${available} left in stock — you already have ${existing?.quantity ?? 0} in your cart.`
         : "This item is out of stock."
@@ -123,27 +127,37 @@ async function addToCartOrThrow(
 
 /** Returns { error } instead of throwing: in production a thrown message never reaches the shopper. */
 export async function updateCartItemQuantity(cartItemId: string, quantity: number): Promise<{ error?: string }> {
+  try {
   const supabase = await createClient();
 
   if (quantity <= 0) {
     const { error } = await supabase.from("cart_items").delete().eq("id", cartItemId);
-    return error ? { error: error.message } : {};
+    return await error ? { error: friendlyMessage(error) } : {};
   }
   const { data: item } = await supabase.from("cart_items").select("variant_id").eq("id", cartItemId).maybeSingle();
   if (item) {
     const limit = await maxQtyOfVariant(item.variant_id);
-    if (limit.max !== null && quantity > limit.max) return { error: `You can buy up to ${limit.max} of this item per order.` };
+    if (limit.max !== null && quantity > limit.max) return await { error: `You can buy up to ${limit.max} of this item per order.` };
     const available = await getVariantStock(item.variant_id);
-    if (quantity > available) return { error: `Only ${available} left in stock.` };
+    if (quantity > available) return await { error: `Only ${available} left in stock.` };
   }
   const { error } = await supabase.from("cart_items").update({ quantity }).eq("id", cartItemId);
-  return error ? { error: error.message } : {};
+  return await error ? { error: friendlyMessage(error) } : {};
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function removeCartItem(cartItemId: string) {
+  try {
   const supabase = await createClient();
   const { error } = await supabase.from("cart_items").delete().eq("id", cartItemId);
   if (error) throw error;
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 /** Why this returns a result instead of throwing: in production, Next.js
@@ -157,9 +171,14 @@ export async function addToCart(
   location?: { lat: number; lng: number }
 ): Promise<{ error?: string }> {
   try {
+  try {
     await addToCartOrThrow(variantId, quantity, location);
-    return {};
+    return await {};
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Could not add to cart." };
+    return await { error: friendlyMessage(err, "Could not add to cart.")};
+  }
+
+  } catch (e) {
+    return failure(e) as never;
   }
 }

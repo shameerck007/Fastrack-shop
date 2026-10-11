@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LocationPicker from "@/components/LocationPicker";
@@ -158,7 +160,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
     if (a.lat == null || a.lng == null) return;
     setLocation({ lat: a.lat, lng: a.lng, label: addressLabelText(a.label), addressId: a.id });
     // Keep the server-side default in step so add-to-cart checks agree.
-    setDefaultAddress(a.id).catch(() => {});
+    unwrapAction(setDefaultAddress)(a.id).catch(() => {});
   }
 
   async function pickSearchResult(place: PlaceResult) {

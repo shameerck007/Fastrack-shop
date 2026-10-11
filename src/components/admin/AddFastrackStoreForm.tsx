@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -30,11 +32,11 @@ export default function AddFastrackStoreForm() {
     setError(null);
     startSave(async () => {
       try {
-        const id = await adminCreateFastrackWarehouse({ name: name.trim(), addressLine: addressLine.trim() });
+        const id = await unwrapAction(adminCreateFastrackWarehouse)({ name: name.trim(), addressLine: addressLine.trim() });
         close();
         router.push(`/admin/store/${id}`);
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("fastrack_stores.could_not_create"));
+        setError(errorText(err, t("fastrack_stores.could_not_create")));
       }
     });
   }

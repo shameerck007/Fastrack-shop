@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { advanceMerchantOrderStatus } from "@/lib/actions/merchant-orders";
@@ -30,10 +32,10 @@ export default function MerchantOrderStatusAction({ orderId, status }: { orderId
     setError(null);
     startTransition(async () => {
       try {
-        await advanceMerchantOrderStatus(orderId, status);
+        await unwrapAction(advanceMerchantOrderStatus)(orderId, status);
         router.refresh();
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Something went wrong.");
+        setError(errorText(e, "Something went wrong."));
       }
     });
   }

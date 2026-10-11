@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import MasterProductForm from "@/components/admin/MasterProductForm";
@@ -67,7 +69,7 @@ export default function CatalogManager({
 
   async function approve(id: string) {
     setBusy(id);
-    const res = await approveMasterProduct(id);
+    const res = await unwrapAction(approveMasterProduct)(id);
     setBusy(null);
     if (res.error) setMessage(res.error);
     router.refresh();
@@ -78,7 +80,7 @@ export default function CatalogManager({
     const reason = window.prompt("Why is this request declined? The supplier will see this.");
     if (!reason) return;
     setBusy(id);
-    const res = await rejectMasterProduct(id, reason);
+    const res = await unwrapAction(rejectMasterProduct)(id, reason);
     setBusy(null);
     if (res.error) setMessage(res.error);
     router.refresh();
@@ -89,7 +91,7 @@ export default function CatalogManager({
     if (!window.confirm("Create catalog products from the products already on sale? Matching products (same barcode, or same name and brand) are grouped and linked. You can run this again later.")) return;
     setBusy("build");
     setMessage(null);
-    const res = await buildCatalogFromProducts();
+    const res = await unwrapAction(buildCatalogFromProducts)();
     setBusy(null);
     setMessage(res.error ?? `Done: ${res.created} catalog products created, ${res.linked} supplier and FasTrack products linked.`);
     router.refresh();
@@ -209,7 +211,7 @@ export default function CatalogManager({
               </label>
             ) : null
           }
-          onSubmit={(offers, maxQty) => addMasterToFastrack(selling.id, location, offers, maxQty)}
+          onSubmit={(offers, maxQty) => unwrapAction(addMasterToFastrack)(selling.id, location, offers, maxQty)}
           onClose={() => setSelling(null)}
           onDone={() => {
             setSelling(null);

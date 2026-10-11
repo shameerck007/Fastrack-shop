@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { updateProfile, updatePassword } from "@/lib/actions/profile";
 import { useLocale } from "@/components/LocaleProvider";
@@ -37,12 +39,12 @@ export default function AccountSecurityForm({
     }
     startProfileTransition(async () => {
       try {
-        await updateProfile({ fullName, phone });
+        await unwrapAction(updateProfile)({ fullName, phone });
         setProfileMessage({ ok: true, text: t("account_security.profile_updated") });
       } catch (err) {
         setProfileMessage({
           ok: false,
-          text: err instanceof Error ? err.message : t("account_security.could_not_update"),
+          text: errorText(err, t("account_security.could_not_update")),
         });
       }
     });
@@ -61,14 +63,14 @@ export default function AccountSecurityForm({
     }
     startPasswordTransition(async () => {
       try {
-        await updatePassword(newPassword);
+        await unwrapAction(updatePassword)(newPassword);
         setNewPassword("");
         setConfirmPassword("");
         setPasswordMessage({ ok: true, text: t("account_security.password_updated") });
       } catch (err) {
         setPasswordMessage({
           ok: false,
-          text: err instanceof Error ? err.message : t("account_security.could_not_update_password"),
+          text: errorText(err, t("account_security.could_not_update_password")),
         });
       }
     });

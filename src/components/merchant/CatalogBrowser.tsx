@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CatalogPager, CatalogSearch, useCatalogList } from "@/components/CatalogFilters";
@@ -56,7 +58,7 @@ export default function CatalogBrowser({
     const need = rows.map((p) => p.id).filter((id) => rates[id] === undefined);
     if (need.length === 0) return;
     let off = false;
-    getMyCommissionRates(need).then((r) => {
+    unwrapAction(getMyCommissionRates)(need).then((r) => {
       if (!off && Object.keys(r).length > 0) setRates((prev) => ({ ...prev, ...r }));
     });
     return () => {
@@ -143,7 +145,7 @@ export default function CatalogBrowser({
       {list.failed && <p className="rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-900">Could not load the list. Check your connection and try again.</p>}
       <CatalogPager page={list.state.page} pageSize={pageSize} total={list.total} busy={list.loading} onPage={(p) => list.update({ page: p })} />
 
-      {adding && <OfferModal product={adding} currency={currency} title={`Add ${adding.name}`} submitLabel="Add to my store" onSubmit={(offers, maxQty) => addMasterToStore(adding.id, offers, maxQty)} onClose={() => setAdding(null)} onDone={() => { setAdding(null); router.refresh(); list.reload(); }} />}
+      {adding && <OfferModal product={adding} currency={currency} title={`Add ${adding.name}`} submitLabel="Add to my store" onSubmit={(offers, maxQty) => unwrapAction(addMasterToStore)(adding.id, offers, maxQty)} onClose={() => setAdding(null)} onDone={() => { setAdding(null); router.refresh(); list.reload(); }} />}
       {requesting && <RequestModal categories={categories} onClose={() => setRequesting(false)} onDone={() => { setRequesting(false); router.refresh(); list.reload(); }} />}
     </div>
   );
@@ -165,7 +167,7 @@ function RequestModal({ categories, onClose, onDone }: { categories: Cat[]; onCl
     e.preventDefault();
     setSaving(true);
     setError(null);
-    const res = await requestMasterProduct({ name, nameAr, brand, description, categoryId: categoryId || null, imageUrl, barcode, variants: sizes });
+    const res = await unwrapAction(requestMasterProduct)({ name, nameAr, brand, description, categoryId: categoryId || null, imageUrl, barcode, variants: sizes });
     setSaving(false);
     if (res.error) {
       setError(res.error);

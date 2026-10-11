@@ -1,5 +1,7 @@
 "use server";
 
+
+import { failure } from "@/lib/errors";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SHOP_MODE_COOKIE } from "@/lib/landing";
@@ -7,10 +9,15 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export async function signOut() {
+  try {
   const supabase = await createClient();
   await supabase.auth.signOut();
   (await cookies()).delete(SHOP_MODE_COOKIE);
   redirect("/");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 /** Resolves a login identifier (email or phone) to the account's email, so
@@ -21,19 +28,24 @@ export async function signOut() {
  * failure alike, so the caller can show one generic invalid-credentials
  * message regardless of why it failed. */
 export async function resolveLoginEmail(identifier: string): Promise<string | null> {
+  try {
   const trimmed = identifier.trim();
-  if (!trimmed) return null;
-  if (trimmed.includes("@")) return trimmed;
+  if (!trimmed) return await null;
+  if (trimmed.includes("@")) return await trimmed;
 
   try {
     const supabase = createServiceClient();
     const { data: profile } = await supabase.from("profiles").select("id").eq("phone", trimmed).maybeSingle();
-    if (!profile) return null;
+    if (!profile) return await null;
 
     const { data } = await supabase.auth.admin.getUserById(profile.id);
-    return data.user?.email ?? null;
+    return await data.user?.email ?? null;
   } catch {
-    return null;
+    return await null;
+  }
+
+  } catch (e) {
+    return failure(e) as never;
   }
 }
 
@@ -43,25 +55,30 @@ export async function resolveLoginEmail(identifier: string): Promise<string | nu
  * the password step. Uses migration 0062's auth_email_exists() when present, else scans the user list.
  */
 export async function emailHasAccount(email: string): Promise<boolean | null> {
+  try {
   const wanted = email.trim().toLowerCase();
-  if (!wanted || !wanted.includes("@")) return null;
+  if (!wanted || !wanted.includes("@")) return await null;
   try {
     const supabase = createServiceClient();
     const rpc = await (supabase as unknown as { rpc: (fn: string, args: object) => Promise<{ data: unknown; error: { code?: string } | null }> }).rpc(
       "auth_email_exists",
       { target_email: wanted }
     );
-    if (!rpc.error) return rpc.data === true;
+    if (!rpc.error) return await rpc.data === true;
 
     // Function not installed yet: page through the users (fine at this size; the SQL function is the faster path).
     for (let page = 1; page <= 20; page++) {
       const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
-      if (error) return null;
-      if (data.users.some((u) => u.email?.toLowerCase() === wanted)) return true;
-      if (data.users.length < 1000) return false;
+      if (error) return await null;
+      if (data.users.some((u) => u.email?.toLowerCase() === wanted)) return await true;
+      if (data.users.length < 1000) return await false;
     }
-    return null;
+    return await null;
   } catch {
-    return null;
+    return await null;
+  }
+
+  } catch (e) {
+    return failure(e) as never;
   }
 }

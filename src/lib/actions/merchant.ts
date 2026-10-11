@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { checkCrNumber, checkVatNumber } from "@/lib/saudi-tax";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import {
@@ -40,23 +42,24 @@ export async function applyForStore(input: {
   tagline?: string;
   openingHours?: unknown;
 }) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
   const country = (await getCurrentTenant())?.country_code ?? "SA";
   const isIndia = country === "IN";
 
-  if (!input.name.trim()) throw new Error("Store name is required.");
+  if (!input.name.trim()) throw new UserError("Store name is required.");
   if (!input.crDocumentPath) {
-    throw new Error(isIndia ? "Please upload a copy of your GST registration certificate." : "Please upload a copy of your CR document.");
+    throw new UserError(isIndia ? "Please upload a copy of your GST registration certificate." : "Please upload a copy of your CR document.");
   }
 
   // Payouts go to this account, so it is re-checked here, not just in the form.
   const phoneCheck = validatePhone(input.contactPhone?.trim() ?? "");
-  if (!phoneCheck.ok) throw new Error(phoneCheck.error ?? "Enter a valid mobile number.");
+  if (!phoneCheck.ok) throw new UserError(phoneCheck.error ?? "Enter a valid mobile number.");
 
   let identity: {
     cr_number: string;
@@ -73,9 +76,9 @@ export async function applyForStore(input: {
   };
 
   if (isIndia) {
-    if (!input.india) throw new Error("Please fill in the GST, PAN and bank details.");
+    if (!input.india) throw new UserError("Please fill in the GST, PAN and bank details.");
     const problem = validateIndiaSupplier(input.india);
-    if (problem) throw new Error(problem);
+    if (problem) throw new UserError(problem);
     const gstin = checkGstin(input.india.gstin);
     const bank = checkIndianBankDetails({
       bankName: input.india.bankName,
@@ -98,15 +101,15 @@ export async function applyForStore(input: {
       bank_account_holder: input.india.accountHolder.trim(),
     };
   } else {
-    if (!input.crNumber.trim()) throw new Error("Store name and CR number are required.");
+    if (!input.crNumber.trim()) throw new UserError("Store name and CR number are required.");
     const crCheck = checkCrNumber(input.crNumber);
-    if (!crCheck.ok) throw new Error(crCheck.error ?? "Check the CR number.");
+    if (!crCheck.ok) throw new UserError(crCheck.error ?? "Check the CR number.");
     const vatCheck = checkVatNumber(input.vatNumber ?? "");
-    if (!vatCheck.ok) throw new Error(vatCheck.error ?? "Check the VAT number.");
+    if (!vatCheck.ok) throw new UserError(vatCheck.error ?? "Check the VAT number.");
     const ibanShape = checkSaudiIban(input.bankIban ?? "");
-    if (!ibanShape.ok) throw new Error(IBAN_PROBLEM_MESSAGES[ibanShape.problem!]);
+    if (!ibanShape.ok) throw new UserError(IBAN_PROBLEM_MESSAGES[ibanShape.problem!]);
     const bankCheck = checkBankDetails(input.bankName?.trim() ?? "", input.bankIban ?? "");
-    if (!bankCheck.ok) throw new Error(bankCheck.error ?? "Check the bank details.");
+    if (!bankCheck.ok) throw new UserError(bankCheck.error ?? "Check the bank details.");
     identity = {
       cr_number: crCheck.value,
       vat_number: vatCheck.value || null,
@@ -123,8 +126,8 @@ export async function applyForStore(input: {
   }
 
   const hasPin = typeof input.lat === "number" && typeof input.lng === "number" && Number.isFinite(input.lat) && Number.isFinite(input.lng);
-  if (!hasPin) throw new Error("Please mark your shop on the map.");
-  if (Math.abs(input.lat as number) > 90 || Math.abs(input.lng as number) > 180) throw new Error("That map location isn't valid.");
+  if (!hasPin) throw new UserError("Please mark your shop on the map.");
+  if (Math.abs(input.lat as number) > 90 || Math.abs(input.lng as number) > 180) throw new UserError("That map location isn't valid.");
 
   const row = {
     owner_id: user.id,
@@ -157,7 +160,7 @@ export async function applyForStore(input: {
 
   if (error) {
     if (error.code === "23505") {
-      throw new Error("You've already submitted a store application.");
+      throw new UserError("You've already submitted a store application.");
     }
     throw error;
   }
@@ -174,6 +177,10 @@ export async function applyForStore(input: {
     `${input.name.trim()} applied to sell on FasTrack.`,
     "/admin/merchants"
   );
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 /** Logo, cover, tagline, opening hours and the pause-orders switch — the
@@ -185,11 +192,12 @@ export async function updateStoreProfile(input: {
   openingHours: unknown;
   acceptingOrders: boolean;
 }) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
   const { error } = await supabase.rpc("update_own_store_profile", {
     p_logo_url: input.logoUrl,
@@ -202,4 +210,8 @@ export async function updateStoreProfile(input: {
 
   revalidatePath("/merchant");
   revalidatePath("/store");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

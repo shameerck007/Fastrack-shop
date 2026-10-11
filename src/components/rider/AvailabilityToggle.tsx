@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toggleAvailability } from "@/lib/actions/rider";
@@ -18,7 +20,7 @@ export default function AvailabilityToggle({
 
   function handleToggle() {
     startTransition(async () => {
-      await toggleAvailability(!isAvailable);
+      await unwrapAction(toggleAvailability)(!isAvailable);
       router.refresh();
     });
   }

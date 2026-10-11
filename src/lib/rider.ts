@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { distanceKm } from "@/lib/delivery-geo";
@@ -75,7 +76,7 @@ export async function getMyRiderApplication(): Promise<DeliveryPartner | null> {
   if (!user) return null;
 
   const { data, error } = await supabase.from("delivery_partners").select("*").eq("id", user.id).maybeSingle();
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data;
 }
 
@@ -90,7 +91,7 @@ export async function getAllRiders(): Promise<AdminRiderRow[]> {
     .from("delivery_partners")
     .select("*, profiles!inner(full_name, phone)")
     .order("created_at", { ascending: false });
-  if (error) throw error;
+  if (error) throw toUserError(error);
 
   return ((data ?? []) as unknown as (DeliveryPartner & { profiles: { full_name: string | null; phone: string | null } })[]).map(
     (row) => ({ ...row, full_name: row.profiles.full_name, phone: row.profiles.phone })
@@ -171,7 +172,7 @@ export async function getAvailableOrders(): Promise<AvailableOrdersResult> {
     orders = retry.data;
     error = retry.error;
   }
-  if (error) throw error;
+  if (error) throw toUserError(error);
   if (!orders || orders.length === 0) return { orders: [], hasLocation: true };
 
   const { data: counts } = await supabase
@@ -269,7 +270,7 @@ export async function getActiveDelivery(): Promise<ActiveDelivery | null> {
     .limit(1)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   // The select list is built at run time (rider_pay exists only after migration 0064), so type the row by hand.
   const data = raw as unknown as { rider_pay?: number | null; orders?: unknown } | null;
   if (!data?.orders) return null;
@@ -300,7 +301,7 @@ export async function getRiderTodayStats(): Promise<RiderTodayStats> {
     .eq("orders.status", "delivered")
     .gte("delivered_at", startOfToday.toISOString());
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
 
   const rows = (data ?? []) as unknown as { rider_pay: number | null; orders: { delivery_fee: number } }[];
   return {
@@ -332,7 +333,7 @@ export async function getRiderLifetimeStats(): Promise<RiderLifetimeStats | null
       .eq("orders.status", "delivered"),
     supabase.from("delivery_partners").select("rating, created_at").eq("id", user.id).maybeSingle(),
   ]);
-  if (error) throw error;
+  if (error) throw toUserError(error);
   if (!rider) return null;
 
   const rows = (deliveries ?? []) as unknown as { rider_pay: number | null; orders: { delivery_fee: number } }[];
@@ -369,7 +370,7 @@ export async function getWeeklyEarnings(): Promise<DayEarnings[]> {
     .eq("rider_id", user.id)
     .eq("orders.status", "delivered")
     .gte("delivered_at", start.toISOString());
-  if (error) throw error;
+  if (error) throw toUserError(error);
 
   const earns = (await getRiderPayProfile()).earnsPerDelivery;
   const rows = (data ?? []) as unknown as { delivered_at: string; rider_pay: number | null; orders: { delivery_fee: number } }[];

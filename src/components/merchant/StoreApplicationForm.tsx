@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { applyForStore } from "@/lib/actions/merchant";
@@ -92,7 +94,7 @@ export default function StoreApplicationForm() {
     }
     startTransition(async () => {
       try {
-        await applyForStore({
+        await unwrapAction(applyForStore)({
           name,
           crNumber,
           vatNumber,
@@ -112,7 +114,7 @@ export default function StoreApplicationForm() {
         });
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not submit your application.");
+        setError(errorText(err, "Could not submit your application."));
       }
     });
   }

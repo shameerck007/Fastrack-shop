@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useRef, useState, useTransition } from "react";
 import { MARKET_TOAST_KEY } from "@/components/MarketSwitchDialog";
 import { setMarket } from "@/lib/actions/tenant";
@@ -33,7 +35,7 @@ export default function MarketPill({
     setError(null);
     setSwitchingId(t.id);
     startTransition(async () => {
-      const res = await setMarket(t.id);
+      const res = await unwrapAction(setMarket)(t.id);
       if (res.error) {
         setError(res.error);
         setSwitchingId(null);

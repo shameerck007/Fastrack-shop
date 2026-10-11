@@ -1,16 +1,19 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 export async function addReview(productId: string, rating: number, comment: string) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in to write a review.");
+  if (!user) throw new UserError("You must be logged in to write a review.");
 
-  if (rating < 1 || rating > 5) throw new Error("Rating must be between 1 and 5.");
+  if (rating < 1 || rating > 5) throw new UserError("Rating must be between 1 and 5.");
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -28,4 +31,8 @@ export async function addReview(productId: string, rating: number, comment: stri
 
   if (error) throw error;
   revalidatePath(`/products/${productId}`);
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

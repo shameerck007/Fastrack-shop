@@ -1,5 +1,7 @@
 "use server";
 
+
+import { UserError, failure } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyOrderStatusChange, notifyNearbyRidersOfNewOrder } from "@/lib/push";
@@ -18,14 +20,15 @@ const ALLOWED_NEXT: Record<string, OrderStatus> = {
 };
 
 export async function advanceWarehouseOrderStatus(orderId: string, currentStatus: OrderStatus) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in.");
+  if (!user) throw new UserError("You must be logged in.");
 
   const next = ALLOWED_NEXT[currentStatus];
-  if (!next) throw new Error("This order can't be advanced from its current status.");
+  if (!next) throw new UserError("This order can't be advanced from its current status.");
 
   const { data, error } = await supabase
     .from("orders")
@@ -36,7 +39,7 @@ export async function advanceWarehouseOrderStatus(orderId: string, currentStatus
     .maybeSingle();
   if (error) throw error;
   if (!data) {
-    throw new Error("This order already moved on — refresh and try again.");
+    throw new UserError("This order already moved on — refresh and try again.");
   }
 
   await supabase.from("order_status_history").insert({ order_id: orderId, status: next });
@@ -49,11 +52,20 @@ export async function advanceWarehouseOrderStatus(orderId: string, currentStatus
   revalidatePath("/warehouse/orders");
   revalidatePath(`/orders/${orderId}`);
   revalidatePath("/admin/orders");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }
 
 export async function updateWarehouseStock(inventoryId: string, stock: number) {
+  try {
   const supabase = await createClient();
   const { error } = await supabase.from("inventory").update({ stock }).eq("id", inventoryId);
   if (error) throw error;
   revalidatePath("/warehouse/stock");
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

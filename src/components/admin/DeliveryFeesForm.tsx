@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCurrency, useMoney } from "@/components/MoneyProvider";
@@ -46,7 +48,7 @@ export default function DeliveryFeesForm({ initial, defaults }: { initial: Deliv
       freeOver: freeOver.trim() === "" ? null : Number(freeOver),
       freeEnabled,
     };
-    const res = await saveDeliveryFees(body);
+    const res = await unwrapAction(saveDeliveryFees)(body);
     if (res.error) return res.error;
     setSaved(body);
     router.refresh();

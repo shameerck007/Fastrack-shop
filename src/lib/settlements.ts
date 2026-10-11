@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { StoreStatus } from "@/types/database";
 
@@ -35,7 +36,7 @@ function toSummary(row: {
 export async function getStoreSettlementSummary(storeId: string): Promise<SettlementSummary | null> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("store_settlement_summary", { target_store_id: storeId }).maybeSingle();
-  if (error) throw error;
+  if (error) throw toUserError(error);
   if (!data) return null;
   return toSummary(data);
 }
@@ -54,7 +55,7 @@ export interface SettlementOrderRow {
 export async function getStoreSettlementOrders(storeId: string): Promise<SettlementOrderRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("store_settlement_orders", { target_store_id: storeId });
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return ((data ?? []) as {
     order_id: string;
     order_number: string;
@@ -91,7 +92,7 @@ export async function getStorePayouts(storeId: string): Promise<SettlementPayout
     .select("id, amount, method, reference, note, created_at")
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return ((data ?? []) as { id: string; amount: number; method: string; reference: string | null; note: string | null; created_at: string }[]).map(
     (r) => ({ id: r.id, amount: r.amount, method: r.method, reference: r.reference, note: r.note, createdAt: r.created_at })
   );
@@ -107,7 +108,7 @@ export interface AdminSettlementOverviewRow extends SettlementSummary {
 export async function getAdminSettlementOverview(): Promise<AdminSettlementOverviewRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("admin_settlement_overview");
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return ((data ?? []) as {
     store_id: string;
     store_name: string;

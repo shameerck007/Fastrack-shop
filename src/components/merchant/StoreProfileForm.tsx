@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateStoreProfile } from "@/lib/actions/merchant";
@@ -58,8 +60,8 @@ export default function StoreProfileForm({
       openingHours: profile.hours,
       acceptingOrders: accepting,
     };
-    if (storeId) await adminUpdateStoreProfile({ storeId, ...payload });
-    else await updateStoreProfile(payload);
+    if (storeId) await unwrapAction(adminUpdateStoreProfile)({ storeId, ...payload });
+    else await unwrapAction(updateStoreProfile)(payload);
     setSaved({ profile, accepting });
     router.refresh();
   }

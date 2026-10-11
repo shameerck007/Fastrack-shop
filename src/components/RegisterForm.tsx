@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { Suspense, useState } from "react";
 import Link from "@/components/Link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,7 +36,7 @@ function RegisterFormInner({ defaultCountryCode }: { defaultCountryCode: string 
 
     const supabase = createClient();
 
-    if ((await emailHasAccount(email)) === true) {
+    if ((await unwrapAction(emailHasAccount)(email)) === true) {
       setLoading(false);
       setError(t("auth.email_already_registered"));
       return;

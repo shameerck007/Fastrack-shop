@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText } from "@/lib/errors";
 import { useState } from "react";
 import { useLocale } from "@/components/LocaleProvider";
 
@@ -38,7 +40,7 @@ export default function DownloadInvoiceButton({
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("orders.could_not_download_invoice"));
+      setError(errorText(err, t("orders.could_not_download_invoice")));
     } finally {
       setBusy(false);
     }

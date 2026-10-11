@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import Modal from "@/components/Modal";
 import ImageUploader from "@/components/ImageUploader";
@@ -158,7 +160,7 @@ export default function ProductEditorModal({
         });
         onClose();
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not save the product.");
+        setError(errorText(e, "Could not save the product."));
       }
     });
   }

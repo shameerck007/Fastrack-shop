@@ -1,5 +1,7 @@
 "use server";
 
+
+import { failure } from "@/lib/errors";
 import { translateToArabic } from "@/lib/translate";
 
 /**
@@ -8,8 +10,13 @@ import { translateToArabic } from "@/lib/translate";
  * editable input, and a failure just leaves it empty for the person to fill in.
  */
 export async function autoTranslateToArabic(text: string): Promise<string | null> {
+  try {
   const trimmed = text.trim();
-  if (!trimmed || trimmed.length > 600) return null;
+  if (!trimmed || trimmed.length > 600) return await null;
   const [out] = await translateToArabic([trimmed]);
-  return out && out.toLowerCase() !== trimmed.toLowerCase() ? out : null;
+  return await out && out.toLowerCase() !== trimmed.toLowerCase() ? out : null;
+
+  } catch (e) {
+    return failure(e) as never;
+  }
 }

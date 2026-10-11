@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { cache } from "react";
 import { getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -14,7 +15,7 @@ export const getMyStore = cache(async (): Promise<Store | null> => {
     .eq("owner_id", user.id)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data;
 });
 
@@ -56,7 +57,7 @@ export async function getMyStoreProducts(storeId: string): Promise<MerchantProdu
     .eq("store_id", storeId)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return (data as unknown as MerchantProduct[]) ?? [];
 }
 
@@ -82,7 +83,7 @@ export async function getMyStoreProductsPage(
   }
   const from = (page - 1) * pageSize;
   const { data, error, count } = await q.order("created_at", { ascending: false }).range(from, from + pageSize - 1);
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return { items: (data as unknown as MerchantProduct[]) ?? [], total: count ?? 0 };
 }
 
@@ -129,7 +130,7 @@ export async function getPendingStores(): Promise<Store[]> {
     .eq("status", "pending")
     .order("created_at", { ascending: true });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data ?? [];
 }
 
@@ -140,6 +141,6 @@ export async function getAllStores(): Promise<Store[]> {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data ?? [];
 }

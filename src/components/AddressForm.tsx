@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 import { validatePhone } from "@/lib/countries";
 import { INDIAN_STATES, checkPinCode, pinMatchesState, serviceStatesFor, SERVICE_AREA_MESSAGE } from "@/lib/india";
@@ -143,7 +145,7 @@ export default function AddressForm({
     startTransition(async () => {
       try {
         if (existing) {
-          await updateAddress(existing.id, input);
+          await unwrapAction(updateAddress)(existing.id, input);
           // If the pin moved, make sure the shopper's active shopping
           // location follows it immediately — otherwise the product grid
           // keeps filtering against the old coordinates until they happen
@@ -153,7 +155,7 @@ export default function AddressForm({
           }
           onDone?.();
         } else {
-          const newId = await addAddress(input);
+          const newId = await unwrapAction(addAddress)(input);
           onAdded?.(newId);
           // A freshly added, verified address becomes the active shopping
           // location right away — the whole point of adding it here is to
@@ -179,7 +181,7 @@ export default function AddressForm({
         }
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("addresses.could_not_save"));
+        setError(errorText(err, t("addresses.could_not_save")));
       }
     });
   }

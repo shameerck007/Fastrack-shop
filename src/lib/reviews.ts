@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import type { Review } from "@/types/database";
 
@@ -18,7 +19,7 @@ export async function getProductRatingsMap(
     .select("*")
     .in("product_id", productIds);
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   for (const row of data ?? []) {
     map.set(row.product_id, { avg_rating: Number(row.avg_rating), review_count: row.review_count });
   }
@@ -38,6 +39,6 @@ export async function getProductReviews(productId: string): Promise<Review[]> {
     .eq("product_id", productId)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw toUserError(error);
   return data ?? [];
 }

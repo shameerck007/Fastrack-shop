@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createTenant, setTenantStatus } from "@/lib/actions/platform";
@@ -20,7 +22,7 @@ export function MarketStatusButtons({ tenantId, status, name }: { tenantId: stri
     if (next === "suspended" && !confirm(`Suspend ${name}? Customers will no longer be able to browse or order there.`)) return;
     setError(null);
     startTransition(async () => {
-      const res = await setTenantStatus(tenantId, next);
+      const res = await unwrapAction(setTenantStatus)(tenantId, next);
       if (res.error) setError(res.error);
       else router.refresh();
     });
@@ -60,7 +62,7 @@ export function CreateMarketForm({ countries }: { countries: { code: string; nam
   const [country, setCountry] = useState(countries[0]?.code ?? "");
 
   async function save(): Promise<string | void> {
-    const res = await createTenant({ name, slug, countryCode: country });
+    const res = await unwrapAction(createTenant)({ name, slug, countryCode: country });
     if (res.error) return res.error;
     setName("");
     setSlug("");

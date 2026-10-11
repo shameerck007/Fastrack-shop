@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setLocale } from "@/lib/actions/locale";
@@ -14,7 +16,7 @@ export default function LanguageToggle({ className = "" }: { className?: string 
   function switchTo(next: Locale) {
     if (next === locale || pending) return;
     startTransition(async () => {
-      await setLocale(next);
+      await unwrapAction(setLocale)(next);
       router.refresh();
     });
   }

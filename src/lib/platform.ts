@@ -1,3 +1,4 @@
+import { toUserError } from "@/lib/errors";
 import { notFound } from "next/navigation";
 import { PLATFORM_MARKET_COOKIE } from "@/lib/platform-scope";
 import { createClient } from "@/lib/supabase/server";
@@ -11,7 +12,7 @@ type Loose = { rpc: (fn: string, args?: object) => Result };
 async function rpc<T>(fn: string, args?: object): Promise<T[]> {
   const db = (await createClient()) as unknown as Loose;
   const { data, error } = await db.rpc(fn, args);
-  if (error) throw new Error(error.message);
+  if (error) throw toUserError(error);
   return (data ?? []) as T[];
 }
 

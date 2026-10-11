@@ -1,5 +1,7 @@
 "use client";
 
+
+import { unwrapAction } from "@/lib/errors";
 import { useState } from "react";
 import { recordSettlementPayout } from "@/lib/actions/admin-settlements";
 import { useLocale } from "@/components/LocaleProvider";
@@ -24,7 +26,7 @@ export default function RecordPayoutForm({ storeId, balanceDue }: { storeId: str
   async function save(): Promise<string | void> {
     const parsed = Number(amount);
     if (!(parsed > 0)) return t("payout_form.invalid_amount");
-    await recordSettlementPayout({ storeId, amount: parsed, method, reference, note });
+    await unwrapAction(recordSettlementPayout)({ storeId, amount: parsed, method, reference, note });
     setAmount("");
     setReference("");
     setNote("");

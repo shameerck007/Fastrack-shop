@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { submitOrderRating } from "@/lib/actions/order-ratings";
@@ -58,12 +60,12 @@ export default function OrderRatingForm({
     setError(null);
     startTransition(async () => {
       try {
-        await submitOrderRating(orderId, rating, comment);
+        await unwrapAction(submitOrderRating)(orderId, rating, comment);
         setSubmitted(true);
         setEditing(false);
         router.refresh();
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("order_rating.could_not_submit"));
+        setError(errorText(err, t("order_rating.could_not_submit")));
       }
     });
   }

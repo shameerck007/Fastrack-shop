@@ -1,5 +1,7 @@
 "use client";
 
+
+import { errorText, unwrapAction } from "@/lib/errors";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { acceptRoute } from "@/lib/actions/rider";
@@ -14,11 +16,11 @@ export default function AcceptRouteButton({ routeId }: { routeId: string }) {
     setError(null);
     startTransition(async () => {
       try {
-        await acceptRoute(routeId);
+        await unwrapAction(acceptRoute)(routeId);
         router.push(`/rider/routes/${routeId}`);
         router.refresh();
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not take this route.");
+        setError(errorText(e, "Could not take this route."));
         router.refresh();
       }
     });
