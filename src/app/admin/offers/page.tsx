@@ -9,10 +9,11 @@ export default async function AdminOffersPage() {
   // The offers tables are not in the generated types until the migration is in.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
-  const [offersResult, redemptionsResult, { data: categories }] = await Promise.all([
+  const [offersResult, redemptionsResult, { data: categories }, { data: stores }] = await Promise.all([
     db.from("offers").select("*").order("created_at", { ascending: false }),
     db.from("offer_redemptions").select("offer_id, amount"),
     supabase.from("categories").select("id, name, parent_id").order("sort_order"),
+    supabase.from("stores").select("id, name").eq("status", "approved").order("name"),
   ]);
   const notReady = !!offersResult.error;
   const used = new Map<string, { count: number; amount: number }>();
@@ -29,10 +30,10 @@ export default async function AdminOffersPage() {
       <PageHeader icon="🏷️" title="Offers & coupons" subtitle="Coupon codes and automatic offers: percentage off, amount off or free delivery, with dates, limits and a minimum order." />
       {notReady && (
         <p className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-          Offers aren&apos;t set up in the database yet. Run migration <b>0081_offers_and_delivery_fees.sql</b> in the Supabase SQL editor, then reload this page.
+          Offers aren&apos;t set up in the database yet. Run migrations <b>0081_offers_and_delivery_fees.sql</b> and <b>0082_offers_flexible.sql</b> in the Supabase SQL editor, then reload this page.
         </p>
       )}
-      <OffersManager offers={offers} categories={(categories ?? []) as { id: string; name: string; parent_id: string | null }[]} disabled={notReady} />
+      <OffersManager offers={offers} categories={(categories ?? []) as { id: string; name: string; parent_id: string | null }[]} stores={(stores ?? []) as { id: string; name: string }[]} disabled={notReady} />
     </div>
   );
 }

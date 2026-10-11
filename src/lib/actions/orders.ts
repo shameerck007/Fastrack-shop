@@ -8,7 +8,7 @@ import { getVariantStockMap } from "@/lib/inventory";
 import { checkProductsDeliverable, resolveProductWarehouses, type StockNeeds } from "@/lib/delivery-zones";
 import { combineMethods, splitDeliveryFee, standardDeliveryDate } from "@/lib/delivery-methods";
 import { getDeliveryPricing } from "@/lib/delivery-pricing";
-import { discountPerLine, OFFER_REASON_EN, quoteForCart } from "@/lib/offers";
+import { OFFER_REASON_EN, quoteForCart } from "@/lib/offers";
 import { DEFAULT_ETA_SETTINGS, etaRange } from "@/lib/eta";
 import { getCompanySettings } from "@/lib/company-settings";
 import { marketOffsetMinutes } from "@/lib/timezone";
@@ -72,7 +72,7 @@ async function placeOrderOrThrow(input: {
   const quote = await quoteForCart(offerCode, items);
   if (offerCode && !quote.ok) throw new Error(OFFER_REASON_EN[quote.reason ?? "invalid"] ?? OFFER_REASON_EN.invalid);
   const applied = quote.ok ? quote : null;
-  const lineDiscount = applied ? discountPerLine(lineTotals, applied.eligible, applied.discount) : lineTotals.map(() => 0);
+  const lineDiscount = applied?.lineDiscount ?? lineTotals.map(() => 0);
   // The tax inside a line is on what the customer pays for it, after the discount.
   const itemTaxes = items.map((item, i) => {
     const rate = productTaxRate(item.product_variants.products, taxCountry);
@@ -249,7 +249,7 @@ async function placeOrderOrThrow(input: {
           subtotal: groupSubtotal,
           delivery_fee: deliveryFee,
           discount: groupDiscount,
-          ...(applied?.offerId ? { offer_id: applied.offerId, offer_code: applied.code ?? null } : {}),
+          ...(applied ? { offer_id: applied.parts[0].offerId, offer_code: applied.code ?? applied.parts[0].code } : {}),
           vat,
           total,
           delivery_otp: generateOtp(),
@@ -266,8 +266,8 @@ async function placeOrderOrThrow(input: {
       }
       placedIds.push(order.id);
       // One use of the offer per checkout, even when the cart splits into several orders.
-      if (applied?.offerId && placedIds.length === 1) {
-        await supabase.from("offer_redemptions").insert({ offer_id: applied.offerId, order_id: order.id, user_id: user.id, amount: applied.discount, free_delivery: applied.freeDelivery });
+      if (applied && placedIds.length === 1) {
+        await supabase.from("offer_redemptions").insert(applied.parts.map((p) => ({ offer_id: p.offerId, order_id: order.id, user_id: user.id, amount: p.discount, free_delivery: p.freeDelivery })));
       }
 
       const orderItems = idxs.map((i) => {
@@ -276,6 +276,7 @@ async function placeOrderOrThrow(input: {
           tax_rate: itemTaxes[i].rate,
           tax_amount: itemTaxes[i].tax,
           ...(lineDiscount[i] > 0 ? { discount_amount: lineDiscount[i] } : {}),
+          ...((applied?.lineSupplierFunded[i] ?? 0) > 0 ? { supplier_discount: applied?.lineSupplierFunded[i] } : {}),
           hsn_code: item.product_variants.products.hsn_code ?? null,
           order_id: order.id,
           variant_id: item.variant_id,

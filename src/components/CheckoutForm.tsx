@@ -99,6 +99,13 @@ export default function CheckoutForm({
     q.reason === "min_order" && q.minOrder != null
       ? t("offers_ui.min_order", { amount: money(q.minOrder) })
       : t(`offers_ui.reason_${["expired", "used_up", "used_by_you", "first_order_only", "no_eligible"].includes(q.reason ?? "") ? q.reason : "invalid"}`);
+  function removeCoupon() {
+    // Back to whatever the shop applies by itself, if anything.
+    setQuote(null);
+    quoteOffer(null)
+      .then((q) => q.ok && setQuote(q))
+      .catch(() => {});
+  }
   async function applyCoupon() {
     const code = couponInput.trim();
     if (!code) return;
@@ -466,11 +473,15 @@ export default function CheckoutForm({
                 <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 px-3 py-2.5 text-xs font-bold text-emerald-800">
                   <span aria-hidden>🏷️</span>
                   <span className="min-w-0 flex-1 truncate">
-                    {t("offers_ui.applied", { name: (locale === "ar" && quote.nameAr) || quote.name || quote.code || "" })}
-                    {quote.freeDelivery && <span className="block font-medium text-emerald-700/80">{t("offers_ui.free_delivery")}</span>}
+                    {quote.parts.map((p) => (
+                      <span key={p.offerId} className="block truncate">
+                        {t("offers_ui.applied", { name: (locale === "ar" && p.nameAr) || p.name || p.code || "" })}
+                        {p.freeDelivery && <span className="block font-medium text-emerald-700/80">{t("offers_ui.free_delivery")}</span>}
+                      </span>
+                    ))}
                   </span>
                   {quote.code && (
-                    <button type="button" onClick={() => setQuote(null)} className="shrink-0 font-bold text-emerald-900 underline">
+                    <button type="button" onClick={removeCoupon} className="shrink-0 font-bold text-emerald-900 underline">
                       {t("offers_ui.remove")}
                     </button>
                   )}

@@ -26,8 +26,15 @@ export interface OfferRow {
   per_customer_limit: number | null;
   first_order_only: boolean;
   is_active: boolean;
+  funded_by?: "fastrack" | "supplier";
+  store_id?: string | null;
+  stackable?: boolean;
   used: number;
   discountGiven: number;
+}
+export interface StoreOption {
+  id: string;
+  name: string;
 }
 interface CategoryRow {
   id: string;
@@ -76,11 +83,15 @@ interface Draft {
   perCustomerLimit: string;
   firstOrderOnly: boolean;
   isActive: boolean;
+  fundedBy: "fastrack" | "supplier";
+  storeId: string;
+  stackable: boolean;
 }
-const blank: Draft = { name: "", nameAr: "", kind: "percent", auto: false, code: "", value: "", maxDiscount: "", minOrder: "", categoryId: "", startsAt: "", endsAt: "", usageLimit: "", perCustomerLimit: "", firstOrderOnly: false, isActive: true };
+const blank: Draft = { name: "", nameAr: "", kind: "percent", auto: false, code: "", value: "", maxDiscount: "", minOrder: "", categoryId: "", startsAt: "", endsAt: "", usageLimit: "", perCustomerLimit: "", firstOrderOnly: false, isActive: true, fundedBy: "fastrack", storeId: "", stackable: false };
 
 const TEMPLATES: { title: string; hint: string; draft: Partial<Draft> }[] = [
   { title: "Welcome offer", hint: "10% off a first order", draft: { name: "Welcome offer", kind: "percent", value: "10", maxDiscount: "30", code: "WELCOME10", firstOrderOnly: true, perCustomerLimit: "1" } },
+  { title: "Free delivery on first order", hint: "Automatic, new customers only", draft: { name: "Free delivery on your first order", kind: "free_delivery", auto: true, firstOrderOnly: true, perCustomerLimit: "1", stackable: true } },
   { title: "Free delivery weekend", hint: "Automatic, no code", draft: { name: "Free delivery weekend", kind: "free_delivery", auto: true } },
   { title: "Flat amount off", hint: "Code, with a minimum order", draft: { name: "Save on your basket", kind: "fixed", value: "20", minOrder: "150", code: "SAVE20" } },
   { title: "Category deal", hint: "Percent off one category", draft: { name: "Category deal", kind: "percent", value: "15", auto: true } },
@@ -104,6 +115,9 @@ function draftOf(o: OfferRow): Draft {
     perCustomerLimit: o.per_customer_limit != null ? String(o.per_customer_limit) : "",
     firstOrderOnly: o.first_order_only,
     isActive: o.is_active,
+    fundedBy: o.funded_by ?? "fastrack",
+    storeId: o.store_id ?? "",
+    stackable: o.stackable ?? false,
   };
 }
 
@@ -116,7 +130,7 @@ function SearchIcon() {
   );
 }
 
-export default function OffersManager({ offers, categories, disabled }: { offers: OfferRow[]; categories: CategoryRow[]; disabled: boolean }) {
+export default function OffersManager({ offers, categories, stores, disabled }: { offers: OfferRow[]; categories: CategoryRow[]; stores: StoreOption[]; disabled: boolean }) {
   const router = useRouter();
   const money = useMoney();
   const [q, setQ] = useState("");
@@ -154,6 +168,8 @@ export default function OffersManager({ offers, categories, disabled }: { offers
     [
       o.min_order != null && Number(o.min_order) > 0 ? `Min order ${money(Number(o.min_order))}` : null,
       o.category_id ? `Only ${catName(o.category_id) ?? "one category"}` : null,
+      o.store_id ? `Only ${stores.find((x) => x.id === o.store_id)?.name ?? "one supplier"}` : null,
+      o.stackable ? "Can be combined" : null,
       o.first_order_only ? "First order only" : null,
       o.per_customer_limit ? `${o.per_customer_limit} per customer` : null,
     ].filter(Boolean) as string[];
@@ -201,7 +217,7 @@ export default function OffersManager({ offers, categories, disabled }: { offers
           <div className="border-b border-neutral-100 p-4 sm:p-5">
             <p className="text-sm font-bold text-neutral-800">Start with a ready-made offer</p>
             <p className="mb-3 text-xs text-neutral-500">Pick one, adjust the numbers and save. You can change everything.</p>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
               {TEMPLATES.map((t) => (
                 <button key={t.title} type="button" disabled={disabled} onClick={() => setEditing({ ...blank, ...t.draft })} className="rounded-xl border border-neutral-200 p-3 text-start transition hover:border-blue-400 hover:bg-blue-50/50 disabled:opacity-50">
                   <span className="block text-sm font-bold text-neutral-900">{t.title}</span>
@@ -233,6 +249,7 @@ export default function OffersManager({ offers, categories, disabled }: { offers
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold text-neutral-900">{o.name}</p>
                       <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-neutral-500">
+                        {o.funded_by === "supplier" && <span className="rounded-md bg-amber-50 px-1.5 py-0.5 font-bold text-amber-700">Supplier pays</span>}
                         {o.auto_apply ? <span className="rounded-md bg-violet-50 px-1.5 py-0.5 font-bold text-violet-700">Automatic</span> : <span className="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono font-bold text-neutral-700">{o.code}</span>}
                         <span>{o.starts_at || o.ends_at ? `${dateText(o.starts_at) ?? "now"} → ${dateText(o.ends_at) ?? "no end"}` : "No end date"}</span>
                       </p>
@@ -272,6 +289,7 @@ export default function OffersManager({ offers, categories, disabled }: { offers
         <OfferModal
           draft={editing}
           categories={categories}
+          stores={stores}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
@@ -284,7 +302,7 @@ export default function OffersManager({ offers, categories, disabled }: { offers
   );
 }
 
-function OfferModal({ draft, categories, onClose, onSaved }: { draft: Draft; categories: CategoryRow[]; onClose: () => void; onSaved: () => void }) {
+function OfferModal({ draft, categories, stores, onClose, onSaved }: { draft: Draft; categories: CategoryRow[]; stores: StoreOption[]; onClose: () => void; onSaved: () => void }) {
   const currency = useCurrency();
   const [d, setD] = useState<Draft>(draft);
   const [error, setError] = useState<string | null>(null);
@@ -317,6 +335,9 @@ function OfferModal({ draft, categories, onClose, onSaved }: { draft: Draft; cat
         perCustomerLimit: num(d.perCustomerLimit),
         firstOrderOnly: d.firstOrderOnly,
         isActive: d.isActive,
+        fundedBy: d.fundedBy,
+        storeId: d.storeId || null,
+        stackable: d.stackable,
       });
       if (res.error) setError(res.error);
       else onSaved();
@@ -385,6 +406,18 @@ function OfferModal({ draft, categories, onClose, onSaved }: { draft: Draft; cat
             <input type="number" min={0} step="any" value={d.minOrder} onChange={(e) => set("minOrder", e.target.value)} className={inputClass} />
           </Field>
           {d.kind !== "free_delivery" && (
+            <Field label="Only for this supplier" hint="Empty = every supplier.">
+              <Select value={d.storeId} onChange={(e) => set("storeId", e.target.value)} className="w-full">
+                <option value="">All suppliers</option>
+                {stores.map((st) => (
+                  <option key={st.id} value={st.id}>
+                    {st.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
+          {d.kind !== "free_delivery" && (
             <Field label="Only for this category" hint="Empty = the whole cart.">
               <Select value={d.categoryId} onChange={(e) => set("categoryId", e.target.value)} className="w-full">
                 <option value="">All categories</option>
@@ -410,7 +443,32 @@ function OfferModal({ draft, categories, onClose, onSaved }: { draft: Draft; cat
           </Field>
         </div>
 
+        {d.kind !== "free_delivery" && (
+          <div>
+            <p className="mb-1.5 text-xs font-semibold text-neutral-700">Who pays for the discount</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {[
+                { v: "fastrack" as const, title: "FasTrack", hint: "The supplier is paid the full price." },
+                { v: "supplier" as const, title: "The supplier", hint: "The discount is taken off that supplier's settlement." },
+              ].map((opt) => (
+                <button key={opt.v} type="button" onClick={() => set("fundedBy", opt.v)} className={`rounded-xl border p-3 text-start transition ${d.fundedBy === opt.v ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200 hover:border-neutral-300"}`}>
+                  <span className="block text-sm font-bold text-neutral-900">{opt.title}</span>
+                  <span className="block text-xs text-neutral-500">{opt.hint}</span>
+                </button>
+              ))}
+            </div>
+            {d.fundedBy === "supplier" && !d.storeId && <p className="mt-1.5 text-xs font-medium text-amber-700">Choose the supplier above (&quot;Only for this supplier&quot;) so we know whose settlement to charge.</p>}
+          </div>
+        )}
+
         <div className="flex flex-col gap-2 text-sm">
+          <label className="flex items-start gap-2">
+            <input type="checkbox" checked={d.stackable} onChange={(e) => set("stackable", e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+            <span>
+              Can be combined with another offer
+              <span className="block text-xs text-neutral-500">One more automatic offer that is also marked combinable (for example free delivery) can apply on top. Off = this offer applies alone.</span>
+            </span>
+          </label>
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={d.firstOrderOnly} onChange={(e) => set("firstOrderOnly", e.target.checked)} className="h-4 w-4 accent-blue-700" />
             First order only

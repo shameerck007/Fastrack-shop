@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import type { OfferKind } from "@/lib/offers";
 
-const MISSING = "Offers and delivery fees need database migration 0081. Run it in the Supabase SQL editor, then try again.";
+const MISSING = "Offers and delivery fees need database migrations 0081 and 0082. Run them in the Supabase SQL editor, then try again.";
 const missing = (code?: string) => code === "42P01" || code === "42703" || code === "PGRST204" || code === "PGRST205";
 
 export interface DeliveryFeesInput {
@@ -51,6 +51,12 @@ export interface OfferInput {
   perCustomerLimit: number | null;
   firstOrderOnly: boolean;
   isActive: boolean;
+  /** Who pays for the discount: FasTrack, or the supplier named in `storeId` (taken off that supplier's settlement). */
+  fundedBy: "fastrack" | "supplier";
+  /** Limits the offer to one supplier's products. Required when the supplier pays. */
+  storeId: string | null;
+  /** One more automatic offer may apply together with this one. */
+  stackable: boolean;
 }
 
 export async function saveOffer(input: OfferInput): Promise<{ error?: string }> {
@@ -63,6 +69,8 @@ export async function saveOffer(input: OfferInput): Promise<{ error?: string }> 
   if (input.kind === "percent" && value > 100) return { error: "A percentage cannot be more than 100." };
   for (const v of [input.maxDiscount, input.minOrder]) if (v !== null && !(v >= 0)) return { error: "Amounts cannot be negative." };
   for (const v of [input.usageLimit, input.perCustomerLimit]) if (v !== null && !(Number.isInteger(v) && v > 0)) return { error: "Limits must be whole numbers above zero." };
+  const supplierPays = input.fundedBy === "supplier" && input.kind !== "free_delivery";
+  if (supplierPays && !input.storeId) return { error: "Choose the supplier who pays for this offer." };
   if (input.startsAt && input.endsAt && new Date(input.endsAt) <= new Date(input.startsAt)) return { error: "The end is before the start." };
 
   const row = {
@@ -81,6 +89,9 @@ export async function saveOffer(input: OfferInput): Promise<{ error?: string }> 
     per_customer_limit: input.perCustomerLimit,
     first_order_only: input.firstOrderOnly,
     is_active: input.isActive,
+    funded_by: supplierPays ? "supplier" : "fastrack",
+    store_id: input.kind === "free_delivery" ? null : input.storeId || null,
+    stackable: input.stackable,
   };
   // The offers tables are not in the generated types until the migration is in.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
