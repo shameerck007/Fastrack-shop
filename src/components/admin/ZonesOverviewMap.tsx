@@ -29,7 +29,7 @@ export interface OverviewZone {
   address?: string | null;
   status?: string | null;
   /** Common delivery areas: the area this shop sits in and what it offers (the shop has no boundary of its own). */
-  inAreas?: { areaName: string | null; offers: string; hasPin: boolean };
+  inAreas?: { areaName: string | null; offers: string; hasPin: boolean; /** Express distance this shop can serve (km), when Express is on. */ expressReachKm?: number | null };
 }
 
 /** A common delivery area drawn on the coverage map. */
@@ -42,11 +42,14 @@ export interface OverviewArea {
   lng: number | null;
   radiusKm: number | null;
   rules: string;
+  shops?: number;
 }
 
 export interface OverviewPoint {
   lat: number;
   lng: number;
+  /** A saved address that no delivery area covers. */
+  outside?: boolean;
 }
 
 const BRAND = "#1d4ed8";
@@ -130,15 +133,17 @@ export default function ZonesOverviewMap({
   const startCenter = marketGeo(useMarket().countryCode).center;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
-  const layersRef = useRef<{ hubs: LayerGroup; suppliers: LayerGroup; areas: LayerGroup; customers: LayerGroup } | null>(null);
+  const layersRef = useRef<{ hubs: LayerGroup; suppliers: LayerGroup; areas: LayerGroup; reach: LayerGroup; customers: LayerGroup } | null>(null);
   const markersRef = useRef<Map<string, Marker>>(new Map());
+  const areaLayersRef = useRef<Map<string, { getBounds: () => import("leaflet").LatLngBounds }>>(new Map());
   const [ready, setReady] = useState(false);
-  const [show, setShow] = useState({ hubs: true, suppliers: true, areas: true, customers: true });
+  const [show, setShow] = useState({ hubs: true, suppliers: true, areas: true, reach: !!areaShapes, customers: true });
 
   const hubs = useMemo(() => zones.filter((z) => z.kind === "fastrack"), [zones]);
   const suppliers = useMemo(() => zones.filter((z) => z.kind !== "fastrack"), [zones]);
   const zoned = useMemo(() => zones.filter((z) => z.radiusKm != null || (z.polygon && z.polygon.length >= 3)), [zones]);
   const areaCount = areaShapes ? areaShapes.length : zoned.length;
+  const outsideCount = customerPoints.filter((p) => p.outside).length;
 
   useEffect(() => {
     let cancelled = false;
@@ -157,6 +162,7 @@ export default function ZonesOverviewMap({
 
       const layers = {
         areas: L.layerGroup().addTo(map),
+        reach: L.layerGroup().addTo(map),
         customers: L.layerGroup().addTo(map),
         suppliers: L.layerGroup().addTo(map),
         hubs: L.layerGroup().addTo(map),
@@ -201,6 +207,9 @@ export default function ZonesOverviewMap({
         marker.on("popupclose", () => {
           pinned = false;
         });
+        if (areaShapes && z.inAreas?.expressReachKm) {
+          L.circle([z.lat, z.lng], { radius: z.inAreas.expressReachKm * 1000, color: hub ? BRAND : z.color, weight: 1.5, dashArray: "5 5", fillColor: hub ? BRAND : z.color, fillOpacity: 0.05, interactive: false }).addTo(layers.reach);
+        }
         markersRef.current.set(z.id, marker);
       }
       for (const a of areaShapes ?? []) {
@@ -209,11 +218,12 @@ export default function ZonesOverviewMap({
         const shape = hasShape ? L.polygon(a.polygon as LatLng[], style) : a.lat != null && a.lng != null && a.radiusKm != null ? L.circle([a.lat, a.lng], { radius: a.radiusKm * 1000, ...style }) : null;
         if (!shape) continue;
         shape.addTo(layers.areas);
+        areaLayersRef.current.set(a.id, shape);
         shape.bindTooltip(`${a.name} · ${a.rules}`, { sticky: true });
         bounds.extend(shape.getBounds());
       }
       for (const p of customerPoints) {
-        L.circleMarker([p.lat, p.lng], { radius: 3, color: "#fff", weight: 1, fillColor: "#7c3aed", fillOpacity: 0.75 }).addTo(layers.customers);
+        L.circleMarker([p.lat, p.lng], { radius: p.outside ? 4 : 3, color: "#fff", weight: 1, fillColor: p.outside ? "#dc2626" : "#7c3aed", fillOpacity: 0.85 }).addTo(layers.customers);
       }
       if (bounds.isValid()) map.fitBounds(bounds, { padding: [50, 50] });
       mapRef.current = map;
@@ -225,6 +235,7 @@ export default function ZonesOverviewMap({
       mapRef.current?.remove();
       mapRef.current = null;
       markersRef.current.clear();
+      areaLayersRef.current.clear();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -240,6 +251,13 @@ export default function ZonesOverviewMap({
       if (!on && map.hasLayer(layers[key])) map.removeLayer(layers[key]);
     });
   }, [show, ready]);
+
+  function focusArea(id: string) {
+    const layer = areaLayersRef.current.get(id);
+    if (!layer || !mapRef.current) return;
+    setShow((s) => ({ ...s, areas: true }));
+    mapRef.current.flyToBounds(layer.getBounds(), { padding: [40, 40], duration: 0.8 });
+  }
 
   function focus(id: string) {
     const map = mapRef.current;
@@ -283,8 +301,13 @@ export default function ZonesOverviewMap({
           <button type="button" onClick={() => setShow((s) => ({ ...s, areas: !s.areas }))} className={chip(show.areas, "#0891b2")} style={show.areas ? { background: "#0891b2" } : undefined}>
             ⭕ Delivery areas <span className="rounded-full bg-white/25 px-1.5">{areaCount}</span>
           </button>
+          {areaShapes && (
+            <button type="button" onClick={() => setShow((s) => ({ ...s, reach: !s.reach }))} className={chip(show.reach, "#0f766e")} style={show.reach ? { background: "#0f766e" } : undefined}>
+              ⚡ Express reach
+            </button>
+          )}
           <button type="button" onClick={() => setShow((s) => ({ ...s, customers: !s.customers }))} className={chip(show.customers, "#7c3aed")} style={show.customers ? { background: "#7c3aed" } : undefined}>
-            📌 Customers <span className="rounded-full bg-white/25 px-1.5">{customerPoints.length}</span>
+            📌 Customers <span className="rounded-full bg-white/25 px-1.5">{customerPoints.length}</span>{outsideCount > 0 && <span className="rounded-full bg-red-600 px-1.5 text-white">{outsideCount} outside</span>}
           </button>
         </div>
 
@@ -299,11 +322,44 @@ export default function ZonesOverviewMap({
             <span className="flex h-5 w-5 items-center justify-center rounded-full border-[3px] border-amber-500 bg-white text-[10px]">🏪</span>
             Supplier shop
           </div>
+          {areaShapes && (
+            <>
+              <div className="mt-1 flex items-center gap-2 text-neutral-700">
+                <span className="h-3 w-5 rounded-sm border-2 border-blue-600 bg-blue-100" /> Delivery area (Standard)
+              </div>
+              <div className="mt-1 flex items-center gap-2 text-neutral-700">
+                <span className="h-3 w-5 rounded-full border-2 border-dashed border-teal-700" /> Express reach of a shop
+              </div>
+            </>
+          )}
           <div className="mt-1 flex items-center gap-2 text-neutral-700">
             <span className="h-2.5 w-2.5 rounded-full bg-violet-600" /> Customer address
           </div>
+          {areaShapes && (
+            <div className="mt-1 flex items-center gap-2 text-neutral-700">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-600" /> Address outside every area
+            </div>
+          )}
         </div>
       </div>
+
+      {/* delivery areas: tap one to zoom to it */}
+      {areaShapes && areaShapes.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {areaShapes.map((a) => (
+            <button key={a.id} type="button" onClick={() => focusArea(a.id)} className="flex shrink-0 items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2 text-start transition hover:shadow-md">
+              <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: a.color }} />
+              <span className="min-w-0">
+                <span className="block max-w-[12rem] truncate text-xs font-extrabold text-neutral-900">{a.name}</span>
+                <span className="block text-[11px] text-neutral-500">
+                  {a.rules}
+                  {a.shops != null ? ` · ${a.shops} ${a.shops === 1 ? "shop" : "shops"}` : ""}
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* clickable list: tap a location to fly to it and open its card */}
       {zones.length > 0 && (

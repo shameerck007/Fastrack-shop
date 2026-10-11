@@ -155,6 +155,7 @@ export default async function AdminZonesPage() {
     lat: a.lat,
     lng: a.lng,
     radiusKm: a.radiusKm,
+    shops: a.shops,
     rules: `${a.expressEnabled ? `Express ≤ ${a.expressMaxKm} km` : "Express off"}, ${a.standardEnabled ? `Standard ${a.standardDays} d` : "Standard off"}`,
   }));
   const areaZonesForMap: OverviewZone[] = shopRows
@@ -174,6 +175,7 @@ export default async function AdminZonesPage() {
       inAreas: {
         areaName: r.areaName,
         hasPin: true,
+        expressReachKm: r.expressOn ? r.expressReachKm : null,
         offers: r.expressOn && r.standardOn ? `Express ≤ ${r.expressReachKm} km + Standard` : r.expressOn ? `Express ≤ ${r.expressReachKm} km` : r.standardOn ? "Standard only" : "Not delivering",
       },
     }));
@@ -276,7 +278,7 @@ export default async function AdminZonesPage() {
             customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}
           />
         ) : (
-          <ZonesCoverageButton zones={areaZonesForMap} areaShapes={areaShapes} customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng }))}>
+          <ZonesCoverageButton zones={areaZonesForMap} areaShapes={areaShapes} customerPoints={pins.map((p) => ({ lat: p.lat, lng: p.lng, outside: !areaAt(areas, p.lat, p.lng) }))}>
             <AreaShops rows={shopRows} />
           </ZonesCoverageButton>
         )}
