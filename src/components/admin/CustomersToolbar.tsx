@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Select from "@/components/ui/Select";
 import { CatalogPager } from "@/components/CatalogFilters";
-import { CUSTOMER_FILTERS } from "@/lib/admin-customers";
+import { CUSTOMER_FILTERS } from "@/lib/customer-filters";
 
 /** Search box and filter for the customers list, plus paging. The address bar keeps the state; the page is rendered on the server. */
 export default function CustomersToolbar({ q, filter, page, pageSize, total }: { q: string; filter: string; page: number; pageSize: number; total: number }) {

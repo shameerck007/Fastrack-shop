@@ -31,13 +31,6 @@ export interface CustomerDetail {
   access_log: { action: string; actor: string; created_at: string }[] | null;
 }
 
-export const CUSTOMER_FILTERS = [
-  { value: "all", label: "All customers" },
-  { value: "new", label: "New (last 30 days)" },
-  { value: "repeat", label: "Repeat (2+ orders)" },
-  { value: "never", label: "Never ordered" },
-  { value: "blocked", label: "Blocked" },
-] as const;
 
 /** One page of customers (contact details come back masked). Null when the customer tools are not in the database yet. */
 export async function getCustomers(opts: { q?: string; filter?: string; page?: number; pageSize?: number }): Promise<{ items: CustomerRow[]; total: number } | null | { error: string }> {
