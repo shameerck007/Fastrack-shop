@@ -34,16 +34,3 @@ export async function recordSettlementPayout(input: RecordPayoutInput) {
   revalidatePath(`/admin/settlements/${input.storeId}`);
   revalidatePath("/merchant/settlements");
 }
-
-/** Admin adjusts what percentage FasTrack keeps from this store's sales going forward. */
-export async function updateStoreCommissionRate(storeId: string, rate: number) {
-  if (!(rate >= 0 && rate <= 100)) throw new Error("Commission rate must be between 0 and 100.");
-
-  const supabase = await createClient();
-  const { error } = await supabase.from("stores").update({ commission_rate: rate }).eq("id", storeId);
-  if (error) throw error;
-
-  revalidatePath("/admin/settlements");
-  revalidatePath(`/admin/settlements/${storeId}`);
-  revalidatePath("/merchant/settlements");
-}

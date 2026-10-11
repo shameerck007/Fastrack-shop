@@ -117,7 +117,7 @@ export default function CommissionManager({ categories, stores, rules, defaultRa
         <div className="col-span-2 rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm lg:col-span-1">
           <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Which rate applies</p>
           <ol className="mt-1 space-y-0.5 text-xs text-neutral-600">
-            {["Product rule", "Supplier + category", "Category (sub-categories inherit)", "Supplier's own rate", "Default rate"].map((t, i) => (
+            {["Product rule", "Supplier + category", "Supplier (all products)", "Category (sub-categories inherit)", "Default rate"].map((t, i) => (
               <li key={t} className="flex items-center gap-1.5">
                 <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[10px] font-bold text-blue-800">{i + 1}</span>
                 {t}
@@ -483,7 +483,7 @@ function ExceptionModal({ stores, categories, onClose, onSaved }: { stores: Stor
             <option value="">Choose a supplier</option>
             {stores.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name} (now {s.rate}%)
+                {s.name}
               </option>
             ))}
           </Select>

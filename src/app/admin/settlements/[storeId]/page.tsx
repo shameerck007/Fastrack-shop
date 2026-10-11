@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getStoreSettlementSummary, getStoreSettlementOrders, getStorePayouts } from "@/lib/settlements";
 import { SettlementSummaryCards, SettlementOrdersTable, SettlementPayoutsList } from "@/components/SettlementLedger";
-import CommissionRateEditor from "@/components/admin/CommissionRateEditor";
 import RecordPayoutForm from "@/components/admin/RecordPayoutForm";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -27,7 +26,7 @@ export default async function AdminSettlementDetailPage({
   const money = await getMoney();
   const supabase = await createClient();
 
-  const { data: store } = await supabase.from("stores").select("id, name, status, commission_rate").eq("id", storeId).maybeSingle();
+  const { data: store } = await supabase.from("stores").select("id, name, status").eq("id", storeId).maybeSingle();
   if (!store) notFound();
 
   const [summary, orders, payouts] = await Promise.all([
@@ -50,9 +49,12 @@ export default async function AdminSettlementDetailPage({
               {store.status}
             </span>
           </div>
-          <div className="mt-0.5">
-            <CommissionRateEditor storeId={store.id} rate={store.commission_rate} />
-          </div>
+          <p className="mt-1 text-xs text-neutral-500">
+            {summary && summary.deliveredOrderCount > 0 ? <>FasTrack kept <b className="text-neutral-800">{summary.commissionRate}%</b> on average from delivered sales (rates are set by category). </> : null}
+            <Link href="/admin/commission" className="font-semibold text-blue-600 hover:underline">
+              Manage in Commission rates →
+            </Link>
+          </p>
         </div>
         {summary && <RecordPayoutForm storeId={store.id} balanceDue={summary.balanceDue} />}
       </div>
