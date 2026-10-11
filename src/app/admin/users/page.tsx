@@ -52,7 +52,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
   const page = Math.max(1, Number(sp.page) || 1);
   const counts = await getPeopleCounts();
   const visibleRoles = ROLES.filter((r) => counts[r.value] != null || ["customer", "merchant", "rider", "store_staff"].includes(r.value));
-  const all = Object.values(counts).reduce((n, v) => n + Number(v), 0);
+  const all = counts.all ?? Object.values(counts).reduce((n, v) => n + Number(v), 0);
 
   const tab = (value: string, label: string, n: number, icon: string) => {
     const active = role === value;
@@ -206,6 +206,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${info.tone}`}>
                           {info.icon} {info.single}
                         </span>
+                        {p.rider_status && p.role !== "rider" && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800">🛵 Rider {p.rider_status}</span>}
                         {p.blocked && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">Blocked</span>}
                       </p>
                       <p className="truncate font-mono text-xs text-neutral-500">

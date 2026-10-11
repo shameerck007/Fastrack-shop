@@ -13,6 +13,8 @@ export interface PersonRow {
   store_status: string | null;
   warehouse_id: string | null;
   warehouse_name: string | null;
+  /** Set when the account has a rider record (an applicant waiting for approval, or an approved rider). */
+  rider_status?: string | null;
 }
 
 /** One page of accounts of one type (or all), with masked contact details. Null when migration 0076 is not in yet. */
