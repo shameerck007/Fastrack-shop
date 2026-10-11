@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import TaxFields from "@/components/admin/TaxFields";
 import { useRouter } from "next/navigation";
 import { createProduct, updateProduct } from "@/lib/actions/admin-products";
-import { autoTranslateToArabic } from "@/lib/actions/translate";
 import ImageUploader from "@/components/ImageUploader";
 import Modal from "@/components/Modal";
 import type { Category, Warehouse } from "@/types/database";
@@ -14,6 +13,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import { useCurrency } from "@/components/MoneyProvider";
 import { localizedName } from "@/lib/i18n/localized";
 import Select from "@/components/ui/Select";
+import ArabicInput from "@/components/ui/ArabicInput";
 
 const UNITS = ["unit", "kg", "g", "L", "ml", "pack"];
 
@@ -36,24 +36,16 @@ export default function ProductForm({
   const [imageUrl, setImageUrl] = useState<string | null>(existing?.image_url ?? null);
   const [name, setName] = useState(existing?.name ?? "");
   const [nameAr, setNameAr] = useState(existing?.name_ar ?? "");
-  const [nameArEdited, setNameArEdited] = useState(Boolean(existing?.name_ar));
-  const [translatingName, setTranslatingName] = useState(false);
   const [brand, setBrand] = useState(existing?.brand ?? "");
   const [brandAr, setBrandAr] = useState(existing?.brand_ar ?? "");
-  const [brandArEdited, setBrandArEdited] = useState(Boolean(existing?.brand_ar));
-  const [translatingBrand, setTranslatingBrand] = useState(false);
   const [sku, setSku] = useState(existing?.sku ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
   const [descriptionAr, setDescriptionAr] = useState(existing?.description_ar ?? "");
   const [taxRate, setTaxRate] = useState(existing?.tax_rate != null ? String(existing.tax_rate) : "");
   const [hsnCode, setHsnCode] = useState(existing?.hsn_code ?? "");
-  const [descriptionArEdited, setDescriptionArEdited] = useState(Boolean(existing?.description_ar));
-  const [translatingDescription, setTranslatingDescription] = useState(false);
   const [categoryId, setCategoryId] = useState(existing?.category_id ?? categories[0]?.id ?? "");
   const [variantLabel, setVariantLabel] = useState(existingVariant?.label ?? "1 unit");
   const [variantLabelAr, setVariantLabelAr] = useState(existingVariant?.label_ar ?? "");
-  const [variantLabelArEdited, setVariantLabelArEdited] = useState(Boolean(existingVariant?.label_ar));
-  const [translatingVariantLabel, setTranslatingVariantLabel] = useState(false);
   const [unit, setUnit] = useState(existingVariant?.unit ?? "unit");
   const [quantity, setQuantity] = useState(String(existingVariant?.quantity ?? 1));
   const [price, setPrice] = useState(existingVariant ? String(existingVariant.price) : "");
@@ -65,36 +57,17 @@ export default function ProductForm({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  async function autoTranslate(
-    source: string,
-    edited: boolean,
-    setValue: (v: string) => void,
-    setTranslating: (v: boolean) => void
-  ) {
-    if (!source.trim() || edited) return;
-    setTranslating(true);
-    try {
-      const translated = await autoTranslateToArabic(source);
-      if (translated) setValue(translated);
-    } finally {
-      setTranslating(false);
-    }
-  }
 
   function resetForm() {
     setImageUrl(null);
     setName("");
     setNameAr("");
-    setNameArEdited(false);
     setBrand("");
     setBrandAr("");
-    setBrandArEdited(false);
     setSku("");
     setDescription("");
     setDescriptionAr("");
-    setDescriptionArEdited(false);
     setVariantLabelAr("");
-    setVariantLabelArEdited(false);
     setPrice("");
     setCompareAtPrice("");
     setStock("");
@@ -171,64 +144,16 @@ export default function ProductForm({
           placeholder={t("product_form.product_name")}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onBlur={(e) => autoTranslate(e.target.value, nameArEdited, setNameAr, setTranslatingName)}
           className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
-        <div className="flex items-center gap-1.5">
-          <input
-            placeholder={translatingName ? t("category_form.translating") : t("product_form.name_ar_placeholder")}
-            value={nameAr}
-            onChange={(e) => {
-              setNameAr(e.target.value);
-              setNameArEdited(true);
-            }}
-            className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            dir="rtl"
-          />
-          <button
-            type="button"
-            title={t("category_form.auto_translate")}
-            disabled={translatingName || !name.trim()}
-            onClick={() => {
-              setNameArEdited(false);
-              autoTranslate(name, false, setNameAr, setTranslatingName);
-            }}
-            className="shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-xs hover:bg-neutral-50 disabled:opacity-50"
-          >
-            {translatingName ? "…" : "🌐"}
-          </button>
-        </div>
+        <ArabicInput english={name} value={nameAr} onChange={setNameAr} placeholder={t("product_form.name_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
         <input
           placeholder={t("product_form.brand")}
           value={brand}
           onChange={(e) => setBrand(e.target.value)}
-          onBlur={(e) => autoTranslate(e.target.value, brandArEdited, setBrandAr, setTranslatingBrand)}
           className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
-        <div className="flex items-center gap-1.5">
-          <input
-            placeholder={translatingBrand ? t("category_form.translating") : t("product_form.brand_ar_placeholder")}
-            value={brandAr}
-            onChange={(e) => {
-              setBrandAr(e.target.value);
-              setBrandArEdited(true);
-            }}
-            className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            dir="rtl"
-          />
-          <button
-            type="button"
-            title={t("category_form.auto_translate")}
-            disabled={translatingBrand || !brand.trim()}
-            onClick={() => {
-              setBrandArEdited(false);
-              autoTranslate(brand, false, setBrandAr, setTranslatingBrand);
-            }}
-            className="shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-xs hover:bg-neutral-50 disabled:opacity-50"
-          >
-            {translatingBrand ? "…" : "🌐"}
-          </button>
-        </div>
+        <ArabicInput english={brand} value={brandAr} onChange={setBrandAr} placeholder={t("product_form.brand_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
         <Select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
@@ -252,74 +177,19 @@ export default function ProductForm({
         placeholder={t("product_form.description_optional")}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        onBlur={(e) => autoTranslate(e.target.value, descriptionArEdited, setDescriptionAr, setTranslatingDescription)}
         rows={3}
         className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
       />
-      <div className="flex items-start gap-1.5">
-        <textarea
-          placeholder={
-            translatingDescription ? t("category_form.translating") : t("product_form.description_ar_placeholder")
-          }
-          value={descriptionAr}
-          onChange={(e) => {
-            setDescriptionAr(e.target.value);
-            setDescriptionArEdited(true);
-          }}
-          rows={3}
-          className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-          dir="rtl"
-        />
-        <button
-          type="button"
-          title={t("category_form.auto_translate")}
-          disabled={translatingDescription || !description.trim()}
-          onClick={() => {
-            setDescriptionArEdited(false);
-            autoTranslate(description, false, setDescriptionAr, setTranslatingDescription);
-          }}
-          className="shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-xs hover:bg-neutral-50 disabled:opacity-50"
-        >
-          {translatingDescription ? "…" : "🌐"}
-        </button>
-      </div>
+      <ArabicInput english={description} value={descriptionAr} onChange={setDescriptionAr} placeholder={t("product_form.description_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" multiline rows={3} />
 
       <div className={`grid grid-cols-2 gap-3 ${existing ? "sm:grid-cols-3" : "sm:grid-cols-4"}`}>
         <input
           placeholder={t("product_form.variant_label")}
           value={variantLabel}
           onChange={(e) => setVariantLabel(e.target.value)}
-          onBlur={(e) =>
-            autoTranslate(e.target.value, variantLabelArEdited, setVariantLabelAr, setTranslatingVariantLabel)
-          }
           className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
-        <div className="flex items-center gap-1.5">
-          <input
-            placeholder={
-              translatingVariantLabel ? t("category_form.translating") : t("product_form.variant_label_ar_placeholder")
-            }
-            value={variantLabelAr}
-            onChange={(e) => {
-              setVariantLabelAr(e.target.value);
-              setVariantLabelArEdited(true);
-            }}
-            className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            dir="rtl"
-          />
-          <button
-            type="button"
-            title={t("category_form.auto_translate")}
-            disabled={translatingVariantLabel || !variantLabel.trim()}
-            onClick={() => {
-              setVariantLabelArEdited(false);
-              autoTranslate(variantLabel, false, setVariantLabelAr, setTranslatingVariantLabel);
-            }}
-            className="shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-xs hover:bg-neutral-50 disabled:opacity-50"
-          >
-            {translatingVariantLabel ? "…" : "🌐"}
-          </button>
-        </div>
+        <ArabicInput english={variantLabel} value={variantLabelAr} onChange={setVariantLabelAr} placeholder={t("product_form.variant_label_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" compact />
         <Select
           value={unit}
           onChange={(e) => setUnit(e.target.value)}

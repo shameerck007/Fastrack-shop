@@ -3,13 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createCategory, updateCategory } from "@/lib/actions/admin-categories";
-import { autoTranslateToArabic } from "@/lib/actions/translate";
 import Modal from "@/components/Modal";
 import ImageUploader from "@/components/ImageUploader";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName } from "@/lib/i18n/localized";
 import type { Category } from "@/types/database";
 import Select from "@/components/ui/Select";
+import ArabicInput from "@/components/ui/ArabicInput";
 
 export default function CategoryForm({
   existing,
@@ -29,8 +29,6 @@ export default function CategoryForm({
   const [imageUrl, setImageUrl] = useState<string | null>(existing?.image_url ?? null);
   const [name, setName] = useState(existing?.name ?? "");
   const [nameAr, setNameAr] = useState(existing?.name_ar ?? "");
-  const [nameArEdited, setNameArEdited] = useState(Boolean(existing?.name_ar));
-  const [translating, setTranslating] = useState(false);
   const [slug, setSlug] = useState(existing?.slug ?? "");
   const [icon, setIcon] = useState(existing?.icon ?? "");
   const [sortOrder, setSortOrder] = useState(String(existing?.sort_order ?? 0));
@@ -41,16 +39,6 @@ export default function CategoryForm({
 
   const availableParents = parentOptions.filter((c) => c.id !== existing?.id);
 
-  async function autoTranslate(sourceName: string) {
-    if (!sourceName.trim() || nameArEdited) return;
-    setTranslating(true);
-    try {
-      const translated = await autoTranslateToArabic(sourceName);
-      if (translated) setNameAr(translated);
-    } finally {
-      setTranslating(false);
-    }
-  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,7 +69,6 @@ export default function CategoryForm({
           setImageUrl(null);
           setName("");
           setNameAr("");
-          setNameArEdited(false);
           setSlug("");
           setIcon("");
           setSortOrder("0");
@@ -107,33 +94,9 @@ export default function CategoryForm({
           placeholder={t("category_form.name_placeholder")}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onBlur={(e) => autoTranslate(e.target.value)}
           className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
-        <div className="flex items-center gap-1.5">
-          <input
-            placeholder={translating ? t("category_form.translating") : t("category_form.name_ar_placeholder")}
-            value={nameAr}
-            onChange={(e) => {
-              setNameAr(e.target.value);
-              setNameArEdited(true);
-            }}
-            className="min-w-0 flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            dir="rtl"
-          />
-          <button
-            type="button"
-            title={t("category_form.auto_translate")}
-            disabled={translating || !name.trim()}
-            onClick={() => {
-              setNameArEdited(false);
-              autoTranslate(name);
-            }}
-            className="shrink-0 rounded-lg border border-neutral-300 px-2 py-2 text-xs hover:bg-neutral-50 disabled:opacity-50"
-          >
-            {translating ? "…" : "🌐"}
-          </button>
-        </div>
+        <ArabicInput english={name} value={nameAr} onChange={setNameAr} placeholder={t("category_form.name_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
         <input
           placeholder={existing ? t("category_form.slug_placeholder") : t("category_form.slug_auto_placeholder")}
           value={slug}

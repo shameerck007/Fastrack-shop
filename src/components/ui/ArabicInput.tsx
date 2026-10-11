@@ -59,6 +59,14 @@ export default function ArabicInput({
     }
   }
 
+  // An empty field (cleared by hand, or reset after saving) goes back to following the English text.
+  useEffect(() => {
+    if (value === "") {
+      setManual(false);
+      last.current = "";
+    }
+  }, [value]);
+
   useEffect(() => {
     const text = english.trim();
     if (manual || text.length < 2 || text === last.current) return;
