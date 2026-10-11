@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCartItems } from "@/lib/cart";
 import { getVariantStockMap } from "@/lib/inventory";
-import { checkProductsDeliverable, resolveProductWarehouses } from "@/lib/delivery-zones";
+import { checkProductsDeliverable, resolveProductWarehouses, type StockNeeds } from "@/lib/delivery-zones";
 import { combineMethods, pricingFor, splitDeliveryFee, standardDeliveryDate } from "@/lib/delivery-methods";
 import { DEFAULT_ETA_SETTINGS, etaRange } from "@/lib/eta";
 import { getCompanySettings } from "@/lib/company-settings";
@@ -98,7 +98,12 @@ async function placeOrderOrThrow(input: {
   // time, so every supplier in it is re-checked at the moment of ordering.
   await assertStoresOpen(productRefs.map((p) => p.store_id));
 
-  const warehouseByProduct = await resolveProductWarehouses(productRefs, coords);
+  // FasTrack's own products come from the best location that has them in stock, so an order never lands on an empty shelf.
+  const needs: StockNeeds = new Map();
+  for (const item of items) {
+    if (!item.product_variants.products.store_id) needs.set(item.product_variants.products.id, { variantId: item.variant_id, qty: item.quantity });
+  }
+  const warehouseByProduct = await resolveProductWarehouses(productRefs, coords, needs);
 
   const itemWarehouseIds = items.map((item) => {
     const warehouseId = warehouseByProduct.get(item.product_variants.products.id) ?? null;
@@ -109,7 +114,7 @@ async function placeOrderOrThrow(input: {
   });
 
   // Delivery boundary: every item's seller must deliver to the chosen address.
-  const deliverability = await checkProductsDeliverable(productRefs, coords);
+  const deliverability = await checkProductsDeliverable(productRefs, coords, needs);
   const blocked = [...deliverability.values()].filter((d) => d.message);
   if (blocked.length > 0) {
     throw new Error(
@@ -131,7 +136,8 @@ async function placeOrderOrThrow(input: {
   // its own rider, OTP, GST invoice and settlement. The delivery fee is charged per order.
   const groups = new Map<string, number[]>();
   items.forEach((item, idx) => {
-    const key = item.product_variants.products.store_id ?? "own";
+    // FasTrack's own items from different locations travel as separate parcels, like different suppliers.
+    const key = item.product_variants.products.store_id ?? `own:${itemWarehouseIds[idx]}`;
     groups.set(key, [...(groups.get(key) ?? []), idx]);
   });
 
@@ -197,6 +203,23 @@ async function placeOrderOrThrow(input: {
       const vat = Math.round((idxs.reduce((sum, i) => sum + itemTaxes[i].tax, 0) + extractTax(deliveryFee, deliveryTaxRate(taxCountry))) * 100) / 100;
       const total = Math.round((groupSubtotal + deliveryFee) * 100) / 100;
 
+      // Take the stock first, so an order is never created for something that has just sold out. If a later step
+      // fails, the stock is put back (restoreStock below).
+      const reserved: { variantId: string; warehouseId: string; qty: number }[] = [];
+      const restoreStock = async () => {
+        for (const r of reserved) await supabase.rpc("increment_stock", { p_variant_id: r.variantId, p_warehouse_id: r.warehouseId, p_qty: r.qty });
+        reserved.length = 0;
+      };
+      for (const i of idxs) {
+        const item = items[i];
+        const { error: stockError } = await supabase.rpc("decrement_stock", { p_variant_id: item.variant_id, p_warehouse_id: itemWarehouseIds[i], p_qty: item.quantity });
+        if (stockError) {
+          await restoreStock();
+          throw new Error(`${item.product_variants.products.name} has just sold out. Please remove it from your cart (or lower the quantity) and try again.`);
+        }
+        reserved.push({ variantId: item.variant_id, warehouseId: itemWarehouseIds[i], qty: item.quantity });
+      }
+
       const orderNumber = generateOrderNumber();
       const orderRow = {
           order_number: orderNumber,
@@ -223,7 +246,10 @@ async function placeOrderOrThrow(input: {
       if (orderError && (orderError.code === "42703" || orderError.code === "PGRST204")) {
         ({ data: order, error: orderError } = await supabase.from("orders").insert(orderRow).select("id").single());
       }
-      if (orderError || !order) throw orderError ?? new Error("Could not place your order.");
+      if (orderError || !order) {
+        await restoreStock();
+        throw orderError ?? new Error("Could not place your order.");
+      }
       placedIds.push(order.id);
 
       const orderItems = idxs.map((i) => {
@@ -249,18 +275,12 @@ async function placeOrderOrThrow(input: {
           .from("order_items")
           .insert(orderItems.map(({ tax_rate: _r, tax_amount: _a, hsn_code: _h, ...rest }) => rest)));
       }
-      if (itemsError) throw itemsError;
-
-      for (const i of idxs) {
-        const item = items[i];
-        const { error: stockError } = await supabase.rpc("decrement_stock", {
-          p_variant_id: item.variant_id,
-          p_warehouse_id: itemWarehouseIds[i],
-          p_qty: item.quantity,
-        });
-        if (stockError) {
-          throw new Error(`${item.product_variants.products.name} sold out while placing your order. Please remove it and try again.`);
-        }
+      if (itemsError) {
+        // Undo this order completely: nothing half-made is left behind.
+        await supabase.from("orders").delete().eq("id", order.id);
+        placedIds.pop();
+        await restoreStock();
+        throw itemsError;
       }
 
       await supabase.from("order_status_history").insert({ order_id: order.id, status: "pending" });

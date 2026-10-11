@@ -171,26 +171,38 @@ const loadFastrackCandidates = cache(async () => {
   return { stores: stores ?? [], warehouses: warehouses ?? [] };
 });
 
+/** The ids of FasTrack's own warehouses, straight from the database (migration 0078). Null until that is run. */
+const loadFastrackWarehouseIds = cache(async (): Promise<Set<string> | null> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("fastrack_warehouse_ids" as never);
+  if (error || !Array.isArray(data)) return null;
+  return new Set(data as unknown as string[]);
+});
+
 const loadStoreWarehouses = cache(async (key: string) => {
   const supabase = await createClient();
   const { data } = await supabase.rpc("get_store_warehouses", { target_store_ids: key.split(",") });
   return (data ?? []) as { store_id: string; warehouse_id: string | null }[];
 });
 
-async function resolveFastrackWarehouse(
+/** FasTrack's own locations in the order they should serve this address: the ones that can deliver best first. */
+async function rankFastrackWarehouses(
   supabase: Awaited<ReturnType<typeof createClient>>,
   coords: Coords | null
-): Promise<string | null> {
+): Promise<string[]> {
   const { stores, warehouses } = await loadFastrackCandidates();
 
+  // Shoppers cannot see pending or suspended stores, so ask the database which warehouses are FasTrack's (migration 0078); until then use the stores we can see.
+  const ownIds = await loadFastrackWarehouseIds();
   const merchantWarehouseIds = new Set((stores ?? []).map((s) => s.warehouse_id).filter(Boolean));
-  const own = (warehouses ?? []).filter((w) => !merchantWarehouseIds.has(w.id));
-  if (own.length === 0) return null;
-  if (own.length === 1) return own[0].id;
+  const own = (warehouses ?? []).filter((w) => (ownIds ? ownIds.has(w.id) : !merchantWarehouseIds.has(w.id)));
+  if (own.length === 0) return [];
+  if (own.length === 1) return [own[0].id];
 
   const legacyDefault = async () => {
     const { data } = await supabase.rpc("default_warehouse_id");
-    return (data as string | null) ?? own[0].id;
+    const first = (data as string | null) ?? own[0].id;
+    return [first, ...own.map((w) => w.id).filter((id) => id !== first)];
   };
 
   if (!coords || coords.lat == null || coords.lng == null) return legacyDefault();
@@ -206,7 +218,7 @@ async function resolveFastrackWarehouse(
         return { id: w.id, distance: v.distanceKm ?? Infinity, rank: v.express ? 0 : v.standard ? 1 : 2 };
       })
       .sort((a, b) => a.rank - b.rank || a.distance - b.distance);
-    if (ranked[0]) return ranked[0].id;
+    if (ranked.length > 0) return ranked.map((r) => r.id);
     return legacyDefault();
   }
 
@@ -225,20 +237,22 @@ async function resolveFastrackWarehouse(
     })
     .sort((a, b) => a.distance - b.distance);
 
-  const nearestCovering = withDistance.find((w) => w.covers);
-  if (nearestCovering) return nearestCovering.id;
-  // None covers: report against the nearest location that has an area set (a new one without an area isn't live yet).
-  const nearestLive = withDistance.find((w) => w.hasArea) ?? withDistance[0];
-  if (nearestLive) return nearestLive.id;
+  // Covering locations first (nearest first), then ones with an area set, then the rest.
+  const order = [...withDistance.filter((w) => w.covers), ...withDistance.filter((w) => !w.covers && w.hasArea), ...withDistance.filter((w) => !w.covers && !w.hasArea)];
+  if (order.length > 0) return order.map((w) => w.id);
 
   return legacyDefault();
 }
 
 /** productId -> the warehouse that fulfils it (merchant's own, else whichever
  * FasTrack-owned location is resolved for these coordinates). */
+/** What an order needs of a FasTrack-owned product, so the location that has it in stock is the one chosen (productId -> variant and quantity). */
+export type StockNeeds = Map<string, { variantId: string; qty: number }>;
+
 export async function resolveProductWarehouses(
   products: { id: string; store_id: string | null }[],
-  coords: Coords | null = null
+  coords: Coords | null = null,
+  needs?: StockNeeds
 ): Promise<Map<string, string | null>> {
   const supabase = await createClient();
   const storeIds = [...new Set(products.map((p) => p.store_id).filter((id): id is string => !!id))];
@@ -250,12 +264,25 @@ export async function resolveProductWarehouses(
     }
   }
 
-  let ownId: string | null = null;
-  if (products.some((p) => !p.store_id)) {
-    ownId = await resolveFastrackWarehouse(supabase, coords);
+  // FasTrack's own products: the best location that actually has the stock (a location with none would sell out at checkout).
+  const ownProducts = products.filter((p) => !p.store_id);
+  const ownChoice = new Map<string, string | null>();
+  if (ownProducts.length > 0) {
+    const ranked = await rankFastrackWarehouses(supabase, coords);
+    const stock = new Map<string, number>();
+    const variantIds = ownProducts.map((p) => needs?.get(p.id)?.variantId).filter((v): v is string => !!v);
+    if (variantIds.length > 0) {
+      const { data } = await supabase.from("inventory").select("variant_id, warehouse_id, stock").in("variant_id", variantIds);
+      for (const row of data ?? []) stock.set(`${row.variant_id}|${row.warehouse_id}`, Number(row.stock));
+    }
+    for (const p of ownProducts) {
+      const need = needs?.get(p.id);
+      const stocked = need ? ranked.find((id) => (stock.get(`${need.variantId}|${id}`) ?? 0) >= need.qty) : undefined;
+      ownChoice.set(p.id, stocked ?? ranked[0] ?? null);
+    }
   }
 
-  return new Map(products.map((p) => [p.id, p.store_id ? (storeWarehouse.get(p.store_id) ?? null) : ownId]));
+  return new Map(products.map((p) => [p.id, p.store_id ? (storeWarehouse.get(p.store_id) ?? null) : (ownChoice.get(p.id) ?? null)]));
 }
 
 export interface Deliverability {
@@ -269,10 +296,11 @@ export interface Deliverability {
  * only decides Express. */
 export async function checkProductsDeliverable(
   products: { id: string; store_id: string | null; name?: string }[],
-  coords: Coords | null
+  coords: Coords | null,
+  needs?: StockNeeds
 ): Promise<Map<string, Deliverability>> {
   if (products.length === 0) return new Map();
-  const [zones, warehouseByProduct, areas, etaCap] = await Promise.all([loadZones(), resolveProductWarehouses(products, coords), loadAreas(), loadEtaCap()]);
+  const [zones, warehouseByProduct, areas, etaCap] = await Promise.all([loadZones(), resolveProductWarehouses(products, coords, needs), loadAreas(), loadEtaCap()]);
   return new Map(
     products.map((p) => {
       const wid = warehouseByProduct.get(p.id);
