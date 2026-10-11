@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
+import Glyph from "@/components/ui/Glyph";
 import Link from "@/components/Link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
@@ -43,7 +44,7 @@ export default function PortalNav({ items, rootHref }: { items: PortalNavItem[];
             <span
               className={`flex h-6 w-6 items-center justify-center rounded-lg text-[13px] ${active ? "bg-white/20" : "bg-neutral-100 md:bg-white md:shadow-sm md:ring-1 md:ring-neutral-200"}`}
             >
-              {item.icon}
+              {item.icon === "gps" ? <span className={active ? "text-white" : "text-blue-600"}><Glyph icon={item.icon} className="h-4 w-4" /></span> : item.icon}
             </span>
             {item.label ?? t(item.labelKey ?? "")}
           </Link>

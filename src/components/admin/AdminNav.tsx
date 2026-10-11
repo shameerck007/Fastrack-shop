@@ -18,7 +18,7 @@ const NAV: PortalNavItem[] = [
   { href: "/admin/settlements", labelKey: "admin.settlement_ledger", icon: "📒", section: "Finance" },
   { href: "/admin/rider-settlements", labelKey: "admin.rider_settlements", icon: "🛵", section: "Finance" },
   { href: "/admin/collections", labelKey: "admin.collections", icon: "💵", section: "Finance" },
-  { href: "/admin/zones", labelKey: "admin.delivery_zones", icon: "📍", section: "Setup" },
+  { href: "/admin/zones", labelKey: "admin.delivery_zones", icon: "gps", section: "Setup" },
   { href: "/admin/settings", labelKey: "admin.business_settings", icon: "⚙️", section: "Setup" },
 ];
 

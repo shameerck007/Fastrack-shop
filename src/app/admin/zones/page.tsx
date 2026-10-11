@@ -233,7 +233,7 @@ export default async function AdminZonesPage() {
     return (
       <div className="flex flex-col gap-4">
         <PageHeader
-          icon="📍"
+          icon="gps"
           title="Delivery zones"
           subtitle="Draw a few shared zones. A shop only needs its GPS pin: it belongs to the zone it sits in. Express is offered inside a zone, Standard everywhere else the zones reach."
           actions={coverageLink}

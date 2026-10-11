@@ -1,5 +1,6 @@
 "use client";
 
+import Glyph from "@/components/ui/Glyph";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Map as LeafletMap } from "leaflet";
@@ -60,7 +61,7 @@ export default function ShopLocationCard({
           <div ref={containerRef} className="h-full w-full" />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-1 text-center text-sm text-neutral-500">
-            <span className="text-3xl">📍</span>
+            <span className="text-blue-600"><Glyph icon="gps" className="h-9 w-9" /></span>
             No GPS pin yet
           </div>
         )}
