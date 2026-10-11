@@ -1,9 +1,10 @@
 import { getCompanySettings } from "@/lib/company-settings";
 import { PageHeader } from "@/components/admin/AdminUi";
-import CompanySettingsForm from "@/components/admin/CompanySettingsForm";
-import DefaultMaxQtyCard from "@/components/admin/DefaultMaxQtyCard";
+import BusinessSettings from "@/components/admin/BusinessSettings";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+
+export const metadata = { title: "Business settings" };
 
 export default async function AdminSettingsPage() {
   const locale = await getServerLocale();
@@ -12,13 +13,8 @@ export default async function AdminSettingsPage() {
 
   return (
     <div>
-      <PageHeader icon="⚙️" title={t("admin.business_settings_title")} subtitle="Company details on invoices, rider settings and delivery time." />
-      <div className="mt-3 max-w-2xl">
-        <CompanySettingsForm settings={settings} />
-        <div className="mt-4">
-          <DefaultMaxQtyCard value={Number((settings as { default_max_order_qty?: number | null }).default_max_order_qty ?? 2)} />
-        </div>
-      </div>
+      <PageHeader icon="⚙️" title={t("admin.business_settings_title")} subtitle="Company details on invoices, rider pay and delivery time. Use Edit on a card to change it." />
+      <BusinessSettings settings={settings} />
     </div>
   );
 }

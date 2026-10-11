@@ -1,109 +1,107 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCurrency, useMoney } from "@/components/MoneyProvider";
-import { inputClass, primaryButton } from "@/components/ui/Form";
+import FormDialog, { DialogSection } from "@/components/ui/FormDialog";
+import { Field, inputClass } from "@/components/ui/Form";
 import { saveDeliveryFees, type DeliveryFeesInput } from "@/lib/actions/admin-offers";
 
 type Defaults = { express: number; standard: number; freeOver: number };
 
-function AmountField({ label, hint, value, onChange, placeholder, currency }: { label: string; hint: string; value: string; onChange: (v: string) => void; placeholder: string; currency: string }) {
+function Stat({ icon, label, value, hint, tone }: { icon: string; label: string; value: string; hint: string; tone: string }) {
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-sm font-bold text-neutral-800">{label}</span>
-      <span className="flex items-center gap-2">
-        <input type="number" min={0} step="any" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={`${inputClass} w-36`} />
-        <span className="text-sm font-semibold text-neutral-500">{currency}</span>
-      </span>
-      <span className="text-xs text-neutral-500">{hint}</span>
-    </label>
+    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-lg">{icon}</span>
+        <p className="text-xs font-bold uppercase tracking-wider text-neutral-400">{label}</p>
+      </div>
+      <p className={`mt-3 text-2xl font-extrabold tracking-tight ${tone}`}>{value}</p>
+      <p className="mt-0.5 text-xs text-neutral-500">{hint}</p>
+    </div>
   );
 }
 
+/** What shoppers pay for delivery, and when it is free. Shows the current fees; Edit opens a popup. */
 export default function DeliveryFeesForm({ initial, defaults }: { initial: DeliveryFeesInput; defaults: Defaults }) {
   const router = useRouter();
   const money = useMoney();
   const currency = useCurrency();
+  const [saved, setSaved] = useState(initial);
+  const [open, setOpen] = useState(false);
   const str = (n: number | null) => (n === null ? "" : String(n));
   const [express, setExpress] = useState(str(initial.express));
   const [standard, setStandard] = useState(str(initial.standard));
   const [freeOver, setFreeOver] = useState(str(initial.freeOver));
   const [freeEnabled, setFreeEnabled] = useState(initial.freeEnabled);
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
-  const [pending, start] = useTransition();
 
-  const num = (v: string, d: number) => (v.trim() === "" ? d : Number(v));
-  const e = num(express, defaults.express);
-  const s = num(standard, defaults.standard);
-  const f = num(freeOver, defaults.freeOver);
+  const e = saved.express ?? defaults.express;
+  const s = saved.standard ?? defaults.standard;
+  const f = saved.freeOver ?? defaults.freeOver;
 
-  function save() {
-    setMessage(null);
-    const body: DeliveryFeesInput = { express: express.trim() === "" ? null : Number(express), standard: standard.trim() === "" ? null : Number(standard), freeOver: freeOver.trim() === "" ? null : Number(freeOver), freeEnabled };
-    start(async () => {
-      const res = await saveDeliveryFees(body);
-      if (res.error) setMessage({ ok: false, text: res.error });
-      else {
-        setMessage({ ok: true, text: "Delivery fees saved." });
-        router.refresh();
-      }
-    });
+  async function save(): Promise<string | void> {
+    const body: DeliveryFeesInput = {
+      express: express.trim() === "" ? null : Number(express),
+      standard: standard.trim() === "" ? null : Number(standard),
+      freeOver: freeOver.trim() === "" ? null : Number(freeOver),
+      freeEnabled,
+    };
+    const res = await saveDeliveryFees(body);
+    if (res.error) return res.error;
+    setSaved(body);
+    router.refresh();
+  }
+
+  function edit() {
+    setExpress(str(saved.express));
+    setStandard(str(saved.standard));
+    setFreeOver(str(saved.freeOver));
+    setFreeEnabled(saved.freeEnabled);
+    setOpen(true);
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-      <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
-        {message && (
-          <p role="status" className={`mb-4 rounded-xl border px-3 py-2 text-sm font-medium ${message.ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-rose-200 bg-rose-50 text-rose-800"}`}>
-            {message.text}
-          </p>
-        )}
-        <h2 className="text-sm font-extrabold tracking-tight text-neutral-900">Fees</h2>
-        <p className="mb-4 mt-0.5 text-xs text-neutral-500">One delivery charge is taken for the whole cart, even when it is split between several shops. Leave a box empty to use the standard setting for this market.</p>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <AmountField label="Express delivery fee" hint="Fastest delivery, from nearby shops." value={express} onChange={setExpress} placeholder={String(defaults.express)} currency={currency} />
-          <AmountField label="Standard delivery fee" hint="Delivery on the shop's delivery days, and scheduled orders." value={standard} onChange={setStandard} placeholder={String(defaults.standard)} currency={currency} />
-        </div>
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-end">
+        <button type="button" onClick={edit} className="inline-flex h-10 items-center gap-2 rounded-full bg-blue-700 px-5 text-sm font-bold text-white transition hover:bg-blue-800">
+          <span aria-hidden>✎</span> Edit delivery fees
+        </button>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Stat icon="⚡" label="Express delivery" value={money(e)} hint="Fastest delivery, from nearby shops" tone="text-blue-700" />
+        <Stat icon="🚚" label="Standard delivery" value={money(s)} hint="Shop delivery days and scheduled orders" tone="text-blue-700" />
+        <Stat icon="🎁" label="Free delivery" value={saved.freeEnabled ? `Over ${money(f)}` : "Off"} hint={saved.freeEnabled ? "Counted on the items, before any coupon" : "The fee is always charged"} tone={saved.freeEnabled ? "text-emerald-600" : "text-neutral-400"} />
+      </div>
+      <p className="text-xs text-neutral-500">
+        One delivery charge is taken for the whole cart, even when it is split between several shops. For a coupon or a free-delivery weekend, use <b>Offers &amp; coupons</b>.
+      </p>
 
-        <div className="mt-6 border-t border-neutral-100 pt-5">
-          <label className="flex cursor-pointer items-start gap-3">
-            <input type="checkbox" checked={freeEnabled} onChange={(ev) => setFreeEnabled(ev.target.checked)} className="mt-1 h-4 w-4 accent-blue-700" />
-            <span>
-              <span className="block text-sm font-bold text-neutral-800">Free delivery on bigger orders</span>
-              <span className="block text-xs text-neutral-500">Delivery costs nothing once the items add up to the amount below. Switch off to always charge the fee.</span>
-            </span>
-          </label>
-          <div className={`mt-3 ps-7 ${freeEnabled ? "" : "pointer-events-none opacity-40"}`}>
-            <AmountField label="Free delivery on orders of" hint="Counted on the items, before any coupon." value={freeOver} onChange={setFreeOver} placeholder={String(defaults.freeOver)} currency={currency} />
-          </div>
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <button type="button" onClick={save} disabled={pending} className={primaryButton}>
-            {pending ? "Saving…" : "Save delivery fees"}
-          </button>
-        </div>
-      </section>
-
-      <aside className="h-fit rounded-2xl border border-blue-100 bg-blue-50/50 p-4 sm:p-5">
-        <h2 className="text-sm font-extrabold tracking-tight text-neutral-900">What shoppers see</h2>
-        <ul className="mt-3 space-y-2 text-sm text-neutral-700">
-          <li className="flex justify-between gap-3">
-            <span>Express</span>
-            <b>{money(e)}</b>
-          </li>
-          <li className="flex justify-between gap-3">
-            <span>Standard</span>
-            <b>{money(s)}</b>
-          </li>
-          <li className="flex justify-between gap-3 border-t border-blue-100 pt-2">
-            <span>Free delivery</span>
-            <b>{freeEnabled ? `over ${money(f)}` : "off"}</b>
-          </li>
-        </ul>
-        <p className="mt-4 text-xs text-neutral-500">For a coupon, a free-delivery weekend or a percentage off, use <b>Offers &amp; coupons</b>.</p>
-      </aside>
+      {open && (
+        <FormDialog icon="🛵" title="Delivery fees" subtitle="Shown in the shop, cart and checkout straight away" onClose={() => setOpen(false)} onSave={save}>
+          <DialogSection title="Fees" hint="Leave a box empty to use the standard setting for this market.">
+            <Field label={`Express delivery fee (${currency})`} hint="Fastest delivery, from nearby shops.">
+              <input type="number" min={0} step="any" value={express} onChange={(ev) => setExpress(ev.target.value)} placeholder={String(defaults.express)} className={inputClass} />
+            </Field>
+            <Field label={`Standard delivery fee (${currency})`} hint="Shop delivery days, and scheduled orders.">
+              <input type="number" min={0} step="any" value={standard} onChange={(ev) => setStandard(ev.target.value)} placeholder={String(defaults.standard)} className={inputClass} />
+            </Field>
+          </DialogSection>
+          <DialogSection title="Free delivery" cols={1}>
+            <label className="flex cursor-pointer items-start gap-3">
+              <input type="checkbox" checked={freeEnabled} onChange={(ev) => setFreeEnabled(ev.target.checked)} className="mt-1 h-4 w-4 accent-blue-700" />
+              <span>
+                <span className="block text-sm font-bold text-neutral-800">Free delivery on bigger orders</span>
+                <span className="block text-xs text-neutral-500">Delivery costs nothing once the items add up to the amount below. Switch off to always charge the fee.</span>
+              </span>
+            </label>
+            <div className={freeEnabled ? "" : "pointer-events-none opacity-40"}>
+              <Field label={`Free delivery on orders of (${currency})`} hint="Counted on the items, before any coupon.">
+                <input type="number" min={0} step="any" value={freeOver} onChange={(ev) => setFreeOver(ev.target.value)} placeholder={String(defaults.freeOver)} className={`${inputClass} sm:w-56`} />
+              </Field>
+            </div>
+          </DialogSection>
+        </FormDialog>
+      )}
     </div>
   );
 }

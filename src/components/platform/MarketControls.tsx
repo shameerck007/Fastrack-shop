@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createTenant, setTenantStatus } from "@/lib/actions/platform";
 import Select from "@/components/ui/Select";
+import FormDialog, { DialogSection } from "@/components/ui/FormDialog";
+import { Field, inputClass } from "@/components/ui/Form";
 
 type Status = "draft" | "active" | "suspended";
 
@@ -49,83 +51,58 @@ export function MarketStatusButtons({ tenantId, status, name }: { tenantId: stri
   );
 }
 
-/** Add a new market. It starts as a draft, so nothing is public until you open it. */
+/** Add a new market. It starts as a draft, so nothing is public until you open it. The button opens a popup. */
 export function CreateMarketForm({ countries }: { countries: { code: string; name: string; currency: string }[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [country, setCountry] = useState(countries[0]?.code ?? "");
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-  const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    startTransition(async () => {
-      const res = await createTenant({ name, slug, countryCode: country });
-      if (res.error) {
-        setError(res.error);
-        return;
-      }
-      setOpen(false);
-      setName("");
-      setSlug("");
-      router.refresh();
-    });
-  }
-
-  if (!open) {
-    return (
-      <button onClick={() => setOpen(true)} className="rounded-full bg-blue-700 px-5 py-2 text-sm font-bold text-white hover:bg-blue-800">
-        + Add a market
-      </button>
-    );
+  async function save(): Promise<string | void> {
+    const res = await createTenant({ name, slug, countryCode: country });
+    if (res.error) return res.error;
+    setName("");
+    setSlug("");
+    router.refresh();
   }
 
   return (
-    <form onSubmit={submit} className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-extrabold">Add a market</h3>
-        <button type="button" onClick={() => setOpen(false)} className="text-xs text-neutral-500 hover:underline">
-          Cancel
-        </button>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-xs font-medium text-neutral-500">Name</span>
-          <input
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
-            }}
-            placeholder="FasTrack United Arab Emirates"
-            className={field}
-            required
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-xs font-medium text-neutral-500">Short name</span>
-          <input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="fastrack-ae" className={field} required />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-xs font-medium text-neutral-500">Country (sets the currency)</span>
-          <Select value={country} onChange={(e) => setCountry(e.target.value)} className={`${field} bg-white`}>
-            {countries.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name} · {c.currency}
-              </option>
-            ))}
-          </Select>
-        </label>
-      </div>
-      <p className="mt-2 text-xs text-neutral-400">The new market starts as a draft. Its tax rules and payment settings still need to be set up before you open it.</p>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-      <button type="submit" disabled={pending} className="mt-3 rounded-full bg-blue-700 px-5 py-2 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50">
-        {pending ? "Creating…" : "Create market"}
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="rounded-full bg-blue-700 px-5 py-2 text-sm font-bold text-white hover:bg-blue-800">
+        + Add a market
       </button>
-    </form>
+      {open && (
+        <FormDialog icon="🌍" title="Add a market" subtitle="It starts as a draft: nothing is public until you open it" saveLabel="Create market" onClose={() => setOpen(false)} onSave={save}>
+          <DialogSection>
+            <Field label="Name" required>
+              <input
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+                }}
+                placeholder="FasTrack United Arab Emirates"
+                className={inputClass}
+                required
+              />
+            </Field>
+            <Field label="Short name" required>
+              <input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="fastrack-ae" className={inputClass} required />
+            </Field>
+            <Field label="Country" hint="Sets the currency." className="sm:col-span-2">
+              <Select value={country} onChange={(e) => setCountry(e.target.value)} className="w-full">
+                {countries.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name} · {c.currency}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </DialogSection>
+          <p className="text-xs text-neutral-500">Its tax rules and payment settings still need to be set up before you open it.</p>
+        </FormDialog>
+      )}
+    </>
   );
 }

@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateWarehouseStandardDelivery } from "@/lib/actions/admin-zones";
+import FormDialog, { DialogSection } from "@/components/ui/FormDialog";
+import { Field, inputClass } from "@/components/ui/Form";
 
-const field = "min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
-
-/** Express vs Standard for one warehouse. The map radius below controls Express only;
- * these settings control the broader Standard service (and so whether products stay visible). */
+/** Express vs Standard for one warehouse. The map radius controls Express only; these settings control the broader
+ * Standard service (and so whether products stay visible). Shows the current settings; Change opens a popup. */
 export default function StandardDeliverySettings({
   warehouseId,
   initialEnabled,
@@ -22,88 +22,75 @@ export default function StandardDeliverySettings({
   expressRadiusKm: number | null;
 }) {
   const router = useRouter();
+  const [saved, setSaved] = useState({ enabled: initialEnabled, radiusKm: initialRadiusKm, days: initialDays });
+  const [open, setOpen] = useState(false);
   const [enabled, setEnabled] = useState(initialEnabled);
   const [limit, setLimit] = useState(initialRadiusKm != null);
   const [radius, setRadius] = useState(initialRadiusKm != null ? String(initialRadiusKm) : "");
   const [days, setDays] = useState(String(initialDays));
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
-  async function save() {
-    setSaving(true);
-    setMessage(null);
+  async function save(): Promise<string | void> {
     const res = await updateWarehouseStandardDelivery(warehouseId, {
       enabled,
       radiusKm: enabled && limit && radius.trim() ? Number(radius) : null,
       days: Number(days),
     });
-    setSaving(false);
-    if (res.error) {
-      setMessage({ ok: false, text: res.error });
-      return;
-    }
-    setMessage({ ok: true, text: "Standard delivery settings saved." });
+    if (res.error) return res.error;
+    setSaved({ enabled, radiusKm: enabled && limit && radius.trim() ? Number(radius) : null, days: Number(days) });
     router.refresh();
   }
 
   return (
-    <section className="mb-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
-      <h3 className="text-sm font-extrabold text-neutral-900">Express vs Standard delivery</h3>
-      <p className="mt-1 text-xs text-neutral-600">
-        The radius you draw on the map controls <b>Express</b> delivery only
-        {expressRadiusKm != null ? ` (currently ${expressRadiusKm} km)` : " (none set — Express is not limited by distance)"}. Customers outside it
-        still see this seller&apos;s products and can order with <b>Standard</b> delivery, as long as Standard is on below.
-      </p>
-
-      <label className="mt-3 flex items-center gap-2 text-sm font-medium">
-        <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="h-4 w-4" />
-        Standard delivery is available
-      </label>
-
-      {enabled && (
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="flex items-center gap-2 text-xs font-medium text-neutral-600">
-              <input type="checkbox" checked={limit} onChange={(e) => setLimit(e.target.checked)} className="h-4 w-4" />
-              Limit Standard to a distance
-            </label>
-            <input
-              type="number"
-              min={0.1}
-              step={0.1}
-              disabled={!limit}
-              value={radius}
-              onChange={(e) => setRadius(e.target.value)}
-              placeholder="No limit"
-              className={`${field} mt-1.5 w-full disabled:bg-neutral-100`}
-            />
-            <p className="mt-1 text-[11px] text-neutral-400">km from the shop. Leave the box unticked for no limit.</p>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-neutral-600">Estimated delivery time (days)</label>
-            <input type="number" min={0} max={30} step={1} value={days} onChange={(e) => setDays(e.target.value)} className={`${field} mt-1.5 w-full`} />
-            <p className="mt-1 text-[11px] text-neutral-400">Shown to customers as &ldquo;Delivery by &lt;date&gt;&rdquo;.</p>
-          </div>
+    <>
+      <section className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+        <div className="min-w-0">
+          <h3 className="text-sm font-extrabold text-neutral-900">Express vs Standard delivery</h3>
+          <p className="mt-1 text-xs text-neutral-600">
+            Express: {expressRadiusKm != null ? `within ${expressRadiusKm} km (set on the map)` : "not limited by distance"}. Standard:{" "}
+            <b>{saved.enabled ? `on${saved.radiusKm != null ? `, within ${saved.radiusKm} km` : ", no distance limit"}, delivered in about ${saved.days} day${saved.days === 1 ? "" : "s"}` : "off"}</b>.
+          </p>
+          {!saved.enabled && <p className="mt-1 text-xs font-medium text-amber-700">With Standard off, this seller&apos;s products are only visible and orderable inside the Express radius.</p>}
         </div>
-      )}
-
-      {!enabled && (
-        <p className="mt-2 text-xs font-medium text-amber-700">
-          With Standard off, this seller&apos;s products are only visible and orderable inside the Express radius.
-        </p>
-      )}
-
-      <div className="mt-3 flex items-center gap-3">
         <button
           type="button"
-          onClick={save}
-          disabled={saving}
-          className="rounded-full bg-blue-700 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
+          onClick={() => {
+            setEnabled(saved.enabled);
+            setLimit(saved.radiusKm != null);
+            setRadius(saved.radiusKm != null ? String(saved.radiusKm) : "");
+            setDays(String(saved.days));
+            setOpen(true);
+          }}
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3.5 text-xs font-bold text-blue-700 transition hover:bg-blue-50"
         >
-          {saving ? "Saving…" : "Save delivery settings"}
+          <span aria-hidden>✎</span> Change
         </button>
-        {message && <span className={`text-xs font-medium ${message.ok ? "text-emerald-600" : "text-red-600"}`}>{message.text}</span>}
-      </div>
-    </section>
+      </section>
+
+      {open && (
+        <FormDialog icon="🚚" title="Standard delivery" subtitle="Customers outside the Express radius can still order with Standard" saveLabel="Save delivery settings" onClose={() => setOpen(false)} onSave={save}>
+          <DialogSection cols={1} hint="The radius you draw on the map controls Express only. Standard is the broader service.">
+            <label className="flex items-center gap-2 text-sm font-semibold text-neutral-800">
+              <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+              Standard delivery is available
+            </label>
+          </DialogSection>
+          {enabled && (
+            <DialogSection>
+              <div>
+                <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-neutral-700">
+                  <input type="checkbox" checked={limit} onChange={(e) => setLimit(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+                  Limit Standard to a distance
+                </label>
+                <input type="number" min={0.1} step={0.1} disabled={!limit} value={radius} onChange={(e) => setRadius(e.target.value)} placeholder="No limit" className={inputClass} />
+                <p className="mt-1 text-xs text-neutral-400">km from the shop. Leave unticked for no limit.</p>
+              </div>
+              <Field label="Estimated delivery time (days)" hint="Shown to customers as “Delivery by <date>”.">
+                <input type="number" min={0} max={30} step={1} value={days} onChange={(e) => setDays(e.target.value)} className={inputClass} />
+              </Field>
+            </DialogSection>
+          )}
+        </FormDialog>
+      )}
+    </>
   );
 }
