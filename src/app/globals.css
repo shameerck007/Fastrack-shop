@@ -72,3 +72,10 @@ a:active, button:not(:disabled):active {
 html {
   background-color: #ffffff;
 }
+
+/* Parts of the shop that only make sense in a browser, not in the installed phone app (PWA / Android app). */
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+  .hide-in-app {
+    display: none !important;
+  }
+}

@@ -27,7 +27,7 @@ function AccountTile({
   return (
     <Link
       href={href}
-      className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-4 transition hover:border-blue-300 hover:shadow-sm"
+      className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:border-blue-300 hover:shadow-md"
     >
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xl">
         {icon}
@@ -80,10 +80,31 @@ export default async function AccountPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 pb-32 pt-8 md:pb-8">
-      <h1 className="mb-1 text-2xl font-semibold max-md:hidden">{t("account.title")}</h1>
-      <p className="mb-6 text-sm text-neutral-500">
-        {profile?.full_name ?? user.email} · {user.email}
-      </p>
+      <h1 className="mb-3 text-2xl font-extrabold tracking-tight max-md:hidden">{t("account.title")}</h1>
+      {(() => {
+        const name = profile?.full_name?.trim() || user.email?.split("@")[0] || "";
+        const initials = name
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((w: string) => w[0]?.toUpperCase())
+          .join("");
+        return (
+          <div className="relative mb-5 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 p-5 text-white shadow-lg shadow-blue-700/20">
+            <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
+            <span aria-hidden className="pointer-events-none absolute -bottom-12 right-16 h-32 w-32 rounded-full bg-white/10" />
+            <div className="relative flex items-center gap-4">
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/20 text-2xl font-extrabold ring-2 ring-white/40 backdrop-blur">{initials || "👤"}</span>
+              <div className="min-w-0">
+                <p className="truncate text-xl font-extrabold leading-tight">{name}</p>
+                <p className="truncate text-sm text-white/85">{user.email}</p>
+                {profile?.phone && <p className="truncate text-xs text-white/75">📞 {profile.phone}</p>}
+                {roleLabel && <span className="mt-1.5 inline-block rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold">{roleLabel}</span>}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white p-4">
         <span className="flex items-center gap-3">

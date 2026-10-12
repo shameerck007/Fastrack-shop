@@ -38,7 +38,8 @@ export default async function Header() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:ms-0 sm:gap-3">
-          {currentTenant && tenants.length > 1 && (pinned ? <LockedMarketPill tenant={currentTenant} /> : <MarketPill tenants={tenants} currentId={currentTenant.id} />)}
+          {/* In the installed phone app the country is changed from Your account, so the header stays clean. */}
+          {currentTenant && tenants.length > 1 && <span className="hide-in-app contents">{pinned ? <LockedMarketPill tenant={currentTenant} /> : <MarketPill tenants={tenants} currentId={currentTenant.id} />}</span>}
           <UserHeaderActions />
         </div>
       </div>
