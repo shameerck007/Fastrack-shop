@@ -63,16 +63,16 @@ export default function DownloadInvoiceButton({
   }
 
   return (
-    <span className="inline-flex flex-col items-end gap-1">
+    <span className="relative inline-flex">
       <button
         type="button"
         onClick={download}
         disabled={busy}
-        className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-60"
+        className="inline-flex h-9 items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 text-sm font-medium text-blue-700 shadow-sm transition hover:bg-blue-100 disabled:opacity-60"
       >
         {busy ? t("orders.preparing_invoice") : `📄 ${t("orders.download_invoice")}`}
       </button>
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      {error && <span className="absolute left-0 top-full mt-1 whitespace-nowrap text-xs text-red-600">{error}</span>}
     </span>
   );
 }
