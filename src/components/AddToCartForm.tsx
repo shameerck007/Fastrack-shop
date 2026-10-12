@@ -9,6 +9,7 @@ import { notifyCartChanged } from "@/lib/cart-events";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedField } from "@/lib/i18n/localized";
+import { useVariantSelection } from "@/components/ProductVariantProvider";
 import type { ProductVariant } from "@/types/database";
 
 export default function AddToCartForm({
@@ -25,9 +26,9 @@ export default function AddToCartForm({
   /** The product's per-order limit, if it has one. */
   maxQty?: number | null;
 }) {
-  const [variantId, setVariantId] = useState(
-    variants.find((v) => v.is_default)?.id ?? variants[0]?.id
-  );
+  // The selected pack size lives in ProductVariantProvider, so the prices at the top of the page follow it.
+  const { variantId: selectedId, setVariantId } = useVariantSelection();
+  const variantId = selectedId ?? variants[0]?.id;
   const [rawQuantity, setQuantity] = useState(1);
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);

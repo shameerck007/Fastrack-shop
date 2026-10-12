@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import ProductBuyBox from "@/components/ProductBuyBox";
+import ProductVariantProvider, { SelectedPrice } from "@/components/ProductVariantProvider";
 import ProductAlternatives from "@/components/ProductAlternatives";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import StarRating from "@/components/StarRating";
@@ -49,8 +50,6 @@ export default async function ProductPage({
   const stock = Object.fromEntries(stockMap);
   const isLoggedIn = !!user;
 
-  const variant =
-    product.product_variants.find((v) => v.is_default) ?? product.product_variants[0];
   const theme = getCategoryTheme(product.category?.slug);
   const productName = localizedName(product, locale);
 
@@ -84,6 +83,7 @@ export default async function ProductPage({
       />
       </div>
 
+      <ProductVariantProvider variants={product.product_variants}>
       <div className="grid gap-8 max-md:gap-0 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <div
@@ -125,12 +125,7 @@ export default async function ProductPage({
 
           <div className="md:hidden">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-neutral-900">
-                {variant ? money(variant.price) : "—"}
-              </span>
-              {variant?.compare_at_price && (
-                <span className="text-base text-neutral-400 line-through">{money(variant.compare_at_price)}</span>
-              )}
+              <SelectedPrice className="text-3xl font-extrabold text-neutral-900" compareClassName="text-base text-neutral-400 line-through" showSaving />
             </div>
             {product.is_variable_weight && product.price_per_kg && (
               <p className="mt-1 text-xs text-neutral-500">
@@ -171,14 +166,7 @@ export default async function ProductPage({
           >
             <PlaceOrderPill compact className="mb-3 md:hidden" />
             <div className="mb-2 flex items-baseline gap-2 max-md:hidden">
-              <span className="text-2xl font-bold text-blue-700">
-                {variant ? money(variant.price) : "—"}
-              </span>
-              {variant?.compare_at_price && (
-                <span className="text-neutral-400 line-through">
-                  {money(variant.compare_at_price)}
-                </span>
-              )}
+              <SelectedPrice className="text-2xl font-bold text-blue-700" showSaving />
             </div>
             {product.is_variable_weight && product.price_per_kg && (
               <p className="mb-2 text-xs text-neutral-500 max-md:hidden">
@@ -200,6 +188,7 @@ export default async function ProductPage({
           </div>
         </div>
       </div>
+      </ProductVariantProvider>
 
       <div className="max-md:bg-neutral-50 max-md:px-4">
       <ProductAlternatives
