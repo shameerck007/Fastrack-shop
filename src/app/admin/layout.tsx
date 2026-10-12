@@ -9,6 +9,8 @@ import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import Flag from "@/components/Flag";
 
+export const metadata = { title: { default: "Admin", template: "%s | FasTrack Admin" } };
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireRole("admin");
   const scopeCountry = (await cookies()).get(ADMIN_SCOPE_COOKIE)?.value ?? null;

@@ -286,7 +286,7 @@ export default function AddressForm({
           <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-base">📍</span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-base font-bold text-neutral-900">{pinLabel ?? "Finding the place…"}</p>
-            {deliverable === true && <p className="text-sm font-medium text-emerald-600">✓ {t("common.we_deliver_here")}</p>}
+            {deliverable === true && <p className="text-sm font-medium text-emerald-600">{t("common.we_deliver_here")}</p>}
             {deliverable === false && <p className="text-sm font-medium text-red-600">{t("common.dont_deliver_here")}</p>}
             {deliverable === null && <p className="text-sm text-neutral-500">Move the map to place the pin on your door.</p>}
           </div>
@@ -316,7 +316,7 @@ export default function AddressForm({
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-lg">📍</span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-neutral-900">{pinLabel ?? (addressLine || "Pinned location")}</p>
-            {deliverable === true && <p className="text-xs font-medium text-emerald-600">✓ {t("common.we_deliver_here")}</p>}
+            {deliverable === true && <p className="text-xs font-medium text-emerald-600">{t("common.we_deliver_here")}</p>}
             {deliverable === false && <p className="text-xs font-medium text-red-600">{t("common.dont_deliver_here")}</p>}
           </div>
           <button type="button" onClick={() => setStep("map")} className="shrink-0 rounded-full border border-blue-200 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-50">
@@ -377,9 +377,9 @@ export default function AddressForm({
                 <input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder={t("addresses.postal_code_placeholder")} inputMode="numeric" maxLength={5} className={field} />
                 <input value={buildingNumber} onChange={(e) => setBuildingNumber(e.target.value)} placeholder={t("addresses.building_no_placeholder")} inputMode="numeric" maxLength={4} className={field} />
                 <input value={additionalNumber} onChange={(e) => setAdditionalNumber(e.target.value)} placeholder={t("addresses.additional_no_placeholder")} inputMode="numeric" maxLength={4} className={field} />
-                <input value={unitNumber} onChange={(e) => setUnitNumber(e.target.value)} placeholder={t("addresses.unit_no_placeholder")} className={field} />
+                <input value={unitNumber} onChange={(e) => setUnitNumber(e.target.value)} placeholder="Unit / apt no." className={field} />
               </div>
-              <input value={shortAddress} onChange={(e) => setShortAddress(e.target.value.toUpperCase())} placeholder={t("addresses.short_address_placeholder")} maxLength={8} className={`${field} uppercase`} />
+              <input value={shortAddress} onChange={(e) => setShortAddress(e.target.value.toUpperCase())} placeholder="Short address code, e.g. RRRD2929" maxLength={8} className={field} />
             </>
           )}
         </section>

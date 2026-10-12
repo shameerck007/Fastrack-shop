@@ -6,6 +6,8 @@ import WarehouseNav from "@/components/warehouse/WarehouseNav";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
+export const metadata = { title: { default: "Warehouse", template: "%s | FasTrack Warehouse" } };
+
 export default async function WarehouseLayout({ children }: { children: React.ReactNode }) {
   await requireRole("store_staff");
   const warehouse = await getMyStaffWarehouse();

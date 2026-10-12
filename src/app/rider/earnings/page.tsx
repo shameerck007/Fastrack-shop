@@ -7,7 +7,7 @@ import { getMoney } from "@/lib/tenant-server";
 import CollectionsPanel from "@/components/CollectionsPanel";
 import { buildPeriods, type PeriodMode } from "@/lib/finance-periods";
 
-export const metadata = { title: "Earnings · FasTrack Rider" };
+export const metadata = { title: "Earnings" };
 
 const ENTRY_LABEL: Record<string, string> = {
   payout: "Payout received",

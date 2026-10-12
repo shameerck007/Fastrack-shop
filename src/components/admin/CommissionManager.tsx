@@ -112,7 +112,7 @@ export default function CommissionManager({ categories, stores, rules, defaultRa
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
         <DefaultRate defaultRate={defaultRate} disabled={disabled || pending} onSave={(r) => run(() => unwrapAction(saveDefaultCommission)(r), "Default rate saved.")} />
         <Stat label="Average category rate" value={`${Math.round(average * 10) / 10}%`} hint={`${rated.length} of ${categories.length} categories have a rate`} tone="text-blue-700" />
         <Stat label="Supplier exceptions" value={String(exceptions.length)} hint={exceptions.length ? "Override the category rate" : "None yet"} tone="text-amber-600" />

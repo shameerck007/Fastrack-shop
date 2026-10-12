@@ -48,18 +48,20 @@ export default function StockCell({
           type="button"
           onClick={() => step(-1)}
           disabled={pending}
-          className="flex h-6 w-6 items-center justify-center rounded border border-neutral-300 text-xs hover:bg-neutral-50 disabled:opacity-50"
+          aria-label="Decrease stock"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-300 text-base hover:bg-neutral-50 disabled:opacity-50 sm:h-6 sm:w-6 sm:rounded sm:text-xs"
         >
           −
         </button>
         <input
           type="number"
           step="0.001"
+          aria-label="Stock quantity"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onBlur={save}
           disabled={pending}
-          className={`w-16 rounded border px-2 py-1 text-center text-sm ${
+          className={`h-9 w-16 rounded border px-2 py-1 text-center text-sm sm:h-auto ${
             isLow ? "border-amber-400 bg-amber-50" : "border-neutral-300"
           }`}
         />
@@ -67,7 +69,8 @@ export default function StockCell({
           type="button"
           onClick={() => step(1)}
           disabled={pending}
-          className="flex h-6 w-6 items-center justify-center rounded border border-neutral-300 text-xs hover:bg-neutral-50 disabled:opacity-50"
+          aria-label="Increase stock"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-300 text-base hover:bg-neutral-50 disabled:opacity-50 sm:h-6 sm:w-6 sm:rounded sm:text-xs"
         >
           +
         </button>

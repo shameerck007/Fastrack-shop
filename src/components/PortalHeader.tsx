@@ -38,15 +38,19 @@ export default function PortalHeader({
         </Link>
 
         <div className="ms-auto flex shrink-0 items-center gap-2 text-sm sm:gap-3">
-          <Link href="/api/enter-shop" prefetch={false} className="flex h-9 items-center gap-1.5 rounded-full px-3 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900">
+          <Link href="/api/enter-shop" prefetch={false} className="flex h-10 items-center gap-1.5 rounded-full px-3 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900">
             <span aria-hidden className="rtl:-scale-x-100">←</span>
             <span className="hidden md:inline">{backLabel}</span>
           </Link>
-          <LanguageToggle />
+          {/* On a phone the language switch lives on the Account page, so the bar stays on one line. */}
+          <LanguageToggle className="max-sm:hidden" />
           <NotificationBell />
           {chip && <span className="hidden max-w-[11rem] truncate rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 lg:inline">● {chip}</span>}
           <form action={signOut}>
-            <button className="h-9 rounded-full px-3 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900">{logoutLabel}</button>
+            <button aria-label={logoutLabel} className="flex h-10 items-center justify-center rounded-full px-3 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 max-sm:w-10 max-sm:px-0">
+              <span className="max-sm:hidden">{logoutLabel}</span>
+              <span aria-hidden className="text-lg sm:hidden">🚪</span>
+            </button>
           </form>
         </div>
       </div>

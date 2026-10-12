@@ -1,7 +1,7 @@
 import ReturnPickupCard, { ReturnDropoffCard, type ReturnDropoff, type ReturnPickup } from "@/components/rider/ReturnPickupCard";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "Return pickups · FasTrack Rider" };
+export const metadata = { title: "Return pickups" };
 
 export default async function RiderReturnsPage() {
   const supabase = await createClient();

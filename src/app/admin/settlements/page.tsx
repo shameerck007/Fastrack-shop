@@ -16,7 +16,7 @@ function Stat({ icon, label, value, accent }: { icon: string; label: string; val
       </span>
       <div className="min-w-0">
         <p className="text-xs font-medium text-neutral-500">{label}</p>
-        <p className="text-2xl font-semibold leading-tight text-neutral-900">{value}</p>
+        <p className="break-words text-xl font-semibold leading-tight text-neutral-900 sm:text-2xl">{value}</p>
       </div>
     </div>
   );
@@ -47,7 +47,7 @@ export default async function AdminSettlementsPage() {
         </div>
       </div>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-5 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
         <Stat icon="🏪" label={t("admin.suppliers_with_balance")} value={suppliersOwed} accent="#d97706" />
         <Stat icon="💰" label={t("admin.net_earned_all_time")} value={money(totalNetEarned)} accent="#2563eb" />
         <Stat icon="✅" label={t("admin.paid_out_all_time")} value={money(totalPaidOut)} accent="#059669" />

@@ -6,7 +6,7 @@ import { getRiderPayProfile } from "@/lib/rider";
 import RoutePickupButton from "@/components/rider/RoutePickupButton";
 import OffersPoller from "@/components/rider/OffersPoller";
 
-export const metadata = { title: "Route · FasTrack Rider" };
+export const metadata = { title: "Route" };
 
 const STATUS_LABEL: Record<string, string> = {
   rider_assigned: "To pick up",

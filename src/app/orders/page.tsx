@@ -120,8 +120,8 @@ export default async function OrdersPage({
                     {/* Amazon-style header strip: placed/total/deliver-to on one
                         side, order # + compact "View order details | Invoice"
                         text links on the other — no boxed invoice button here. */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-500 sm:text-sm">
-                      <div className="flex flex-wrap gap-x-6 gap-y-1">
+                    <div className="flex items-start justify-between gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-500 sm:items-center sm:text-sm">
+                      <div className="flex flex-wrap gap-x-5 gap-y-1 sm:gap-x-6">
                         <span>
                           <span className="block text-neutral-400">{t("orders.order_placed_label")}</span>
                           <span className="text-neutral-700">
@@ -146,11 +146,11 @@ export default async function OrdersPage({
                       </div>
                       <div className="text-end">
                         <span className="block text-neutral-400">{t("orders.order_hash", { number: order.order_number })}</span>
-                        <span className="flex items-center gap-1.5 whitespace-nowrap">
-                          <Link href={`/orders/${order.id}`} className="font-medium text-blue-700 hover:underline">
+                        <span className="flex items-center justify-end gap-1.5 whitespace-nowrap text-xs sm:text-sm">
+                          <Link href={`/orders/${order.id}`} className="font-medium text-blue-700 hover:underline max-sm:hidden">
                             {t("orders.view_order_details")}
                           </Link>
-                          <span className="text-neutral-300">|</span>
+                          <span className="text-neutral-300 max-sm:hidden">|</span>
                           <DownloadInvoiceButton orderId={order.id} orderNumber={order.order_number} variant="link" />
                         </span>
                       </div>

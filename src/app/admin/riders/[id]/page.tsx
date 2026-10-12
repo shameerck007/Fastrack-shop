@@ -158,7 +158,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
       )}
 
       {/* key numbers */}
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-4 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
         {[
           { label: t("rider_detail.deliveries_completed"), value: String(deliveredCount ?? 0) },
           { label: t("rider_detail.rating"), value: rider.rating ? String(rider.rating) : "—" },

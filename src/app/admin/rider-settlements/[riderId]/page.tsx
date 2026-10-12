@@ -87,7 +87,7 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
         </p>
       ) : (
         <>
-          <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="mb-5 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
             <Card label="Delivery pay earned" value={money(data.summary.earned - data.summary.salaryBonus)} tone="emerald" />
             <Card label="Salary and bonuses" value={money(data.summary.salaryBonus)} tone="emerald" />
             <Card label="Cash collected (COD)" value={money(data.summary.cashCollected)} />

@@ -82,7 +82,7 @@ function Row({ label, value }: { label: string; value: string | null | undefined
 
 function Card({ icon, title, hint, onEdit, children }: { icon: string; title: string; hint: string; onEdit: () => void; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
+    <section className="flex min-w-0 flex-col rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="mb-2 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-lg">{icon}</span>
@@ -166,7 +166,7 @@ export default function BusinessSettings({ settings }: { settings: CompanySettin
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
         <Card icon="🏢" title="Company profile" hint={isIndia ? "Shown on every customer invoice" : "Shown on every customer invoice"} onEdit={() => edit("company")}>
           <Row label="Trading name" value={v.tradingName} />
           <Row label={isIndia ? "PAN" : "Commercial registration"} value={v.crNumber} />

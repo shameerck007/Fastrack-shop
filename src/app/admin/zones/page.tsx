@@ -50,7 +50,7 @@ function Stat({
       </span>
       <div className="min-w-0">
         <p className="text-xs font-medium text-neutral-500">{label}</p>
-        <p className="text-2xl font-semibold leading-tight text-neutral-900">{value}</p>
+        <p className="break-words text-xl font-semibold leading-tight text-neutral-900 sm:text-2xl">{value}</p>
         {hint && <p className="truncate text-xs text-neutral-400">{hint}</p>}
       </div>
     </div>
@@ -239,7 +239,7 @@ export default async function AdminZonesPage() {
           actions={coverageLink}
         />
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
           <Stat icon="🗺️" label="Zones" value={areas.length} accent="#2563eb" />
           <Stat icon="🏪" label="Shops and warehouses" value={shopRows.length} accent="#059669" hint={shopsWithoutPin > 0 ? `${shopsWithoutPin} without a GPS pin` : "All have a GPS pin"} />
           <Stat icon="📍" label="Inside a zone" value={shopRows.filter((r) => r.areaName).length} accent="#7c3aed" hint="Get Express and Standard" />
@@ -286,7 +286,7 @@ export default async function AdminZonesPage() {
 
       <AreasManager areas={areaCards} />
 
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-5 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
         <Stat icon="🏪" label={t("admin.stores_warehouses")} value={cards.length} accent="#2563eb" />
         <Stat
           icon="🎯"

@@ -17,7 +17,7 @@ export function PageHeader({ icon, title, subtitle, actions }: { icon: string; t
   );
 }
 
-/** A headline number tile. Pass a grid wrapper: `grid grid-cols-2 gap-3 lg:grid-cols-4`. */
+/** A headline number tile. Pass a grid wrapper: `grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4`. */
 export function StatTile({ icon, label, value, hint, accent = "#2563eb" }: { icon: string; label: string; value: string | number; hint?: string; accent?: string }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-3.5 py-3 shadow-sm">
@@ -26,7 +26,7 @@ export function StatTile({ icon, label, value, hint, accent = "#2563eb" }: { ico
       </span>
       <div className="min-w-0">
         <p className="text-xs font-medium text-neutral-500">{label}</p>
-        <p className="truncate text-xl font-bold leading-tight text-neutral-900">{value}</p>
+        <p className="break-words text-lg font-bold leading-tight text-neutral-900 sm:text-xl">{value}</p>
         {hint && <p className="mt-0.5 text-[11px] text-neutral-400">{hint}</p>}
       </div>
     </div>
@@ -34,5 +34,5 @@ export function StatTile({ icon, label, value, hint, accent = "#2563eb" }: { ico
 }
 
 export function StatGrid({ children }: { children: ReactNode }) {
-  return <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">{children}</div>;
+  return <div className="mb-4 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">{children}</div>;
 }

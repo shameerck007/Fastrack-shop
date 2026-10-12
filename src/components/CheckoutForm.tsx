@@ -66,13 +66,13 @@ export default function CheckoutForm({
   const FREE_DELIVERY_THRESHOLD = pricing.freeOver;
   const DELIVERY_OPTIONS = DELIVERY_OPTION_DEFS.map((d) => ({ ...d, fee: pricing[d.feeKey] }));
   // null means "no explicit user selection yet" — fall back to the first
-  // address, which also picks up addresses added after this component mounted
+  // address that can take everything in the cart (else the first), which also picks up addresses added after this component mounted
   // (the addresses prop refreshes via server-action revalidation).
   const [selectedAddressId, setAddressId] = useState<string | null>(null);
   const addressId =
     selectedAddressId && addresses.some((a) => a.id === selectedAddressId)
       ? selectedAddressId
-      : addresses[0]?.id ?? "";
+      : (addresses.find((a) => (blockedByAddress[a.id] ?? []).length === 0) ?? addresses[0])?.id ?? "";
   const blockedItems = blockedByAddress[addressId] ?? [];
   // The shopper does not pick Express or Standard: the system does, from where the order is going (like Instamart or Keeta).
   // The only choice left is to schedule the order for later.
@@ -216,7 +216,7 @@ export default function CheckoutForm({
 
   return (
     <>
-      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 max-md:pb-44 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex flex-col gap-4">
           {/* delivery address */}
           <section className={card}>

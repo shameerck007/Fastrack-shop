@@ -102,14 +102,14 @@ function MarketPanel({ m, sales, status, suppliers }: { m: MarketSummary; sales:
       </div>
 
       <div className="space-y-5 p-5">
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
           <Kpi label="Sales today" value={money(m.gmv_today)} hint={`${m.orders_today} orders`} />
           <Kpi label="Sales · 30 days" value={money(m.gmv_30d)} hint={`${m.orders_30d} orders`} />
           <Kpi label="Avg order value" value={money(m.avg_order_30d)} hint="30 days" />
           <Kpi label="Delivered" value={deliveredRate === null ? "—" : `${deliveredRate}%`} hint={`${m.delivered_30d} delivered · ${m.cancelled_30d} cancelled`} tone={deliveredRate !== null && deliveredRate >= 80 ? "good" : undefined} />
         </div>
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
           <MiniStat label="Platform commission · 30d" value={money(m.commission_30d)} />
           <MiniStat label="Delivery fees · 30d" value={money(m.delivery_fees_30d)} />
           <MiniStat label={m.country_code === "IN" ? "GST collected · 30d" : "VAT collected · 30d"} value={money(m.tax_30d)} />

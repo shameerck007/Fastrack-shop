@@ -111,7 +111,7 @@ function Tile({ icon, label, value, kind = "money", change, goodWhenDown, color,
 
 function Glassy({ title, hint, children, className = "" }: { title: string; hint?: string; children: React.ReactNode; className?: string }) {
   return (
-    <section className={`rounded-3xl border border-white/70 bg-white/45 p-4 shadow-[0_8px_32px_rgba(30,64,175,0.10)] backdrop-blur-md sm:p-5 ${className}`}>
+    <section className={`min-w-0 rounded-3xl border border-white/70 bg-white/45 p-4 shadow-[0_8px_32px_rgba(30,64,175,0.10)] backdrop-blur-md sm:p-5 ${className}`}>
       <div className="mb-4">
         <h2 className="text-sm font-extrabold tracking-tight text-neutral-900">{title}</h2>
         {hint && <p className="mt-0.5 text-xs text-neutral-600">{hint}</p>}

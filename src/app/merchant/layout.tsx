@@ -5,6 +5,8 @@ import PortalHeader from "@/components/PortalHeader";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
+export const metadata = { title: { default: "Supplier portal", template: "%s | FasTrack Supplier" } };
+
 export default async function MerchantLayout({ children }: { children: React.ReactNode }) {
   await requireRole("merchant");
   const store = await getMyStore();

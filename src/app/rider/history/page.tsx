@@ -3,7 +3,7 @@ import { getRiderLifetimeStats } from "@/lib/rider";
 import RiderStatsGrid from "@/components/rider/RiderStatsGrid";
 import { getMoney } from "@/lib/tenant-server";
 
-export const metadata = { title: "Trips · FasTrack Rider" };
+export const metadata = { title: "Trips" };
 
 const STAT_LABELS: Record<string, string> = {
   "rider.today_earnings": "Earned today",

@@ -2,6 +2,8 @@ import { requireRole } from "@/lib/auth";
 import RiderHeader from "@/components/rider/RiderHeader";
 import RiderBottomNav from "@/components/rider/RiderBottomNav";
 
+export const metadata = { title: { default: "Rider", template: "%s | FasTrack Rider" } };
+
 export default async function RiderLayout({ children }: { children: React.ReactNode }) {
   await requireRole("rider");
   return (

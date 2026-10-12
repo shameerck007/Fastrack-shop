@@ -53,7 +53,6 @@ export default function DownloadLabelButton({
     <span className="relative inline-flex">
       <span className="inline-flex h-9 items-stretch overflow-hidden rounded-full border border-neutral-300 bg-white shadow-sm">
         <button type="button" onClick={download} disabled={busy} className="inline-flex items-center gap-1.5 pl-4 pr-3 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-60">
-          <span aria-hidden>🏷️</span>
           {busy ? t("orders.preparing_label") : t("orders.print_label")}
         </button>
         <select

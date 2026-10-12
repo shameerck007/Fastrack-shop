@@ -23,9 +23,10 @@ export default function MobileBottomNav() {
   // The tapped tab lights up immediately, before the new page has arrived.
   const [tapped, setTapped] = useState<string | null>(null);
   useEffect(() => setTapped(null), [pathname]);
-  const { signedIn, cartCount } = useCustomerHeaderState();
+  const { signedIn, loaded, cartCount } = useCustomerHeaderState();
 
-  const accountItem: NavItem = signedIn
+  // Until the sign-in check finishes the tab says Account (it sends signed-out visitors to Login anyway), so it does not flash Login for a signed-in shopper.
+  const accountItem: NavItem = signedIn || !loaded
     ? { href: "/account", label: "Account", icon: "👤" }
     : { href: "/login", label: "Login", icon: "👤" };
 
