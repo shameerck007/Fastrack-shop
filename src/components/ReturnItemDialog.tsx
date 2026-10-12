@@ -29,9 +29,12 @@ export default function ReturnItemDialog({ orderId, itemId, name, variant, maxQt
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold text-neutral-700 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700">
-        ↩ Return item
-      </button>
+      <span className="text-xs text-neutral-500">
+        {closesAt && <>Return window closes {new Date(closesAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · </>}
+        <button type="button" onClick={() => setOpen(true)} className="text-blue-700 hover:text-orange-700 hover:underline">
+          Return item
+        </button>
+      </span>
       {open && (
         <FormDialog icon="↩️" title="Return this item" subtitle={`${name}${variant ? ` · ${variant}` : ""}`} saveLabel="Submit return" onClose={() => setOpen(false)} onSave={save}>
           {maxQty > 1 && (
