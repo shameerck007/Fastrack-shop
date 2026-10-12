@@ -266,6 +266,7 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
       if (Object.keys(vPatch).length) {
         const { error } = await db.from("product_variants").update(vPatch).eq("id", variant.id);
         if (error) throw error;
+        Object.assign(variant, vPatch.price !== undefined ? { price: vPatch.price } : {});
         touched = true;
       }
       if (c.stock !== null) {
@@ -274,6 +275,7 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
           if (Number(inv.stock) !== c.stock) {
             const { error } = await db.from("inventory").update({ stock: c.stock }).eq("id", inv.id);
             if (error) throw error;
+            inv.stock = c.stock;
             touched = true;
           }
         } else {
@@ -329,7 +331,7 @@ export async function listStoreOrders(store: SyncStore, opts: { since?: string; 
   const db: any = createServiceClient();
   let q = db
     .from("order_items")
-    .select("order_id, product_name, variant_label, ordered_quantity, packed_quantity, unit_price, line_total, orders!inner(order_number, status, created_at, currency, delivery_type), product_variants!inner(products!inner(sku, store_id))")
+    .select("order_id, product_name, variant_label, ordered_quantity, packed_quantity, unit_price, line_total, orders!inner(order_number, status, created_at, currency, delivery_type), product_variants!order_items_variant_id_fkey!inner(products!inner(sku, store_id))")
     .eq("product_variants.products.store_id", store.id)
     .order("created_at", { ascending: false })
     .limit(opts.limit * 5);
