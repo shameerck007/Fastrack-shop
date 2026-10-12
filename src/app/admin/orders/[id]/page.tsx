@@ -5,6 +5,7 @@ import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import DownloadLabelButton from "@/components/DownloadLabelButton";
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
 import RefundDialog from "@/components/admin/RefundDialog";
+import PickupCodeBadge from "@/components/PickupCodeBadge";
 import RiderPayAdjustDialog from "@/components/admin/RiderPayAdjustDialog";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminOrderDetail } from "@/lib/admin-orders";
@@ -332,6 +333,7 @@ export default async function AdminOrderDetailPage({
                 <span className="text-neutral-400">{t("admin.not_assigned")}</span>
               )}
             </Row>
+            {rider && <div className="mt-1 flex justify-end"><PickupCodeBadge orderId={id} status={order.status} /></div>}
             {assignmentRow && cancelled && (failedPaid ? <Row label="Failed delivery"><span className="text-emerald-700">Rider paid {money(Number(failedPaid.amount))}</span></Row> : riderPayHere > 0 ? <RiderPayAdjustDialog orderId={id} kind="failed_delivery" max={riderPayHere} suggested={riderPayHere} riderName={rider?.full_name ?? "the rider"} /> : null)}
             {assignmentRow && order.status === "delivered" && refundedTotal > 0 && (clawed ? <Row label="Refund deduction"><span className="text-amber-700">-{money(Number(clawed.amount))} from the rider</span></Row> : <RiderPayAdjustDialog orderId={id} kind="refund_clawback" max={refundedTotal} suggested={Math.min(refundedTotal, riderPayHere)} riderName={rider?.full_name ?? "the rider"} />)}
             {order.notes && (

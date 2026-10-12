@@ -3,6 +3,7 @@ import { getWarehouseOrders, summarizeWarehouseOrders } from "@/lib/warehouse-st
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import PickupCodeBadge from "@/components/PickupCodeBadge";
 import WarehouseOrderStatusAction from "@/components/warehouse/WarehouseOrderStatusAction";
 import type { OrderStatus } from "@/types/database";
 import { getMoney } from "@/lib/tenant-server";
@@ -119,6 +120,7 @@ export default async function WarehouseOrdersPage() {
                 </div>
 
                 <div className="flex items-center justify-end gap-3 border-t border-neutral-100 px-4 py-3">
+                  <PickupCodeBadge orderId={order.id} status={order.status} />
                   <WarehouseOrderStatusAction orderId={order.id} orderNumber={order.order_number} status={order.status} requirePackScan={!!settings.require_pack_scan} />
                 </div>
               </div>

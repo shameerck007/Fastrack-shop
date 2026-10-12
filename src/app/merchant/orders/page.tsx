@@ -7,6 +7,7 @@ import { getMerchantOrders } from "@/lib/merchant-orders";
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import PickupCodeBadge from "@/components/PickupCodeBadge";
 import MerchantOrderStatusAction from "@/components/merchant/MerchantOrderStatusAction";
 import type { OrderStatus } from "@/types/database";
 import { getMoney } from "@/lib/tenant-server";
@@ -131,6 +132,7 @@ export default async function MerchantOrdersPage({ searchParams }: { searchParam
 
                 <div className="flex items-center justify-between gap-3 border-t border-neutral-100 px-4 py-3">
                   <p className="text-xs text-neutral-400">{t("merchant.other_seller_note")}</p>
+                  <PickupCodeBadge orderId={order.id} status={order.status} />
                   <MerchantOrderStatusAction orderId={order.id} status={order.status} />
                 </div>
               </div>

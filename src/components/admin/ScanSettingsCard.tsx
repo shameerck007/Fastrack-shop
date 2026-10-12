@@ -49,7 +49,7 @@ export default function ScanSettingsCard({ requirePickupScan, requirePackScan }:
           <span aria-hidden>✎</span> Edit
         </button>
       </div>
-      <Row label="Rider scans the parcel label at pickup" on={saved.pickup} />
+      <Row label="Rider scans the label or enters the pickup code" on={saved.pickup} />
       <Row label="Warehouse scans every item before an order is ready" on={saved.pack} />
       {open && (
         <FormDialog icon="📷" title="Scanning" subtitle="Scanning is always available. Choose where it must be used." onClose={() => setOpen(false)} onSave={save}>
@@ -57,8 +57,8 @@ export default function ScanSettingsCard({ requirePickupScan, requirePackScan }:
             <label className="flex items-start gap-3 text-sm">
               <input type="checkbox" checked={pickup} onChange={(e) => setPickup(e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
               <span>
-                <span className="font-bold text-neutral-900">Rider must scan the parcel label at pickup</span>
-                <span className="block text-xs text-neutral-500">Stops the wrong parcel being collected. The rider can type the order number if the camera does not work. When this is off, riders can still scan, or tap pick up.</span>
+                <span className="font-bold text-neutral-900">Rider must scan the label or enter the pickup code</span>
+                <span className="block text-xs text-neutral-500">Stops the wrong parcel being collected. The store shows a 4-digit pickup code for each order; the rider enters it, or scans the parcel label. When this is off, riders can still do either, or just tap pick up.</span>
               </span>
             </label>
             <label className="flex items-start gap-3 text-sm">

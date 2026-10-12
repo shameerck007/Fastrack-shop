@@ -69,16 +69,25 @@ export async function acceptOrder(orderId: string) {
   }
 }
 
-export async function markPickedUp(orderId: string, scannedCode?: string) {
+export async function markPickedUp(orderId: string, scannedCode?: string, pickupCode?: string) {
   try {
   const supabase = await createClient();
   // When the market requires a label scan, the scanned (or typed) code must be this order's number.
   const settings = await getCompanySettings();
-  if (settings.require_pickup_scan) {
+  // Either proof is enough: the parcel label scan, or the 4-digit pickup code the store shows. A wrong one is always refused.
+  let verified = false;
+  if (scannedCode) {
     const { data: o } = await supabase.from("orders").select("order_number").eq("id", orderId).maybeSingle();
-    if (!scannedCode) throw new UserError("Scan the parcel label to confirm pickup.");
     if (!o || !sameOrder(scannedCode, o.order_number)) throw new UserError("That label is for a different order. Check you have the right parcel.");
+    verified = true;
   }
+  if (!verified && pickupCode) {
+    const { data: ok, error: codeError } = await supabase.rpc("verify_pickup_code" as never, { p_order: orderId, p_code: pickupCode } as never);
+    if (codeError) throw codeError;
+    if (!ok) throw new UserError("That pickup code is wrong. Ask the store for the code for this order.");
+    verified = true;
+  }
+  if (settings.require_pickup_scan && !verified) throw new UserError("Scan the parcel label or enter the store's pickup code to confirm pickup.");
   await supabase
     .from("delivery_assignments")
     .update({ picked_up_at: new Date().toISOString() })

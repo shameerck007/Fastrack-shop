@@ -16,6 +16,7 @@ export default function DeliveryActions({ orderId, orderNumber, status, requireP
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const [pickupCode, setPickupCode] = useState("");
   const [scanning, setScanning] = useState<null | "pickup" | "delivery">(null);
 
   function handlePickedUp() {
@@ -26,6 +27,19 @@ export default function DeliveryActions({ orderId, orderNumber, status, requireP
   }
 
   // The parcel label's QR holds the order number: it must be this order's.
+  function handlePickupCode(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    startTransition(async () => {
+      try {
+        await unwrapAction(markPickedUp)(orderId, undefined, pickupCode);
+        router.refresh();
+      } catch (err) {
+        setError(errorText(err, "Could not confirm the pickup."));
+      }
+    });
+  }
+
   async function onPickupScan(code: string): Promise<ScanResult> {
     if (!sameOrder(code, orderNumber)) return { ok: false, message: `That label is for a different order. This one is #${orderNumber}.` };
     try {
@@ -79,6 +93,21 @@ export default function DeliveryActions({ orderId, orderNumber, status, requireP
           >
             📷 Scan parcel label
           </button>
+          <form onSubmit={handlePickupCode} className="flex gap-2">
+            <input
+              value={pickupCode}
+              onChange={(e) => setPickupCode(e.target.value.replace(/\D/g, ""))}
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="Pickup code"
+              aria-label="Pickup code from the store"
+              className="min-w-0 flex-1 rounded-2xl border border-neutral-300 px-3 py-2 text-center text-lg font-bold tracking-[0.4em] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+            <button type="submit" disabled={pending || pickupCode.length !== 4} className="rounded-full bg-neutral-900 px-5 text-sm font-bold text-white disabled:opacity-40">
+              Confirm
+            </button>
+          </form>
+          {error && <p className="text-sm text-red-600">{error}</p>}
           {!requirePickupScan && (
             <button
               onClick={handlePickedUp}
