@@ -227,7 +227,7 @@ export default async function OrderDetailPage({
         <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
           <p className="text-sm text-neutral-500">{t("orders.rider")}</p>
           <p className="font-medium">{rider.profiles.full_name}</p>
-          {rider.profiles.phone && (
+          {rider.profiles.phone && showTrackingExtras && (
             <a href={`tel:${rider.profiles.phone}`} className="text-sm text-blue-600 hover:underline">
               📞 {rider.profiles.phone}
             </a>

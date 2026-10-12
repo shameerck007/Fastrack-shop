@@ -207,7 +207,7 @@ export default async function RiderOrderPage({
             >
               🧭 {t("rider_task.navigate")}
             </a>
-            {customerPhone && (
+            {customerPhone && isTrackable && (
               <a href={`tel:${customerPhone}`} className={`${actionBtn} border border-neutral-300 bg-white text-neutral-800`}>
                 📞 {t("rider_task.call")}
               </a>
