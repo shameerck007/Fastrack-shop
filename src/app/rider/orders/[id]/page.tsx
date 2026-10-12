@@ -56,7 +56,7 @@ function StopCard({
 }
 
 const actionBtn =
-  "flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full text-sm font-bold active:scale-95 transition";
+  "flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full text-sm font-semibold active:scale-95 transition";
 
 export default async function RiderOrderPage({
   params,
@@ -99,13 +99,14 @@ export default async function RiderOrderPage({
     : { data: null };
   const earning = Number(assignment?.rider_pay ?? order.delivery_fee);
   const hideEarnings = (await getRiderPayProfile()).hideEarnings;
+  const requirePickupScan = !!(await getCompanySettings()).require_pickup_scan;
   const payment = (order.payments as { method: string; status: string }[] | null)?.[0];
   const collectCash = payment?.method === "cash_on_delivery" && payment.status !== "refunded";
   const customerPhone = order.addresses?.receiver_phone || order.profiles?.phone || null;
   const itemCount = order.order_items.length;
 
   return (
-    <div className="pb-48">
+    <div className="pb-8">
       {isTrackable && <RiderLocationTracker />}
 
       {/* summary */}
@@ -153,6 +154,11 @@ export default async function RiderOrderPage({
           {collectCash && <p className="shrink-0 text-xl font-extrabold text-blue-900">{money(order.total)}</p>}
         </div>
       )}
+
+      {/* the step the rider is on: scan or enter the code */}
+      <div className="mb-4">
+        <DeliveryActions orderId={order.id} orderNumber={order.order_number} status={order.status} requirePickupScan={requirePickupScan} />
+      </div>
 
       <div className="mb-4 rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm">
         <DeliveryProgressStepper status={order.status} t={t} />
@@ -243,16 +249,6 @@ export default async function RiderOrderPage({
           <OrderChat orderId={order.id} currentUserId={user.id} otherPartyLabel="customer" initialMessages={messages} />
         </div>
       )}
-
-      {/* primary action pinned to the bottom of the screen */}
-      <div
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 px-4 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
-      >
-        <div className="mx-auto max-w-2xl">
-          <DeliveryActions orderId={order.id} orderNumber={order.order_number} status={order.status} requirePickupScan={!!(await getCompanySettings()).require_pickup_scan} />
-        </div>
-      </div>
     </div>
   );
 }

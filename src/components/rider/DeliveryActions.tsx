@@ -78,43 +78,45 @@ export default function DeliveryActions({ orderId, orderNumber, status, requireP
     });
   }
 
+  const card = "rounded-3xl border border-blue-200 bg-white p-4 shadow-sm";
+  const primary = "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-blue-700 px-5 text-sm font-bold text-white transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50";
+  const secondary = "inline-flex h-10 items-center justify-center rounded-full border border-neutral-300 px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50";
+  const codeInput = "h-10 w-32 rounded-xl border border-neutral-300 px-3 text-center text-base font-bold tracking-[0.35em] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200";
+
   if (status === "delivered") {
-    return <p className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700">{t("rider.delivered_check")}</p>;
+    return <p className="rounded-2xl bg-blue-50 p-3 text-sm font-medium text-blue-700">{t("rider.delivered_check")}</p>;
   }
 
   if (status === "rider_assigned" || status === "ready_for_pickup") {
     return (
       <>
-        <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => setScanning("pickup")}
-            className="h-12 w-full rounded-full bg-blue-700 text-base font-extrabold text-white shadow-lg shadow-blue-700/25 transition active:scale-[0.98] hover:bg-blue-800"
-          >
-            📷 Scan parcel label
-          </button>
-          <form onSubmit={handlePickupCode} className="flex gap-2">
-            <input
-              value={pickupCode}
-              onChange={(e) => setPickupCode(e.target.value.replace(/\D/g, ""))}
-              inputMode="numeric"
-              maxLength={4}
-              placeholder="Pickup code"
-              aria-label="Pickup code from the store"
-              className="min-w-0 flex-1 rounded-2xl border border-neutral-300 px-3 py-2 text-center text-lg font-bold tracking-[0.4em] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            />
-            <button type="submit" disabled={pending || pickupCode.length !== 4} className="rounded-full bg-neutral-900 px-5 text-sm font-bold text-white disabled:opacity-40">
-              Confirm
+        <div className={card}>
+          <p className="text-sm font-bold text-neutral-900">Confirm pickup</p>
+          <p className="mb-3 text-xs text-neutral-500">Scan the label on the parcel, or enter the 4-digit code the store shows.</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => setScanning("pickup")} className={primary}>
+              📷 Scan label
             </button>
-          </form>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+            <span className="text-xs text-neutral-400">or</span>
+            <form onSubmit={handlePickupCode} className="flex items-center gap-2">
+              <input
+                value={pickupCode}
+                onChange={(e) => setPickupCode(e.target.value.replace(/\D/g, ""))}
+                inputMode="numeric"
+                maxLength={4}
+                placeholder="Code"
+                aria-label="Pickup code from the store"
+                className={codeInput}
+              />
+              <button type="submit" disabled={pending || pickupCode.length !== 4} className={secondary}>
+                Confirm
+              </button>
+            </form>
+          </div>
+          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           {!requirePickupScan && (
-            <button
-              onClick={handlePickedUp}
-              disabled={pending}
-              className="h-11 w-full rounded-full border border-blue-300 text-sm font-bold text-blue-800 transition active:scale-[0.98] hover:bg-blue-50 disabled:opacity-50"
-            >
-              {t("rider.mark_picked_up")}
+            <button onClick={handlePickedUp} disabled={pending} className="mt-3 text-xs font-semibold text-blue-700 underline-offset-2 hover:underline disabled:opacity-50">
+              {t("rider.mark_picked_up")} without scanning
             </button>
           )}
         </div>
@@ -126,35 +128,27 @@ export default function DeliveryActions({ orderId, orderNumber, status, requireP
   if (status === "out_for_delivery") {
     return (
       <>
-      <form onSubmit={handleComplete} className="flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={() => setScanning("delivery")}
-          className="h-12 rounded-full bg-blue-700 text-base font-extrabold text-white shadow-lg shadow-blue-700/25 transition active:scale-[0.98] hover:bg-blue-800"
-        >
-          📷 Scan customer QR
-        </button>
-        <label className="text-center text-sm font-medium text-neutral-500">or {t("rider.enter_otp_label")}</label>
-        <input
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          maxLength={4}
-          placeholder={t("rider.otp_placeholder")}
-          className="rounded-2xl border border-neutral-300 px-3 py-2.5 text-center text-xl font-bold tracking-[0.5em] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={pending || otp.length !== 4}
-          className="h-12 rounded-full bg-blue-700 text-base font-extrabold text-white shadow-lg shadow-blue-700/25 transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50"
-        >
-          {pending ? t("rider.verifying") : t("rider.complete_delivery")}
-        </button>
-      </form>
-      {scanning === "delivery" && <BarcodeScanner title="Scan the customer's QR" hint="The customer shows the QR code on their order page." onScan={onDeliveryScan} onClose={() => setScanning(null)} />}
+        <div className={card}>
+          <p className="text-sm font-bold text-neutral-900">Complete delivery</p>
+          <p className="mb-3 text-xs text-neutral-500">Scan the customer&apos;s QR, or enter the 4-digit code they give you.</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => setScanning("delivery")} className={primary}>
+              📷 Scan customer QR
+            </button>
+            <span className="text-xs text-neutral-400">or</span>
+            <form onSubmit={handleComplete} className="flex items-center gap-2">
+              <input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} inputMode="numeric" maxLength={4} placeholder="OTP" aria-label={t("rider.enter_otp_label")} className={codeInput} />
+              <button type="submit" disabled={pending || otp.length !== 4} className={secondary}>
+                {pending ? t("rider.verifying") : t("rider.complete_delivery")}
+              </button>
+            </form>
+          </div>
+          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        </div>
+        {scanning === "delivery" && <BarcodeScanner title="Scan the customer's QR" hint="The customer shows the QR code on their order page." onScan={onDeliveryScan} onClose={() => setScanning(null)} />}
       </>
     );
   }
 
-  return <p className="text-sm text-neutral-500">{t("rider.waiting_for_store")}</p>;
+  return <p className="rounded-2xl bg-neutral-50 p-3 text-sm text-neutral-500">{t("rider.waiting_for_store")}</p>;
 }
