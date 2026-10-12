@@ -17,6 +17,9 @@ export interface MarketUi {
 const INSTAMART: MarketUi = { showShops: false, soldByOnCards: false, deliveryBadges: true, genericParcels: true };
 const MARKETPLACE: MarketUi = { showShops: true, soldByOnCards: true, deliveryBadges: true, genericParcels: false };
 
-export function marketUi(countryCode: string | null | undefined): MarketUi {
+/** `showShopsOverride` is the admin's Shops switch (Business settings > Storefront): true shows shops, false hides them, null follows the market. */
+export function marketUi(countryCode: string | null | undefined, showShopsOverride?: boolean | null): MarketUi {
+  if (showShopsOverride === true) return MARKETPLACE;
+  if (showShopsOverride === false) return INSTAMART;
   return (countryCode ?? "SA").toUpperCase() === "IN" ? INSTAMART : MARKETPLACE;
 }

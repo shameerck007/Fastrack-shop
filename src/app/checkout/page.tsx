@@ -6,7 +6,7 @@ import { getCartItems, cartSubtotal } from "@/lib/cart";
 import { getAddresses } from "@/lib/addresses";
 import { checkProductsDeliverable } from "@/lib/delivery-zones";
 import { stateInServiceArea } from "@/lib/india";
-import { marketUi } from "@/lib/market-ui";
+import { getMarketUi } from "@/lib/market-ui-server";
 import { combineMethods } from "@/lib/delivery-methods";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -61,7 +61,7 @@ export default async function CheckoutPage() {
 
   // One order per supplier: group the cart so the summary can show each parcel and its delivery fee.
   const storeName = new Map((await getStoreDirectory()).map((st) => [st.id, st.name]));
-  const genericParcels = marketUi(tenant?.country_code).genericParcels;
+  const genericParcels = (await getMarketUi()).genericParcels;
   const groupMap = new Map<string, { key: string; name: string; subtotal: number; storeId: string | null }>();
   for (const i of items) {
     const sid = i.product_variants.products.store_id;

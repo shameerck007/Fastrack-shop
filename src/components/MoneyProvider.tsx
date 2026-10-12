@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo } from "react";
 import { DEFAULT_CURRENCY, moneyFor, type MoneyFormatter } from "@/lib/money";
 import { pricingFor, type DeliveryPricing } from "@/lib/delivery-methods";
+import { marketUi, type MarketUi } from "@/lib/market-ui";
 
 interface Ctx {
   currency: string;
@@ -11,13 +12,15 @@ interface Ctx {
   pricing: DeliveryPricing;
   /** The market's default maximum order quantity for a product (admin setting). */
   defaultMaxQty: number;
+  /** The admin's Shops switch: true, false, or null to follow the market. */
+  showShops: boolean | null;
 }
 
-const MoneyCtx = createContext<Ctx>({ currency: DEFAULT_CURRENCY, countryCode: "SA", money: moneyFor(DEFAULT_CURRENCY), pricing: pricingFor("SA"), defaultMaxQty: 2 });
+const MoneyCtx = createContext<Ctx>({ currency: DEFAULT_CURRENCY, countryCode: "SA", money: moneyFor(DEFAULT_CURRENCY), pricing: pricingFor("SA"), defaultMaxQty: 2, showShops: null });
 
 /** The current market's currency, available to every client component. */
-export default function MoneyProvider({ currency, countryCode = "SA", pricing, defaultMaxQty = 2, children }: { currency: string; countryCode?: string; pricing?: DeliveryPricing; defaultMaxQty?: number; children: React.ReactNode }) {
-  const value = useMemo(() => ({ currency, countryCode, money: moneyFor(currency), pricing: pricing ?? pricingFor(countryCode), defaultMaxQty }), [currency, countryCode, pricing, defaultMaxQty]);
+export default function MoneyProvider({ currency, countryCode = "SA", pricing, defaultMaxQty = 2, showShops = null, children }: { currency: string; countryCode?: string; pricing?: DeliveryPricing; defaultMaxQty?: number; showShops?: boolean | null; children: React.ReactNode }) {
+  const value = useMemo(() => ({ currency, countryCode, money: moneyFor(currency), pricing: pricing ?? pricingFor(countryCode), defaultMaxQty, showShops }), [currency, countryCode, pricing, defaultMaxQty, showShops]);
   return <MoneyCtx.Provider value={value}>{children}</MoneyCtx.Provider>;
 }
 
@@ -34,6 +37,12 @@ export function useCurrency(): string {
 export function useMarket(): { currency: string; countryCode: string } {
   const { currency, countryCode } = useContext(MoneyCtx);
   return { currency, countryCode };
+}
+
+/** How the storefront looks in this market, with the admin's Shops switch applied. */
+export function useMarketUi(): MarketUi {
+  const { countryCode, showShops } = useContext(MoneyCtx);
+  return marketUi(countryCode, showShops);
 }
 
 /** What delivery costs in this market (the admin's fees over the defaults). */

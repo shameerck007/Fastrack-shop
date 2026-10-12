@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { getCurrentTenant, getMoney } from "@/lib/tenant-server";
+import { getMoney } from "@/lib/tenant-server";
 import { getDeliveryPricing } from "@/lib/delivery-pricing";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -8,7 +8,7 @@ import { getMyStaffWarehouse } from "@/lib/warehouse-staff";
 import CategoryGrid from "@/components/CategoryGrid";
 import HomeHero from "@/components/HomeHero";
 import ShopsRow from "@/components/ShopsRow";
-import { marketUi } from "@/lib/market-ui";
+import { getMarketUi } from "@/lib/market-ui-server";
 import ProductSection from "@/components/ProductSection";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import BuyAgainSection from "@/components/BuyAgainSection";
@@ -86,7 +86,7 @@ export default async function HomePage() {
           <CategoryGrid categories={categories} />
         </section>
 
-        {marketUi((await getCurrentTenant())?.country_code).showShops && <ShopsRow />}
+        {(await getMarketUi()).showShops && <ShopsRow />}
 
         <BuyAgainSection />
         <ProductSection id="offers" promo title={t("home.offers")} products={offers} ratings={ratings} stock={stock} />

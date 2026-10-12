@@ -18,8 +18,7 @@ import WishlistButton from "@/components/WishlistButton";
 import { ProductTopBar } from "@/components/MobileTopBar";
 import { PlaceOrderPill } from "@/components/FloatingCartBar";
 import { SoldBy, ClosedBanner } from "@/components/StoreBadge";
-import { marketUi } from "@/lib/market-ui";
-import { getCurrentTenant } from "@/lib/tenant-server";
+import { getMarketUi } from "@/lib/market-ui-server";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
@@ -35,7 +34,7 @@ export default async function ProductPage({
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
   const product = await getProductById(id);
-  const showShops = marketUi((await getCurrentTenant())?.country_code).showShops;
+  const showShops = (await getMarketUi()).showShops;
 
   if (!product) notFound();
 

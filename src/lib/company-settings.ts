@@ -46,6 +46,8 @@ export interface CompanySettings {
   /** Item returns (migration 0098). */
   default_return_window_days?: number | null;
   return_auto_approve?: boolean | null;
+  /** Show the supplier shops on the shopping pages (migration 0100). null = the market's default. */
+  show_shops?: boolean | null;
 }
 
 const FALLBACK: CompanySettings = {
