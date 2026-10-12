@@ -8,6 +8,7 @@ const NAV: PortalNavItem[] = [
   { href: "/merchant/products", labelKey: "merchant.products_stock", icon: "📦" },
   { href: "/merchant/catalog", label: "Product catalog", icon: "📚" },
   { href: "/merchant/returns", label: "Returns", icon: "↩️" },
+  { href: "/merchant/integrations", label: "Import & API", icon: "🔌" },
   { href: "/merchant/settlements", labelKey: "merchant.settlement_ledger", icon: "📒" },
 ];
 
