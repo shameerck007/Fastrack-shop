@@ -197,13 +197,28 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
       </div>
 
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 overflow-y-auto p-4">
+        {!location && (
+          <div className="flex flex-col items-center gap-2 rounded-3xl bg-gradient-to-br from-blue-50 via-sky-50 to-white px-5 pb-6 pt-7 text-center ring-1 ring-blue-100">
+            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-5xl shadow-lg shadow-blue-200/60">📍</span>
+            <h2 className="mt-1 text-xl font-extrabold tracking-tight text-neutral-900">{t("common.where_deliver_title")}</h2>
+            <p className="max-w-xs text-sm text-neutral-600">{t("common.where_deliver_sub")}</p>
+            <button
+              onClick={useCurrentLocation}
+              disabled={locating}
+              className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-blue-700 text-base font-bold text-white shadow-lg shadow-blue-700/25 transition hover:bg-blue-800 disabled:opacity-60"
+            >
+              <span aria-hidden>🧭</span>
+              {locating ? t("common.detecting") : t("common.current_location")}
+            </button>
+          </div>
+        )}
         <PlaceSearch onSelect={pickSearchResult} placeholder={t("common.search_an_area")} />
 
         <div className="flex gap-2">
           <button
             onClick={useCurrentLocation}
             disabled={locating}
-            className="flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-2 py-2.5 text-[13px] font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-60 sm:gap-2 sm:px-3 sm:text-sm"
+            className={`${location ? "" : "hidden "}flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-2 py-2.5 text-[13px] font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-60 sm:gap-2 sm:px-3 sm:text-sm`}
           >
             <span aria-hidden>🧭</span>
             {locating ? t("common.detecting") : t("common.current_location")}
@@ -314,9 +329,12 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
         )}
 
         {!location && (
-          <button onClick={onClose} className="pb-2 text-center text-xs text-neutral-400 hover:underline">
-            {t("common.skip_for_now")}
-          </button>
+          <div className="mt-auto flex flex-col items-center gap-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
+            <button onClick={onClose} className="flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-neutral-300 bg-white text-base font-bold text-neutral-800 transition hover:border-blue-400 hover:bg-blue-50">
+              {t("common.browse_without_location")} <span aria-hidden className="rtl:-scale-x-100">→</span>
+            </button>
+            <p className="text-xs text-neutral-500">{t("common.browse_without_location_hint")}</p>
+          </div>
         )}
       </div>
     </div>

@@ -1141,6 +1141,10 @@ const en = {
     },
     common: {
       skip_for_now: "Skip for now — I'm just browsing",
+      where_deliver_title: "Where should we deliver?",
+      where_deliver_sub: "Choose your location to see what is available near you and how fast it arrives.",
+      browse_without_location: "Browse without a location",
+      browse_without_location_hint: "You can set it any time from the top of the page.",
       current_location: "Current Location",
       add_new_address: "Add New Address",
       select_location: "Select your location",
@@ -2323,6 +2327,10 @@ const ar: LocaleShape = {
     },
     common: {
       skip_for_now: "تخطي الآن — أنا أتصفح فقط",
+      where_deliver_title: "أين نوصّل طلبك؟",
+      where_deliver_sub: "اختر موقعك لنعرض لك ما هو متاح بالقرب منك وسرعة وصوله.",
+      browse_without_location: "تصفّح بدون تحديد موقع",
+      browse_without_location_hint: "يمكنك تحديده في أي وقت من أعلى الصفحة.",
       current_location: "الموقع الحالي",
       add_new_address: "إضافة عنوان جديد",
       select_location: "اختر موقعك",

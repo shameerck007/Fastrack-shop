@@ -53,7 +53,7 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "FasTrack Shop — Everything you need. Delivered.",
+  title: { default: "FasTrack Shop — Everything you need. Delivered.", template: "%s | FasTrack Shop" },
   description: "Quick-commerce grocery delivery to your door.",
   appleWebApp: {
     capable: true,

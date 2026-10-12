@@ -10,6 +10,8 @@ import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getMoney } from "@/lib/tenant-server";
 
+export const metadata = { title: "Your cart" };
+
 export default async function CartPage() {
   const money = await getMoney();
   const locale = await getServerLocale();

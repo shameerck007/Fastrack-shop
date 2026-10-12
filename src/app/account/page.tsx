@@ -13,6 +13,8 @@ import LandingPreference from "@/components/LandingPreference";
 import { dashboardPathForRole } from "@/lib/landing";
 import LanguageToggle from "@/components/LanguageToggle";
 
+export const metadata = { title: "Your account" };
+
 function AccountTile({
   href,
   icon,

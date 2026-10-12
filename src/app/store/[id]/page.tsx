@@ -7,6 +7,13 @@ import { getApprovedStoreById, getStoreProducts } from "@/lib/catalog";
 import { getStoreDirectory } from "@/lib/stores";
 import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const profile = await getApprovedStoreById(id).catch(() => null);
+  return profile ? { title: profile.name } : {};
+}
 
 export default async function StorePage({
   params,

@@ -5,6 +5,8 @@ import { translate } from "@/lib/i18n/t";
 import { getDefaultPhoneCountry } from "@/lib/get-request-country";
 import AccountSecurityForm from "@/components/AccountSecurityForm";
 
+export const metadata = { title: "Login and security" };
+
 export default async function AccountSecurityPage() {
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);

@@ -13,6 +13,8 @@ import { translate } from "@/lib/i18n/t";
 import { getStoreDirectory } from "@/lib/stores";
 import { localizedName } from "@/lib/i18n/localized";
 
+export const metadata = { title: "Checkout" };
+
 export default async function CheckoutPage() {
   const locale = await getServerLocale();
   const t = (key: string) => translate(locale, key);

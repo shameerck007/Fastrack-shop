@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
+export const metadata = { title: "Payment methods" };
+
 export default async function AccountPaymentsPage() {
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);

@@ -6,6 +6,8 @@ import AddressCard from "@/components/AddressCard";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
+export const metadata = { title: "Your addresses" };
+
 export default async function AddressesPage() {
   const supabase = await createClient();
   const {

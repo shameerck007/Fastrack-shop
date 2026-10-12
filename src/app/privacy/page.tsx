@@ -3,7 +3,7 @@ import { getCompanySettings } from "@/lib/company-settings";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import IndiaPrivacy from "@/components/legal/IndiaPrivacy";
 
-export const metadata = { title: "Privacy Notice — FasTrack Shop" };
+export const metadata = { title: "Privacy Notice" };
 
 const TOC = [
   { id: "scope", label: "1. What this notice covers" },

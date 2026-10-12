@@ -3,7 +3,7 @@ import { getCompanySettings } from "@/lib/company-settings";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import IndiaTerms from "@/components/legal/IndiaTerms";
 
-export const metadata = { title: "Conditions of Use — FasTrack Shop" };
+export const metadata = { title: "Conditions of Use" };
 
 const TOC = [
   { id: "agreement", label: "1. Agreement to these conditions" },

@@ -16,6 +16,8 @@ import LiveEtaChip from "@/components/LiveEtaChip";
 import { clockIn, liveEtaOf } from "@/lib/live-eta";
 import { timeZoneFor } from "@/lib/admin-dashboard";
 
+export const metadata = { title: "Your orders" };
+
 /** The current time, read outside the page so rendering stays predictable. */
 function currentMs(): number {
   return Date.now();

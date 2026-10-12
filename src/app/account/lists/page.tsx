@@ -8,6 +8,8 @@ import DeliverableProductGrid from "@/components/DeliverableProductGrid";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
+export const metadata = { title: "Your lists" };
+
 export default async function ListsPage() {
   const supabase = await createClient();
   const {

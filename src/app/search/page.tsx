@@ -3,6 +3,12 @@ import DeliveryGate from "@/components/DeliveryGate";
 import { searchProducts } from "@/lib/catalog";
 import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ q?: string }> }): Promise<Metadata> {
+  const { q = "" } = await searchParams;
+  return { title: q.trim() ? `Results for "${q.trim().slice(0, 60)}"` : "Search" };
+}
 
 export default async function SearchPage({
   searchParams,

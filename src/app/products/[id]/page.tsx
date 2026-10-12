@@ -23,6 +23,16 @@ import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName, localizedField } from "@/lib/i18n/localized";
 import { getMoney } from "@/lib/tenant-server";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProductById(id);
+  if (!product) return {};
+  const name = localizedName(product, await getServerLocale());
+  const description = product.description ? product.description.slice(0, 160) : `Buy ${name} online from FasTrack Shop.`;
+  return { title: product.brand ? `${name} · ${product.brand}` : name, description, openGraph: { title: name, description, images: product.image_url ? [product.image_url] : undefined } };
+}
 
 export default async function ProductPage({
   params,

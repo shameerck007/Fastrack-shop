@@ -6,6 +6,8 @@ import RiderApplicationForm from "@/components/rider/RiderApplicationForm";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
+export const metadata = { title: "Deliver with FasTrack" };
+
 export default async function DeliverPage() {
   const locale = await getServerLocale();
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);

@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyStore } from "@/lib/merchant";
 import StoreApplicationForm from "@/components/merchant/StoreApplicationForm";
 
+export const metadata = { title: "Sell on FasTrack" };
+
 export default async function SellPage() {
   const supabase = await createClient();
   const {

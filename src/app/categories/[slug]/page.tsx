@@ -11,6 +11,14 @@ import { categoryImageUrl, getCategoryTheme } from "@/lib/categoryTheme";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName } from "@/lib/i18n/localized";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const { category } = await getProductsByCategory(slug);
+  if (!category) return {};
+  return { title: localizedName(category, await getServerLocale()) };
+}
 
 export default async function CategoryPage({
   params,

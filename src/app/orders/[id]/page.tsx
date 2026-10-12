@@ -22,6 +22,13 @@ import { getActiveTenants, getCurrentTenant, isMarketPinnedAccount } from "@/lib
 import OrderOtherCountry from "@/components/OrderOtherCountry";
 import { findCountry } from "@/lib/countries";
 import Flag from "@/components/Flag";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const order = await getOrderDetail(id).catch(() => null);
+  return { title: order ? `Order #${order.order_number}` : "Your order" };
+}
 
 export default async function OrderDetailPage({
   params,
