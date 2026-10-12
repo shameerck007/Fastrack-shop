@@ -32,7 +32,16 @@ function normalizePhone(raw: string, defaultCountryCode: string): string | null 
 function describePhone(e164: string): string {
   const country = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length).find((c) => e164.startsWith(c.dial));
   if (!country) return e164;
-  return `${country.flag} ${country.code} ${country.dial} ${e164.slice(country.dial.length)}`;
+  // Flag emoji show as plain letters on Windows, so the country is a small code badge instead (see PhoneChip).
+  return `${country.dial} ${groupDigits(e164.slice(country.dial.length))}`;
+}
+
+function groupDigits(d: string): string {
+  return d.replace(/(\d{2,3})(?=\d)/g, "$1 ").trim();
+}
+
+function countryCodeOf(e164: string): string {
+  return [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length).find((c) => e164.startsWith(c.dial))?.code ?? "";
 }
 
 type RegisterPrefill = { email?: string; phone?: string };
@@ -246,8 +255,8 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
       )}
 
       <div className={modal ? "w-full" : "w-full md:rounded-2xl md:border md:border-neutral-200 md:bg-white md:p-6 md:shadow-sm"}>
-        <div className="mb-5 text-center md:text-start">
-          <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900">
+        <div className={`${modal ? "mb-4" : "mb-5"} text-center md:text-start`}>
+          <h1 className={`${modal ? "text-xl" : "text-2xl"} font-extrabold leading-tight tracking-tight text-neutral-900`}>
             {mode === "password" && step === "phone-new" ? t("auth.new_here_heading") : t("auth.welcome_title")}
           </h1>
           <p className="mt-1 text-sm text-neutral-500">{t("auth.welcome_sub")}</p>
@@ -339,12 +348,15 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
             </form>
           ) : step === "phone-password" ? (
             <form onSubmit={handlePhonePasswordSubmit} className="flex flex-col gap-4">
-              <p className="text-sm font-medium text-neutral-800">
-                {describePhone(phone)}{" "}
-                <button type="button" onClick={backToIdentifier} className="font-medium text-blue-600 hover:underline">
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2.5">
+                <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-neutral-900">
+                  <span className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-neutral-500 ring-1 ring-neutral-200">{countryCodeOf(phone)}</span>
+                  <span className="truncate">{describePhone(phone)}</span>
+                </span>
+                <button type="button" onClick={backToIdentifier} className="shrink-0 text-sm font-medium text-blue-600 hover:underline">
                   {t("auth.change")}
                 </button>
-              </p>
+              </div>
               <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium text-neutral-800">{t("auth.password")}</span>
                 <input
@@ -373,12 +385,15 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
             </form>
           ) : step === "phone-code" ? (
             <form onSubmit={handlePhoneCodeSubmit} className="flex flex-col gap-4">
-              <p className="text-sm font-medium text-neutral-800">
-                {describePhone(phone)}{" "}
-                <button type="button" onClick={backToIdentifier} className="font-medium text-blue-600 hover:underline">
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2.5">
+                <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-neutral-900">
+                  <span className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-neutral-500 ring-1 ring-neutral-200">{countryCodeOf(phone)}</span>
+                  <span className="truncate">{describePhone(phone)}</span>
+                </span>
+                <button type="button" onClick={backToIdentifier} className="shrink-0 text-sm font-medium text-blue-600 hover:underline">
                   {t("auth.change")}
                 </button>
-              </p>
+              </div>
               <p className="text-sm text-neutral-600">{t("auth.code_sent_to_account_email")}</p>
               <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium text-neutral-800">{t("auth.verification_code")}</span>
@@ -412,13 +427,16 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
             </form>
           ) : (
             <div className="flex flex-col gap-4">
-              <p className="text-sm font-medium text-neutral-800">
-                {describePhone(phone)}{" "}
-                <button type="button" onClick={backToIdentifier} className="font-medium text-blue-600 hover:underline">
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2.5">
+                <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-neutral-900">
+                  <span className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-neutral-500 ring-1 ring-neutral-200">{countryCodeOf(phone)}</span>
+                  <span className="truncate">{describePhone(phone)}</span>
+                </span>
+                <button type="button" onClick={backToIdentifier} className="shrink-0 text-sm font-medium text-blue-600 hover:underline">
                   {t("auth.change")}
                 </button>
-              </p>
-              <p className="text-sm text-neutral-600">{t("auth.new_here_mobile_notice")}</p>
+              </div>
+              <p className="text-[13px] text-neutral-500">{t("auth.new_here_mobile_notice")}</p>
               {onRegister ? (
                 <button type="button" onClick={() => onRegister({ phone })} className={primaryButton}>
                   {t("auth.proceed_create_account")}
