@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getRiderPayProfile } from "@/lib/rider";
+import { getCompanySettings } from "@/lib/company-settings";
 import DeliveryActions from "@/components/rider/DeliveryActions";
 import DeliveryProgressStepper from "@/components/rider/DeliveryProgressStepper";
 import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
@@ -249,7 +250,7 @@ export default async function RiderOrderPage({
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
       >
         <div className="mx-auto max-w-2xl">
-          <DeliveryActions orderId={order.id} status={order.status} />
+          <DeliveryActions orderId={order.id} orderNumber={order.order_number} status={order.status} requirePickupScan={!!(await getCompanySettings()).require_pickup_scan} />
         </div>
       </div>
     </div>

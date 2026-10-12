@@ -184,6 +184,7 @@ export default async function OrderDetailPage({
 
       <LiveOrderStatus
         orderId={order.id}
+        orderNumber={order.order_number}
         initialStatus={order.status}
         deliveryOtp={order.delivery_otp}
         statusHistory={order.order_status_history}

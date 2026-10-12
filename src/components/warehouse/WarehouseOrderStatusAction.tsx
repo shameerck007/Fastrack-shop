@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { advanceWarehouseOrderStatus } from "@/lib/actions/warehouse-staff";
 import { useLocale } from "@/components/LocaleProvider";
+import PackDialog from "@/components/warehouse/PackDialog";
 import type { OrderStatus } from "@/types/database";
 
 const LABEL_KEY: Partial<Record<OrderStatus, string>> = {
@@ -14,10 +15,11 @@ const LABEL_KEY: Partial<Record<OrderStatus, string>> = {
   preparing: "merchant.mark_ready_for_pickup",
 };
 
-export default function WarehouseOrderStatusAction({ orderId, status }: { orderId: string; status: OrderStatus }) {
+export default function WarehouseOrderStatusAction({ orderId, orderNumber, status, requirePackScan = false }: { orderId: string; orderNumber: string; status: OrderStatus; requirePackScan?: boolean }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [packing, setPacking] = useState(false);
   const { t } = useLocale();
 
   const labelKey = LABEL_KEY[status];
@@ -26,6 +28,15 @@ export default function WarehouseOrderStatusAction({ orderId, status }: { orderI
       return <p className="text-xs font-medium text-blue-700">{t("merchant.awaiting_rider_pickup")}</p>;
     }
     return null;
+  }
+
+  async function packed(): Promise<string | void> {
+    try {
+      await unwrapAction(advanceWarehouseOrderStatus)(orderId, status, true);
+      router.refresh();
+    } catch (e) {
+      return errorText(e, "Something went wrong.");
+    }
   }
 
   function handleClick() {
@@ -42,14 +53,22 @@ export default function WarehouseOrderStatusAction({ orderId, status }: { orderI
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={pending}
-        className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
-      >
-        {t(labelKey)}
-      </button>
+      {status === "preparing" && (
+        <button type="button" onClick={() => setPacking(true)} className="rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-blue-800">
+          📷 Pack &amp; scan
+        </button>
+      )}
+      {!(status === "preparing" && requirePackScan) && (
+        <button
+          type="button"
+          onClick={handleClick}
+          disabled={pending}
+          className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
+        >
+          {t(labelKey)}
+        </button>
+      )}
+      {packing && <PackDialog orderId={orderId} orderNumber={orderNumber} onClose={() => setPacking(false)} onPacked={packed} />}
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );

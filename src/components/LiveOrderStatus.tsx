@@ -1,5 +1,6 @@
 "use client";
 
+import DeliveryQr from "@/components/DeliveryQr";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ORDER_STATUS_FLOW } from "@/lib/utils";
@@ -8,11 +9,13 @@ import type { OrderStatus } from "@/types/database";
 
 export default function LiveOrderStatus({
   orderId,
+  orderNumber,
   initialStatus,
   deliveryOtp,
   statusHistory = [],
 }: {
   orderId: string;
+  orderNumber?: string;
   initialStatus: OrderStatus;
   deliveryOtp: string | null;
   statusHistory?: { status: string; created_at: string }[];
@@ -122,6 +125,8 @@ export default function LiveOrderStatus({
         <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-center">
           <p className="text-sm text-neutral-600">{t("orders.share_otp")}</p>
           <p className="text-2xl font-bold tracking-widest text-blue-700">{deliveryOtp}</p>
+          {orderNumber && <DeliveryQr orderNumber={orderNumber} otp={deliveryOtp} />}
+          {orderNumber && <p className="mt-1 text-xs text-neutral-500">The rider can scan this code, or you can tell them the number.</p>}
         </div>
       )}
     </>

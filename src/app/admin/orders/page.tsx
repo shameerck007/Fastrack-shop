@@ -4,6 +4,7 @@ import { getCurrentTenant } from "@/lib/tenant-server";
 import OrdersExplorer, { type ExplorerOrder } from "@/components/admin/OrdersExplorer";
 import OrdersLiveRefresher from "@/components/admin/OrdersLiveRefresher";
 import { PageHeader } from "@/components/admin/AdminUi";
+import OrderScanButton from "@/components/admin/OrderScanButton";
 import { getAdminOrders, getAdminOrderKPIs, type FulfillmentSummary } from "@/lib/admin-orders";
 import { PAYMENT_METHOD_LABELS } from "@/lib/utils";
 import { localizedName } from "@/lib/i18n/localized";
@@ -66,7 +67,12 @@ export default async function AdminOrdersPage() {
         icon="🧾"
         title={t("admin.orders")}
         subtitle="Every order in one place. Tap a stage to filter, search by order, customer or product, and change the status right from the list."
-        actions={<OrdersLiveRefresher />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <OrderScanButton />
+            <OrdersLiveRefresher />
+          </div>
+        }
       />
       <OrdersExplorer
         orders={rows}

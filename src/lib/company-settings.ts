@@ -40,6 +40,9 @@ export interface CompanySettings {
   free_delivery_enabled?: boolean | null;
   /** The maximum order quantity a new product starts with (migration 0087). */
   default_max_order_qty?: number | null;
+  /** Scanning rules (migration 0096). */
+  require_pickup_scan?: boolean | null;
+  require_pack_scan?: boolean | null;
 }
 
 const FALLBACK: CompanySettings = {

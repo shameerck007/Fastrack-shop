@@ -6,6 +6,7 @@ import { translate } from "@/lib/i18n/t";
 import WarehouseOrderStatusAction from "@/components/warehouse/WarehouseOrderStatusAction";
 import type { OrderStatus } from "@/types/database";
 import { getMoney } from "@/lib/tenant-server";
+import { getCompanySettings } from "@/lib/company-settings";
 
 const STATUS_BADGE: Record<OrderStatus, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -24,6 +25,7 @@ export default async function WarehouseOrdersPage() {
   const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
 
   const orders = await getWarehouseOrders();
+  const settings = await getCompanySettings();
   const kpis = summarizeWarehouseOrders(orders);
 
   return (
@@ -117,7 +119,7 @@ export default async function WarehouseOrdersPage() {
                 </div>
 
                 <div className="flex items-center justify-end gap-3 border-t border-neutral-100 px-4 py-3">
-                  <WarehouseOrderStatusAction orderId={order.id} status={order.status} />
+                  <WarehouseOrderStatusAction orderId={order.id} orderNumber={order.order_number} status={order.status} requirePackScan={!!settings.require_pack_scan} />
                 </div>
               </div>
             );

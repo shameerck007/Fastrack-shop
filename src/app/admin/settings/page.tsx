@@ -1,6 +1,7 @@
 import { getCompanySettings } from "@/lib/company-settings";
 import { PageHeader } from "@/components/admin/AdminUi";
 import BusinessSettings from "@/components/admin/BusinessSettings";
+import ScanSettingsCard from "@/components/admin/ScanSettingsCard";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 
@@ -15,6 +16,9 @@ export default async function AdminSettingsPage() {
     <div>
       <PageHeader icon="⚙️" title={t("admin.business_settings_title")} subtitle="Company details on invoices, rider pay and delivery time. Use Edit on a card to change it." />
       <BusinessSettings settings={settings} />
+      <div className="mt-4">
+        <ScanSettingsCard requirePickupScan={!!settings.require_pickup_scan} requirePackScan={!!settings.require_pack_scan} />
+      </div>
     </div>
   );
 }

@@ -1,5 +1,7 @@
 "use server";
 
+import { getCompanySettings } from "@/lib/company-settings";
+import { sameOrder } from "@/lib/scan";
 
 import { UserError, failure, unwrapAction } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
@@ -67,9 +69,16 @@ export async function acceptOrder(orderId: string) {
   }
 }
 
-export async function markPickedUp(orderId: string) {
+export async function markPickedUp(orderId: string, scannedCode?: string) {
   try {
   const supabase = await createClient();
+  // When the market requires a label scan, the scanned (or typed) code must be this order's number.
+  const settings = await getCompanySettings();
+  if (settings.require_pickup_scan) {
+    const { data: o } = await supabase.from("orders").select("order_number").eq("id", orderId).maybeSingle();
+    if (!scannedCode) throw new UserError("Scan the parcel label to confirm pickup.");
+    if (!o || !sameOrder(scannedCode, o.order_number)) throw new UserError("That label is for a different order. Check you have the right parcel.");
+  }
   await supabase
     .from("delivery_assignments")
     .update({ picked_up_at: new Date().toISOString() })
