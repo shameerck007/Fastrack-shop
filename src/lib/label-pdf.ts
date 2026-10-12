@@ -216,11 +216,9 @@ export async function buildLabelPdf({ order, qrPng, logoPng, size = "4x6" }: { o
     const qrY = OUT + 10;
     const qr = await pdf.embedPng(qrPng);
     page.drawImage(qr, { x: PAGE_W - M - qrSize, y: qrY, width: qrSize, height: qrSize });
-    text(page, "SCAN AT PICKUP", M, qrY + qrSize - 8, { size: 8, font: bold });
-    text(page, "Rider scans this label to", M, qrY + qrSize - 19, { size: 7.5, color: GRAY });
-    text(page, "confirm the right parcel.", M, qrY + qrSize - 28, { size: 7.5, color: GRAY });
     if (order.notes) {
-      for (const [i, l] of wrap(`Note: ${order.notes}`, PAGE_W - 2 * M - qrSize - 8, font, 7).slice(0, 2).entries()) text(page, l, M, qrY + 8 - i * 8.5, { size: 7, color: GRAY });
+      text(page, "NOTE", M, qrY + qrSize - 8, { size: 7, font: bold, color: GRAY });
+      for (const [i, l] of wrap(order.notes, PAGE_W - 2 * M - qrSize - 10, font, 8.5).slice(0, 4).entries()) text(page, l, M, qrY + qrSize - 20 - i * 10, { size: 8.5 });
     }
     const rule = qrY + qrSize + 5;
     hline(rule, 1.25);
