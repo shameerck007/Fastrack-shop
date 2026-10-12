@@ -93,10 +93,17 @@ export async function getOfferProducts(limit = 8): Promise<ProductWithVariants[]
     .or(live)
     .eq("is_active", true)
     .not("product_variants.compare_at_price", "is", null)
-    .limit(limit);
+    .limit(200);
 
   if (error) throw toUserError(error);
-  return (data as ProductWithVariants[]) ?? [];
+  // The database cannot compare two columns, so keep only real reductions here
+  // (the old price above the current one) and show the deepest cuts first.
+  const saving = (p: ProductWithVariants) =>
+    Math.max(0, ...p.product_variants.map((v) => (v.compare_at_price && v.compare_at_price > v.price ? (v.compare_at_price - v.price) / v.compare_at_price : 0)));
+  return ((data as ProductWithVariants[]) ?? [])
+    .filter((p) => saving(p) > 0)
+    .sort((x, y) => saving(y) - saving(x))
+    .slice(0, limit);
 }
 
 export async function getProductsByCategory(slug: string): Promise<{
