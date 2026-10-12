@@ -4,14 +4,15 @@ import { usePathname } from "next/navigation";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
 
-const HIDE_PREFIXES = ["/admin", "/platform", "/rider", "/merchant", "/store", "/warehouse"];
+// The gated listing pages (home, categories, search) already say the same thing in the middle of the page, so no second red bar there.
+const HIDE_PREFIXES = ["/admin", "/platform", "/rider", "/merchant", "/store", "/warehouse", "/categories", "/search"];
 
 export default function DeliveryBanner() {
   const pathname = usePathname();
   const { location, serviceable, openPicker } = useDeliveryLocation();
   const { t } = useLocale();
 
-  if (HIDE_PREFIXES.some((p) => pathname.startsWith(p))) return null;
+  if (pathname === "/" || HIDE_PREFIXES.some((p) => pathname.startsWith(p))) return null;
   if (!location || serviceable !== false) return null;
 
   return (

@@ -82,11 +82,13 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
         </svg>
         <input
           type="search"
+          aria-label={t("header.search_placeholder")}
+          enterKeyHint="search"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           placeholder={t("header.search_placeholder")}
-          className="w-full rounded-full border border-transparent bg-neutral-100 py-2.5 pe-4 ps-10 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:bg-white"
+          className="w-full rounded-full border border-transparent bg-neutral-100 py-2.5 pe-4 ps-10 text-base outline-none md:text-sm transition placeholder:text-neutral-400 focus:border-blue-500 focus:bg-white"
         />
       </form>
 

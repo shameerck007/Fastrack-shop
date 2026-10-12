@@ -123,9 +123,6 @@ export default async function ProductPage({
           </div>
 
           <div className="md:hidden">
-            <div className="flex items-baseline gap-2">
-              <SelectedPrice className="text-3xl font-extrabold text-neutral-900" compareClassName="text-base text-neutral-400 line-through" showSaving />
-            </div>
             {product.is_variable_weight && product.price_per_kg && (
               <p className="mt-1 text-xs text-neutral-500">
                 {t("product.price_per_kg_note", { price: money(product.price_per_kg) })}
@@ -163,7 +160,11 @@ export default async function ProductPage({
             className="rounded-2xl border border-neutral-200 bg-white p-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:rounded-b-none max-md:rounded-t-3xl max-md:border-x-0 max-md:border-b-0 max-md:px-4 max-md:pt-3 max-md:shadow-[0_-8px_24px_rgba(0,0,0,0.08)] lg:sticky lg:top-20"
             style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
           >
-            <PlaceOrderPill compact className="mb-3 md:hidden" />
+            <PlaceOrderPill compact className="mb-2 md:hidden" />
+            {/* On a phone this bar covers the page, so the price lives here too and is always in view. */}
+            <div className="mb-2 flex items-baseline gap-2 md:hidden">
+              <SelectedPrice className="text-2xl font-extrabold text-neutral-900" compareClassName="text-sm text-neutral-400 line-through" showSaving />
+            </div>
             <div className="mb-2 flex items-baseline gap-2 max-md:hidden">
               <SelectedPrice className="text-2xl font-bold text-blue-700" showSaving />
             </div>

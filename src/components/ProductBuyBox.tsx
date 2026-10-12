@@ -63,7 +63,8 @@ export default function ProductBuyBox({
 
   return (
     <div className="flex flex-col gap-4">
-      <DeliveryOptionsInfo storeId={storeId} />
+      {/* Without a location the add-to-cart block below already asks for one, so this note would repeat it. */}
+      {location && <DeliveryOptionsInfo storeId={storeId} />}
       <AddToCartForm variants={variants} stock={stock} isLoggedIn={isLoggedIn} storeId={storeId} maxQty={maxQty} />
     </div>
   );

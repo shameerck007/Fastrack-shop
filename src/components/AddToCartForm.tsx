@@ -95,13 +95,14 @@ export default function AddToCartForm({
       )}
 
       {needsLocation && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
-          <p className="font-medium">{t("product.set_delivery_location")}</p>
-          <p>{t("product.delivery_area_hint")}</p>
-          <button onClick={openPicker} className="mt-1 inline-block font-medium text-blue-700 hover:underline">
-            {t("product.choose_delivery_location")}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={openPicker}
+          className="flex w-full items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-start text-sm font-medium text-blue-800 transition hover:bg-blue-100"
+        >
+          <span aria-hidden>📍</span>
+          <span className="flex-1">{t("product.choose_delivery_location")}</span>
+        </button>
       )}
 
       {inStock ? (

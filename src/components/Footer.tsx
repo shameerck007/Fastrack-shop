@@ -44,10 +44,10 @@ export default async function Footer() {
           {columns.map((col) => (
             <div key={col.heading}>
               <h3 className="mb-3 text-sm font-semibold text-neutral-900">{col.heading}</h3>
-              <ul className="space-y-2">
+              <ul className="space-y-0.5">
                 {col.links.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-sm text-neutral-600 hover:text-blue-700 hover:underline">
+                    <Link href={l.href} className="inline-block py-1.5 text-sm text-neutral-600 hover:text-blue-700 hover:underline">
                       {l.label}
                     </Link>
                   </li>

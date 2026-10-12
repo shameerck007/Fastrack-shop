@@ -79,3 +79,12 @@ html {
     display: none !important;
   }
 }
+
+/* Phones zoom the page in when a field under 16px is focused. 16px keeps the page still, and pinch-to-zoom stays available for people who need it. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
