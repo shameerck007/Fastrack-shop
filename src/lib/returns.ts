@@ -23,6 +23,13 @@ export const RETURN_STATUS: Record<ReturnStatus, { label: string; customer: stri
   cancelled: { label: "Cancelled", customer: "Cancelled", tone: "bg-neutral-100 text-neutral-600 ring-neutral-200" },
 };
 
+export type StockStatus = "awaiting_dropoff" | "received_good" | "received_damaged";
+export const STOCK_STATUS: Record<StockStatus, { label: string; tone: string }> = {
+  awaiting_dropoff: { label: "On its way back", tone: "bg-amber-50 text-amber-800 ring-amber-200" },
+  received_good: { label: "Received, back in stock", tone: "bg-emerald-50 text-emerald-800 ring-emerald-200" },
+  received_damaged: { label: "Received, damaged", tone: "bg-rose-50 text-rose-800 ring-rose-200" },
+};
+
 export interface ReturnRow {
   id: string;
   return_number: string;
@@ -40,6 +47,9 @@ export interface ReturnRow {
   pickup_code: string;
   refund_delivery: boolean;
   refund_amount: number | null;
+  return_to: "warehouse" | "supplier" | null;
+  stock_status: StockStatus | null;
+  received_note: string | null;
   created_at: string;
   refunded_at: string | null;
 }

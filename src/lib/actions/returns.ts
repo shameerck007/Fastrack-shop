@@ -93,10 +93,33 @@ export async function confirmReturnPickup(returnId: string, code: string): Promi
     const r = await call<{ ok: boolean; user_id?: string; return_number?: string; order_number?: string; amount?: number; order_id?: string }>("rider_confirm_return_pickup", { p_return: returnId, p_code: code });
     if (!r.ok) throw new UserError("That code is not right. Ask the customer for the code shown on their order page.");
     refresh();
+    // Tell the supplier or warehouse that the item is on its way to them.
+    try {
+      const supabase = await createClient();
+      const { data: to } = await supabase.rpc("return_dropoff_recipients" as never, { p_return: returnId } as never);
+      const ids = ((to ?? []) as unknown as { user_id: string }[]).map((x) => x.user_id);
+      if (ids.length) await notifyUsers(ids, { title: "A return is on its way to you", body: `Return ${r.return_number} (order #${r.order_number}) has been collected and is coming back.`, url: "/" });
+    } catch {
+      // the notice is a courtesy; the return itself already succeeded
+    }
     if (r.user_id) {
       await notifyUsers([r.user_id], { title: "Return collected", body: `We collected your return ${r.return_number} and your refund is on its way.`, url: "/orders" });
     }
     return { ok: true };
+  } catch (e) {
+    return failure(e) as never;
+  }
+}
+
+/** The supplier, the warehouse, or an admin checks the returned item in. Good condition puts the units back into stock. */
+export async function receiveReturn(returnId: string, condition: "good" | "damaged", note: string): Promise<void> {
+  try {
+    await call<unknown>("receive_return", { p_return: returnId, p_condition: condition, p_note: note.trim() || null });
+    refresh();
+    revalidatePath("/merchant/returns");
+    revalidatePath("/warehouse/returns");
+    revalidatePath("/merchant/products");
+    revalidatePath("/warehouse/stock");
   } catch (e) {
     return failure(e) as never;
   }

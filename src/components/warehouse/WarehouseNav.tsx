@@ -8,6 +8,7 @@ const NAV: { href: string; labelKey?: string; label?: string; icon: string }[] =
   { href: "/warehouse", labelKey: "portal.dashboard", icon: "📊" },
   { href: "/warehouse/orders", labelKey: "warehouse.orders_nav", icon: "🧾" },
   { href: "/warehouse/stock", labelKey: "warehouse.stock_nav", icon: "📦" },
+  { href: "/warehouse/returns", label: "Returns", icon: "↩️" },
   { href: "/warehouse/transfers", label: "Stock transfers", icon: "🔁" },
 ];
 

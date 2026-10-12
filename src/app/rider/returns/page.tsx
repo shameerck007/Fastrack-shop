@@ -1,4 +1,4 @@
-import ReturnPickupCard, { type ReturnPickup } from "@/components/rider/ReturnPickupCard";
+import ReturnPickupCard, { ReturnDropoffCard, type ReturnDropoff, type ReturnPickup } from "@/components/rider/ReturnPickupCard";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Return pickups · FasTrack Rider" };
@@ -7,6 +7,8 @@ export default async function RiderReturnsPage() {
   const supabase = await createClient();
   const { data } = await supabase.rpc("rider_return_pickups" as never);
   const list = ((data ?? []) as unknown as ReturnPickup[]) ?? [];
+  const { data: dropData } = await supabase.rpc("rider_return_dropoffs" as never);
+  const drops = ((dropData ?? []) as unknown as ReturnDropoff[]) ?? [];
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -21,6 +23,16 @@ export default async function RiderReturnsPage() {
             <ReturnPickupCard key={p.id} p={p} />
           ))}
         </ul>
+      )}
+      {drops.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-extrabold text-neutral-900">Collected: take back to the store ({drops.length})</h2>
+          <ul className="flex flex-col gap-3">
+            {drops.map((d) => (
+              <ReturnDropoffCard key={d.id} d={d} />
+            ))}
+          </ul>
+        </section>
       )}
     </div>
   );

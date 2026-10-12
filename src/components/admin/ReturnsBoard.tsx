@@ -9,7 +9,8 @@ import { Field, inputClass } from "@/components/ui/Form";
 import { useMoney } from "@/components/MoneyProvider";
 import { assignReturnRider, reviewReturn } from "@/lib/actions/returns";
 import { unwrapAction } from "@/lib/errors";
-import { RETURN_STATUS, reasonLabel, type ReturnRow, type ReturnStatus } from "@/lib/returns";
+import ReceiveReturnDialog from "@/components/ReceiveReturnDialog";
+import { RETURN_STATUS, STOCK_STATUS, reasonLabel, type ReturnRow, type ReturnStatus } from "@/lib/returns";
 
 export interface AdminReturn extends ReturnRow {
   product_name: string;
@@ -19,6 +20,7 @@ export interface AdminReturn extends ReturnRow {
   customer_name: string;
   customer_phone: string | null;
   rider_name: string | null;
+  dest_name: string | null;
 }
 export interface RiderOption {
   id: string;
@@ -117,6 +119,7 @@ export default function ReturnsBoard({ rows, riders }: { rows: AdminReturn[]; ri
   const [q, setQ] = useState("");
   const [review, setReview] = useState<AdminReturn | null>(null);
   const [assign, setAssign] = useState<AdminReturn | null>(null);
+  const [receive, setReceive] = useState<AdminReturn | null>(null);
   const counts = useMemo(() => Object.fromEntries(FILTERS.map((f) => [f.id, rows.filter((r) => f.match(r.status)).length])), [rows]);
   const active = FILTERS.find((f) => f.id === filter) ?? FILTERS[0];
   const shown = rows.filter((r) => active.match(r.status) && (!q.trim() || [r.return_number, r.order_number, r.product_name, r.customer_name].some((v) => v.toLowerCase().includes(q.trim().toLowerCase()))));
@@ -181,11 +184,26 @@ export default function ReturnsBoard({ rows, riders }: { rows: AdminReturn[]; ri
                   </div>
                 )}
                 {r.admin_note && <p className="mt-2 text-xs text-neutral-500">Note: {r.admin_note}</p>}
+                {r.stock_status && (
+                  <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-neutral-600">
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ring-1 ${STOCK_STATUS[r.stock_status].tone}`}>{STOCK_STATUS[r.stock_status].label}</span>
+                    {r.dest_name && (
+                      <span>
+                        {r.return_to === "supplier" ? "Supplier" : "Warehouse"}: {r.dest_name}
+                      </span>
+                    )}
+                  </p>
+                )}
                 {r.status === "refunded" && r.refund_amount != null && <p className="mt-2 text-sm font-bold text-emerald-700">{money(Number(r.refund_amount))} refunded</p>}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {r.status === "requested" && (
                     <button type="button" onClick={() => setReview(r)} className="h-9 rounded-full bg-blue-700 px-4 text-sm font-bold text-white hover:bg-blue-800">
                       Review
+                    </button>
+                  )}
+                  {r.stock_status === "awaiting_dropoff" && (
+                    <button type="button" onClick={() => setReceive(r)} className="h-9 rounded-full border border-blue-300 px-4 text-sm font-bold text-blue-800 hover:bg-blue-50">
+                      📥 Mark received
                     </button>
                   )}
                   {(r.status === "approved" || r.status === "pickup_assigned") && r.resolution === "pickup" && (
@@ -200,6 +218,7 @@ export default function ReturnsBoard({ rows, riders }: { rows: AdminReturn[]; ri
         </ul>
       )}
       {review && <ReviewDialog ret={review} riders={riders} onClose={() => setReview(null)} />}
+      {receive && <ReceiveReturnDialog returnId={receive.id} label={`${receive.product_name} × ${receive.quantity} · ${receive.return_number}`} onClose={() => setReceive(null)} />}
       {assign && <AssignDialog ret={assign} riders={riders} onClose={() => setAssign(null)} />}
     </div>
   );

@@ -22,7 +22,7 @@ export default async function AdminReturnsPage() {
     );
   }
 
-  const raw = (data ?? []) as (Omit<AdminReturn, "product_name" | "variant_label" | "line_total" | "order_number" | "customer_name" | "customer_phone" | "rider_name"> & {
+  const raw = (data ?? []) as (Omit<AdminReturn, "product_name" | "variant_label" | "line_total" | "order_number" | "customer_name" | "customer_phone" | "rider_name" | "dest_name"> & {
     order_items: { product_name: string; variant_label: string | null; line_total: number } | null;
     orders: { order_number: string } | null;
   })[];
@@ -32,6 +32,11 @@ export default async function AdminReturnsPage() {
   const riders: RiderOption[] = riderRows.map((r) => ({ id: r.id, name: r.profiles?.full_name ?? "Rider" }));
   const riderName = new Map(riders.map((r) => [r.id, r.name]));
   const byUser = new Map(profiles.map((p) => [p.id, p]));
+  const storeIds = [...new Set(raw.map((r) => (r as unknown as { store_id: string | null }).store_id).filter((x): x is string => !!x))];
+  const whIds = [...new Set(raw.map((r) => (r as unknown as { warehouse_id: string | null }).warehouse_id).filter((x): x is string => !!x))];
+  const stores = storeIds.length ? (((await supabase.from("stores").select("id, name").in("id", storeIds)).data ?? []) as { id: string; name: string }[]) : [];
+  const warehouses = whIds.length ? (((await supabase.from("warehouses").select("id, name").in("id", whIds)).data ?? []) as { id: string; name: string }[]) : [];
+  const destName = new Map<string, string>([...stores, ...warehouses].map((d) => [d.id, d.name]));
 
   const rows: AdminReturn[] = raw.map((r) => ({
     ...r,
@@ -43,6 +48,11 @@ export default async function AdminReturnsPage() {
     customer_name: byUser.get(r.user_id)?.full_name ?? "Customer",
     customer_phone: byUser.get(r.user_id)?.phone ?? null,
     rider_name: r.rider_id ? (riderName.get(r.rider_id) ?? null) : null,
+    dest_name: (() => {
+      const x = r as unknown as { return_to: string | null; store_id: string | null; warehouse_id: string | null };
+      const id = x.return_to === "supplier" ? x.store_id : x.warehouse_id;
+      return id ? (destName.get(id) ?? null) : null;
+    })(),
   }));
 
   return (

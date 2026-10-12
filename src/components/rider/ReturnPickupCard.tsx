@@ -99,3 +99,49 @@ export default function ReturnPickupCard({ p }: { p: ReturnPickup }) {
     </li>
   );
 }
+
+export interface ReturnDropoff {
+  id: string;
+  return_number: string;
+  order_number: string;
+  product_name: string;
+  quantity: number;
+  return_to: "warehouse" | "supplier";
+  dest_name: string | null;
+  dest_address: string | null;
+  dest_phone: string | null;
+  lat: number | null;
+  lng: number | null;
+}
+
+/** A collected item that still has to be taken back to the supplier or warehouse. They check it in themselves. */
+export function ReturnDropoffCard({ d }: { d: ReturnDropoff }) {
+  const nav = d.lat != null && d.lng != null ? `https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}` : d.dest_address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.dest_address)}` : null;
+  return (
+    <li className="rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <p className="truncate font-bold text-neutral-900">
+        {d.product_name} × {d.quantity}
+      </p>
+      <p className="text-xs text-neutral-500">
+        {d.return_number} · order #{d.order_number}
+      </p>
+      <div className="mt-3 rounded-2xl bg-neutral-50 p-3 text-sm">
+        <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">{d.return_to === "supplier" ? "Take it back to the supplier" : "Take it to the warehouse"}</p>
+        <p className="font-semibold text-neutral-900">{d.dest_name ?? "Store"}</p>
+        {d.dest_address && <p className="text-neutral-600">{d.dest_address}</p>}
+        <div className="mt-2 flex flex-wrap gap-2">
+          {nav && (
+            <a href={nav} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center rounded-full bg-blue-700 px-4 text-sm font-semibold text-white">
+              🧭 Navigate
+            </a>
+          )}
+          {d.dest_phone && (
+            <a href={`tel:${d.dest_phone}`} className="inline-flex h-9 items-center rounded-full border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-800">
+              📞 Call
+            </a>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
