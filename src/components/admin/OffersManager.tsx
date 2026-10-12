@@ -31,6 +31,7 @@ export interface OfferRow {
   funded_by?: "fastrack" | "supplier";
   store_id?: string | null;
   stackable?: boolean;
+  show_on_home?: boolean;
   used: number;
   discountGiven: number;
 }
@@ -88,8 +89,9 @@ interface Draft {
   fundedBy: "fastrack" | "supplier";
   storeId: string;
   stackable: boolean;
+  showOnHome: boolean;
 }
-const blank: Draft = { name: "", nameAr: "", kind: "percent", auto: false, code: "", value: "", maxDiscount: "", minOrder: "", categoryId: "", startsAt: "", endsAt: "", usageLimit: "", perCustomerLimit: "", firstOrderOnly: false, isActive: true, fundedBy: "fastrack", storeId: "", stackable: false };
+const blank: Draft = { name: "", nameAr: "", kind: "percent", auto: false, code: "", value: "", maxDiscount: "", minOrder: "", categoryId: "", startsAt: "", endsAt: "", usageLimit: "", perCustomerLimit: "", firstOrderOnly: false, isActive: true, fundedBy: "fastrack", storeId: "", stackable: false, showOnHome: true };
 
 const TEMPLATES: { title: string; hint: string; draft: Partial<Draft> }[] = [
   { title: "Welcome offer", hint: "10% off a first order", draft: { name: "Welcome offer", kind: "percent", value: "10", maxDiscount: "30", code: "WELCOME10", firstOrderOnly: true, perCustomerLimit: "1" } },
@@ -120,6 +122,7 @@ function draftOf(o: OfferRow): Draft {
     fundedBy: o.funded_by ?? "fastrack",
     storeId: o.store_id ?? "",
     stackable: o.stackable ?? false,
+    showOnHome: o.show_on_home ?? true,
   };
 }
 
@@ -340,6 +343,7 @@ function OfferModal({ draft, categories, stores, onClose, onSaved }: { draft: Dr
         fundedBy: d.fundedBy,
         storeId: d.storeId || null,
         stackable: d.stackable,
+        showOnHome: d.showOnHome,
       });
       if (res.error) setError(res.error);
       else onSaved();
@@ -464,6 +468,13 @@ function OfferModal({ draft, categories, stores, onClose, onSaved }: { draft: Dr
         )}
 
         <div className="flex flex-col gap-2 text-sm">
+          <label className="flex items-start gap-2">
+            <input type="checkbox" checked={d.showOnHome} onChange={(e) => set("showOnHome", e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+            <span>
+              Show on the shop home page
+              <span className="block text-xs text-neutral-500">Appears in the Offers row while it is active and in date. Turn off for a private code you hand out yourself.</span>
+            </span>
+          </label>
           <label className="flex items-start gap-2">
             <input type="checkbox" checked={d.stackable} onChange={(e) => set("stackable", e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
             <span>

@@ -23,6 +23,7 @@ import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import HomeOffers from "@/components/HomeOffers";
 
 /** Riders, suppliers, admins and warehouse staff land on their own portal by
  * default (their saved preference). "Back to shop" sets a session cookie so the
@@ -89,6 +90,7 @@ export default async function HomePage() {
         {(await getMarketUi()).showShops && <ShopsRow />}
 
         <BuyAgainSection />
+        <HomeOffers />
         <ProductSection id="offers" promo title={t("home.offers")} products={offers} ratings={ratings} stock={stock} />
         <ProductSection title={t("home.fresh_today")} products={freshToday} ratings={ratings} stock={stock} />
         <ProductSection

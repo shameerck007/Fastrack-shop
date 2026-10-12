@@ -25,6 +25,7 @@ export interface AdminProduct {
     quantity: number;
     price: number;
     compare_at_price: number | null;
+    compare_at_until?: string | null;
     inventory: { id: string; stock: number; min_stock: number; warehouse_id: string }[];
   }[];
 }
@@ -34,7 +35,7 @@ export async function getAdminProducts(): Promise<AdminProduct[]> {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "id, name, name_ar, brand, brand_ar, sku, description, description_ar, tax_rate, hsn_code, max_order_qty, image_url, is_active, category_id, category:categories(name), product_variants(id, label, label_ar, unit, quantity, price, compare_at_price, inventory(id, stock, min_stock, warehouse_id))"
+      "id, name, name_ar, brand, brand_ar, sku, description, description_ar, tax_rate, hsn_code, max_order_qty, image_url, is_active, category_id, category:categories(name), product_variants(id, label, label_ar, unit, quantity, price, compare_at_price, compare_at_until, inventory(id, stock, min_stock, warehouse_id))"
     )
     .order("created_at", { ascending: false });
 

@@ -22,6 +22,7 @@ export async function createProduct(input: {
   imageUrl?: string;
   price: number;
   compareAtPrice?: number;
+  compareAtUntil?: string;
   variantLabel: string;
   variantLabelAr?: string;
   unit?: string;
@@ -62,6 +63,7 @@ export async function createProduct(input: {
       quantity: input.quantity ?? 1,
       price: input.price,
       compare_at_price: input.compareAtPrice ?? null,
+      compare_at_until: input.compareAtPrice != null ? (input.compareAtUntil ?? null) : null,
       is_default: true,
     })
     .select("id")
@@ -100,6 +102,7 @@ export async function updateProduct(
     imageUrl?: string;
     price: number;
     compareAtPrice?: number;
+    compareAtUntil?: string;
     variantLabel: string;
     variantLabelAr?: string;
     unit?: string;
@@ -137,6 +140,7 @@ export async function updateProduct(
       quantity: input.quantity ?? 1,
       price: input.price,
       compare_at_price: input.compareAtPrice ?? null,
+      compare_at_until: input.compareAtPrice != null ? (input.compareAtUntil ?? null) : null,
     })
     .eq("id", variantId);
   if (variantError) throw variantError;

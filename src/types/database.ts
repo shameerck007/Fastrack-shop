@@ -150,6 +150,7 @@ export interface ProductVariant {
   quantity: number;
   price: number;
   compare_at_price: number | null;
+  compare_at_until?: string | null;
   is_default: boolean;
   created_at: string;
 }

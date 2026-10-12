@@ -66,6 +66,8 @@ export interface OfferInput {
   storeId: string | null;
   /** One more automatic offer may apply together with this one. */
   stackable: boolean;
+  /** Listed in the Offers row on the shop home page. */
+  showOnHome?: boolean;
 }
 
 export async function saveOffer(input: OfferInput): Promise<{ error?: string }> {
@@ -102,6 +104,7 @@ export async function saveOffer(input: OfferInput): Promise<{ error?: string }> 
     funded_by: supplierPays ? "supplier" : "fastrack",
     store_id: input.kind === "free_delivery" ? null : input.storeId || null,
     stackable: input.stackable,
+    show_on_home: input.showOnHome ?? true,
   };
   // The offers tables are not in the generated types until the migration is in.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

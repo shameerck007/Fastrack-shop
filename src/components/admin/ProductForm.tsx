@@ -57,6 +57,7 @@ export default function ProductForm({
   const [compareAtPrice, setCompareAtPrice] = useState(
     existingVariant?.compare_at_price != null ? String(existingVariant.compare_at_price) : ""
   );
+  const [compareAtUntil, setCompareAtUntil] = useState(existingVariant?.compare_at_until ? existingVariant.compare_at_until.slice(0, 10) : "");
   const [stock, setStock] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -108,6 +109,7 @@ export default function ProductForm({
             maxOrderQty: Number(maxOrderQty),
             price: Number(price),
             compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
+            compareAtUntil: compareAtPrice && compareAtUntil ? new Date(compareAtUntil + "T23:59:59").toISOString() : undefined,
             variantLabel,
             variantLabelAr: variantLabelAr || undefined,
             unit,
@@ -130,6 +132,7 @@ export default function ProductForm({
             maxOrderQty: Number(maxOrderQty),
             price: Number(price),
             compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
+            compareAtUntil: compareAtPrice && compareAtUntil ? new Date(compareAtUntil + "T23:59:59").toISOString() : undefined,
             variantLabel,
             variantLabelAr: variantLabelAr || undefined,
             unit,
@@ -250,6 +253,13 @@ export default function ProductForm({
           onChange={(e) => setCompareAtPrice(e.target.value)}
           className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         />
+        {compareAtPrice && (
+          <label className="col-span-full flex items-center gap-2 text-xs text-neutral-500">
+            Offer ends
+            <input type="date" value={compareAtUntil} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setCompareAtUntil(e.target.value)} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+            <span>(optional, the old price is removed after this day)</span>
+          </label>
+        )}
       </div>
 
       <TaxFields taxRate={taxRate} onTaxRate={setTaxRate} hsnCode={hsnCode} onHsnCode={setHsnCode} />

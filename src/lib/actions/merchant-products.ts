@@ -40,6 +40,7 @@ export async function createMerchantProduct(input: {
   imageUrl?: string;
   price: number;
   compareAtPrice?: number;
+  compareAtUntil?: string;
   variantLabel: string;
   variantLabelAr?: string;
   unit?: string;
@@ -85,6 +86,7 @@ export async function createMerchantProduct(input: {
       quantity: input.quantity ?? 1,
       price: input.price,
       compare_at_price: input.compareAtPrice ?? null,
+      compare_at_until: input.compareAtPrice != null ? (input.compareAtUntil ?? null) : null,
       is_default: true,
     })
     .select("id")
@@ -123,6 +125,7 @@ export async function updateMerchantProduct(
     imageUrl?: string;
     price: number;
     compareAtPrice?: number;
+    compareAtUntil?: string;
     variantLabel: string;
     variantLabelAr?: string;
     unit?: string;
@@ -157,7 +160,7 @@ export async function updateMerchantProduct(
   if (linkRow?.master_id) {
     const { error: priceError } = await supabase
       .from("product_variants")
-      .update({ price: input.price, compare_at_price: input.compareAtPrice ?? null })
+      .update({ price: input.price, compare_at_price: input.compareAtPrice ?? null, compare_at_until: input.compareAtPrice != null ? (input.compareAtUntil ?? null) : null })
       .eq("id", variantId);
     if (priceError) throw priceError;
     revalidatePath("/merchant/products");
@@ -192,6 +195,7 @@ export async function updateMerchantProduct(
       quantity: input.quantity ?? 1,
       price: input.price,
       compare_at_price: input.compareAtPrice ?? null,
+      compare_at_until: input.compareAtPrice != null ? (input.compareAtUntil ?? null) : null,
     })
     .eq("id", variantId);
   if (variantError) throw variantError;
