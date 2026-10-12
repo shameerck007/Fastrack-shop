@@ -26,7 +26,7 @@ export function StatTile({ icon, label, value, hint, accent = "#2563eb" }: { ico
       </span>
       <div className="min-w-0">
         <p className="text-xs font-medium text-neutral-500">{label}</p>
-        <p className="break-words text-lg font-bold leading-tight text-neutral-900 sm:text-xl">{value}</p>
+        <p className="text-base font-bold leading-tight text-neutral-900 sm:text-xl">{value}</p>
         {hint && <p className="mt-0.5 text-[11px] text-neutral-400">{hint}</p>}
       </div>
     </div>

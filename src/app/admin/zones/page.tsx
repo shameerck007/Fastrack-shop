@@ -50,7 +50,7 @@ function Stat({
       </span>
       <div className="min-w-0">
         <p className="text-xs font-medium text-neutral-500">{label}</p>
-        <p className="break-words text-xl font-semibold leading-tight text-neutral-900 sm:text-2xl">{value}</p>
+        <p className="text-lg font-semibold leading-tight text-neutral-900 sm:text-2xl">{value}</p>
         {hint && <p className="truncate text-xs text-neutral-400">{hint}</p>}
       </div>
     </div>

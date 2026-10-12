@@ -31,8 +31,8 @@ export default async function MerchantSettlementsPage() {
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-2">
           <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-700">
               {t("merchant.delivered_orders_count", { count: orders.length })}
@@ -41,7 +41,7 @@ export default async function MerchantSettlementsPage() {
           </section>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
             <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-700">
               {t("merchant.payout_history_count", { count: payouts.length })}
