@@ -18,11 +18,13 @@ export interface RiderPayProfile {
   monthlySalary: number | null;
   /** True when deliveries add to this rider's earnings (per-delivery riders, or salary riders with the extra switch on). */
   earnsPerDelivery: boolean;
+  /** The admin switched earnings off for this rider: the app shows deliveries and cash to hand in, but no earned amounts. */
+  hideEarnings: boolean;
 }
 
 /** How the signed-in rider is paid (per delivery before migration 0065, or when the columns are missing). */
 export const getRiderPayProfile = cache(async (): Promise<RiderPayProfile> => {
-  const fallback: RiderPayProfile = { payType: "per_delivery", monthlySalary: null, earnsPerDelivery: true };
+  const fallback: RiderPayProfile = { payType: "per_delivery", monthlySalary: null, earnsPerDelivery: true, hideEarnings: false };
   try {
     const supabase = await createClient();
     const {
@@ -30,15 +32,15 @@ export const getRiderPayProfile = cache(async (): Promise<RiderPayProfile> => {
     } = await supabase.auth.getUser();
     if (!user) return fallback;
     const { data, error } = await (supabase as unknown as {
-      from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { pay_type?: string; monthly_salary?: number | null; deliveries_earn_extra?: boolean } | null; error: unknown }> } } };
+      from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { pay_type?: string; monthly_salary?: number | null; deliveries_earn_extra?: boolean; hide_earnings?: boolean } | null; error: unknown }> } } };
     })
       .from("delivery_partners")
-      .select("pay_type, monthly_salary, deliveries_earn_extra")
+      .select("pay_type, monthly_salary, deliveries_earn_extra, hide_earnings")
       .eq("id", user.id)
       .maybeSingle();
     if (error || !data) return fallback;
     const salary = data.pay_type === "salary";
-    return { payType: salary ? "salary" : "per_delivery", monthlySalary: data.monthly_salary == null ? null : Number(data.monthly_salary), earnsPerDelivery: !salary || !!data.deliveries_earn_extra };
+    return { payType: salary ? "salary" : "per_delivery", monthlySalary: data.monthly_salary == null ? null : Number(data.monthly_salary), earnsPerDelivery: !data.hide_earnings && (!salary || !!data.deliveries_earn_extra), hideEarnings: !!data.hide_earnings };
   } catch {
     return fallback;
   }

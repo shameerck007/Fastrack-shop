@@ -18,6 +18,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Choose a rider and a valid period." }, { status: 400 });
   }
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user?.id === rider) {
+    const { data: me } = await (supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { hide_earnings?: boolean } | null }> } } } }).from("delivery_partners").select("hide_earnings").eq("id", rider).maybeSingle();
+    if (me?.hide_earnings) return NextResponse.json({ error: "Your statement is not available. Ask FasTrack if you need one." }, { status: 403 });
+  }
   const tenant = await getCurrentTenant();
   const { data, error } = await supabase.rpc("rider_statement" as never, { p_rider: rider, p_from: from, p_to: to, p_tz: timeZoneFor(tenant?.country_code) } as never);
   if (error || !data) return NextResponse.json({ error: friendlyMessage(error ?? new Error("No statement")) }, { status: error ? 403 : 404 });

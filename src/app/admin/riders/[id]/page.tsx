@@ -240,6 +240,10 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
             payType={((rider as { pay_type?: string }).pay_type === "salary" ? "salary" : "per_delivery") as "per_delivery" | "salary"}
             monthlySalary={(rider as { monthly_salary?: number | null }).monthly_salary ?? null}
             deliveriesEarnExtra={(rider as { deliveries_earn_extra?: boolean }).deliveries_earn_extra ?? false}
+            hideEarnings={(rider as { hide_earnings?: boolean }).hide_earnings ?? false}
+            dailyBonus={(rider as { daily_bonus_override?: boolean | null }).daily_bonus_override ?? null}
+            autoSalary={(rider as { auto_salary?: boolean }).auto_salary ?? false}
+            salaryDay={(rider as { salary_day?: number }).salary_day ?? 1}
           />
         </section>
 

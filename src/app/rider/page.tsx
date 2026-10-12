@@ -66,16 +66,18 @@ export default async function RiderHomePage() {
         </div>
         <Link href="/rider/earnings" className="mt-3 flex items-center justify-between rounded-2xl bg-white/15 px-3 py-2.5 text-sm active:scale-[0.99]">
           <span className="flex items-center gap-4">
-            <span>
-              <span className="block text-[10px] font-semibold uppercase tracking-wide text-white/70">Today</span>
-              <span className="font-extrabold">{money(todayStats.earnings)}</span>
-            </span>
+            {!payProfile.hideEarnings && (
+              <span>
+                <span className="block text-[10px] font-semibold uppercase tracking-wide text-white/70">Today</span>
+                <span className="font-extrabold">{money(todayStats.earnings)}</span>
+              </span>
+            )}
             <span>
               <span className="block text-[10px] font-semibold uppercase tracking-wide text-white/70">Deliveries</span>
               <span className="font-extrabold">{todayStats.deliveries}</span>
             </span>
           </span>
-          <span className="text-xs font-bold">Earnings →</span>
+          <span className="text-xs font-bold">{payProfile.hideEarnings ? "My cash →" : "Earnings →"}</span>
         </Link>
       </div>
 
@@ -107,7 +109,7 @@ export default async function RiderHomePage() {
         </Link>
       )}
 
-      {activeDelivery && !activeRoute?.stops.some((x) => x.orderId === activeDelivery.id) && <ActiveDeliveryCard delivery={activeDelivery} t={t} money={money} />}
+      {activeDelivery && !activeRoute?.stops.some((x) => x.orderId === activeDelivery.id) && <ActiveDeliveryCard delivery={activeDelivery} t={t} money={money} hideEarnings={payProfile.hideEarnings} />}
 
       {!online && !activeDelivery && (
         <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-neutral-300 bg-white py-12 text-center">

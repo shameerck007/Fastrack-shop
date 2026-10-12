@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getRiderPayProfile } from "@/lib/rider";
 import DeliveryActions from "@/components/rider/DeliveryActions";
 import DeliveryProgressStepper from "@/components/rider/DeliveryProgressStepper";
 import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
@@ -96,6 +97,7 @@ export default async function RiderOrderPage({
         .maybeSingle()
     : { data: null };
   const earning = Number(assignment?.rider_pay ?? order.delivery_fee);
+  const hideEarnings = (await getRiderPayProfile()).hideEarnings;
   const payment = (order.payments as { method: string; status: string }[] | null)?.[0];
   const collectCash = payment?.method === "cash_on_delivery" && payment.status !== "refunded";
   const customerPhone = order.addresses?.receiver_phone || order.profiles?.phone || null;
@@ -113,10 +115,12 @@ export default async function RiderOrderPage({
             <p className="text-sm font-semibold text-blue-700">{isPickupStage ? t("rider_task.next_pickup") : t("rider_task.next_dropoff")}</p>
           )}
         </div>
-        <div className="rounded-2xl bg-blue-700 px-4 py-2 text-end text-white shadow-md shadow-blue-700/20">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-100">{t("rider_task.you_earn")}</p>
-          <p className="text-lg font-extrabold leading-tight">{money(earning)}</p>
-        </div>
+        {!hideEarnings && (
+          <div className="rounded-2xl bg-blue-700 px-4 py-2 text-end text-white shadow-md shadow-blue-700/20">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-100">{t("rider_task.you_earn")}</p>
+            <p className="text-lg font-extrabold leading-tight">{money(earning)}</p>
+          </div>
+        )}
       </div>
 
       {isActive && (

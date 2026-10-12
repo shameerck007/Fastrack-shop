@@ -9,8 +9,10 @@ export default function ActiveDeliveryCard({
   delivery,
   t,
   money,
+  hideEarnings = false,
 }: {
   money: MoneyFormatter;
+  hideEarnings?: boolean;
   delivery: ActiveDelivery;
   t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
@@ -18,7 +20,7 @@ export default function ActiveDeliveryCard({
     <div className="overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-lg shadow-blue-600/10">
       <div className="flex items-center justify-between bg-gradient-to-r from-blue-700 to-blue-500 px-4 py-3 text-white">
         <h2 className="flex items-center gap-2 text-sm font-bold"><span className="h-2 w-2 animate-pulse rounded-full bg-white" />{t("rider.active_delivery")}</h2>
-        <span className="rounded-full bg-white/20 px-3 py-0.5 text-sm font-extrabold">{money(delivery.delivery_fee)}</span>
+        {!hideEarnings && <span className="rounded-full bg-white/20 px-3 py-0.5 text-sm font-extrabold">{money(delivery.delivery_fee)}</span>}
       </div>
 
       <div className="px-4 pt-4">

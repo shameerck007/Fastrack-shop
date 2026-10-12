@@ -5,6 +5,7 @@ import {
   getRiderSettlementEntries,
   getRiderSettlementOrders,
   getRiderSettlementSummary,
+  postDueSalaries,
 } from "@/lib/rider-settlements";
 import RiderStatementDialog from "@/components/RiderStatementDialog";
 import RiderEntryForm from "@/components/admin/RiderEntryForm";
@@ -167,6 +168,7 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
 }
 
 async function loadLedger(riderId: string) {
+  await postDueSalaries();
   const [summary, orders, entries] = await Promise.all([
     getRiderSettlementSummary(riderId),
     getRiderSettlementOrders(riderId),

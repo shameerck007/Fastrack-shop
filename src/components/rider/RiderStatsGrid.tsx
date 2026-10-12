@@ -22,6 +22,7 @@ function Tile({ icon, label, value, accent }: { icon: string; label: string; val
 export default function RiderStatsGrid({
   todayDeliveries,
   todayEarnings,
+  hideEarnings = false,
   totalDeliveries,
   rating,
   t,
@@ -30,6 +31,7 @@ export default function RiderStatsGrid({
   money: MoneyFormatter;
   todayDeliveries: number;
   todayEarnings: number;
+  hideEarnings?: boolean;
   totalDeliveries: number;
   rating: number | null;
   t: (key: string, vars?: Record<string, string | number>) => string;
@@ -41,7 +43,7 @@ export default function RiderStatsGrid({
     // like "SAR 1,234.56"; 4 columns at this container width left only
     // ~65px for the value text and silently ellipsis-truncated it.
     <div className="grid grid-cols-2 gap-3">
-      <Tile icon="💰" label={t("rider.today_earnings")} value={money(todayEarnings)} accent="#059669" />
+      {!hideEarnings && <Tile icon="💰" label={t("rider.today_earnings")} value={money(todayEarnings)} accent="#059669" />}
       <Tile icon="📦" label={t("rider.today_deliveries")} value={todayDeliveries} accent="#2563eb" />
       <Tile icon="🏆" label={t("rider.total_deliveries")} value={totalDeliveries} accent="#7c3aed" />
       <Tile icon="⭐" label={t("rider.rating_label")} value={rating != null ? rating.toFixed(1) : "—"} accent="#d97706" />

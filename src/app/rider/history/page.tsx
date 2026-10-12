@@ -27,6 +27,7 @@ export default async function RiderHistoryPage() {
         money={money}
         todayDeliveries={today.deliveries}
         todayEarnings={today.earnings}
+        hideEarnings={wallet?.pay.hideEarnings ?? false}
         totalDeliveries={lifetime?.totalDeliveries ?? orders.length}
         rating={lifetime?.rating ?? null}
         t={(k) => STAT_LABELS[k] ?? k}

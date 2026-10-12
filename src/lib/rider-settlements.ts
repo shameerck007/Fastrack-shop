@@ -110,7 +110,17 @@ export interface RiderSettlementOverviewRow extends RiderSettlementSummary {
   payType: "per_delivery" | "salary";
 }
 
+/** Adds this month's salary for riders on automatic salary whose salary day has come (once per rider per month). Never blocks the page. */
+export async function postDueSalaries(): Promise<void> {
+  try {
+    await (await loose()).rpc("post_due_salaries");
+  } catch {
+    // the option needs migration 0095; the pages still work without it
+  }
+}
+
 export async function getRiderSettlementOverview(): Promise<RiderSettlementOverviewRow[]> {
+  await postDueSalaries();
   const db = await loose();
   const { data, error } = await db.rpc("admin_rider_settlement_overview");
   if (error) throw toUserError(error);

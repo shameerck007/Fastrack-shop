@@ -59,6 +59,81 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
   }
 
   const { summary: s, orders, entries, cashInHand, timeZone, pay } = wallet;
+
+  // Earnings switched off by the admin (salaried staff): deliveries and the cash to hand in only, no earned amounts, balance, salary or statement.
+  if (pay.hideEarnings) {
+    const weekDays = earningsByDay(orders, timeZone, 7);
+    const sumDeliveries = (rows: { deliveries: number }[]) => rows.reduce((a, r) => a + r.deliveries, 0);
+    const handedIn = entries.filter((e) => e.kind === "cash_deposit");
+    const pctHanded = s.cashCollected > 0 ? Math.min(100, Math.round((s.cashDeposited / s.cashCollected) * 100)) : 100;
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-950 via-blue-900 to-blue-700 p-5 text-white shadow-lg shadow-blue-900/30">
+          <p className="text-xs font-semibold uppercase tracking-wider text-white/80">💵 Cash in your hand</p>
+          <p className="mt-1 text-4xl font-extrabold tracking-tight">{money(cashInHand)}</p>
+          <p className="mt-2 text-sm text-white/85">{cashInHand > 0 ? "Hand this cash to FasTrack at your next visit." : "No customer cash to hand in right now."}</p>
+          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/20">
+            <div className="h-full rounded-full bg-sky-300" style={{ width: `${pctHanded}%` }} />
+          </div>
+          <div className="mt-1.5 flex justify-between text-[11px] text-white/75">
+            <span>Handed in {money(s.cashDeposited)}</span>
+            <span>Collected {money(s.cashCollected)}</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Today", value: sumDeliveries([weekDays[weekDays.length - 1]]) },
+            { label: "7 days", value: sumDeliveries(weekDays) },
+            { label: "All time", value: s.deliveredCount },
+          ].map((p) => (
+            <div key={p.label} className="rounded-2xl border border-neutral-200 bg-white p-3 text-center shadow-sm">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{p.label}</p>
+              <p className="mt-0.5 text-2xl font-extrabold text-neutral-900">{p.value}</p>
+              <p className="text-xs text-neutral-500">deliveries</p>
+            </div>
+          ))}
+        </div>
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <h2 className="mb-3 text-sm font-bold text-neutral-800">Cash handed in</h2>
+          {handedIn.length === 0 ? (
+            <p className="text-sm text-neutral-500">Nothing handed in yet.</p>
+          ) : (
+            <ul className="divide-y divide-neutral-100">
+              {handedIn.map((e) => (
+                <li key={e.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                  <span className="text-neutral-600">{formatWhen(e.createdAt, timeZone)}{e.reference ? ` · Ref ${e.reference}` : ""}</span>
+                  <span className="font-bold text-blue-800">{money(e.amount)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-neutral-800">Recent deliveries</h2>
+            <Link href="/rider/history" className="text-xs font-bold text-blue-700">
+              See all →
+            </Link>
+          </div>
+          {orders.length === 0 ? (
+            <p className="text-sm text-neutral-500">No delivered orders yet.</p>
+          ) : (
+            <ul className="divide-y divide-neutral-100">
+              {orders.slice(0, 5).map((o) => (
+                <li key={o.orderId} className="flex items-center justify-between py-2 text-sm">
+                  <div>
+                    <p className="font-semibold text-neutral-900">#{o.orderNumber}</p>
+                    <p className="text-xs text-neutral-500">{formatWhen(o.deliveredAt, timeZone)}</p>
+                  </div>
+                  {o.cashCollected > 0 ? <span className="text-xs font-semibold text-sky-700">💵 Cash {money(o.cashCollected)}</span> : <span className="text-xs font-semibold text-neutral-400">Delivered</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    );
+  }
   const deliveryPay = s.earned - s.salaryBonus;
   const owed = s.balance >= 0;
   const week = earningsByDay(orders, timeZone, 7);

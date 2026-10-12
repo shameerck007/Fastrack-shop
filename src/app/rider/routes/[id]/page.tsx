@@ -2,6 +2,7 @@ import Link from "@/components/Link";
 import { notFound } from "next/navigation";
 import { getRouteForRider } from "@/lib/routes";
 import { getMoney } from "@/lib/tenant-server";
+import { getRiderPayProfile } from "@/lib/rider";
 import RoutePickupButton from "@/components/rider/RoutePickupButton";
 import OffersPoller from "@/components/rider/OffersPoller";
 
@@ -28,6 +29,7 @@ export default async function RiderRoutePage({ params }: { params: Promise<{ id:
   const open = route.stops.filter((s) => s.status !== "delivered" && s.status !== "cancelled");
   const cash = route.stops.reduce((n, s) => n + s.cashToCollect, 0);
   const pay = route.stops.reduce((n, s) => n + s.pay, 0);
+  const hideEarnings = (await getRiderPayProfile()).hideEarnings;
   const toPickUp = route.stops.filter((s) => s.status === "rider_assigned").length;
   const finished = open.length === 0;
 
@@ -48,10 +50,12 @@ export default async function RiderRoutePage({ params }: { params: Promise<{ id:
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Route pay</p>
-          <p className="text-lg font-extrabold text-blue-700">{money(pay)}</p>
-        </div>
+        {!hideEarnings && (
+          <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Route pay</p>
+            <p className="text-lg font-extrabold text-blue-700">{money(pay)}</p>
+          </div>
+        )}
         <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Cash to collect</p>
           <p className="text-lg font-extrabold text-neutral-900">{money(cash)}</p>
@@ -108,7 +112,7 @@ export default async function RiderRoutePage({ params }: { params: Promise<{ id:
                 ) : (
                   !done && <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">✓ Paid online</span>
                 )}
-                <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">You earn {money(s.pay)}</span>
+                {!hideEarnings && <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">You earn {money(s.pay)}</span>}
               </div>
               {!done && (
                 <div className="mt-3 flex gap-2">
