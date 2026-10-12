@@ -4,9 +4,11 @@ import Link from "@/components/Link";
 import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { useLocale } from "@/components/LocaleProvider";
 import NotificationBell from "@/components/NotificationBell";
+import { useLoginModal } from "@/components/LoginModalProvider";
 
 export default function UserHeaderActions() {
   const { loaded, signedIn, firstName, cartCount } = useCustomerHeaderState();
+  const { openLogin } = useLoginModal();
   const { t } = useLocale();
 
   return (
@@ -37,9 +39,9 @@ export default function UserHeaderActions() {
           push past the viewport edge on a narrow phone. */}
       {/* Phones: signed-out visitors get a compact Log in pill in the header (the bell above covers signed-in ones). */}
       {loaded && !signedIn && (
-        <Link href="/login" className="rounded-full bg-blue-700 px-4 py-2 text-[13px] font-extrabold text-white shadow-sm active:scale-95 md:hidden">
+        <button type="button" onClick={openLogin} className="rounded-full bg-blue-700 px-4 py-2 text-[13px] font-extrabold text-white shadow-sm active:scale-95 md:hidden">
           {t("header.login")}
-        </Link>
+        </button>
       )}
       {signedIn ? (
         <Link href="/account" className="hidden max-w-[150px] rounded-full px-3 py-1.5 leading-tight hover:bg-blue-50 hover:text-blue-700 md:block">
@@ -49,12 +51,13 @@ export default function UserHeaderActions() {
           <span className="font-medium">{t("header.account")}</span>
         </Link>
       ) : (
-        <Link
-          href="/login"
+        <button
+          type="button"
+          onClick={openLogin}
           className="hidden whitespace-nowrap rounded-full bg-blue-700 px-6 py-2 text-[15px] font-semibold text-white shadow-sm hover:bg-blue-800 md:inline-block"
         >
           {t("header.login")}
-        </Link>
+        </button>
       )}
     </div>
   );

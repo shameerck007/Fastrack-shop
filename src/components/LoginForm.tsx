@@ -10,6 +10,7 @@ import { emailHasAccount, resolveLoginEmail } from "@/lib/actions/auth";
 import Wordmark from "@/components/Wordmark";
 import { COUNTRIES, findCountry } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
+import { CART_CHANGED_EVENT } from "@/lib/cart-events";
 
 type Mode = "password" | "otp";
 type Step = "identifier" | "password" | "phone-password" | "phone-code" | "phone-new";
@@ -34,11 +35,23 @@ function describePhone(e164: string): string {
   return `${country.flag} ${country.code} ${country.dial} ${e164.slice(country.dial.length)}`;
 }
 
-function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) {
+function LoginFormInner({ defaultCountryCode, modal = false, onDone }: { defaultCountryCode: string; modal?: boolean; onDone?: () => void }) {
   const { t } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/";
+  // In the pop-up the shopper stays on the page they were on; on the full page they go where the redirect says.
+  const redirectTo = modal ? window.location.pathname + window.location.search : searchParams.get("redirect") || "/";
+  const finish = () => {
+    if (modal) {
+      onDone?.();
+      // The header and cart badge re-check who is signed in; the page did not change, so nothing else would tell them.
+      window.dispatchEvent(new Event(CART_CHANGED_EVENT));
+      router.refresh();
+    } else {
+      router.push(redirectTo);
+      router.refresh();
+    }
+  };
 
   const [mode, setMode] = useState<Mode>("password");
   const [step, setStep] = useState<Step>("identifier");
@@ -132,8 +145,7 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
       setError(t("auth.invalid_credentials"));
       return;
     }
-    router.push(redirectTo);
-    router.refresh();
+    finish();
   }
 
   async function handlePasswordSubmit(e: React.FormEvent) {
@@ -149,8 +161,7 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
       setError(t("auth.invalid_credentials"));
       return;
     }
-    router.push(redirectTo);
-    router.refresh();
+    finish();
   }
 
   async function handlePhoneCodeSubmit(e: React.FormEvent) {
@@ -166,8 +177,7 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
       setError(t("auth.invalid_code"));
       return;
     }
-    router.push(redirectTo);
-    router.refresh();
+    finish();
   }
 
   async function handleSendCode(e: React.FormEvent) {
@@ -202,8 +212,7 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
       setOtpError(t("auth.invalid_code"));
       return;
     }
-    router.push(redirectTo);
-    router.refresh();
+    finish();
   }
 
   function backToIdentifier() {
@@ -219,12 +228,16 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
     "flex h-12 items-center justify-center rounded-full bg-blue-700 text-base font-extrabold text-white shadow-lg shadow-blue-700/20 transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50";
 
   return (
-    <div className="mx-auto flex max-w-sm flex-col items-center px-5 pb-10 pt-6 md:py-10">
-      <Link href="/" className="mb-5 md:mb-6">
-        <Wordmark height={34} />
-      </Link>
+    <div className={modal ? "flex flex-col items-center" : "mx-auto flex max-w-sm flex-col items-center px-5 pb-10 pt-6 md:py-10"}>
+      {modal ? (
+        <div className="mb-4"><Wordmark height={30} /></div>
+      ) : (
+        <Link href="/" className="mb-5 md:mb-6">
+          <Wordmark height={34} />
+        </Link>
+      )}
 
-      <div className="w-full md:rounded-2xl md:border md:border-neutral-200 md:bg-white md:p-6 md:shadow-sm">
+      <div className={modal ? "w-full" : "w-full md:rounded-2xl md:border md:border-neutral-200 md:bg-white md:p-6 md:shadow-sm"}>
         <div className="mb-5 text-center md:text-start">
           <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900">
             {mode === "password" && step === "phone-new" ? t("auth.new_here_heading") : t("auth.welcome_title")}
@@ -475,10 +488,10 @@ function LoginFormInner({ defaultCountryCode }: { defaultCountryCode: string }) 
   );
 }
 
-export default function LoginForm({ defaultCountryCode }: { defaultCountryCode: string }) {
+export default function LoginForm({ defaultCountryCode, modal = false, onDone }: { defaultCountryCode: string; modal?: boolean; onDone?: () => void }) {
   return (
     <Suspense>
-      <LoginFormInner defaultCountryCode={defaultCountryCode} />
+      <LoginFormInner defaultCountryCode={defaultCountryCode} modal={modal} onDone={onDone} />
     </Suspense>
   );
 }

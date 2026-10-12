@@ -1,5 +1,6 @@
 "use client";
 
+import { useLoginModal } from "@/components/LoginModalProvider";
 import Link from "@/components/Link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -24,6 +25,7 @@ export default function MobileBottomNav() {
   const [tapped, setTapped] = useState<string | null>(null);
   useEffect(() => setTapped(null), [pathname]);
   const { signedIn, loaded, cartCount } = useCustomerHeaderState();
+  const { openLogin } = useLoginModal();
 
   // Until the sign-in check finishes the tab says Account (it sends signed-out visitors to Login anyway), so it does not flash Login for a signed-in shopper.
   const accountItem: NavItem = signedIn || !loaded
@@ -46,7 +48,14 @@ export default function MobileBottomNav() {
               key={item.href}
               href={item.href}
               prefetch
-              onClick={() => setTapped(item.href)}
+              onClick={(e) => {
+                if (item.href === "/login") {
+                  e.preventDefault();
+                  openLogin();
+                  return;
+                }
+                setTapped(item.href);
+              }}
               className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold ${
                 isActive ? "text-blue-700" : "text-neutral-500"
               }`}
