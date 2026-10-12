@@ -244,7 +244,7 @@ export default async function RiderOrderPage({
         </div>
       </div>
 
-      {user && (
+      {user && isTrackable && (
         <div className="mb-4">
           <OrderChat orderId={order.id} currentUserId={user.id} otherPartyLabel="customer" initialMessages={messages} />
         </div>

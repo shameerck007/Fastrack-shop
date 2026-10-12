@@ -245,7 +245,7 @@ export default async function OrderDetailPage({
         </div>
       )}
 
-      {rider && user && (
+      {rider && user && showTrackingExtras && (
         <div id="order-chat" className="mb-6 scroll-mt-4">
           <OrderChat
             orderId={order.id}
