@@ -5,6 +5,7 @@ import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
 import DownloadLabelButton from "@/components/DownloadLabelButton";
 import FulfillmentBadge from "@/components/admin/FulfillmentBadge";
 import RefundDialog from "@/components/admin/RefundDialog";
+import RiderPayAdjustDialog from "@/components/admin/RiderPayAdjustDialog";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminOrderDetail } from "@/lib/admin-orders";
 import { ORDER_STATUS_FLOW, PAYMENT_METHOD_LABELS } from "@/lib/utils";
@@ -80,6 +81,12 @@ export default async function AdminOrderDetailPage({
     refunded: refundedQty.get(i.id) ?? 0,
     unitNet: Number(i.ordered_quantity) > 0 ? (Number(i.line_total) - Number(i.discount_amount ?? 0)) / Number(i.ordered_quantity) : 0,
   }));
+  // Rider pay when an order goes wrong (migration 0094): what the rider earns on this order, and whether an adjustment was already recorded.
+  const assignmentRow = ((await db.from("delivery_assignments").select("rider_id, rider_pay").eq("order_id", id).maybeSingle()).data ?? null) as { rider_id: string; rider_pay: number | null } | null;
+  const adjustments = assignmentRow ? (((await db.from("rider_settlement_entries").select("reference, amount").eq("rider_id", assignmentRow.rider_id).in("reference", [`failed:${id}`, `refund:${id}`])).data ?? []) as { reference: string; amount: number }[]) : [];
+  const failedPaid = adjustments.find((a) => a.reference.startsWith("failed:"));
+  const clawed = adjustments.find((a) => a.reference.startsWith("refund:"));
+  const riderPayHere = assignmentRow ? Number(assignmentRow.rider_pay ?? order.delivery_fee) : 0;
   const refundedTotal = Number((order as unknown as { refunded_amount?: number | string | null }).refunded_amount ?? 0);
   const tz = timeZoneFor((await getCurrentTenant())?.country_code);
   const live = liveEtaOf(order as never, currentMs());
@@ -325,6 +332,8 @@ export default async function AdminOrderDetailPage({
                 <span className="text-neutral-400">{t("admin.not_assigned")}</span>
               )}
             </Row>
+            {assignmentRow && cancelled && (failedPaid ? <Row label="Failed delivery"><span className="text-emerald-700">Rider paid {money(Number(failedPaid.amount))}</span></Row> : riderPayHere > 0 ? <RiderPayAdjustDialog orderId={id} kind="failed_delivery" max={riderPayHere} suggested={riderPayHere} riderName={rider?.full_name ?? "the rider"} /> : null)}
+            {assignmentRow && order.status === "delivered" && refundedTotal > 0 && (clawed ? <Row label="Refund deduction"><span className="text-amber-700">-{money(Number(clawed.amount))} from the rider</span></Row> : <RiderPayAdjustDialog orderId={id} kind="refund_clawback" max={refundedTotal} suggested={Math.min(refundedTotal, riderPayHere)} riderName={rider?.full_name ?? "the rider"} />)}
             {order.notes && (
               <p className="mt-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-800">
                 <b>{t("admin.customer_note")}</b> {order.notes}

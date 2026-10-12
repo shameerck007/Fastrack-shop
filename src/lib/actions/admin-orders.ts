@@ -146,3 +146,25 @@ export async function assignRider(orderId: string, riderId: string) {
     return failure(e) as never;
   }
 }
+
+// Rider pay when an order goes wrong: pay the rider for a failed delivery (a cancelled order), or deduct from the rider after a refund. Never automatic.
+export async function adjustRiderPay(orderId: string, kind: "failed_delivery" | "refund_clawback", amount: number, note: string): Promise<{ amount: number }> {
+  try {
+    if (!(amount > 0)) throw new UserError("Enter an amount greater than zero.");
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("admin_rider_order_adjustment" as never, { p_order: orderId, p_kind: kind, p_amount: amount, p_note: note.trim() || null } as never);
+    if (error) throw error;
+    const r = data as { rider_id: string; order_number: string; amount: number };
+    revalidatePath(`/admin/orders/${orderId}`);
+    revalidatePath("/admin/rider-settlements");
+    revalidatePath(`/admin/rider-settlements/${r.rider_id}`);
+    await notifyUsers([r.rider_id], {
+      title: kind === "failed_delivery" ? "Paid for a failed delivery" : "Deduction recorded",
+      body: kind === "failed_delivery" ? `You were paid for order #${r.order_number}, which could not be delivered.` : `A deduction was recorded for the refund on order #${r.order_number}.`,
+      url: "/rider/earnings",
+    });
+    return { amount: Number(r.amount) };
+  } catch (e) {
+    return failure(e) as never;
+  }
+}
