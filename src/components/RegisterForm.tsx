@@ -11,28 +11,44 @@ import Wordmark from "@/components/Wordmark";
 import PhoneNumberInput from "@/components/PhoneNumberInput";
 import { useLocale } from "@/components/LocaleProvider";
 import { emailHasAccount } from "@/lib/actions/auth";
+import { validatePhone } from "@/lib/countries";
+import { CART_CHANGED_EVENT } from "@/lib/cart-events";
 
-function RegisterFormInner({ defaultCountryCode }: { defaultCountryCode: string }) {
+type Prefill = { email?: string; phone?: string };
+
+function RegisterFormInner({ defaultCountryCode, modal = false, prefill, onDone, onLogin }: { defaultCountryCode: string; modal?: boolean; prefill?: Prefill; onDone?: () => void; onLogin?: () => void }) {
   const { t } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/";
+  const redirectTo = modal ? "/" : searchParams.get("redirect") || "/";
+  const presetEmail = modal ? prefill?.email ?? "" : searchParams.get("email") ?? "";
+  const presetPhone = modal ? prefill?.phone ?? "" : searchParams.get("phone") ?? "";
 
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState(searchParams.get("email") ?? "");
-  const [phone, setPhone] = useState(searchParams.get("phone") ?? "");
+  const [email, setEmail] = useState(presetEmail);
+  const [phone, setPhone] = useState(presetPhone);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   // Arrived from the login screen with an email that has no account (Amazon-style): the email is already confirmed there.
-  const fromLogin = !!searchParams.get("email");
+  const fromLogin = !!presetEmail;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setNotice(null);
+
+    // The number is optional, but when given it must be a real mobile number for its country.
+    if (phone) {
+      const shape = validatePhone(phone);
+      if (!shape.ok) {
+        setLoading(false);
+        setError(shape.error ?? t("auth.invalid_mobile_number"));
+        return;
+      }
+    }
 
     const supabase = createClient();
 
@@ -65,20 +81,30 @@ function RegisterFormInner({ defaultCountryCode }: { defaultCountryCode: string 
     }
 
     if (data.session) {
-      router.push(redirectTo);
-      router.refresh();
+      if (modal) {
+        onDone?.();
+        window.dispatchEvent(new Event(CART_CHANGED_EVENT));
+        router.refresh();
+      } else {
+        router.push(redirectTo);
+        router.refresh();
+      }
     } else {
       setNotice(t("auth.check_email_notice"));
     }
   }
 
   return (
-    <div className="mx-auto flex max-w-sm flex-col items-center px-4 py-10">
-      <Link href="/" className="mb-6">
-        <Wordmark height={32} />
-      </Link>
+    <div className={modal ? "flex flex-col items-center" : "mx-auto flex max-w-sm flex-col items-center px-4 py-10"}>
+      {modal ? (
+        <div className="mb-3"><Wordmark height={22} /></div>
+      ) : (
+        <Link href="/" className="mb-6">
+          <Wordmark height={26} />
+        </Link>
+      )}
 
-      <div className="w-full rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <div className={modal ? "w-full" : "w-full rounded-xl border border-neutral-200 bg-white p-6 shadow-sm"}>
         {fromLogin ? (
           <div className="mb-4">
             <h1 className="text-xl font-semibold">{t("auth.new_here_email_title")}</h1>
@@ -102,9 +128,15 @@ function RegisterFormInner({ defaultCountryCode }: { defaultCountryCode: string 
             <span className="flex items-center justify-between font-medium text-neutral-800">
               {t("auth.email")}
               {fromLogin && (
-                <Link href={`/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} className="text-xs font-medium text-blue-600 hover:underline">
-                  {t("auth.change")}
-                </Link>
+                onLogin ? (
+                  <button type="button" onClick={onLogin} className="text-xs font-medium text-blue-600 hover:underline">
+                    {t("auth.change")}
+                  </button>
+                ) : (
+                  <Link href={`/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} className="text-xs font-medium text-blue-600 hover:underline">
+                    {t("auth.change")}
+                  </Link>
+                )
               )}
             </span>
             <input
@@ -146,32 +178,38 @@ function RegisterFormInner({ defaultCountryCode }: { defaultCountryCode: string 
           <button
             type="submit"
             disabled={loading}
-            className="rounded-full bg-blue-700 py-2.5 font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+            className="flex h-11 items-center justify-center rounded-full bg-blue-700 text-[15px] font-bold text-white shadow-md shadow-blue-700/20 transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50"
           >
             {loading ? t("auth.creating_account") : t("auth.create_account_button")}
           </button>
 
-          <p className="text-xs text-neutral-500">{t("auth.terms_notice")}</p>
+          <p className="text-center text-[11px] leading-snug text-neutral-400">{t("auth.terms_notice")}</p>
         </form>
       </div>
 
-      <p className="mt-5 text-sm text-neutral-600">
+      <p className="mt-4 text-sm text-neutral-600">
         {t("auth.already_have_account")}{" "}
-        <Link
-          href={`/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
-          className="text-blue-600 hover:underline"
-        >
-          {t("auth.sign_in_link")}
-        </Link>
+        {onLogin ? (
+          <button type="button" onClick={onLogin} className="font-medium text-blue-600 hover:underline">
+            {t("auth.sign_in_link")}
+          </button>
+        ) : (
+          <Link
+            href={`/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
+            className="text-blue-600 hover:underline"
+          >
+            {t("auth.sign_in_link")}
+          </Link>
+        )}
       </p>
     </div>
   );
 }
 
-export default function RegisterForm({ defaultCountryCode }: { defaultCountryCode: string }) {
+export default function RegisterForm({ defaultCountryCode, modal = false, prefill, onDone, onLogin }: { defaultCountryCode: string; modal?: boolean; prefill?: Prefill; onDone?: () => void; onLogin?: () => void }) {
   return (
     <Suspense>
-      <RegisterFormInner defaultCountryCode={defaultCountryCode} />
+      <RegisterFormInner defaultCountryCode={defaultCountryCode} modal={modal} prefill={prefill} onDone={onDone} onLogin={onLogin} />
     </Suspense>
   );
 }

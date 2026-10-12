@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { emailHasAccount, resolveLoginEmail } from "@/lib/actions/auth";
 import Wordmark from "@/components/Wordmark";
-import { COUNTRIES, findCountry } from "@/lib/countries";
+import { COUNTRIES, findCountry, validatePhone } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
 import { CART_CHANGED_EVENT } from "@/lib/cart-events";
 
@@ -35,7 +35,9 @@ function describePhone(e164: string): string {
   return `${country.flag} ${country.code} ${country.dial} ${e164.slice(country.dial.length)}`;
 }
 
-function LoginFormInner({ defaultCountryCode, modal = false, onDone }: { defaultCountryCode: string; modal?: boolean; onDone?: () => void }) {
+type RegisterPrefill = { email?: string; phone?: string };
+
+function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister }: { defaultCountryCode: string; modal?: boolean; onDone?: () => void; onRegister?: (prefill: RegisterPrefill) => void }) {
   const { t } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -97,6 +99,12 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone }: { default
     const normalized = normalizePhone(identifier, defaultCountryCode);
     if (!normalized) {
       setError(t("auth.invalid_mobile_number"));
+      return;
+    }
+    // Right length is not enough: the number must have the shape of a real mobile number in its country.
+    const shape = validatePhone(normalized);
+    if (!shape.ok) {
+      setError(shape.error ?? t("auth.invalid_mobile_number"));
       return;
     }
 
@@ -225,15 +233,15 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone }: { default
   const inputClass =
     "h-12 rounded-xl border border-neutral-300 bg-white px-4 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100";
   const primaryButton =
-    "flex h-12 items-center justify-center rounded-full bg-blue-700 text-base font-extrabold text-white shadow-lg shadow-blue-700/20 transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50";
+    "flex h-11 items-center justify-center rounded-full bg-blue-700 text-[15px] font-bold text-white shadow-md shadow-blue-700/20 transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50";
 
   return (
     <div className={modal ? "flex flex-col items-center" : "mx-auto flex max-w-sm flex-col items-center px-5 pb-10 pt-6 md:py-10"}>
       {modal ? (
-        <div className="mb-4"><Wordmark height={30} /></div>
+        <div className="mb-3"><Wordmark height={22} /></div>
       ) : (
         <Link href="/" className="mb-5 md:mb-6">
-          <Wordmark height={34} />
+          <Wordmark height={26} />
         </Link>
       )}
 
@@ -268,12 +276,18 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone }: { default
                   <span className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-white text-xl shadow-sm">👋</span>
                   <p className="text-base font-extrabold text-blue-950">{t("auth.no_account_email")}</p>
                   <p className="mt-1 break-all text-xs text-blue-900/70">{t("auth.no_account_hint", { email: noAccountEmail })}</p>
-                  <Link
-                    href={`/register?email=${encodeURIComponent(noAccountEmail)}${redirectTo !== "/" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""}`}
-                    className={`${primaryButton} mt-3`}
-                  >
-                    {t("auth.create_account_for_email")}
-                  </Link>
+                  {onRegister ? (
+                    <button type="button" onClick={() => onRegister({ email: noAccountEmail })} className={`${primaryButton} mt-3 w-full`}>
+                      {t("auth.create_account_for_email")}
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/register?email=${encodeURIComponent(noAccountEmail)}${redirectTo !== "/" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""}`}
+                      className={`${primaryButton} mt-3`}
+                    >
+                      {t("auth.create_account_for_email")}
+                    </Link>
+                  )}
                 </div>
               )}
 
@@ -295,7 +309,7 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone }: { default
                 {t("auth.sign_in_with_code")}
               </button>
 
-              <p className="text-center text-xs text-neutral-500">{t("auth.terms_notice")}</p>
+              <p className="text-center text-[11px] leading-snug text-neutral-400">{t("auth.terms_notice")}</p>
             </form>
           ) : step === "password" ? (
             <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
@@ -405,14 +419,20 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone }: { default
                 </button>
               </p>
               <p className="text-sm text-neutral-600">{t("auth.new_here_mobile_notice")}</p>
-              <Link
-                href={`/register?phone=${encodeURIComponent(phone)}${
-                  redirectTo !== "/" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""
-                }`}
-                className={`${primaryButton} text-center`}
-              >
-                {t("auth.proceed_create_account")}
-              </Link>
+              {onRegister ? (
+                <button type="button" onClick={() => onRegister({ phone })} className={primaryButton}>
+                  {t("auth.proceed_create_account")}
+                </button>
+              ) : (
+                <Link
+                  href={`/register?phone=${encodeURIComponent(phone)}${
+                    redirectTo !== "/" ? `&redirect=${encodeURIComponent(redirectTo)}` : ""
+                  }`}
+                  className={`${primaryButton} text-center`}
+                >
+                  {t("auth.proceed_create_account")}
+                </Link>
+              )}
             </div>
           )
         ) : otpStage === "enter-email" ? (
@@ -488,10 +508,10 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone }: { default
   );
 }
 
-export default function LoginForm({ defaultCountryCode, modal = false, onDone }: { defaultCountryCode: string; modal?: boolean; onDone?: () => void }) {
+export default function LoginForm({ defaultCountryCode, modal = false, onDone, onRegister }: { defaultCountryCode: string; modal?: boolean; onDone?: () => void; onRegister?: (prefill: RegisterPrefill) => void }) {
   return (
     <Suspense>
-      <LoginFormInner defaultCountryCode={defaultCountryCode} modal={modal} onDone={onDone} />
+      <LoginFormInner defaultCountryCode={defaultCountryCode} modal={modal} onDone={onDone} onRegister={onRegister} />
     </Suspense>
   );
 }

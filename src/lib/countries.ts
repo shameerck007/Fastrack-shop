@@ -73,5 +73,25 @@ export function validatePhone(value: string): { ok: boolean; error: string | nul
   if (value.startsWith("+966") && !/^\+9665\d{8}$/.test(value)) {
     return { ok: false, error: "Saudi mobile numbers have 9 digits and start with 5 (e.g. 5X XXX XXXX)." };
   }
+  for (const [dial, re, msg] of MOBILE_RULES) {
+    if (value.startsWith(dial) && !re.test(value)) return { ok: false, error: msg };
+  }
   return { ok: true, error: null };
 }
+
+// Mobile shape per country (E.164, after the calling code). Countries not listed only get the length check above.
+const MOBILE_RULES: [string, RegExp, string][] = [
+  ["+971", /^\+9715\d{8}$/, "UAE mobile numbers have 9 digits and start with 5."],
+  ["+965", /^\+965[569]\d{7}$/, "Kuwaiti mobile numbers have 8 digits and start with 5, 6 or 9."],
+  ["+974", /^\+974[3567]\d{7}$/, "Qatari mobile numbers have 8 digits and start with 3, 5, 6 or 7."],
+  ["+973", /^\+973[36]\d{7}$/, "Bahraini mobile numbers have 8 digits and start with 3 or 6."],
+  ["+968", /^\+968[79]\d{7}$/, "Omani mobile numbers have 8 digits and start with 7 or 9."],
+  ["+20", /^\+201\d{9}$/, "Egyptian mobile numbers have 10 digits and start with 1."],
+  ["+92", /^\+923\d{9}$/, "Pakistani mobile numbers have 10 digits and start with 3."],
+  ["+880", /^\+8801\d{9}$/, "Bangladeshi mobile numbers have 10 digits and start with 1."],
+  ["+94", /^\+947\d{8}$/, "Sri Lankan mobile numbers have 9 digits and start with 7."],
+  ["+977", /^\+9779\d{9}$/, "Nepali mobile numbers have 10 digits and start with 9."],
+  ["+63", /^\+639\d{9}$/, "Philippine mobile numbers have 10 digits and start with 9."],
+  ["+44", /^\+447\d{9}$/, "UK mobile numbers have 10 digits and start with 7."],
+  ["+1", /^\+1[2-9]\d{9}$/, "US and Canadian numbers have 10 digits."],
+];
