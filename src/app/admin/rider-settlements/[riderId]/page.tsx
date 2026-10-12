@@ -6,6 +6,7 @@ import {
   getRiderSettlementOrders,
   getRiderSettlementSummary,
 } from "@/lib/rider-settlements";
+import RiderStatementDialog from "@/components/RiderStatementDialog";
 import RiderEntryForm from "@/components/admin/RiderEntryForm";
 import { checkSaudiIban, formatIban } from "@/lib/iban";
 import { getMoney } from "@/lib/tenant-server";
@@ -73,7 +74,10 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
             </p>
           )}
         </div>
-        {data?.summary && <RiderEntryForm riderId={riderId} balance={balance} payoutMethod={rider.payout_method ?? "cash"} monthlySalary={(rider as { monthly_salary?: number | null }).monthly_salary ?? null} />}
+        <div className="flex flex-wrap items-center gap-2">
+          {data?.summary && <RiderStatementDialog riderId={riderId} />}
+          {data?.summary && <RiderEntryForm riderId={riderId} balance={balance} payoutMethod={rider.payout_method ?? "cash"} monthlySalary={(rider as { monthly_salary?: number | null }).monthly_salary ?? null} />}
+        </div>
       </div>
 
       {!data?.summary ? (

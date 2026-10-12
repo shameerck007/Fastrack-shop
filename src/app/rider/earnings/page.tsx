@@ -1,4 +1,6 @@
 import Link from "@/components/Link";
+import RiderStatementDialog from "@/components/RiderStatementDialog";
+import { createClient } from "@/lib/supabase/server";
 import RiderEarningsChart from "@/components/rider/RiderEarningsChart";
 import { getRiderWallet, formatWhen, earningsByDay } from "@/lib/rider-wallet";
 import { getMoney } from "@/lib/tenant-server";
@@ -46,6 +48,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
   const mode: PeriodMode = view === "monthly" ? "monthly" : "daily";
   const money = await getMoney();
   const wallet = await getRiderWallet();
+  const riderId = (await (await createClient()).auth.getUser()).data.user?.id ?? null;
 
   if (!wallet) {
     return (
@@ -103,6 +106,12 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
           </div>
         </div>
       </div>
+
+      {riderId && (
+        <div className="flex justify-end">
+          <RiderStatementDialog riderId={riderId} label="Download statement" />
+        </div>
+      )}
 
       {/* periods */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
