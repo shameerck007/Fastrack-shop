@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
 import { getLabelData } from "@/lib/orders";
-import { buildLabelPdf } from "@/lib/label-pdf";
+import { buildLabelPdf, LABEL_SIZES, type LabelSize } from "@/lib/label-pdf";
 import { INVOICE_LOGO_DATA_URL } from "@/lib/invoice-logo";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   // getLabelData relies on RLS to scope access (owner, admin, or assigned
@@ -22,12 +22,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const qrPng = new Uint8Array(await QRCode.toBuffer(order.order_number, { type: "png", margin: 1, width: 300 }));
   const logoPng = Uint8Array.from(atob(INVOICE_LOGO_DATA_URL.split(",")[1]), (c) => c.charCodeAt(0));
 
-  const pdfBytes = await buildLabelPdf({ order, qrPng, logoPng });
+  const asked = new URL(request.url).searchParams.get("size");
+  const size = (LABEL_SIZES.find((s) => s.id === asked)?.id ?? "4x6") as LabelSize;
+  const pdfBytes = await buildLabelPdf({ order, qrPng, logoPng, size });
 
   return new NextResponse(pdfBytes as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="label-${order.order_number}.pdf"`,
+      "Content-Disposition": `attachment; filename="label-${order.order_number}-${size}.pdf"`,
     },
   });
 }
