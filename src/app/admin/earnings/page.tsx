@@ -3,8 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentTenant, getMoney } from "@/lib/tenant-server";
 import { pctChange, timeZoneFor } from "@/lib/admin-dashboard";
 import { CountUp, Donut, Gauge, Ring, type NumKind } from "@/components/admin/dashboard/Viz";
-import { CumulativeMargin, MarginWaterfall, SplitBar } from "@/components/admin/dashboard/EarningsViz";
-import { AMBER, BRAND, EMERALD, ROSE, TEAL } from "@/components/admin/dashboard/palette";
+import { CumulativeMargin, MoneyFlow, OrderBullets, SupplierPareto } from "@/components/admin/dashboard/EarningsViz";
+import { AMBER, BRAND, ROSE, TEAL } from "@/components/admin/dashboard/palette";
 
 export const metadata = { title: "Platform earnings" };
 
@@ -121,18 +121,6 @@ function Glassy({ title, hint, children, className = "" }: { title: string; hint
   );
 }
 
-function Insight({ tone, children }: { tone: "good" | "warn" | "info"; children: React.ReactNode }) {
-  const c = tone === "good" ? "bg-emerald-50/80 text-emerald-900 ring-emerald-200" : tone === "warn" ? "bg-amber-50/80 text-amber-900 ring-amber-200" : "bg-sky-50/80 text-sky-900 ring-sky-200";
-  return (
-    <li className={`flex items-start gap-2.5 rounded-2xl px-3.5 py-2.5 text-sm ring-1 ${c}`}>
-      <span aria-hidden className="mt-0.5">
-        {tone === "good" ? "✅" : tone === "warn" ? "⚠️" : "💡"}
-      </span>
-      <span>{children}</span>
-    </li>
-  );
-}
-
 export default async function AdminEarningsPage({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
   const sp = await searchParams;
   const range = RANGES.some((r) => r.id === sp.range) ? (sp.range as string) : "this";
@@ -182,23 +170,10 @@ export default async function AdminEarningsPage({ searchParams }: { searchParams
   const p = prev ? figures(prev) : null;
   const ch = (a: number, b: number | undefined) => pctChange(a, b ?? 0);
   const days = cur.series.map((d) => ({ date: d.date, margin: d.commission + d.delivery_fees - d.discounts - d.rider_cost }));
-  const topSupplier = cur.top_suppliers.find((s) => s.commission > 0);
-  const totalCommission = cur.top_suppliers.reduce((n, s) => n + Math.max(0, s.commission), 0);
   const revenue = cur.commission + f.deliveryNet;
   const costs = cur.fastrack_discounts + cur.rider_cost;
   const mixTotal = cur.own_sales + cur.supplier_sales;
   const bestDay = days.reduce((b, d) => (d.margin > b.margin ? d : b), days[0] ?? { date: to, margin: 0 });
-
-  const insights: { tone: "good" | "warn" | "info"; text: React.ReactNode }[] = [];
-  if (cur.orders === 0) insights.push({ tone: "info", text: "No delivered orders in this period yet, so there is nothing to measure. Try a longer period." });
-  else {
-    insights.push(f.margin >= 0 ? { tone: "good", text: <>Each delivered order leaves FasTrack <b>{money(f.marginPerOrder)}</b> after paying riders and funding discounts.</> } : { tone: "warn", text: <>Each delivered order currently <b>loses {money(Math.abs(f.marginPerOrder))}</b>. Rider pay and discounts are higher than commission and delivery fees.</> });
-    if (cur.rider_cost > 0) insights.push(f.cover >= 100 ? { tone: "good", text: <>Delivery fees cover <b>{Math.round(f.cover)}%</b> of rider pay, so delivery pays for itself.</> } : { tone: "warn", text: <>Delivery fees cover only <b>{Math.round(f.cover)}%</b> of rider pay. FasTrack tops up {money(cur.rider_cost - f.deliveryNet)} to deliver. Consider raising the fee or the free-delivery threshold.</> });
-    if (revenue > 0 && cur.fastrack_discounts / revenue > 0.25) insights.push({ tone: "warn", text: <>FasTrack-funded discounts used up <b>{Math.round((cur.fastrack_discounts / revenue) * 100)}%</b> of the money earned. Check which offers are paid by FasTrack rather than the supplier.</> });
-    if (topSupplier && totalCommission > 0) insights.push({ tone: "info", text: <><b>{topSupplier.label}</b> brings <b>{Math.round((topSupplier.commission / totalCommission) * 100)}%</b> of commission. {topSupplier.commission / totalCommission > 0.5 ? "That is a lot of eggs in one basket." : "Income is spread across suppliers."}</> });
-    if (cur.refunds > 0 && cur.gross_sales > 0) insights.push({ tone: cur.refunds / cur.gross_sales > 0.05 ? "warn" : "info", text: <>Refunds were <b>{(Math.round((cur.refunds / cur.gross_sales) * 1000) / 10).toFixed(1)}%</b> of sales ({money(cur.refunds)}).</> });
-    if (p && p.margin !== 0) insights.push({ tone: f.margin >= p.margin ? "good" : "warn", text: <>Margin is {f.margin >= p.margin ? "up" : "down"} <b>{money(Math.abs(f.margin - p.margin))}</b> against the previous {len} days.</> });
-  }
 
   return (
     <div>
@@ -213,7 +188,7 @@ export default async function AdminEarningsPage({ searchParams }: { searchParams
           <Glassy title="Marketplace margin" hint="Commission and delivery fees, less the discounts FasTrack paid and what riders cost">
             <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <CountUp value={f.margin} kind="money" className={`block break-words font-mono text-4xl font-extrabold tabular-nums sm:text-5xl ${f.margin >= 0 ? "text-emerald-600" : "text-rose-600"}`} />
+                <CountUp value={f.margin} kind="money" className={`block break-words text-4xl font-extrabold tracking-tight tabular-nums sm:text-5xl ${f.margin >= 0 ? "text-emerald-600" : "text-rose-600"}`} />
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <Chip change={ch(f.margin, p?.margin)} />
                   <span className="text-xs text-neutral-600">
@@ -234,15 +209,7 @@ export default async function AdminEarningsPage({ searchParams }: { searchParams
                 ))}
               </div>
             </div>
-            <MarginWaterfall
-              steps={[
-                { label: "Commission", value: cur.commission, kind: "plus" },
-                { label: "Delivery fees", value: f.deliveryNet, kind: "plus" },
-                { label: "FasTrack discounts", value: cur.fastrack_discounts, kind: "minus" },
-                { label: "Rider pay", value: cur.rider_cost, kind: "minus" },
-                { label: "Margin", value: f.margin, kind: "total" },
-              ]}
-            />
+            <MoneyFlow commission={cur.commission} deliveryFees={f.deliveryNet} discounts={cur.fastrack_discounts} riderPay={cur.rider_cost} />
           </Glassy>
 
           {/* tiles */}
@@ -317,78 +284,23 @@ export default async function AdminEarningsPage({ searchParams }: { searchParams
 
           {/* unit economics + suppliers */}
           <div className="grid gap-4 lg:grid-cols-5">
-            <Glassy title="Unit economics" hint="The average delivered order" className="lg:col-span-2">
-              <dl className="grid gap-2 text-sm">
-                {[
-                  { k: "Average basket", v: f.basket, pv: p?.basket },
-                  { k: "Commission", v: f.commissionPerOrder, pv: p?.commissionPerOrder },
-                  { k: "Delivery fee kept", v: f.deliveryPerOrder, pv: p?.deliveryPerOrder },
-                  { k: "Discounts paid", v: -f.discountPerOrder, pv: p ? -p.discountPerOrder : undefined },
-                  { k: "Rider cost", v: -f.riderPerOrder, pv: p ? -p.riderPerOrder : undefined },
-                ].map((r) => (
-                  <div key={r.k} className="flex items-center justify-between gap-3 rounded-xl bg-white/55 px-3 py-2 ring-1 ring-white/80">
-                    <dt className="text-neutral-600">{r.k}</dt>
-                    <dd className="flex items-center gap-2 font-mono font-bold tabular-nums text-neutral-900">
-                      {money(r.v)}
-                      {r.pv !== undefined && r.pv !== 0 && <Chip change={pctChange(Math.abs(r.v), Math.abs(r.pv))} goodWhenDown={r.v < 0} />}
-                    </dd>
-                  </div>
-                ))}
-                <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-700 px-3 py-2.5 text-white shadow">
-                  <dt className="font-bold">Margin per order</dt>
-                  <dd className="font-mono font-extrabold tabular-nums">{money(f.marginPerOrder)}</dd>
-                </div>
-              </dl>
-              {cur.delivery_fees > 0 && cur.rider_cost > 0 && (
-                <div className="mt-4">
-                  <p className="mb-1.5 text-xs font-semibold text-neutral-600">Of every delivery fee, the rider takes</p>
-                  <SplitBar left={Math.max(0, cur.delivery_fees - cur.rider_cost)} right={Math.min(cur.rider_cost, cur.delivery_fees)} leftLabel="FasTrack keeps" rightLabel="Rider cost" leftColor={EMERALD} rightColor={ROSE} />
-                </div>
-              )}
+            <Glassy title="One order, line by line" hint="The average delivered order. Right of the line is money earned, left is money spent." className="lg:col-span-2">
+              <OrderBullets
+                rows={[
+                  { label: "Commission", hint: "from the supplier", value: f.commissionPerOrder, prev: p?.commissionPerOrder },
+                  { label: "Delivery fee kept", hint: "from the customer", value: f.deliveryPerOrder, prev: p?.deliveryPerOrder },
+                  { label: "Rider pay", hint: "per delivery", value: -f.riderPerOrder, prev: p ? -p.riderPerOrder : undefined },
+                  { label: "Discounts paid", hint: "funded by FasTrack", value: -f.discountPerOrder, prev: p ? -p.discountPerOrder : undefined },
+                ]}
+                result={f.marginPerOrder}
+                resultPrev={p?.marginPerOrder}
+              />
+              <p className="mt-3 text-[11px] text-neutral-500">Average basket {money(f.basket)}.</p>
             </Glassy>
-            <Glassy title="Commission by supplier" hint="Who earns FasTrack the most, after refunds" className="lg:col-span-3">
-              {cur.top_suppliers.filter((s) => s.commission > 0).length === 0 ? (
-                <p className="py-8 text-center text-sm text-neutral-500">No commission earned in this period.</p>
-              ) : (
-                <ol className="flex flex-col gap-3.5">
-                  {cur.top_suppliers
-                    .filter((s) => s.commission > 0)
-                    .map((s, i) => {
-                      const max = Math.max(...cur.top_suppliers.map((x) => x.commission), 1);
-                      const rate = s.sales > 0 ? (s.commission / s.sales) * 100 : 0;
-                      return (
-                        <li key={s.label}>
-                          <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
-                            <span className="flex min-w-0 items-center gap-2 font-semibold text-neutral-800">
-                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-700 text-[10px] font-extrabold text-white">{i + 1}</span>
-                              <span className="truncate">{s.label}</span>
-                            </span>
-                            <span className="shrink-0 font-mono font-bold tabular-nums text-neutral-900">{money(s.commission)}</span>
-                          </div>
-                          <div className="h-2.5 overflow-hidden rounded-full bg-white/70 ring-1 ring-white">
-                            <div className="h-full rounded-full" style={{ width: `${Math.max(4, (s.commission / max) * 100)}%`, background: "linear-gradient(90deg,#38bdf8,#1d4ed8)" }} />
-                          </div>
-                          <p className="mt-0.5 text-[11px] text-neutral-500">
-                            {money(s.sales)} sold · {rate.toFixed(1)}% commission · {totalCommission > 0 ? Math.round((s.commission / totalCommission) * 100) : 0}% of all commission
-                          </p>
-                        </li>
-                      );
-                    })}
-                </ol>
-              )}
+            <Glassy title="Commission by supplier" hint="Biggest first. The orange line is the running share of all commission, so you can see how much depends on a few suppliers." className="lg:col-span-3">
+              <SupplierPareto items={cur.top_suppliers} />
             </Glassy>
           </div>
-
-          {/* insights */}
-          <Glassy title="What this means" hint="Plain-language reading of the numbers above">
-            <ul className="grid gap-2 md:grid-cols-2">
-              {insights.map((i, n) => (
-                <Insight key={n} tone={i.tone}>
-                  {i.text}
-                </Insight>
-              ))}
-            </ul>
-          </Glassy>
 
           <p className="px-1 text-[11px] leading-relaxed text-neutral-500">
             Counted on delivered orders in this market, by the day they were delivered. Left out: the cost of goods FasTrack sells from its own stock (purchase prices are not recorded), payment fees, and tax owed on FasTrack&apos;s own income. Tax inside sales: {money(cur.tax_inside)}. Refunds: {money(cur.refunds)}.
