@@ -10,6 +10,9 @@ import OrderTrackingHero from "@/components/OrderTrackingHero";
 import OrderChat from "@/components/OrderChat";
 import BuyItAgainButton from "@/components/BuyItAgainButton";
 import OrderRatingForm from "@/components/OrderRatingForm";
+import ReturnItemDialog from "@/components/ReturnItemDialog";
+import ReturnCard from "@/components/ReturnCard";
+import type { ReturnEligibility, ReturnRow } from "@/lib/returns";
 import { localizedName } from "@/lib/i18n/localized";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
@@ -74,6 +77,23 @@ export default async function OrderDetailPage({
   // Keeta-style tracking screen while the order is in flight (it has its own rider
   // card and map, so the plain ones below are skipped).
   const showTracking = activeOrder && !!(dest || shop);
+
+  // Item returns (migration 0098): which items can still be returned, and the returns already raised. Left blank until the migration is applied.
+  const returnRows: ReturnRow[] = (((await (supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (c: string, v: string) => { order: (c: string, o: object) => Promise<{ data: unknown }> } } } }).from("order_returns").select("*").eq("order_id", order.id).order("created_at", { ascending: false })).data ?? []) as ReturnRow[]);
+  const eligibility = new Map<string, ReturnEligibility>();
+  if (order.status === "delivered") {
+    const rpc = async <T,>(fn: string, args: object): Promise<T | null> => ((await supabase.rpc(fn as never, args as never)).data ?? null) as T | null;
+    const deliveredAt = await rpc<string>("order_delivered_at", { p_order: order.id });
+    await Promise.all(
+      order.order_items.map(async (item) => {
+        const [windowDays, left] = await Promise.all([rpc<number>("return_window_for_item", { p_item: item.id }), rpc<number>("returnable_qty", { p_item: item.id })]);
+        if (windowDays === null || left === null) return;
+        const closesAt = deliveredAt ? new Date(new Date(deliveredAt).getTime() + Number(windowDays) * 86400000).toISOString() : null;
+        eligibility.set(item.id, { left: Number(left), windowDays: Number(windowDays), closesAt });
+      }),
+    );
+  }
+  const returnCutoff = new Date().getTime();
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
@@ -256,6 +276,18 @@ export default async function OrderDetailPage({
                     </span>
                   )}
                 </p>
+                {(() => {
+                  const e = eligibility.get(item.id);
+                  if (!e) return null;
+                  if (e.windowDays <= 0) return <p className="mt-1 text-xs text-neutral-400">Not returnable</p>;
+                  if (e.closesAt && new Date(e.closesAt).getTime() < returnCutoff) return <p className="mt-1 text-xs text-neutral-400">Return period ended</p>;
+                  if (e.left <= 0) return null;
+                  return (
+                    <div className="mt-1.5">
+                      <ReturnItemDialog orderId={order.id} itemId={item.id} name={name} variant={item.variant_label} maxQty={Math.floor(e.left)} closesAt={e.closesAt} />
+                    </div>
+                  );
+                })()}
               </div>
               <span className="font-medium">{orderMoney(item.line_total)}</span>
             </div>
@@ -267,6 +299,17 @@ export default async function OrderDetailPage({
           </div>
         )}
       </div>
+
+      {returnRows.length > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-2 text-lg font-semibold">Returns</h2>
+          <div className="flex flex-col gap-3">
+            {returnRows.map((ret) => (
+              <ReturnCard key={ret.id} orderId={order.id} ret={ret} itemName={order.order_items.find((i) => i.id === ret.order_item_id)?.product_name ?? "Item"} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

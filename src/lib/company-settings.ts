@@ -43,6 +43,9 @@ export interface CompanySettings {
   /** Scanning rules (migration 0096). */
   require_pickup_scan?: boolean | null;
   require_pack_scan?: boolean | null;
+  /** Item returns (migration 0098). */
+  default_return_window_days?: number | null;
+  return_auto_approve?: boolean | null;
 }
 
 const FALLBACK: CompanySettings = {

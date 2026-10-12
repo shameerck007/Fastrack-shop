@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCategory, updateCategory } from "@/lib/actions/admin-categories";
+import { setCategoryReturnWindow } from "@/lib/actions/admin-return-settings";
 import FormDialog, { DialogSection } from "@/components/ui/FormDialog";
 import ImageUploader from "@/components/ImageUploader";
 import ArabicInput from "@/components/ui/ArabicInput";
@@ -34,6 +35,10 @@ export default function CategoryDialog({
   const [slug, setSlug] = useState(existing?.slug ?? "");
   const [icon, setIcon] = useState(existing?.icon ?? "");
   const [sortOrder, setSortOrder] = useState(String(existing?.sort_order ?? 0));
+  const [returnDays, setReturnDays] = useState(() => {
+    const v = (existing as unknown as { return_window_days?: number | null } | undefined)?.return_window_days;
+    return v == null ? "" : String(v);
+  });
   const [parentId, setParentId] = useState(existing?.parent_id ?? defaultParentId ?? "");
   const parents = parentOptions.filter((c) => c.id !== existing?.id);
   const parent = parents.find((p) => p.id === parentId);
@@ -41,7 +46,12 @@ export default function CategoryDialog({
   async function save(): Promise<string | void> {
     if (!name.trim()) return "Enter the category name.";
     const body = { name: name.trim(), nameAr: nameAr.trim() || undefined, icon: icon.trim() || undefined, imageUrl: imageUrl || undefined, sortOrder: Number(sortOrder) || 0, parentId: parentId || null };
-    if (existing) await unwrapAction(updateCategory)(existing.id, { ...body, slug });
+    if (existing) {
+      await unwrapAction(updateCategory)(existing.id, { ...body, slug });
+      const before = (existing as unknown as { return_window_days?: number | null }).return_window_days;
+      const next = returnDays.trim() === "" ? null : Number(returnDays);
+      if ((before ?? null) !== next) await unwrapAction(setCategoryReturnWindow)(existing.id, next);
+    }
     else await unwrapAction(createCategory)({ ...body, slug: slug.trim() || undefined });
     router.refresh();
   }
@@ -91,6 +101,14 @@ export default function CategoryDialog({
           <input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder={existing ? undefined : "auto"} className={inputClass} />
         </Field>
       </DialogSection>
+
+      {existing && (
+        <DialogSection title="Returns" hint="How long customers have to return items in this category.">
+          <Field label="Return period (days)" hint="Empty follows the main category or the shop default. 0 means these items cannot be returned (for example fresh food).">
+            <input type="number" min={0} max={90} step={1} value={returnDays} onChange={(e) => setReturnDays(e.target.value)} placeholder="Default" className={`${inputClass} sm:w-40`} />
+          </Field>
+        </DialogSection>
+      )}
     </FormDialog>
   );
 }
