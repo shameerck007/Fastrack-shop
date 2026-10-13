@@ -44,7 +44,7 @@ export interface SyncResult {
 
 export const MAX_ROWS_PER_CALL = 100;
 
-const PRODUCT_SELECT = "id, sku, master_id, product_variants(id, label, is_default, master_variant_id, price, compare_at_price, compare_at_until, inventory(id, stock, warehouse_id))";
+const PRODUCT_SELECT = "id, sku, master_id, name, name_ar, brand, description, image_url, tax_rate, is_active, category_id, product_variants(id, label, unit, quantity, is_default, master_variant_id, price, compare_at_price, compare_at_until, inventory(id, stock, warehouse_id))";
 
 // products.sku is unique across the whole marketplace, so a supplier's own sku is stored with a short store prefix.
 // Products added by hand in the portal keep their plain sku, so lookups try both.
@@ -290,16 +290,17 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
       } else if (!product.master_id) {
         // Shared catalog products keep their shared details; only price and stock are the supplier's to change.
         const patch: Record<string, unknown> = {};
-        if (c.name) patch.name = c.name;
-        if (c.nameAr) patch.name_ar = c.nameAr;
-        if (c.brand) patch.brand = c.brand;
-        if (c.description) patch.description = c.description;
-        if (c.imageUrl) patch.image_url = c.imageUrl;
-        if (c.taxRate !== null) patch.tax_rate = c.taxRate;
+        // Only what actually differs is written, so uploading an unchanged sheet changes nothing.
+        if (c.name && c.name !== product.name) patch.name = c.name;
+        if (c.nameAr && c.nameAr !== product.name_ar) patch.name_ar = c.nameAr;
+        if (c.brand && c.brand !== product.brand) patch.brand = c.brand;
+        if (c.description && c.description !== product.description) patch.description = c.description;
+        if (c.imageUrl && c.imageUrl !== product.image_url) patch.image_url = c.imageUrl;
+        if (c.taxRate !== null && Number(product.tax_rate) !== c.taxRate) patch.tax_rate = c.taxRate;
         if (c.category) {
           const categoryId = catByKey.get(c.category.toLowerCase());
           if (!categoryId) throw new Error(`category "${c.category}" was not found`);
-          patch.category_id = categoryId;
+          if (categoryId !== product.category_id) patch.category_id = categoryId;
         }
         if (Object.keys(patch).length) {
           const { error } = await db.from("products").update(patch).eq("id", product.id).eq("store_id", store.id);
@@ -307,7 +308,7 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
           touched = true;
         }
       }
-      if (!created && c.active !== null) {
+      if (!created && c.active !== null && c.active !== product.is_active) {
         const { error } = await db.from("products").update({ is_active: c.active }).eq("id", product.id).eq("store_id", store.id);
         if (error) throw error;
         touched = true;
@@ -356,12 +357,14 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
         // The old price must stay above the price actually in force.
         const effective = c.price ?? Number(variant.price);
         if (c.compareAt <= effective) throw new Error("compare_at_price must be higher than the price");
-        vPatch.compare_at_price = c.compareAt;
-        vPatch.compare_at_until = c.compareAtUntil;
+        if (Number(variant.compare_at_price) !== c.compareAt || String(variant.compare_at_until ?? "").slice(0, 10) !== String(c.compareAtUntil ?? "").slice(0, 10)) {
+          vPatch.compare_at_price = c.compareAt;
+          vPatch.compare_at_until = c.compareAtUntil;
+        }
       }
       // A catalog product's pack size belongs to the catalog.
-      if (!product.master_id && c.unit) vPatch.unit = c.unit;
-      if (!product.master_id && c.quantity !== null) vPatch.quantity = c.quantity;
+      if (!product.master_id && c.unit && c.unit !== variant.unit) vPatch.unit = c.unit;
+      if (!product.master_id && c.quantity !== null && Number(variant.quantity) !== c.quantity) vPatch.quantity = c.quantity;
       if (Object.keys(vPatch).length) {
         const { error } = await db.from("product_variants").update(vPatch).eq("id", variant.id);
         if (error) throw error;

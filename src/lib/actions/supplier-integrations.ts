@@ -5,6 +5,7 @@ import { UserError, failure } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 import { newApiKey, sha256Hex, KEY_PREFIX } from "@/lib/supplier-api-auth";
 import { validateWebhookUrl, newWebhookSecret, sendTestMessage } from "@/lib/webhooks";
+import { searchMasterCatalog, getStoreMasterIds } from "@/lib/master-catalog";
 import { syncProducts, MAX_ROWS_PER_CALL, type SyncResult, type SyncRow } from "@/lib/supplier-sync";
 
 async function myApprovedStore() {
@@ -112,6 +113,112 @@ export async function sendTestWebhook(): Promise<{ ok: boolean; status: number; 
     const check = validateWebhookUrl(w.url);
     if (!check.ok) throw new UserError(check.error);
     return await sendTestMessage(check.url, w.secret);
+  } catch (e) {
+    return failure(e) as never;
+  }
+}
+
+export interface MyProductRow {
+  sku: string | null;
+  barcode: string | null;
+  name: string;
+  name_ar: string | null;
+  brand: string | null;
+  category: string | null;
+  description: string | null;
+  image_url: string | null;
+  tax_rate: number | null;
+  active: string;
+  variant_label: string;
+  unit: string;
+  quantity: number;
+  price: number;
+  compare_at_price: number | null;
+  compare_at_until: string | null;
+  stock: number;
+}
+
+/** The supplier's own products and packs, one row per pack, in the upload format. Products with neither a sku nor a barcode cannot be matched on upload, so they are counted, not listed. */
+export async function exportMyProducts(): Promise<{ rows: MyProductRow[]; skipped: number; truncated: boolean }> {
+  try {
+    const { supabase, store } = await myApprovedStore();
+    const { data, error } = await supabase
+      .from("products")
+      .select("sku, barcode, master_id, name, name_ar, brand, description, image_url, tax_rate, is_active, category:categories(slug), product_variants(label, unit, quantity, price, compare_at_price, compare_at_until, inventory(stock, warehouse_id))")
+      .eq("store_id", store.id)
+      .order("name")
+      .limit(3000);
+    if (error) throw error;
+    const rows: MyProductRow[] = [];
+    let skipped = 0;
+    const prefix = store.id.replace(/-/g, "").slice(0, 6) + "-";
+    for (const p of (data ?? []) as unknown as {
+      sku: string | null; barcode: string | null; name: string; name_ar: string | null; brand: string | null; description: string | null; image_url: string | null; tax_rate: number | null; is_active: boolean;
+      category: { slug: string } | null;
+      product_variants: { label: string; unit: string; quantity: number; price: number; compare_at_price: number | null; compare_at_until: string | null; inventory: { stock: number; warehouse_id: string }[] }[];
+    }[]) {
+      const sku = p.sku ? (p.sku.startsWith(prefix) ? p.sku.slice(prefix.length) : p.sku) : null;
+      if (!sku && !p.barcode) {
+        skipped++;
+        continue;
+      }
+      for (const v of p.product_variants ?? []) {
+        rows.push({
+          sku,
+          barcode: p.barcode,
+          name: p.name,
+          name_ar: p.name_ar,
+          brand: p.brand,
+          category: p.category?.slug ?? null,
+          description: p.description,
+          image_url: p.image_url,
+          tax_rate: p.tax_rate == null ? null : Number(p.tax_rate),
+          active: p.is_active ? "yes" : "no",
+          variant_label: v.label,
+          unit: v.unit,
+          quantity: Number(v.quantity),
+          price: Number(v.price),
+          compare_at_price: v.compare_at_price == null ? null : Number(v.compare_at_price),
+          compare_at_until: v.compare_at_until ? v.compare_at_until.slice(0, 10) : null,
+          stock: Number((v.inventory ?? []).find((x) => x.warehouse_id === store.warehouse_id)?.stock ?? 0),
+        });
+      }
+    }
+    return { rows, skipped, truncated: (data ?? []).length >= 3000 };
+  } catch (e) {
+    return failure(e) as never;
+  }
+}
+
+export interface CatalogPick {
+  id: string;
+  name: string;
+  brand: string | null;
+  imageUrl: string | null;
+  categoryName: string | null;
+  sold: boolean;
+  packs: { label: string; unit: string; quantity: number; barcode: string | null }[];
+}
+
+/** One page of catalog search results for the "start from the catalog" panel. */
+export async function findCatalogForTemplate(q: string, categoryId: string, page: number): Promise<{ items: CatalogPick[]; total: number }> {
+  try {
+    const { store } = await myApprovedStore();
+    const res = await searchMasterCatalog({ status: "approved", q: q.trim() || undefined, categoryId: categoryId || undefined, page: Math.max(1, page), pageSize: 30 });
+    if (!res || res.error) throw new UserError("The catalog is not available right now.");
+    const sold = await getStoreMasterIds(store.id);
+    return {
+      total: res.total,
+      items: res.items.map((m) => ({
+        id: m.id,
+        name: m.name,
+        brand: m.brand,
+        imageUrl: m.imageUrl,
+        categoryName: m.categoryName,
+        sold: sold.has(m.id),
+        packs: m.variants.map((v) => ({ label: v.label, unit: v.unit, quantity: v.quantity, barcode: v.barcode ?? m.barcode })),
+      })),
+    };
   } catch (e) {
     return failure(e) as never;
   }

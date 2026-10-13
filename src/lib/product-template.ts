@@ -21,37 +21,52 @@ export const PRODUCT_COLUMNS: { key: string; required: string; what: string; exa
   { key: "stock", required: "New packs", what: "Units in stock, 0 or more.", example: "120", width: 10 },
 ];
 
-/** The downloadable Excel template: a Products sheet to fill in, and a Guide sheet that explains every column. */
-export function buildProductTemplate(): Uint8Array {
+const GUIDE_ROWS = (): (string | number | null)[][] => [
+  ["Column", "Needed", "What to enter"],
+  ...PRODUCT_COLUMNS.map((c) => [c.key, c.required, c.what] as (string | number | null)[]),
+  [null, null, null],
+  ["How it works", null, "One row per pack size. Rows with the same sku are the packs of one product. A sku or barcode FasTrack already has is updated; a new one is created."],
+  [null, null, "Delete the two EXAMPLE rows (rows with a sku that starts with EXAMPLE are skipped anyway). Keep the first row as it is."],
+  [null, null, "Blank cells are left as they are: to change only the stock of a product, fill in sku or barcode, variant_label and stock."],
+];
+
+/** A workbook in the upload format: a Products sheet (header, then the given rows) and a Guide sheet. */
+export function buildProductWorkbook(dataRows: (string | number | null)[][], opts: { examples?: boolean } = {}): Uint8Array {
   const keys = PRODUCT_COLUMNS.map((c) => c.key);
-  const example1 = PRODUCT_COLUMNS.map((c) => (/^\d+(\.\d+)?$/.test(c.example) ? Number(c.example) : c.example));
-  const example2 = keys.map((k) => ({ sku: "EXAMPLE-RICE", variant_label: "1 kg", unit: "kg", quantity: 1, price: 10, stock: 300 })[k as "sku"] ?? "");
+  const examples: (string | number | null)[][] = opts.examples
+    ? [
+        PRODUCT_COLUMNS.map((c) => (/^\d+(\.\d+)?$/.test(c.example) ? Number(c.example) : c.example)),
+        keys.map((k) => ({ sku: "EXAMPLE-RICE", variant_label: "1 kg", unit: "kg", quantity: 1, price: 10, stock: 300 })[k as "sku"] ?? ""),
+      ]
+    : [];
   return buildXlsx([
-    { name: "Products", rows: [keys, example1, example2], widths: PRODUCT_COLUMNS.map((c) => c.width), exampleRows: 2 },
-    {
-      name: "Guide",
-      rows: [
-        ["Column", "Needed", "What to enter"],
-        ...PRODUCT_COLUMNS.map((c) => [c.key, c.required, c.what] as (string | number | null)[]),
-        [null, null, null],
-        ["How it works", null, "One row per pack size. Rows with the same sku are the packs of one product. A sku FasTrack already has is updated; a new sku is created."],
-        [null, null, "Delete the two EXAMPLE rows (rows with a sku that starts with EXAMPLE are skipped anyway). Keep the first row as it is."],
-        [null, null, "Blank cells are left as they are: to change only the stock of a product, fill in sku, variant_label and stock."],
-      ],
-      widths: [20, 16, 90],
-      wrap: true,
-    },
+    { name: "Products", rows: [keys, ...examples, ...dataRows], widths: PRODUCT_COLUMNS.map((c) => c.width), exampleRows: examples.length },
+    { name: "Guide", rows: GUIDE_ROWS(), widths: [20, 16, 90], wrap: true },
   ]);
 }
 
-export function downloadProductTemplate() {
-  const blob = new Blob([buildProductTemplate() as unknown as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+/** The blank template: header and two example rows. */
+export function buildProductTemplate(): Uint8Array {
+  return buildProductWorkbook([], { examples: true });
+}
+
+export function downloadXlsx(bytes: Uint8Array, filename: string) {
+  const blob = new Blob([bytes as unknown as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "fastrack-products-template.xlsx";
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+export function downloadProductTemplate() {
+  downloadXlsx(buildProductTemplate(), "fastrack-products-template.xlsx");
+}
+
+/** A row of the Products sheet from a keyed object. */
+export function sheetRow(o: Record<string, string | number | null | undefined>): (string | number | null)[] {
+  return PRODUCT_COLUMNS.map((c) => o[c.key] ?? "");
 }
 
 export interface ParsedSheet {

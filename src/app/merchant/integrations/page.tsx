@@ -4,6 +4,7 @@ import ApiKeysCard, { type KeyRow } from "@/components/merchant/ApiKeysCard";
 import ProductImport from "@/components/merchant/ProductImport";
 import WebhookCard, { type WebhookEventRow, type WebhookSettings } from "@/components/merchant/WebhookCard";
 import IntegrationsTabs from "@/components/merchant/IntegrationsTabs";
+import ExcelStarters, { type CategoryOption } from "@/components/merchant/ExcelStarters";
 import { PRODUCT_COLUMNS } from "@/lib/product-template";
 
 export const metadata = { title: "Import & API" };
@@ -80,6 +81,7 @@ export default async function IntegrationsPage() {
   const { data: evs } = await supabase.from("supplier_webhook_events" as never).select("id, event, status, attempts, last_status, last_error, created_at, orders(order_number)").order("created_at", { ascending: false }).limit(15);
   const events = ((evs ?? []) as unknown as (Omit<WebhookEventRow, "order_number"> & { orders: { order_number: string } | null })[]).map((e) => ({ ...e, order_number: e.orders?.order_number ?? null }));
   const keys = (keyRows ?? []) as unknown as KeyRow[];
+  const { data: cats } = await supabase.from("categories").select("id, name, parent_id").order("sort_order");
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "shop.fastrack.cloud";
   const base = `${host.startsWith("localhost") ? "http" : "https"}://${host}`;
@@ -169,7 +171,13 @@ export default async function IntegrationsPage() {
 
       <IntegrationsTabs
         tabs={[
-          { id: "excel", label: "Excel upload", icon: "📊", hint: "Many products at once", content: <ProductImport /> },
+          { id: "excel", label: "Excel upload", icon: "📊", hint: "Many products at once", content: (
+              <div className="flex flex-col gap-4">
+                <ExcelStarters categories={(cats ?? []) as CategoryOption[]} />
+                <ProductImport />
+              </div>
+            ),
+          },
           { id: "api", label: "API keys", icon: "🔑", hint: "Connect your system", content: <ApiKeysCard keys={keys} /> },
           { id: "webhook", label: "Webhook", icon: "🔔", hint: "Orders sent to you", content: <WebhookCard webhook={(wh as WebhookSettings | null) ?? null} events={events} /> },
           { id: "guide", label: "Developer guide", icon: "📘", hint: "Endpoints and examples", content: guide },

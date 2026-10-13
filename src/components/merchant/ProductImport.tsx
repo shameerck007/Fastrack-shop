@@ -68,7 +68,7 @@ export default function ProductImport() {
       <p className="mt-1 text-sm text-neutral-500">One row per pack size. A sku FasTrack already has is updated; a new sku is created.</p>
 
       <ol className="mt-5 flex flex-col gap-5">
-        <Step n={1} title="Download the Excel template">
+        <Step n={1} title="Get an Excel sheet (blank, or from the options above)">
           <button onClick={downloadProductTemplate} className="inline-flex h-11 items-center gap-2 rounded-full border border-neutral-300 px-5 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-50">
             <span aria-hidden>📥</span> Download template (.xlsx)
           </button>
