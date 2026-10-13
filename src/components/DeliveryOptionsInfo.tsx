@@ -9,6 +9,7 @@ import { useMoney } from "@/components/MoneyProvider";
 import { formatEta } from "@/lib/eta";
 import { marketUi } from "@/lib/market-ui";
 import { useAllStores } from "@/components/StoreDirectoryProvider";
+import MapPinIcon from "@/components/MapPinIcon";
 
 
 function Row({ icon, title, detail, fee, ok }: { icon: string; title: string; detail?: string; fee?: string; ok: boolean }) {
@@ -71,7 +72,7 @@ export default function DeliveryOptionsInfo({ storeId }: { storeId: string | nul
 
   if (status.state === "loading") return null;
   if (status.state === "no_location" || !location) {
-    return <p className="rounded-2xl bg-brand-50 px-3 py-2.5 text-xs font-medium text-brand-800">📍 {t("delivery_info.set_location")}</p>;
+    return <p className="rounded-2xl bg-brand-50 px-3 py-2.5 text-xs font-medium text-brand-800"><MapPinIcon /> {t("delivery_info.set_location")}</p>;
   }
   if (status.state === "outside") return null;
   const range = marketUi(market.countryCode).deliveryBadges ? etaForStore(storeId) : null;
@@ -95,7 +96,7 @@ export function CartDeliveryOptions({ storeIds }: { storeIds: (string | null)[] 
 
   if (statuses.some((st) => st.state === "loading")) return null;
   if (!location || statuses.some((st) => st.state === "no_location")) {
-    return <p className="rounded-2xl bg-brand-50 px-3 py-2.5 text-xs font-medium text-brand-800">📍 {t("delivery_info.set_location")}</p>;
+    return <p className="rounded-2xl bg-brand-50 px-3 py-2.5 text-xs font-medium text-brand-800"><MapPinIcon /> {t("delivery_info.set_location")}</p>;
   }
   const ok = statuses.filter((st): st is Extract<typeof st, { state: "ok" }> => st.state === "ok");
   if (ok.length === 0) return null;

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { acceptExpressOffer, declineExpressOffer } from "@/lib/actions/rider";
 import { useMoney } from "@/components/MoneyProvider";
 import type { LiveOffer } from "@/lib/rider";
+import MapPinIcon from "@/components/MapPinIcon";
 
 // The quick-delivery offer: one order, one countdown. Accept to take it; Decline (or letting the timer run out)
 // passes it to the next nearest rider straight away.
@@ -78,7 +79,7 @@ export default function ExpressOfferCard({ offer, salaryOnly = false }: { offer:
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-lg font-extrabold text-neutral-900">#{offer.orderNumber}</p>
-            {offer.shopName && <p className="mt-1 text-sm font-semibold text-neutral-800">📍 {offer.shopName}</p>}
+            {offer.shopName && <p className="mt-1 text-sm font-semibold text-neutral-800"><MapPinIcon /> {offer.shopName}</p>}
             {offer.shopAddress && <p className="truncate text-xs text-neutral-500">{offer.shopAddress}</p>}
             <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold">
               {offer.distanceKm != null && <span className="rounded-full bg-sky-50 px-2.5 py-1 text-sky-700">🧭 {offer.distanceKm.toFixed(1)} km to pickup</span>}

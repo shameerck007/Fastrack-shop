@@ -5,6 +5,7 @@ import DeliverableProductGrid from "@/components/DeliverableProductGrid";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import type { ProductWithVariants } from "@/types/database";
 import type { ProductRating } from "@/lib/reviews";
+import MapPinIcon from "@/components/MapPinIcon";
 
 // For a page whose whole purpose is a product list (category, search,
 // store), an empty result gets an explanatory message either way — unlike
@@ -29,7 +30,7 @@ export default function DeliverableProductList({
   const anyVisible = products.some((p) => statusForStore(p.store_id).state !== "outside");
   if (!anyVisible) {
     return (
-      <EmptyState icon="📍" title="Nothing to deliver to you yet" hint="These items can't be delivered to your current location. Try changing your delivery address." />
+      <EmptyState icon={<MapPinIcon />} title="Nothing to deliver to you yet" hint="These items can't be delivered to your current location. Try changing your delivery address." />
     );
   }
 

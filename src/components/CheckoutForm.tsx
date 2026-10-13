@@ -22,6 +22,7 @@ import PaymentOptions, { type PayChoice } from "@/components/PaymentOptions";
 import { hasErrors, validateCard, cvcProblem, type CardInput } from "@/lib/card";
 import { applePayAvailable, payWithApplePay, submitCard, type PaymentStart } from "@/lib/moyasar-browser";
 import { noteProviderPayment, payWithSavedCard, startOnlinePayment, type SavedCard } from "@/lib/actions/payments";
+import MapPinIcon from "@/components/MapPinIcon";
 
 const DELIVERY_OPTION_DEFS: { value: DeliveryType; labelKey: string; hintKey: string; feeKey: "express" | "standard" }[] = [
   { value: "express", labelKey: "checkout.express", hintKey: "checkout.minutes_15_30", feeKey: "express" },
@@ -288,7 +289,7 @@ export default function CheckoutForm({
 
             {selectedAddress && !showAddresses && (
               <div className="flex items-start gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-xl">📍</span>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-xl"><MapPinIcon /></span>
                 <div className="min-w-0 flex-1 text-sm">
                   <p className="flex items-center gap-2 font-bold text-neutral-900">
                     {labelText(selectedAddress.label)}

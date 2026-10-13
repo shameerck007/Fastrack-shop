@@ -17,14 +17,15 @@ import { useLocale } from "@/components/LocaleProvider";
 import { reverseAreaName } from "@/lib/map-config";
 import type { Address, AddressLabel } from "@/types/database";
 import Select from "@/components/ui/Select";
+import MapPinIcon from "@/components/MapPinIcon";
 
 const field =
   "min-h-[2.75rem] w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
-const LABELS: { id: AddressLabel; icon: string }[] = [
+const LABELS: { id: AddressLabel; icon: React.ReactNode }[] = [
   { id: "home", icon: "🏠" },
   { id: "office", icon: "🏢" },
-  { id: "other", icon: "📍" },
+  { id: "other", icon: <MapPinIcon /> },
 ];
 
 function labelText(l: AddressLabel): string {
@@ -283,7 +284,7 @@ export default function AddressForm({
       <div className="relative z-[1000] rounded-t-3xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-10px_30px_rgba(0,0,0,0.12)]">
         <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">Delivery location</p>
         <div className="mt-1 flex items-start gap-3">
-          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-base">📍</span>
+          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-base"><MapPinIcon /></span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-base font-bold text-neutral-900">{pinLabel ?? "Finding the place…"}</p>
             {deliverable === true && <p className="text-sm font-medium text-emerald-600">{t("common.we_deliver_here")}</p>}
@@ -313,7 +314,7 @@ export default function AddressForm({
 
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 overflow-y-auto p-4 pb-28">
         <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-lg">📍</span>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-lg"><MapPinIcon /></span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-neutral-900">{pinLabel ?? (addressLine || "Pinned location")}</p>
             {deliverable === true && <p className="text-xs font-medium text-emerald-600">{t("common.we_deliver_here")}</p>}

@@ -11,6 +11,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import { localizedField } from "@/lib/i18n/localized";
 import { useVariantSelection } from "@/components/ProductVariantProvider";
 import type { ProductVariant } from "@/types/database";
+import MapPinIcon from "@/components/MapPinIcon";
 
 export default function AddToCartForm({
   variants,
@@ -100,7 +101,7 @@ export default function AddToCartForm({
           onClick={openPicker}
           className="flex w-full items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2.5 text-start text-sm font-medium text-brand-800 transition hover:bg-brand-100"
         >
-          <span aria-hidden>📍</span>
+          <MapPinIcon />
           <span className="flex-1">{t("product.choose_delivery_location")}</span>
         </button>
       )}

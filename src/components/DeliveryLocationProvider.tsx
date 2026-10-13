@@ -16,6 +16,7 @@ import {
   type DeliveryStatus,
   type ZoneRow,
 } from "@/components/delivery-location-context";
+import MapPinIcon from "@/components/MapPinIcon";
 
 const STORAGE_KEY = "fastrack:delivery-location";
 const SKIPPED_KEY = "fastrack:delivery-location-skipped";
@@ -446,7 +447,7 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
       {nearby && (
         <div className="fixed inset-x-3 bottom-24 z-[45] mx-auto max-w-md rounded-2xl border border-brand-100 bg-white p-3.5 shadow-2xl shadow-brand-900/15 md:bottom-5 md:start-5 md:inset-x-auto">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-lg">📍</span>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-lg"><MapPinIcon /></span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-extrabold text-neutral-900">
                 {nearby.mode === "differs" ? "Deliver to your current location?" : "Use your current location?"}

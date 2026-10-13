@@ -11,8 +11,9 @@ import type { Address } from "@/types/database";
 import { useMarket } from "@/components/MoneyProvider";
 import { stateInServiceArea } from "@/lib/india";
 import { useDialogs } from "@/components/ui/Dialogs";
+import MapPinIcon from "@/components/MapPinIcon";
 
-const ICON: Record<string, string> = { home: "🏠", office: "🏢", other: "📍" };
+const ICON: Record<string, React.ReactNode> = { home: "🏠", office: "🏢", other: <MapPinIcon /> };
 
 export default function AddressCard({ address }: { address: Address }) {
   const [editing, setEditing] = useState(false);
@@ -39,7 +40,7 @@ export default function AddressCard({ address }: { address: Address }) {
   return (
     <div className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${address.is_default ? "border-brand-300 ring-1 ring-brand-100" : "border-neutral-200"}`}>
       <div className="flex gap-3 p-4">
-        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl ${address.is_default ? "bg-brand-100" : "bg-neutral-100"}`}>{ICON[address.label] ?? "📍"}</span>
+        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl ${address.is_default ? "bg-brand-100" : "bg-neutral-100"}`}>{ICON[address.label] ?? <MapPinIcon />}</span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-base font-extrabold text-neutral-900">{labelText}</p>

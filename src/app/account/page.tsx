@@ -12,6 +12,7 @@ import { getActiveTenants, getCurrentTenant } from "@/lib/tenant-server";
 import LandingPreference from "@/components/LandingPreference";
 import { dashboardPathForRole } from "@/lib/landing";
 import LanguageToggle from "@/components/LanguageToggle";
+import MapPinIcon from "@/components/MapPinIcon";
 
 export const metadata = { title: "Your account" };
 
@@ -22,7 +23,7 @@ function AccountTile({
   description,
 }: {
   href: string;
-  icon: string;
+  icon: React.ReactNode;
   title: string;
   description: string;
 }) {
@@ -148,7 +149,7 @@ export default async function AccountPage() {
         />
         <AccountTile
           href="/addresses"
-          icon="📍"
+          icon={<MapPinIcon />}
           title={t("account.addresses_tile_title")}
           description={t("account.addresses_tile_desc")}
         />

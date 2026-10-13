@@ -13,6 +13,7 @@ import { distanceKm } from "@/lib/delivery-geo";
 import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
 import type { AddressLabel } from "@/types/database";
+import MapPinIcon from "@/components/MapPinIcon";
 
 function addressLabelText(a: AddressLabel): string {
   return a.charAt(0).toUpperCase() + a.slice(1);
@@ -33,10 +34,10 @@ interface SavedAddress {
   is_default: boolean;
 }
 
-const LABEL_ICON: Record<AddressLabel, string> = {
+const LABEL_ICON: Record<AddressLabel, React.ReactNode> = {
   home: "🏠",
   office: "💼",
-  other: "📍",
+  other: <MapPinIcon />,
 };
 
 export default function DeliveryLocationModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -199,7 +200,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 overflow-y-auto p-4">
         {!location && (
           <div className="flex flex-col items-center gap-2 rounded-3xl bg-gradient-to-br from-brand-50 via-sky-50 to-white px-5 pb-6 pt-7 text-center ring-1 ring-brand-100">
-            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-5xl shadow-lg shadow-brand-200/60">📍</span>
+            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-5xl shadow-lg shadow-brand-200/60"><MapPinIcon /></span>
             <h2 className="mt-1 text-xl font-extrabold tracking-tight text-neutral-900">{t("common.where_deliver_title")}</h2>
             <p className="max-w-xs text-sm text-neutral-600">{t("common.where_deliver_sub")}</p>
             <button
@@ -247,7 +248,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
                 onClick={() => pickSearchResult({ label: p.label, detail: p.detail, lat: p.lat, lng: p.lng })}
                 className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-start text-sm transition hover:bg-neutral-50"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-base">📍</span>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-base"><MapPinIcon /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium text-neutral-900">{p.label}</span>
                   {p.detail && <span className="block truncate text-xs text-neutral-500">{p.detail}</span>}
@@ -305,7 +306,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
                   }`}
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-base">
-                    {LABEL_ICON[a.label] ?? "📍"}
+                    {LABEL_ICON[a.label] ?? <MapPinIcon />}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">

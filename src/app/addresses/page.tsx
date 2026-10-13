@@ -5,6 +5,7 @@ import AddressForm from "@/components/AddressForm";
 import AddressCard from "@/components/AddressCard";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import MapPinIcon from "@/components/MapPinIcon";
 
 export const metadata = { title: "Your addresses" };
 
@@ -34,7 +35,7 @@ export default async function AddressesPage() {
 
       {sorted.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-neutral-300 bg-white p-12 text-center">
-          <span className="text-5xl">📍</span>
+          <span className="text-5xl"><MapPinIcon /></span>
           <p className="text-sm font-semibold text-neutral-800">{t("addresses.no_addresses_yet")}</p>
           <p className="text-xs text-neutral-500">Add your first address to get your order delivered to your door.</p>
         </div>

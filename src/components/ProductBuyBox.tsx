@@ -7,6 +7,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import { useStoreInfo } from "@/components/StoreDirectoryProvider";
 import { useStatusText } from "@/components/StoreBadge";
 import type { ProductVariant } from "@/types/database";
+import MapPinIcon from "@/components/MapPinIcon";
 
 export default function ProductBuyBox({
   storeId,
@@ -42,7 +43,7 @@ export default function ProductBuyBox({
   if (status.state === "outside") {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
-        <p className="mb-1 text-2xl">📍</p>
+        <p className="mb-1 text-2xl"><MapPinIcon /></p>
         <p className="font-medium text-neutral-900">
           {t("product.not_available_in", { area: location?.label ?? "—" })}
         </p>

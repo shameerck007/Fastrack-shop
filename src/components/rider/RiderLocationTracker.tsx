@@ -4,6 +4,7 @@
 import { unwrapAction } from "@/lib/errors";
 import { useEffect, useRef, useState } from "react";
 import { updateRiderLocation } from "@/lib/actions/rider-location";
+import MapPinIcon from "@/components/MapPinIcon";
 
 // Often enough that the customer sees the vehicle glide along the road instead of jumping.
 const MIN_UPDATE_INTERVAL_MS = 5000;
@@ -39,7 +40,7 @@ export default function RiderLocationTracker() {
   if (!error) return null;
   return (
     <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
-      📍 {error}
+      <MapPinIcon /> {error}
     </div>
   );
 }

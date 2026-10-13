@@ -13,6 +13,7 @@ import RiderLocationTracker from "@/components/rider/RiderLocationTracker";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getMoney } from "@/lib/tenant-server";
+import MapPinIcon from "@/components/MapPinIcon";
 
 const DELIVERY_TYPE_KEY: Record<string, string> = {
   express: "checkout.express",
@@ -132,7 +133,7 @@ export default async function RiderHomePage() {
           </div>
           {!hasLocation ? (
             <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-sky-300 bg-sky-50 p-6 text-center">
-              <span className="text-3xl">📍</span>
+              <span className="text-3xl"><MapPinIcon /></span>
               <p className="text-sm font-semibold text-sky-900">{t("rider.share_location_title")}</p>
               <p className="text-xs text-sky-700">{t("rider.share_location_hint")}</p>
             </div>
@@ -180,7 +181,7 @@ function AvailableRouteCard({ route, money, salaryOnly }: { route: AvailableRout
           <span className="font-extrabold text-neutral-900">Standard route</span>
           <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold uppercase text-neutral-600">📦 {route.stops} {route.stops === 1 ? "stop" : "stops"}</span>
         </div>
-        <p className="mt-2 text-sm font-semibold text-neutral-800">📍 {route.shopName ?? "Shop"}</p>
+        <p className="mt-2 text-sm font-semibold text-neutral-800"><MapPinIcon /> {route.shopName ?? "Shop"}</p>
         {route.shopAddress && <p className="truncate text-xs text-neutral-500">{route.shopAddress}</p>}
         <p className="mt-1 text-xs text-neutral-500">Delivering to {route.areaLabel}</p>
         <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold">
@@ -215,7 +216,7 @@ function AvailableOrderCard({ order, t, money, salaryOnly = false }: { money: Mo
           </div>
           {order.warehouses && (
             <p className="mt-2 flex items-start gap-1.5 text-sm text-neutral-700">
-              <span>📍</span>
+              <span><MapPinIcon /></span>
               <span className="min-w-0">
                 <span className="block font-semibold">{order.warehouses.name}</span>
                 {order.warehouses.address_line && <span className="block truncate text-xs text-neutral-500">{order.warehouses.address_line}</span>}

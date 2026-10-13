@@ -5,6 +5,7 @@ import { errorText } from "@/lib/errors";
 import { useEffect, useRef, useState } from "react";
 import { searchPlaces, type PlaceResult } from "@/lib/map-config";
 import { useLocale } from "@/components/LocaleProvider";
+import MapPinIcon from "@/components/MapPinIcon";
 
 // Search box for finding an area/address/landmark and jumping the map there.
 // Searches as you type (debounced, to respect the free geocoder's limits).
@@ -104,7 +105,7 @@ export default function PlaceSearch({
               }}
               className="flex w-full flex-col items-start border-b border-neutral-100 px-3 py-2 text-start last:border-none hover:bg-brand-50"
             >
-              <span className="text-sm font-medium text-neutral-900">📍 {r.label}</span>
+              <span className="text-sm font-medium text-neutral-900"><MapPinIcon /> {r.label}</span>
               <span className="text-xs text-neutral-500">{r.detail}</span>
             </button>
           ))}

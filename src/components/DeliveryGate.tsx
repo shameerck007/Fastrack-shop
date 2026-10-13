@@ -9,6 +9,7 @@ import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { useLocale } from "@/components/LocaleProvider";
 import AddressForm from "@/components/AddressForm";
 import type { AddressLabel } from "@/types/database";
+import MapPinIcon from "@/components/MapPinIcon";
 
 interface SavedAddress {
   id: string;
@@ -20,10 +21,10 @@ interface SavedAddress {
   lng: number | null;
 }
 
-const LABEL_ICON: Record<AddressLabel, string> = {
+const LABEL_ICON: Record<AddressLabel, React.ReactNode> = {
   home: "🏠",
   office: "💼",
-  other: "📍",
+  other: <MapPinIcon />,
 };
 
 /** Hard-gates listing pages (home, category, search) the moment the
@@ -80,7 +81,7 @@ export default function DeliveryGate({ children }: { children: React.ReactNode }
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10 text-center">
-      <p className="mb-2 text-4xl">📍</p>
+      <p className="mb-2 text-4xl"><MapPinIcon /></p>
       <h1 className="mb-1 text-lg font-semibold text-neutral-900">
         {t("common.dont_deliver_banner", { location: location?.label ?? "" })}
       </h1>
@@ -102,7 +103,7 @@ export default function DeliveryGate({ children }: { children: React.ReactNode }
                   className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-start text-sm hover:bg-emerald-100"
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-base">
-                    {LABEL_ICON[a.label] ?? "📍"}
+                    {LABEL_ICON[a.label] ?? <MapPinIcon />}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="font-medium capitalize text-neutral-900">{a.label}</span>{" "}
@@ -119,7 +120,7 @@ export default function DeliveryGate({ children }: { children: React.ReactNode }
               {otherAddresses.map((a) => (
                 <div key={a.id} className="flex items-start gap-3 rounded-xl border border-neutral-200 p-3 text-start text-sm">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-base">
-                    {LABEL_ICON[a.label] ?? "📍"}
+                    {LABEL_ICON[a.label] ?? <MapPinIcon />}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="font-medium capitalize text-neutral-900">{a.label}</span>{" "}

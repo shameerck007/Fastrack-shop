@@ -4,6 +4,7 @@ import DeliveryProgressStepper from "@/components/rider/DeliveryProgressStepper"
 
 import type { ActiveDelivery } from "@/lib/rider";
 import type { OrderStatus } from "@/types/database";
+import MapPinIcon from "@/components/MapPinIcon";
 
 export default function ActiveDeliveryCard({
   delivery,
@@ -35,7 +36,7 @@ export default function ActiveDeliveryCard({
           </p>
         </div>
         {delivery.warehouses && (
-          <p className="max-w-[45%] truncate text-end text-neutral-600">📍 {delivery.warehouses.name}</p>
+          <p className="max-w-[45%] truncate text-end text-neutral-600"><MapPinIcon /> {delivery.warehouses.name}</p>
         )}
       </div>
 
