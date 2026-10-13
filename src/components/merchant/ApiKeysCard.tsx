@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { errorText, unwrapAction } from "@/lib/errors";
 import { createApiKey, revokeApiKey } from "@/lib/actions/supplier-integrations";
+import { useDialogs } from "@/components/ui/Dialogs";
 
 export interface KeyRow {
   id: string;
@@ -18,6 +19,7 @@ const fmt = (d: string | null) => (d ? new Date(d).toLocaleString("en-GB", { day
 
 export default function ApiKeysCard({ keys }: { keys: KeyRow[] }) {
   const router = useRouter();
+  const { confirm: ask } = useDialogs();
   const [name, setName] = useState("");
   const [fresh, setFresh] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -38,8 +40,8 @@ export default function ApiKeysCard({ keys }: { keys: KeyRow[] }) {
     });
   }
 
-  function revoke(id: string) {
-    if (!confirm("Revoke this key? Any system using it stops working straight away.")) return;
+  async function revoke(id: string) {
+    if (!(await ask({ title: "Revoke this key?", message: "Any system using it stops working straight away.", confirmLabel: "Revoke key", danger: true }))) return;
     start(async () => {
       try {
         await unwrapAction(revokeApiKey)(id);

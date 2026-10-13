@@ -8,6 +8,7 @@ import { createTenant, setTenantStatus } from "@/lib/actions/platform";
 import Select from "@/components/ui/Select";
 import FormDialog, { DialogSection } from "@/components/ui/FormDialog";
 import { Field, inputClass } from "@/components/ui/Form";
+import { useDialogs } from "@/components/ui/Dialogs";
 
 type Status = "draft" | "active" | "suspended";
 
@@ -15,11 +16,12 @@ type Status = "draft" | "active" | "suspended";
 export function MarketStatusButtons({ tenantId, status, name }: { tenantId: string; status: Status; name: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { confirm: ask } = useDialogs();
   const [error, setError] = useState<string | null>(null);
 
-  function change(next: Status) {
-    if (next === "active" && !confirm(`Open ${name} to customers now? Its products become visible to everyone in that market.`)) return;
-    if (next === "suspended" && !confirm(`Suspend ${name}? Customers will no longer be able to browse or order there.`)) return;
+  async function change(next: Status) {
+    if (next === "active" && !(await ask({ title: `Open ${name} to customers?`, message: "Its products become visible to everyone in that market.", confirmLabel: "Open market", icon: "🌍" }))) return;
+    if (next === "suspended" && !(await ask({ title: `Suspend ${name}?`, message: "Customers will no longer be able to browse or order there.", confirmLabel: "Suspend", danger: true }))) return;
     setError(null);
     startTransition(async () => {
       const res = await unwrapAction(setTenantStatus)(tenantId, next);

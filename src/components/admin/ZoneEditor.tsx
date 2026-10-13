@@ -20,6 +20,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import { useMarket } from "@/components/MoneyProvider";
 import { MAX_POINTS, polygonAreaKm2, polygonCenter, polygonProblem, type LatLng } from "@/lib/geo-polygon";
 import { BRAND } from "@/lib/brand";
+import { useDialogs } from "@/components/ui/Dialogs";
 
 const PRESETS = [1, 2, 3, 5, 8, 10, 15, 20];
 
@@ -58,6 +59,7 @@ export default function ZoneEditor({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const router = useRouter();
+  const { confirm: ask } = useDialogs();
   const centerRef = useRef(center);
   centerRef.current = center;
   const radiusRef = useRef(radius);
@@ -277,8 +279,8 @@ export default function ZoneEditor({
     });
   }
 
-  function clear() {
-    if (!confirm(t("zone_editor.confirm_remove"))) return;
+  async function clear() {
+    if (!(await ask({ title: t("zone_editor.confirm_remove"), confirmLabel: "Remove", danger: true }))) return;
     startTransition(async () => {
       try {
         await unwrapAction(updateWarehouseZone)(warehouseId, null);

@@ -11,6 +11,7 @@ import { useCurrency } from "@/components/MoneyProvider";
 import { CatalogPager, CatalogSearch, CatalogTabs, useCatalogList } from "@/components/CatalogFilters";
 import type { MasterProduct } from "@/lib/master-catalog";
 import Select from "@/components/ui/Select";
+import { useDialogs } from "@/components/ui/Dialogs";
 
 interface Cat {
   id: string;
@@ -49,6 +50,7 @@ export default function CatalogManager({
   fastrackIds?: string[];
 }) {
   const router = useRouter();
+  const { confirm: ask, prompt: askText } = useDialogs();
   const currency = useCurrency();
   const [selling, setSelling] = useState<MasterProduct | null>(null);
   const [location, setLocation] = useState(fastrackLocations[0]?.id ?? "");
@@ -77,7 +79,7 @@ export default function CatalogManager({
   }
 
   async function reject(id: string) {
-    const reason = window.prompt("Why is this request declined? The supplier will see this.");
+    const reason = await askText({ title: "Decline this request", message: "The supplier will see your reason.", label: "Reason", placeholder: "For example: the photo is unclear, or the barcode does not match", confirmLabel: "Decline request", danger: true });
     if (!reason) return;
     setBusy(id);
     const res = await unwrapAction(rejectMasterProduct)(id, reason);
@@ -88,7 +90,7 @@ export default function CatalogManager({
   }
 
   async function build() {
-    if (!window.confirm("Create catalog products from the products already on sale? Matching products (same barcode, or same name and brand) are grouped and linked. You can run this again later.")) return;
+    if (!(await ask({ title: "Build the catalog from products on sale?", message: "Matching products (same barcode, or same name and brand) are grouped and linked. You can run this again later.", confirmLabel: "Build catalog", icon: "📚" }))) return;
     setBusy("build");
     setMessage(null);
     const res = await unwrapAction(buildCatalogFromProducts)();

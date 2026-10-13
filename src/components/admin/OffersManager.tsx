@@ -10,6 +10,7 @@ import ArabicInput from "@/components/ui/ArabicInput";
 import { Field, inputClass, primaryButton, secondaryButton } from "@/components/ui/Form";
 import { useCurrency, useMoney } from "@/components/MoneyProvider";
 import { deleteOffer, saveOffer, setOfferActive, type OfferInput } from "@/lib/actions/admin-offers";
+import { useDialogs } from "@/components/ui/Dialogs";
 
 export interface OfferRow {
   id: string;
@@ -137,6 +138,7 @@ function SearchIcon() {
 
 export default function OffersManager({ offers, categories, stores, disabled }: { offers: OfferRow[]; categories: CategoryRow[]; stores: StoreOption[]; disabled: boolean }) {
   const router = useRouter();
+  const { confirm: ask } = useDialogs();
   const money = useMoney();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | Status>("all");
@@ -276,7 +278,7 @@ export default function OffersManager({ offers, categories, stores, disabled }: 
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => confirm(`Delete "${o.name}"? Orders that used it keep their discount.`) && act(() => unwrapAction(deleteOffer)(o.id), "Offer deleted.")}
+                        onClick={async () => (await ask({ title: `Delete "${o.name}"?`, message: "Orders that used it keep their discount.", confirmLabel: "Delete offer", danger: true })) && act(() => unwrapAction(deleteOffer)(o.id), "Offer deleted.")}
                         className="h-8 rounded-full border border-neutral-300 px-3 text-xs font-bold text-neutral-500 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50"
                       >
                         Delete

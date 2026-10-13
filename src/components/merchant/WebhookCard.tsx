@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { errorText, unwrapAction } from "@/lib/errors";
 import { regenerateWebhookSecret, saveWebhook, sendTestWebhook } from "@/lib/actions/supplier-integrations";
+import { useDialogs } from "@/components/ui/Dialogs";
 
 export interface WebhookSettings {
   url: string;
@@ -27,6 +28,7 @@ const STATUS_STYLE = { delivered: "bg-emerald-50 text-emerald-700", pending: "bg
 
 export default function WebhookCard({ webhook, events }: { webhook: WebhookSettings | null; events: WebhookEventRow[] }) {
   const router = useRouter();
+  const { confirm: ask } = useDialogs();
   const [url, setUrl] = useState(webhook?.url ?? "");
   const [enabled, setEnabled] = useState(webhook?.enabled ?? true);
   const [reveal, setReveal] = useState(false);
@@ -53,8 +55,8 @@ export default function WebhookCard({ webhook, events }: { webhook: WebhookSetti
       router.refresh();
     });
 
-  const rotate = () => {
-    if (!confirm("Make a new secret? Your system must be updated with it, or it will reject FasTrack's messages.")) return;
+  const rotate = async () => {
+    if (!(await ask({ title: "Make a new secret?", message: "Your system must be updated with it, or it will reject FasTrack's messages.", confirmLabel: "Make new secret", icon: "🔑" }))) return;
     run(async () => {
       const r = await unwrapAction(regenerateWebhookSecret)();
       setSecret(r.secret);

@@ -10,6 +10,7 @@ import { errorText, unwrapAction } from "@/lib/errors";
 import { useLocale } from "@/components/LocaleProvider";
 import { localizedName } from "@/lib/i18n/localized";
 import type { Category } from "@/types/database";
+import { useDialogs } from "@/components/ui/Dialogs";
 
 function Look({ category, className }: { category: Category; className: string }) {
   return (
@@ -35,10 +36,11 @@ export default function CategoryTile({ category, subs, parentOptions, counts }: 
   const [editing, setEditing] = useState<Category | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const { confirm: ask } = useDialogs();
   const total = (counts[category.id] ?? 0) + subs.reduce((n, s) => n + (counts[s.id] ?? 0), 0);
 
-  function remove(c: Category) {
-    if (!confirm(t("category_form.confirm_delete", { name: c.name }))) return;
+  async function remove(c: Category) {
+    if (!(await ask({ title: t("category_form.confirm_delete", { name: c.name }), confirmLabel: "Delete", danger: true }))) return;
     setError(null);
     start(async () => {
       try {

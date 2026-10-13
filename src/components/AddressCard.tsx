@@ -10,12 +10,14 @@ import { useLocale } from "@/components/LocaleProvider";
 import type { Address } from "@/types/database";
 import { useMarket } from "@/components/MoneyProvider";
 import { stateInServiceArea } from "@/lib/india";
+import { useDialogs } from "@/components/ui/Dialogs";
 
 const ICON: Record<string, string> = { home: "🏠", office: "🏢", other: "📍" };
 
 export default function AddressCard({ address }: { address: Address }) {
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
+  const { confirm: ask } = useDialogs();
   const router = useRouter();
   const { t } = useLocale();
   const countryCode = useMarket().countryCode;
@@ -78,7 +80,7 @@ export default function AddressCard({ address }: { address: Address }) {
           disabled={pending}
           onClick={() =>
             startTransition(async () => {
-              if (!confirm(t("addresses.confirm_delete"))) return;
+              if (!(await ask({ title: t("addresses.confirm_delete"), confirmLabel: "Delete", danger: true }))) return;
               await unwrapAction(deleteAddress)(address.id);
               router.refresh();
             })

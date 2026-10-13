@@ -28,6 +28,7 @@ import MoneyProvider from "@/components/MoneyProvider";
 import { getCurrentTenant, getMarketSuggestion } from "@/lib/tenant-server";
 import DefaultCountryProvider from "@/components/DefaultCountryProvider";
 import LoginModalProvider from "@/components/LoginModalProvider";
+import DialogProvider from "@/components/ui/Dialogs";
 import { getRequestCountryCode } from "@/lib/get-request-country";
 import { cookies } from "next/headers";
 import { TENANT_COOKIE } from "@/lib/tenant";
@@ -125,6 +126,7 @@ export default async function RootLayout({
         <MoneyProvider currency={currency} countryCode={marketCountry} pricing={pricingFromSettings(marketCountry, company)} defaultMaxQty={Number(company?.default_max_order_qty ?? 2)} showShops={company?.show_shops ?? null}>
         <DefaultCountryProvider countryCode={countryCode}>
         <LoginModalProvider>
+        <DialogProvider>
         <CustomerStateProvider>
         <StoreDirectoryProvider>
         <DeliveryLocationProvider eta={etaSettings}>
@@ -150,6 +152,7 @@ export default async function RootLayout({
         </DeliveryLocationProvider>
         </StoreDirectoryProvider>
         </CustomerStateProvider>
+        </DialogProvider>
         </LoginModalProvider>
         </DefaultCountryProvider>
         </MoneyProvider>

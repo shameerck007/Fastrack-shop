@@ -11,6 +11,7 @@ import ArabicInput from "@/components/ui/ArabicInput";
 import { Field, inputClass, primaryButton, secondaryButton } from "@/components/ui/Form";
 import { deleteDeliveryArea, saveDeliveryArea } from "@/lib/actions/admin-areas";
 import { polygonCenter, type LatLng } from "@/lib/geo-polygon";
+import { useDialogs } from "@/components/ui/Dialogs";
 
 export interface AreaCard {
   id: string;
@@ -65,10 +66,11 @@ export default function AreasManager({ areas }: { areas: AreaCard[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<Partial<AreaCard> | null>(null);
   const [busy, startTransition] = useTransition();
+  const { confirm: ask } = useDialogs();
   const [message, setMessage] = useState<string | null>(null);
 
-  function remove(a: AreaCard) {
-    if (!window.confirm(`Delete the zone "${a.name}"? Shops and customers inside it stop being covered unless another zone covers them.`)) return;
+  async function remove(a: AreaCard) {
+    if (!(await ask({ title: `Delete the zone "${a.name}"?`, message: "Shops and customers inside it stop being covered unless another zone covers them.", confirmLabel: "Delete zone", danger: true }))) return;
     startTransition(async () => {
       const res = await unwrapAction(deleteDeliveryArea)(a.id);
       setMessage(res.error ?? null);
