@@ -21,7 +21,7 @@ export default async function HomeOffers() {
             o.kind === "percent" && o.maxDiscount ? `up to ${money(o.maxDiscount)}` : null,
             o.firstOrderOnly ? "first order only" : null,
           ].filter(Boolean).join(" · ");
-          const href = o.categorySlug ? `/categories/${o.categorySlug}` : o.storeId ? `/store/${o.storeId}` : "/categories";
+          const href = o.categorySlug ? `/categories/${o.categorySlug}` : o.storeId ? `/store/${o.storeId}` : "/search";
           const ends = o.endsAt ? new Date(o.endsAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : null;
           return (
             <Link key={o.id} href={href} className="flex w-64 shrink-0 flex-col gap-1 rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-white p-4 transition hover:shadow-md">

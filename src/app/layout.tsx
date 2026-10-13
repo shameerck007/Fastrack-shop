@@ -11,6 +11,8 @@ import BackBar from "@/components/BackBar";
 import DeliveryLocationProvider from "@/components/DeliveryLocationProvider";
 import DeliveryBanner from "@/components/DeliveryBanner";
 import ChunkErrorReload from "@/components/ChunkErrorReload";
+import AppSplash from "@/components/AppSplash";
+import SplashGate from "@/components/SplashGate";
 import GlobalErrorToast from "@/components/GlobalErrorToast";
 import PushOptIn from "@/components/PushOptIn";
 import LocaleProvider from "@/components/LocaleProvider";
@@ -111,6 +113,8 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${tajawal.variable} overscroll-none font-sans antialiased bg-neutral-50 text-neutral-900`}
       >
+        <AppSplash />
+        <SplashGate />
         <ChunkErrorReload />
         <GlobalErrorToast />
         <MarketToast />

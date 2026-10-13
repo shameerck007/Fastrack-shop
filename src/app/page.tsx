@@ -29,12 +29,14 @@ import HomeOffers from "@/components/HomeOffers";
  * default (their saved preference). "Back to shop" sets a session cookie so the
  * shop stays open for the rest of the visit. */
 async function redirectToPortalIfPreferred() {
-  if ((await cookies()).get(SHOP_MODE_COOKIE)) return;
+  const shopChoice = (await cookies()).get(SHOP_MODE_COOKIE)?.value;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return;
+  // "Back to shop" only counts for the user who chose it.
+  if (shopChoice && shopChoice === user.id) return;
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   const target = dashboardPathForRole(profile?.role);
   if (!target || (profile?.landing_page ?? "portal") !== "portal") return;

@@ -8,6 +8,12 @@ import { SHOP_MODE_COOKIE } from "@/lib/landing";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
+/** Called after every sign-in: a new sign-in starts from the user's saved landing page, so a "Back to shop" choice from an
+ * earlier session (which only Log out used to clear) can no longer send an admin, rider or supplier to the shop. */
+export async function clearShopMode() {
+  (await cookies()).delete(SHOP_MODE_COOKIE);
+}
+
 export async function signOut() {
   try {
   const supabase = await createClient();

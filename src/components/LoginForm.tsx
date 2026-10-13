@@ -6,7 +6,7 @@ import { Suspense, useState } from "react";
 import Link from "@/components/Link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { emailHasAccount, resolveLoginEmail } from "@/lib/actions/auth";
+import { clearShopMode, emailHasAccount, resolveLoginEmail } from "@/lib/actions/auth";
 import Wordmark from "@/components/Wordmark";
 import { COUNTRIES, findCountry, validatePhone } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
@@ -52,7 +52,9 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
   const searchParams = useSearchParams();
   // In the pop-up the shopper stays on the page they were on; on the full page they go where the redirect says.
   const redirectTo = modal ? window.location.pathname + window.location.search : searchParams.get("redirect") || "/";
-  const finish = () => {
+  const finish = async () => {
+    // Start from the saved landing page (admin, rider and supplier go to their portal), not an old "Back to shop" choice.
+    await clearShopMode().catch(() => {});
     if (modal) {
       onDone?.();
       // The header and cart badge re-check who is signed in; the page did not change, so nothing else would tell them.
