@@ -5,6 +5,7 @@ import type { Map as LeafletMap, Marker, Polyline } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { TILE_URL, TILE_OPTIONS } from "@/lib/map-config";
 import { BRAND } from "@/lib/brand";
+import { pinHtml, PIN_ANCHOR, PIN_SIZE } from "@/lib/map-pin";
 
 interface Point {
   lat: number;
@@ -60,9 +61,9 @@ export default function RiderTaskMap({
       const map = L.map(containerRef.current, { zoomControl: false, attributionControl: false }).setView([c.lat, c.lng], 14);
       L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
       L.control.attribution({ prefix: false, position: "bottomleft" }).addTo(map);
-      const icon = (html: string) => L.divIcon({ html, className: "", iconSize: [40, 40], iconAnchor: [20, 20] });
-      if (shop) L.marker([shop.lat, shop.lng], { icon: icon(pin("🏪", "white")) }).addTo(map);
-      if (dest) L.marker([dest.lat, dest.lng], { icon: icon(pin("🏠", "blue")) }).addTo(map);
+      const stopIcon = (emoji: string) => L.divIcon({ html: pinHtml(emoji), className: "", iconSize: PIN_SIZE, iconAnchor: PIN_ANCHOR });
+      if (shop) L.marker([shop.lat, shop.lng], { icon: stopIcon("🏪") }).addTo(map);
+      if (dest) L.marker([dest.lat, dest.lng], { icon: stopIcon("🏠") }).addTo(map);
       line.current = L.polyline([], { color: BRAND[700], weight: 4, opacity: 0.7, dashArray: "2 10", lineCap: "round" }).addTo(map);
       mapRef.current = map;
       setReady(true);

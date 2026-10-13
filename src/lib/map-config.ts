@@ -1,3 +1,5 @@
+import { PIN_ICON } from "@/lib/map-pin";
+
 // Map tiles come from HERE, fetched through our own /api/geo/tile route so the HERE key
 // stays on the server (the route falls back to Esri's free street tiles if HERE is
 // unavailable). English labels, shop/business detail and building outlines.
@@ -11,13 +13,8 @@ export const TILE_OPTIONS = {
   detectRetina: false,
 };
 
-export const MARKER_ICON = {
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41] as [number, number],
-  iconAnchor: [12, 41] as [number, number],
-};
+// The FasTrack map pin (navy teardrop); see src/lib/map-pin.ts.
+export const MARKER_ICON = PIN_ICON;
 
 export const DEFAULT_CENTER: [number, number] = [24.7136, 46.6753]; // Riyadh
 

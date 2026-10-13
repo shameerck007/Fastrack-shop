@@ -11,6 +11,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import type { OrderStatus } from "@/types/database";
 import { BRAND } from "@/lib/brand";
 import { riderIconSvg } from "@/lib/rider-icon";
+import { pinHtml, PIN_ANCHOR, PIN_SIZE } from "@/lib/map-pin";
 
 interface Point {
   lat: number;
@@ -164,9 +165,9 @@ export default function OrderTrackingHero({
       const map = L.map(containerRef.current, { zoomControl: false, attributionControl: false }).setView([center.lat, center.lng], 15);
       L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
       L.control.attribution({ prefix: false, position: "bottomleft" }).addTo(map);
-      const icon = (html: string) => L.divIcon({ html, className: "", iconSize: [40, 40], iconAnchor: [20, 20] });
-      if (shop) L.marker([shop.lat, shop.lng], { icon: icon(pin("🏪", "white")) }).addTo(map);
-      if (dest) L.marker([dest.lat, dest.lng], { icon: icon(pin("🏠", "blue")) }).addTo(map);
+      const stopIcon = (emoji: string) => L.divIcon({ html: pinHtml(emoji), className: "", iconSize: PIN_SIZE, iconAnchor: PIN_ANCHOR });
+      if (shop) L.marker([shop.lat, shop.lng], { icon: stopIcon("🏪") }).addTo(map);
+      if (dest) L.marker([dest.lat, dest.lng], { icon: stopIcon("🏠") }).addTo(map);
       if (riderPos) {
         riderMarker.current = L.marker([riderPos.lat, riderPos.lng], {
           icon: L.divIcon({ html: riderPin(), className: "", iconSize: [60, 60], iconAnchor: [30, 30] }),
