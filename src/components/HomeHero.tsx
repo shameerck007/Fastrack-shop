@@ -47,7 +47,7 @@ function Collage({ images, art }: { images: HeroImage[]; art?: string }) {
   return (
     <div aria-hidden className="pointer-events-none absolute end-3 top-1/2 grid -translate-y-1/2 grid-cols-2 gap-2.5 sm:end-8 sm:gap-4 lg:end-12">
       {tiles.map((t, i) => {
-        const size = "h-[4.4rem] w-[4.4rem] sm:h-28 sm:w-28 lg:h-36 lg:w-36";
+        const size = "h-[3.7rem] w-[3.7rem] sm:h-28 sm:w-28 lg:h-36 lg:w-36";
         const pos = `${i % 2 === 1 ? "translate-y-4 sm:translate-y-6" : "-translate-y-1 sm:-translate-y-2"} ${TILT[i]}`;
         return t.kind === "art" ? (
           <span key="art" className={`flex items-center justify-center rounded-2xl border-4 border-white bg-white/70 text-4xl shadow-xl backdrop-blur sm:text-6xl lg:text-7xl ${size} ${pos}`}>
@@ -65,14 +65,14 @@ function Collage({ images, art }: { images: HeroImage[]; art?: string }) {
 function Slide({ s, active }: { s: HeroSlide; active: boolean }) {
   const th = THEME[s.theme];
   return (
-    <div className={`relative min-h-[230px] w-full shrink-0 snap-center overflow-hidden bg-gradient-to-br ${th.bg} px-5 py-6 sm:min-h-[300px] sm:px-10 sm:py-10`} aria-hidden={!active}>
+    <div className={`relative min-h-[236px] w-full shrink-0 snap-center overflow-hidden bg-gradient-to-br ${th.bg} px-4 pb-10 pt-5 sm:min-h-[300px] sm:px-10 sm:py-10`} aria-hidden={!active}>
       <span aria-hidden className={`absolute -end-10 -top-14 h-52 w-52 rounded-full ${th.blob1}`} />
       <span aria-hidden className={`absolute -bottom-20 end-1/3 h-44 w-44 rounded-full ${th.blob2}`} />
       <Collage images={s.images} art={s.art} />
 
-      <div className="relative max-w-[49%] sm:max-w-[44%]">
-        <p className={`mb-1 text-[11px] font-bold uppercase tracking-wider sm:text-xs ${th.eyebrow}`}>{s.eyebrow}</p>
-        <h2 className={`text-[1.3rem] font-extrabold leading-[1.1] tracking-tight sm:text-4xl lg:text-[2.6rem] ${th.title}`}>{s.title}</h2>
+      <div className="relative max-w-[60%] sm:max-w-[44%]">
+        <p className={`mb-1 truncate text-[11px] font-bold uppercase tracking-wider sm:text-xs ${th.eyebrow}`}>{s.eyebrow}</p>
+        <h2 className={`text-[1.2rem] font-extrabold leading-[1.15] tracking-tight sm:text-4xl lg:text-[2.6rem] ${th.title}`}>{s.title}</h2>
         <p className="mt-2 hidden text-sm text-neutral-700 sm:block sm:text-base">{s.subtitle}</p>
         {s.chips && s.chips.length > 0 && (
           <div className="mt-3 hidden flex-wrap gap-2 sm:flex">
@@ -83,7 +83,7 @@ function Slide({ s, active }: { s: HeroSlide; active: boolean }) {
             ))}
           </div>
         )}
-        <a href={s.href} tabIndex={active ? 0 : -1} className={`mt-3 inline-flex h-10 items-center rounded-full px-5 text-sm font-bold text-white shadow-md transition active:scale-95 sm:mt-5 sm:h-11 sm:px-7 ${th.cta}`}>
+        <a href={s.href} tabIndex={active ? 0 : -1} className={`mt-3 inline-flex h-9 items-center whitespace-nowrap rounded-full px-4 text-[13px] font-bold text-white shadow-md transition active:scale-95 sm:mt-5 sm:h-11 sm:px-7 sm:text-sm ${th.cta}`}>
           {s.cta} <span aria-hidden className="ms-1.5 rtl:-scale-x-100">→</span>
         </a>
       </div>
