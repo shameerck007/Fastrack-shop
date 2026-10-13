@@ -5,7 +5,8 @@ import { unwrapAction } from "@/lib/errors";
 import { useEffect, useRef, useState } from "react";
 import { updateRiderLocation } from "@/lib/actions/rider-location";
 
-const MIN_UPDATE_INTERVAL_MS = 15000;
+// Often enough that the customer sees the vehicle glide along the road instead of jumping.
+const MIN_UPDATE_INTERVAL_MS = 5000;
 
 export default function RiderLocationTracker() {
   const [error, setError] = useState<string | null>(null);

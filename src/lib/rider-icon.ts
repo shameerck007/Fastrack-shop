@@ -1,15 +1,17 @@
 /**
  * The FasTrack delivery rider as a small picture, always facing right (the direction of travel along a progress bar, from the shop to
- * the customer). It replaces the scooter emoji, which faces left on most phones and so looked like it was riding backwards. Where the
+ * the customer; `withLogo` puts the FasTrack mark on a white label on the box, for the live map). It replaces the scooter emoji, which faces left on most phones and so looked like it was riding backwards. Where the
  * rider moves the other way (the live map), flip it with a CSS scaleX(-1).
  */
-export function riderIconSvg(heightPx: number): string {
+export function riderIconSvg(heightPx: number, withLogo = false): string {
   const h = Math.round(heightPx);
   const w = Math.round((h * 130) / 84);
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 84" width="${w}" height="${h}" aria-hidden="true" style="display:block;overflow:visible">` +
     `<rect x="0" y="14" width="46" height="36" rx="6" fill="#005fb0"/><rect x="0" y="14" width="46" height="8" rx="5" fill="#0070d0"/>` +
-    `<path d="M23 28 l8 12 h-4.8 l-3.2 -4.6 l-3.2 4.6 h-4.8 z" fill="#fff"/>` +
+    (withLogo
+      ? `<rect x="4" y="25" width="38" height="20" rx="4" fill="#fff"/><image href="/fastrack-logo-mark.png" x="15" y="26.5" width="16" height="17"/>`
+      : `<path d="M23 28 l8 12 h-4.8 l-3.2 -4.6 l-3.2 4.6 h-4.8 z" fill="#fff"/>`) +
     `<path d="M20 56 Q20 44 36 44 L58 44 L58 58 Z" fill="#0070d0"/><path d="M44 58 H88 L84 50 H52 Z" fill="#005fb0"/>` +
     `<path d="M84 58 L90 26 Q92 22 96 24 L99 26 L94 58 Z" fill="#0070d0"/><rect x="35" y="39" width="26" height="6" rx="3" fill="#002050"/>` +
     `<path d="M90 26 L88 20 H100" stroke="#002050" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` +

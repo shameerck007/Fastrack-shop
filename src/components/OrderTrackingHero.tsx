@@ -56,10 +56,10 @@ function pin(emoji: string, tone: "blue" | "white", pulse = false) {
 /** The rider: pulsing ring, white disc and the FasTrack rider (drawn facing east) that flips to face the way it is travelling. */
 function riderPin() {
   return (
-    `<div style="position:relative;width:44px;height:44px">` +
+    `<div style="position:relative;width:60px;height:60px">` +
     `<span style="position:absolute;inset:-8px;border-radius:9999px;background:rgba(0,112,208,.28);animation:ping 1.8s cubic-bezier(0,0,.2,1) infinite"></span>` +
-    `<div style="position:relative;width:44px;height:44px;border-radius:9999px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,95,176,.45);border:3px solid #0070d0">` +
-    `<span class="ft-rider" style="display:inline-block;line-height:0;transition:transform .35s ease">${riderIconSvg(20)}</span></div>` +
+    `<div style="position:relative;width:60px;height:60px;border-radius:9999px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,95,176,.45);border:3px solid #0070d0">` +
+    `<span class="ft-rider" style="display:inline-block;line-height:0;transition:transform .35s ease">${riderIconSvg(30, true)}</span></div>` +
     `</div>`
   );
 }
@@ -101,6 +101,8 @@ export default function OrderTrackingHero({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const riderMarker = useRef<Marker | null>(null);
+  // True when the road route for the current leg could not be fetched: only then is a straight dotted guide drawn instead.
+  const [roadFailed, setRoadFailed] = useState(false);
   const routeLine = useRef<Polyline | null>(null);
   const routeCasing = useRef<Polyline | null>(null);
   const shownPos = useRef<Point | null>(null);
@@ -167,7 +169,7 @@ export default function OrderTrackingHero({
       if (dest) L.marker([dest.lat, dest.lng], { icon: icon(pin("🏠", "blue")) }).addTo(map);
       if (riderPos) {
         riderMarker.current = L.marker([riderPos.lat, riderPos.lng], {
-          icon: L.divIcon({ html: riderPin(), className: "", iconSize: [44, 44], iconAnchor: [22, 22] }),
+          icon: L.divIcon({ html: riderPin(), className: "", iconSize: [60, 60], iconAnchor: [30, 30] }),
           zIndexOffset: 1000,
         }).addTo(map);
         shownPos.current = riderPos;
@@ -196,7 +198,7 @@ export default function OrderTrackingHero({
         if (riderMarker.current) glideTo(riderPos);
         else {
           riderMarker.current = L.marker([riderPos.lat, riderPos.lng], {
-            icon: L.divIcon({ html: riderPin(), className: "", iconSize: [44, 44], iconAnchor: [22, 22] }),
+            icon: L.divIcon({ html: riderPin(), className: "", iconSize: [60, 60], iconAnchor: [30, 30] }),
             zIndexOffset: 1000,
           }).addTo(map);
           shownPos.current = riderPos;
@@ -208,11 +210,27 @@ export default function OrderTrackingHero({
       if (onRoad && road) {
         // Round dots along the road, in FasTrack blue (zero-length dashes + round caps = dots).
         routeCasing.current?.setLatLngs([]);
-        routeLine.current?.setLatLngs(road.points);
+        // The dotted road starts at the rider, so the part already travelled disappears as the vehicle moves along.
+        let ahead = road.points;
+        if (riderPos) {
+          let best = 0;
+          let bestD = Infinity;
+          road.points.forEach((pt, i) => {
+            const d = (pt[0] - riderPos.lat) ** 2 + (pt[1] - riderPos.lng) ** 2;
+            if (d < bestD) {
+              bestD = d;
+              best = i;
+            }
+          });
+          ahead = [[riderPos.lat, riderPos.lng], ...road.points.slice(best + 1)];
+        }
+        routeLine.current?.setLatLngs(ahead);
         routeLine.current?.setStyle({ dashArray: "0.1 11", weight: 7, opacity: 1, lineCap: "round" });
       } else {
+        // While the road route is on its way nothing is drawn (a straight line that then jumps onto the roads looked broken);
+        // the straight guide appears only if the road route could not be fetched.
         routeCasing.current?.setLatLngs([]);
-        routeLine.current?.setLatLngs(from && to && !done ? [[from.lat, from.lng], [to.lat, to.lng]] : []);
+        routeLine.current?.setLatLngs(roadFailed && from && to && !done ? [[from.lat, from.lng], [to.lat, to.lng]] : []);
         routeLine.current?.setStyle({ dashArray: "0.1 11", weight: 6, opacity: 0.55, lineCap: "round" });
       }
       const pts = [riderPos, dest, shop].filter(Boolean) as Point[];
@@ -221,7 +239,7 @@ export default function OrderTrackingHero({
         fitted.current = true;
       }
     });
-  }, [mapReady, riderPos, status, dest, shop, done, road]);
+  }, [mapReady, riderPos, status, dest, shop, done, road, roadFailed]);
 
   /** Slide the scooter to its new position instead of jumping, flipping it to face east or west. */
   function glideTo(target: Point) {
@@ -233,7 +251,7 @@ export default function OrderTrackingHero({
     const face = marker.getElement()?.querySelector<HTMLElement>(".ft-rider");
     if (face && Math.abs(dLng) > 0.000005) face.style.transform = dLng > 0 ? "scaleX(1)" : "scaleX(-1)";
     const t0 = performance.now();
-    const duration = 2200;
+    const duration = 4500; // a little under the 5 s between location updates, so the vehicle keeps moving
     const step = (now: number) => {
       const k = Math.min(1, (now - t0) / duration);
       const e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2; // ease in-out
@@ -263,10 +281,12 @@ export default function OrderTrackingHero({
     fetch(`/api/geo/route?from=${origin.lat},${origin.lng}&to=${to.lat},${to.lng}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { points?: [number, number][]; durationSec?: number } | null) => {
-        if (cancelled || !data?.points || data.points.length < 2) return;
+        if (cancelled) return;
+        if (!data?.points || data.points.length < 2) return setRoadFailed(true);
+        setRoadFailed(false);
         setRoad({ points: data.points, sec: data.durationSec ?? 0, target: targetKey });
       })
-      .catch(() => {});
+      .catch(() => !cancelled && setRoadFailed(true));
     return () => {
       cancelled = true;
     };
