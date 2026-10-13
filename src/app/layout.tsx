@@ -29,6 +29,7 @@ import { getCurrentTenant, getMarketSuggestion } from "@/lib/tenant-server";
 import DefaultCountryProvider from "@/components/DefaultCountryProvider";
 import LoginModalProvider from "@/components/LoginModalProvider";
 import DialogProvider from "@/components/ui/Dialogs";
+import MobileBottomSpacer from "@/components/MobileBottomSpacer";
 import { getRequestCountryCode } from "@/lib/get-request-country";
 import { cookies } from "next/headers";
 import { TENANT_COOKIE } from "@/lib/tenant";
@@ -132,6 +133,7 @@ async function AppFrame({ locale, children }: { locale: Locale; children: React.
           <BackBar />
           {children}
         </main>
+        <MobileBottomSpacer />
         <HeaderGate hideOnMobileFullscreen>
           <div className="pb-36 md:pb-0">
             <Footer />
