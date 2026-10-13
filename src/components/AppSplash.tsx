@@ -4,7 +4,7 @@
  * through a city at dusk. The rider stays in the middle and the world moves past it (three layers of buildings at three
  * speeds, street lamps, clouds and the road markings), so it always rides forward. Everything is drawn here as SVG and CSS,
  * so it needs no image download, looks the same on every phone and arrives with the very first bytes of the page.
- * SplashGate (client) fades it out once the app has started. It is skipped for the rest of a browsing session after the first time.
+ * SplashGate (client) fades it out once the app has started. It plays on every launch of the app, but not on a refresh or when returning with Back.
  */
 const CSS = `
 html.no-splash #ft-splash{display:none}
@@ -188,8 +188,8 @@ function Strip({ className, children }: { className: string; children: React.Rea
 export default function AppSplash() {
   return (
     <>
-      {/* Runs before the first paint: a visitor who has already seen the splash this session never sees it again. */}
-      <script dangerouslySetInnerHTML={{ __html: "try{if(sessionStorage.getItem('ft_splash'))document.documentElement.classList.add('no-splash')}catch(e){}" }} />
+      {/* Runs before the first paint: it plays on every launch, but not when the page is only refreshed or returned to with Back. */}
+      <script dangerouslySetInnerHTML={{ __html: "try{var n=performance.getEntriesByType('navigation')[0];if(n&&(n.type==='reload'||n.type==='back_forward'))document.documentElement.classList.add('no-splash')}catch(e){}" }} />
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <noscript>
         <style>{"#ft-splash{display:none}"}</style>

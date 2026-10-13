@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const MIN_SHOW_MS = 800;
+const MIN_SHOW_MS = 2500;
 const GIVE_UP_MS = 9000;
 
 /** Fades the loading screen (see AppSplash) away once the app has started, after it has been visible long enough to look intentional. */
@@ -15,11 +15,6 @@ export default function SplashGate() {
       if (finished) return;
       finished = true;
       el.classList.add("ft-out");
-      try {
-        sessionStorage.setItem("ft_splash", "1");
-      } catch {
-        /* private mode: the splash simply shows again next time */
-      }
       setTimeout(() => el.remove(), 500);
     };
     const wait = Math.max(0, MIN_SHOW_MS - performance.now());
