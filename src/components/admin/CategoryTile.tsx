@@ -79,7 +79,7 @@ export default function CategoryTile({ category, subs, parentOptions, counts }: 
       {open && (
         <Modal open onClose={() => setOpen(false)} size="xl">
           <div className="-m-5 flex flex-col">
-            <div className="flex items-center gap-4 border-b border-neutral-100 bg-gradient-to-r from-brand-50 via-white to-white px-5 py-4">
+            <div className="flex items-center gap-4 border-b border-neutral-100 bg-white px-5 py-4">
               <Look category={category} className="h-16 w-16 rounded-2xl text-4xl" />
               <div className="min-w-0 flex-1">
                 <h2 className="truncate text-lg font-extrabold tracking-tight text-neutral-900">{localizedName(category, locale)}</h2>

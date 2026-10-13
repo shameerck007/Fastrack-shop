@@ -32,7 +32,7 @@ export default function AvailabilityToggle({
       onClick={handleToggle}
       disabled={pending}
       className={`flex items-center gap-2 rounded-full font-medium transition disabled:opacity-60 ${sizeClasses} ${
-        isAvailable ? "bg-brand-500 text-white" : "bg-neutral-200 text-neutral-600"
+        isAvailable ? "bg-emerald-600 text-white" : "bg-neutral-200 text-neutral-700"
       }`}
     >
       <span

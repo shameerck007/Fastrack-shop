@@ -69,14 +69,14 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
     const pctHanded = s.cashCollected > 0 ? Math.min(100, Math.round((s.cashDeposited / s.cashCollected) * 100)) : 100;
     return (
       <div className="flex flex-col gap-4">
-        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 p-5 text-white shadow-lg shadow-brand-900/30">
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/80">💵 Cash in your hand</p>
-          <p className="mt-1 text-4xl font-extrabold tracking-tight">{money(cashInHand)}</p>
-          <p className="mt-2 text-sm text-white/85">{cashInHand > 0 ? "Hand this cash to FasTrack at your next visit." : "No customer cash to hand in right now."}</p>
-          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/20">
-            <div className="h-full rounded-full bg-sky-300" style={{ width: `${pctHanded}%` }} />
+        <div className="overflow-hidden rounded-2xl border border-neutral-200 border-s-4 border-s-brand-600 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">💵 Cash in your hand</p>
+          <p className="mt-1 text-4xl font-extrabold tracking-tight text-neutral-900">{money(cashInHand)}</p>
+          <p className="mt-2 text-sm text-neutral-600">{cashInHand > 0 ? "Hand this cash to FasTrack at your next visit." : "No customer cash to hand in right now."}</p>
+          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-neutral-100">
+            <div className="h-full rounded-full bg-brand-600" style={{ width: `${pctHanded}%` }} />
           </div>
-          <div className="mt-1.5 flex justify-between text-[11px] text-white/75">
+          <div className="mt-1.5 flex justify-between text-[11px] text-neutral-500">
             <span>Handed in {money(s.cashDeposited)}</span>
             <span>Collected {money(s.cashCollected)}</span>
           </div>
@@ -157,14 +157,10 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
   return (
     <div className="flex flex-col gap-4">
       {/* balance */}
-      <div
-        className={`overflow-hidden rounded-3xl p-5 text-white shadow-lg ${
-          owed ? "bg-gradient-to-br from-brand-700 via-brand-600 to-sky-500 shadow-brand-600/25" : "bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 shadow-brand-900/30"
-        }`}
-      >
-        <p className="text-xs font-semibold uppercase tracking-wider text-white/80">{owed ? "FasTrack owes you" : "⚠ You owe FasTrack"}</p>
-        <p className="mt-1 text-4xl font-extrabold tracking-tight">{money(Math.abs(s.balance))}</p>
-        <p className="mt-2 text-sm text-white/85">
+      <div className={`overflow-hidden rounded-2xl border border-s-4 bg-white p-5 shadow-sm ${owed ? "border-emerald-200 border-s-emerald-500" : "border-amber-200 border-s-amber-500"}`}>
+        <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">{owed ? "FasTrack owes you" : "⚠ You owe FasTrack"}</p>
+        <p className={`mt-1 text-4xl font-extrabold tracking-tight ${owed ? "text-neutral-900" : "text-amber-700"}`}>{money(Math.abs(s.balance))}</p>
+        <p className="mt-2 text-sm text-neutral-600">
           {owed
             ? s.balance === 0
               ? "You are all settled up."
@@ -172,13 +168,13 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
             : "You are holding customer cash. Hand it in to FasTrack to clear this."}
         </p>
         <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-          <div className="rounded-2xl bg-white/15 p-3">
-            <p className="text-white/75">Total earned</p>
-            <p className="text-lg font-extrabold">{money(s.earned)}</p>
+          <div className="rounded-2xl bg-neutral-50 p-3">
+            <p className="text-neutral-500">Total earned</p>
+            <p className="text-lg font-extrabold text-neutral-900">{money(s.earned)}</p>
           </div>
-          <div className="rounded-2xl bg-white/15 p-3">
-            <p className="text-white/75">Paid to you</p>
-            <p className="text-lg font-extrabold">{money(s.paidOut)}</p>
+          <div className="rounded-2xl bg-neutral-50 p-3">
+            <p className="text-neutral-500">Paid to you</p>
+            <p className="text-lg font-extrabold text-neutral-900">{money(s.paidOut)}</p>
           </div>
         </div>
       </div>

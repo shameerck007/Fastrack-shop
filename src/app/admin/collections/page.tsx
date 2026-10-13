@@ -51,8 +51,8 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-start gap-3 rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 via-white to-white p-5">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-xl text-white shadow-sm">💵</span>
+      <div className="flex items-start gap-3 border-b border-neutral-200 pb-5">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-xl shadow-sm">💵</span>
         <div>
           <h1 className="text-xl font-semibold text-neutral-900">Collections</h1>
           <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">
@@ -67,12 +67,12 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
         </p>
       ) : (
         <>
-          <div className="flex items-center justify-between gap-3 rounded-2xl bg-brand-950 p-4 text-white">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 border-s-4 border-s-brand-600 bg-white p-4 shadow-sm">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-white/70">Cash still with riders (all time)</p>
-              <p className="text-2xl font-extrabold">{money(cashOutstanding)}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Cash still with riders (all time)</p>
+              <p className="text-2xl font-extrabold text-neutral-900">{money(cashOutstanding)}</p>
             </div>
-            <p className="max-w-[55%] text-end text-xs text-white/70">Collected from customers and not yet handed in to FasTrack.</p>
+            <p className="max-w-[55%] text-end text-xs text-neutral-500">Collected from customers and not yet handed in to FasTrack.</p>
           </div>
 
           <CollectionsPanel rows={rows} mode={mode} basePath="/admin/collections" money={money} heading="All riders" showCharges />

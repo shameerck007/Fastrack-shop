@@ -15,7 +15,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
   const current = (markets.find((m) => m.country_code.toLowerCase() === last) ?? markets.find((m) => m.status === "active") ?? markets[0])?.slug ?? "";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-brand-50/70 via-neutral-50 to-neutral-50">
+    <div className="min-h-screen bg-neutral-50">
       <header className="sticky top-0 z-30 border-b border-neutral-200/70 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
           <Link href="/platform" className="flex shrink-0 items-center gap-2">

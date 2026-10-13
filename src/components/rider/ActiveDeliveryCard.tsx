@@ -18,9 +18,9 @@ export default function ActiveDeliveryCard({
 }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-brand-200 bg-white shadow-lg shadow-brand-600/10">
-      <div className="flex items-center justify-between bg-gradient-to-r from-brand-700 to-brand-500 px-4 py-3 text-white">
-        <h2 className="flex items-center gap-2 text-sm font-bold"><span className="h-2 w-2 animate-pulse rounded-full bg-white" />{t("rider.active_delivery")}</h2>
-        {!hideEarnings && <span className="rounded-full bg-white/20 px-3 py-0.5 text-sm font-extrabold">{money(delivery.delivery_fee)}</span>}
+      <div className="flex items-center justify-between border-b border-neutral-100 bg-brand-50 px-4 py-3 text-brand-950">
+        <h2 className="flex items-center gap-2 text-sm font-bold"><span className="h-2 w-2 animate-pulse rounded-full bg-brand-600" />{t("rider.active_delivery")}</h2>
+        {!hideEarnings && <span className="rounded-full bg-white px-3 py-0.5 text-sm font-extrabold text-brand-700 ring-1 ring-brand-100">{money(delivery.delivery_fee)}</span>}
       </div>
 
       <div className="px-4 pt-4">

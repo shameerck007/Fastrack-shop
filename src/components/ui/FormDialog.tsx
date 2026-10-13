@@ -54,7 +54,7 @@ export default function FormDialog({
           save();
         }}
       >
-        <div className="flex items-center gap-3 border-b border-neutral-100 bg-gradient-to-r from-brand-50 via-white to-white px-5 py-4">
+        <div className="flex items-center gap-3 border-b border-neutral-100 bg-white px-5 py-4">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-lg shadow-sm ring-1 ring-neutral-200">{icon}</span>
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-base font-extrabold tracking-tight text-neutral-900">{title}</h2>

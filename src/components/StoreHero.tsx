@@ -26,7 +26,7 @@ export default function StoreHero({ store }: { store: StoreInfo }) {
 
   return (
     <section className="bg-neutral-50 pb-2">
-      <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 sm:h-60">
+      <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-neutral-200 via-neutral-100 to-neutral-200 sm:h-60">
         <StoreCover store={store} emojiSize={88} />
         <span aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
       </div>

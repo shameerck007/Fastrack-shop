@@ -70,7 +70,7 @@ export default function StoreProfileForm({
   return (
     <>
       <section className={`overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm ${storeId ? "" : "mt-6"}`}>
-        <div className="relative h-24 bg-gradient-to-r from-brand-100 via-indigo-50 to-sky-100">
+        <div className="relative h-24 bg-neutral-100">
           {p.coverUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={p.coverUrl} alt="" className="h-full w-full object-cover" />

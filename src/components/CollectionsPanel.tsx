@@ -6,15 +6,15 @@ function Card({ icon, label, value, hint, tone }: { icon: string; label: string;
   return (
     <div
       className={`rounded-2xl p-4 shadow-sm ${
-        tone === "dark" ? "bg-gradient-to-br from-brand-700 to-sky-500 text-white shadow-brand-600/20" : "border border-neutral-200 bg-white"
+        tone === "dark" ? "border border-neutral-200 border-s-4 border-s-brand-600 bg-white" : "border border-neutral-200 bg-white"
       }`}
     >
       <div className="flex items-center gap-2">
-        <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-base ${tone === "dark" ? "bg-white/20" : "bg-brand-50"}`}>{icon}</span>
-        <p className={`text-xs font-semibold ${tone === "dark" ? "text-white/80" : "text-neutral-500"}`}>{label}</p>
+        <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-base bg-brand-50`}>{icon}</span>
+        <p className={`text-xs font-semibold text-neutral-500`}>{label}</p>
       </div>
-      <p className={`mt-2 truncate text-2xl font-extrabold leading-tight ${tone === "dark" ? "" : "text-neutral-900"}`}>{value}</p>
-      {hint && <p className={`mt-0.5 text-[11px] ${tone === "dark" ? "text-white/75" : "text-neutral-500"}`}>{hint}</p>}
+      <p className={`mt-2 truncate text-2xl font-extrabold leading-tight text-neutral-900`}>{value}</p>
+      {hint && <p className={`mt-0.5 text-[11px] text-neutral-500`}>{hint}</p>}
     </div>
   );
 }

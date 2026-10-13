@@ -385,18 +385,18 @@ export default function OrderTrackingHero({
         </div>
 
         {etaMinutes != null && !done && (
-          <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-600 to-indigo-600 p-4 text-white shadow-lg shadow-brand-700/20">
+          <div className="mt-4 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 p-4 text-neutral-900 shadow-sm">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-brand-100">{t("tracking.eta_label")}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-brand-700">{t("tracking.eta_label")}</p>
                 <p className="mt-0.5 flex items-baseline gap-1.5 leading-none">
                   <span className="font-mono text-5xl font-extrabold tabular-nums">{etaMinutes}</span>
-                  <span className="text-lg font-bold text-brand-100">min</span>
+                  <span className="text-lg font-bold text-brand-700">min</span>
                 </p>
               </div>
               <div className="text-end">
                 {arrival && <p className="text-lg font-extrabold">{arrival}</p>}
-                <span className={`mt-1 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${lateBy > 0 ? "bg-amber-400 text-amber-950" : "bg-white/20 text-white"}`}>
+                <span className={`mt-1 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${lateBy > 0 ? "bg-amber-100 text-amber-900" : "bg-white text-emerald-700 ring-1 ring-emerald-200"}`}>
                   <span aria-hidden>{lateBy > 0 ? "⏳" : "✓"}</span>
                   {lateBy > 0 ? t("tracking.running_late", { min: lateBy }) : t("tracking.on_time")}
                 </span>
@@ -404,13 +404,13 @@ export default function OrderTrackingHero({
             </div>
 
             {stops > 1 && (
-              <p className="mt-3 rounded-xl bg-white/15 px-3 py-1.5 text-xs font-semibold text-white">🛵 {t("tracking.stops_before", { count: stops - 1, plural: stops - 1 === 1 ? "" : "s" })}</p>
+              <p className="mt-3 rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-neutral-800 ring-1 ring-brand-100">🛵 {t("tracking.stops_before", { count: stops - 1, plural: stops - 1 === 1 ? "" : "s" })}</p>
             )}
 
             <div className="mt-5">
               <div className="relative h-10">
-                <div className="absolute inset-x-3 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white/25" />
-                <div className="absolute start-3 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white transition-[width] duration-[1500ms] ease-out" style={{ width: `calc((100% - 1.5rem) * ${journey.pos / 100})` }} />
+                <div className="absolute inset-x-3 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand-200" />
+                <div className="absolute start-3 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand-600 transition-[width] duration-[1500ms] ease-out" style={{ width: `calc((100% - 1.5rem) * ${journey.pos / 100})` }} />
                 <span className="absolute top-1/2 -translate-y-1/2 text-lg" style={{ insetInlineStart: "calc(25% + 0.25rem)" }} aria-hidden>🏪</span>
                 <span className="absolute end-0 top-1/2 -translate-y-1/2 text-lg" aria-hidden>🏠</span>
                 <span
@@ -418,10 +418,10 @@ export default function OrderTrackingHero({
                   style={{ left: `calc(0.75rem + (100% - 1.5rem) * ${journey.pos / 100})` }}
                   aria-hidden
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-4 ring-white/30">🛵</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-4 ring-brand-200">🛵</span>
                 </span>
               </div>
-              <div className="mt-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-brand-100">
+              <div className="mt-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-brand-700">
                 <span>{t("tracking.stage_rider")}</span>
                 <span>{journey.kmAway != null ? t("tracking.km_away", { km: journey.kmAway.toFixed(1) }) : ""}</span>
                 <span>{t("tracking.stage_you")}</span>

@@ -67,9 +67,9 @@ export default async function AdminMerchantsPage() {
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 via-white to-white p-5">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 border-b border-neutral-200 pb-5">
         <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-xl text-white shadow-sm">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-xl shadow-sm">
             🏪
           </span>
           <div>

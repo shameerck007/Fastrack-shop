@@ -92,17 +92,13 @@ export default async function AccountPage() {
           .map((w: string) => w[0]?.toUpperCase())
           .join("");
         return (
-          <div className="relative mb-5 overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-600 to-sky-500 p-5 text-white shadow-lg shadow-brand-700/20">
-            <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
-            <span aria-hidden className="pointer-events-none absolute -bottom-12 right-16 h-32 w-32 rounded-full bg-white/10" />
-            <div className="relative flex items-center gap-4">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/20 text-2xl font-extrabold ring-2 ring-white/40 backdrop-blur">{initials || "👤"}</span>
-              <div className="min-w-0">
-                <p className="truncate text-xl font-extrabold leading-tight">{name}</p>
-                <p className="truncate text-sm text-white/85">{user.email}</p>
-                {profile?.phone && <p className="truncate text-xs text-white/75">📞 {profile.phone}</p>}
-                {roleLabel && <span className="mt-1.5 inline-block rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold">{roleLabel}</span>}
-              </div>
+          <div className="mb-5 flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-50 text-2xl font-extrabold text-brand-700 ring-1 ring-brand-100">{initials || "👤"}</span>
+            <div className="min-w-0">
+              <p className="truncate text-xl font-extrabold leading-tight text-neutral-900">{name}</p>
+              <p className="truncate text-sm text-neutral-600">{user.email}</p>
+              {profile?.phone && <p className="truncate text-xs text-neutral-500">📞 {profile.phone}</p>}
+              {roleLabel && <span className="mt-1.5 inline-block rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-bold text-neutral-700">{roleLabel}</span>}
             </div>
           </div>
         );

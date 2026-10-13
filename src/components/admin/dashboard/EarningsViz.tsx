@@ -313,12 +313,12 @@ export function OrderBullets({ rows, result, resultPrev }: { rows: BulletRow[]; 
           </div>
         );
       })}
-      <div className="mt-1 rounded-2xl bg-gradient-to-r from-brand-700 to-indigo-600 px-4 py-3 text-white shadow-lg shadow-brand-700/20">
+      <div className="mt-1 rounded-2xl border border-neutral-200 border-s-4 border-s-brand-600 bg-white px-4 py-3 text-neutral-900 shadow-sm">
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-sm font-bold">What one order leaves</span>
           <span className="text-xl font-extrabold tabular-nums">{money(result)}</span>
         </div>
-        {resultPrev !== undefined && <p className="mt-0.5 text-[11px] text-brand-100">Previous period {money(resultPrev)}</p>}
+        {resultPrev !== undefined && <p className="mt-0.5 text-[11px] text-neutral-500">Previous period {money(resultPrev)}</p>}
       </div>
       <p className="-mt-2 text-[11px] text-neutral-500">The white marker is the previous period.</p>
     </div>

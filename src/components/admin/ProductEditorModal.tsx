@@ -169,7 +169,7 @@ export default function ProductEditorModal({
     <Modal open onClose={onClose} size="xl">
       <div className="-m-5 flex flex-col">
         {/* header */}
-        <div className="flex items-center gap-4 border-b border-neutral-100 bg-gradient-to-r from-brand-50 via-white to-white px-5 py-4">
+        <div className="flex items-center gap-4 border-b border-neutral-100 bg-white px-5 py-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200">
             {imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element

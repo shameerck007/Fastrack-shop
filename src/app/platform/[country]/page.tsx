@@ -82,7 +82,7 @@ function MarketPanel({ m, sales, status, suppliers }: { m: MarketSummary; sales:
 
   return (
     <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 bg-gradient-to-r from-brand-50 to-white px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 bg-white px-5 py-4">
         <div className="flex items-center gap-3">
           <Flag code={country.code} className="h-8 w-11" />
           <div>

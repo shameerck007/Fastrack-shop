@@ -65,11 +65,11 @@ export default function ExpressOfferCard({ offer, salaryOnly = false }: { offer:
 
   return (
     <div className="overflow-hidden rounded-3xl border border-brand-200 bg-white shadow-xl shadow-brand-600/15">
-      <div className="flex items-center justify-between bg-gradient-to-r from-brand-700 to-sky-500 px-4 py-3 text-white">
+      <div className="flex items-center justify-between bg-amber-50 px-4 py-3 text-amber-950">
         <p className="flex items-center gap-2 text-sm font-extrabold">
-          <span className="h-2 w-2 animate-ping rounded-full bg-white" /> New Express order
+          <span className="h-2 w-2 animate-ping rounded-full bg-amber-500" /> New Express order
         </p>
-        <span className="flex h-9 min-w-9 items-center justify-center rounded-full bg-white/20 px-2 text-base font-extrabold tabular-nums">{left}s</span>
+        <span className="flex h-9 min-w-9 items-center justify-center rounded-full bg-white px-2 text-base font-extrabold tabular-nums text-amber-800 ring-1 ring-amber-200">{left}s</span>
       </div>
       <div className="h-1 bg-brand-100">
         <div className="h-full bg-brand-600 transition-all duration-500" style={{ width: `${pct}%` }} />

@@ -56,28 +56,28 @@ export default async function RiderHomePage() {
   return (
     <div className="flex flex-col gap-4">
       {/* status bar */}
-      <div className={`rounded-3xl p-4 text-white shadow-lg ${online ? "bg-gradient-to-br from-brand-700 to-sky-500 shadow-brand-600/20" : "bg-gradient-to-br from-neutral-700 to-neutral-500 shadow-neutral-600/20"}`}>
+      <div className={`rounded-2xl border border-s-4 bg-white p-4 shadow-sm ${online ? "border-emerald-200 border-s-emerald-500" : "border-neutral-200 border-s-neutral-300"}`}>
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-lg font-extrabold">Hi, {firstName} 👋</p>
-            <p className="text-xs text-white/80">{online ? "You are online and getting orders" : "You are offline. Go online to get orders"}</p>
+            <p className="truncate text-lg font-extrabold text-neutral-900">Hi, {firstName} 👋</p>
+            <p className="text-xs text-neutral-600">{online ? "You are online and getting orders" : "You are offline. Go online to get orders"}</p>
           </div>
           <AvailabilityToggle isAvailable={online} size="lg" />
         </div>
-        <Link href="/rider/earnings" className="mt-3 flex items-center justify-between rounded-2xl bg-white/15 px-3 py-2.5 text-sm active:scale-[0.99]">
+        <Link href="/rider/earnings" className="mt-3 flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5 text-sm text-neutral-900 ring-1 ring-neutral-200 active:scale-[0.99]">
           <span className="flex items-center gap-4">
             {!payProfile.hideEarnings && (
               <span>
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-white/70">Today</span>
+                <span className="block text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Today</span>
                 <span className="font-extrabold">{money(todayStats.earnings)}</span>
               </span>
             )}
             <span>
-              <span className="block text-[10px] font-semibold uppercase tracking-wide text-white/70">Deliveries</span>
+              <span className="block text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Deliveries</span>
               <span className="font-extrabold">{todayStats.deliveries}</span>
             </span>
           </span>
-          <span className="text-xs font-bold">{payProfile.hideEarnings ? "My cash →" : "Earnings →"}</span>
+          <span className="text-xs font-bold text-brand-700">{payProfile.hideEarnings ? "My cash →" : "Earnings →"}</span>
         </Link>
       </div>
 
@@ -86,11 +86,11 @@ export default async function RiderHomePage() {
 
       {activeRoute && activeRoute.stops.some((x) => x.status !== "delivered" && x.status !== "cancelled") && (
         <Link href={`/rider/routes/${activeRoute.id}`} className="block overflow-hidden rounded-3xl border border-brand-200 bg-white shadow-lg shadow-brand-600/10 active:scale-[0.99]">
-          <div className="flex items-center justify-between bg-gradient-to-r from-brand-700 to-sky-500 px-4 py-3 text-white">
+          <div className="flex items-center justify-between border-b border-neutral-100 bg-brand-50 px-4 py-3 text-brand-950">
             <h2 className="flex items-center gap-2 text-sm font-bold">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-white" /> Your route
+              <span className="h-2 w-2 animate-pulse rounded-full bg-brand-600" /> Your route
             </h2>
-            <span className="rounded-full bg-white/20 px-3 py-0.5 text-sm font-extrabold">
+            <span className="rounded-full bg-white px-3 py-0.5 text-sm font-extrabold text-brand-700 ring-1 ring-brand-100">
               {activeRoute.delivered}/{activeRoute.stops.length}
             </span>
           </div>
