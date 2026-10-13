@@ -3,13 +3,15 @@
 import { failure, friendlyMessage } from "@/lib/errors";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { BANNER_THEMES, cleanBannerLink, type BannerTheme } from "@/lib/home-banners-utils";
+import { AUTO_BANNER_TYPES, BANNER_THEMES, cleanBannerLink, type AutoBannerType, type BannerTheme } from "@/lib/home-banners-utils";
 
-const MISSING = "Home banners need database migration 0108. Run it in the Supabase SQL editor, then try again.";
+const MISSING = "Home banners need database migrations 0108 and 0109. Run them in the Supabase SQL editor, then try again.";
 const missing = (code?: string) => code === "42P01" || code === "42703" || code === "PGRST204" || code === "PGRST205";
 
 export interface BannerInput {
   id?: string;
+  kind: "custom" | "auto";
+  autoType: AutoBannerType | null;
   eyebrow: string;
   title: string;
   titleAr: string;
@@ -37,19 +39,23 @@ const db = async () => (await createClient()) as any;
 
 export async function saveBanner(input: BannerInput): Promise<{ error?: string }> {
   try {
+    const auto = input.kind === "auto";
     const title = input.title.trim();
-    if (!title) return await { error: "Give the banner a title." };
+    if (auto && !AUTO_BANNER_TYPES.some((t) => t.value === input.autoType)) return await { error: "Choose which automatic banner this is." };
+    if (!auto && !title) return await { error: "Give the banner a title." };
     if (!BANNER_THEMES.some((t) => t.value === input.theme)) return await { error: "Choose a colour." };
     const link = cleanBannerLink(input.linkUrl);
     if (link === null) return await { error: "The link must start with / (a page of the shop), # (a place on the home page) or https://." };
     const cta = input.ctaLabel.trim();
-    if (cta && !link) return await { error: "Add a link for the button, or clear the button text." };
+    if (!auto && cta && !link) return await { error: "Add a link for the button, or clear the button text." };
     if (input.startsAt && input.endsAt && new Date(input.endsAt) <= new Date(input.startsAt)) return await { error: "The end is before the start." };
     const photos = input.photos.filter(Boolean).slice(0, 4);
 
     const row = {
+      kind: auto ? "auto" : "custom",
+      auto_type: auto ? input.autoType : null,
       eyebrow: input.eyebrow.trim() || null,
-      title,
+      title: title || null,
       title_ar: input.titleAr.trim() || null,
       subtitle: input.subtitle.trim() || null,
       subtitle_ar: input.subtitleAr.trim() || null,
@@ -57,8 +63,9 @@ export async function saveBanner(input: BannerInput): Promise<{ error?: string }
       cta_label_ar: input.ctaLabelAr.trim() || null,
       link_url: link || null,
       theme: input.theme,
-      image_url: input.imageUrl || null,
-      photos,
+      // An automatic banner keeps the live slide's own colour and photos.
+      image_url: auto ? null : input.imageUrl || null,
+      photos: auto ? [] : photos,
       starts_at: input.startsAt ? new Date(input.startsAt).toISOString() : null,
       ends_at: input.endsAt ? new Date(input.endsAt).toISOString() : null,
       is_active: input.isActive,

@@ -10,7 +10,9 @@ import { Field, inputClass, primaryButton } from "@/components/ui/Form";
 import { useDialogs } from "@/components/ui/Dialogs";
 import { unwrapAction } from "@/lib/errors";
 import { deleteBanner, reorderBanners, saveBanner, setBannerActive } from "@/lib/actions/admin-banners";
-import { BANNER_THEMES, bannerStatus, type BannerRow, type BannerStatus, type BannerTheme } from "@/lib/home-banners-utils";
+import BannerPreview from "@/components/admin/BannerPreview";
+import type { HeroSlide } from "@/components/HomeHero";
+import { AUTO_BANNER_TYPES, BANNER_THEMES, bannerSlide, bannerStatus, type AutoBannerType, type BannerRow, type BannerStatus, type BannerTheme } from "@/lib/home-banners-utils";
 
 const STATUS_LABEL: Record<BannerStatus, string> = { live: "Live", scheduled: "Scheduled", ended: "Ended", off: "Switched off" };
 const STATUS_STYLE: Record<BannerStatus, string> = { live: "bg-emerald-50 text-emerald-700", scheduled: "bg-sky-50 text-sky-700", ended: "bg-neutral-100 text-neutral-500", off: "bg-amber-50 text-amber-700" };
@@ -26,8 +28,12 @@ function toLocalInput(iso: string | null): string {
 const fromLocalInput = (v: string) => (v ? new Date(v).toISOString() : null);
 const dateText = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : null);
 
+type AutoSlides = Record<AutoBannerType, HeroSlide | null>;
+
 interface Draft {
   id?: string;
+  kind: "custom" | "auto";
+  autoType: AutoBannerType | null;
   eyebrow: string;
   title: string;
   titleAr: string;
@@ -43,12 +49,14 @@ interface Draft {
   endsAt: string;
   isActive: boolean;
 }
-const blank: Draft = { eyebrow: "", title: "", titleAr: "", subtitle: "", subtitleAr: "", ctaLabel: "", ctaLabelAr: "", linkUrl: "", theme: "blue", imageUrl: null, photos: [], startsAt: "", endsAt: "", isActive: true };
+const blank: Draft = { kind: "custom", autoType: null, eyebrow: "", title: "", titleAr: "", subtitle: "", subtitleAr: "", ctaLabel: "", ctaLabelAr: "", linkUrl: "", theme: "blue", imageUrl: null, photos: [], startsAt: "", endsAt: "", isActive: true };
 
 const draftOf = (b: BannerRow): Draft => ({
   id: b.id,
+  kind: b.kind,
+  autoType: b.auto_type,
   eyebrow: b.eyebrow ?? "",
-  title: b.title,
+  title: b.title ?? "",
   titleAr: b.title_ar ?? "",
   subtitle: b.subtitle ?? "",
   subtitleAr: b.subtitle_ar ?? "",
@@ -65,7 +73,9 @@ const draftOf = (b: BannerRow): Draft => ({
 
 const ghostButton = "h-8 rounded-full border border-neutral-300 px-3 text-xs font-bold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50";
 
-export default function BannersManager({ banners, disabled }: { banners: BannerRow[]; disabled: boolean }) {
+const autoLabel = (t: AutoBannerType | null) => AUTO_BANNER_TYPES.find((x) => x.value === t)?.label ?? "Automatic";
+
+export default function BannersManager({ banners, autoSlides, disabled }: { banners: BannerRow[]; autoSlides: AutoSlides; disabled: boolean }) {
   const router = useRouter();
   const { confirm: ask } = useDialogs();
   const [editing, setEditing] = useState<Draft | null>(null);
@@ -90,7 +100,7 @@ export default function BannersManager({ banners, disabled }: { banners: BannerR
     act(() => unwrapAction(reorderBanners)(ids), "Order saved.");
   }
 
-  const live = banners.filter((b) => bannerStatus(b) === "live").length;
+  const liveCount = banners.filter((b) => bannerStatus(b) === "live").length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -103,7 +113,7 @@ export default function BannersManager({ banners, disabled }: { banners: BannerR
       <section className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 p-3 sm:p-4">
           <p className="text-sm text-neutral-600">
-            {banners.length === 0 ? "The shop shows its built-in slides." : live > 0 ? <><b>{live}</b> live. Shoppers see these instead of the built-in slides.</> : "None is live right now, so the shop shows its built-in slides."}
+            {banners.length === 0 ? "The shop shows its built-in slides." : liveCount > 0 ? <><b>{liveCount}</b> live. Shoppers see these instead of the built-in slides.</> : "None is live right now, so the shop shows its built-in slides."}
           </p>
           <button type="button" disabled={disabled} onClick={() => setEditing({ ...blank })} className={primaryButton}>
             + New banner
@@ -116,7 +126,9 @@ export default function BannersManager({ banners, disabled }: { banners: BannerR
           <ul className="divide-y divide-neutral-100">
             {banners.map((b, i) => {
               const st = bannerStatus(b);
-              const thumb = b.image_url ?? b.photos?.[0];
+              const liveSlide = b.kind === "auto" && b.auto_type ? autoSlides[b.auto_type] : null;
+              const idle = b.kind === "auto" && !liveSlide;
+              const thumb = b.kind === "auto" ? liveSlide?.images[0]?.src : b.image_url ?? b.photos?.[0];
               return (
                 <li key={b.id} className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:px-4">
                   <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -133,9 +145,11 @@ export default function BannersManager({ banners, disabled }: { banners: BannerR
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-neutral-900">{b.title}</p>
+                      <p className="truncate text-sm font-bold text-neutral-900">{b.title || liveSlide?.title || autoLabel(b.auto_type)}</p>
                       <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-500">
                         <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${STATUS_STYLE[st]}`}>{STATUS_LABEL[st]}</span>
+                        {b.kind === "auto" && <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700">Auto · {autoLabel(b.auto_type)}</span>}
+                        {idle && st === "live" && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">Nothing to show now</span>}
                         <span>{b.starts_at || b.ends_at ? `${dateText(b.starts_at) ?? "now"} → ${dateText(b.ends_at) ?? "no end"}` : "Always"}</span>
                         {b.link_url && <span className="max-w-[12rem] truncate font-mono">{b.link_url}</span>}
                       </p>
@@ -165,6 +179,7 @@ export default function BannersManager({ banners, disabled }: { banners: BannerR
       {editing && (
         <BannerDialog
           draft={editing}
+          autoSlides={autoSlides}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setMessage({ ok: true, text: "Banner saved." });
@@ -176,7 +191,7 @@ export default function BannersManager({ banners, disabled }: { banners: BannerR
   );
 }
 
-function BannerDialog({ draft, onClose, onSaved }: { draft: Draft; onClose: () => void; onSaved: () => void }) {
+function BannerDialog({ draft, autoSlides, onClose, onSaved }: { draft: Draft; autoSlides: AutoSlides; onClose: () => void; onSaved: () => void }) {
   const [d, setD] = useState<Draft>(draft);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
 
@@ -186,20 +201,62 @@ function BannerDialog({ draft, onClose, onSaved }: { draft: Draft; onClose: () =
     onSaved();
   }
 
+  const auto = d.kind === "auto";
+  const base = auto && d.autoType ? autoSlides[d.autoType] : null;
+  // What the shop would show for this draft right now, built with the same code the home page uses.
+  const preview =
+    auto && !base
+      ? null
+      : bannerSlide(
+          { id: "preview", kind: d.kind, auto_type: d.autoType, eyebrow: d.eyebrow, title: d.title, title_ar: null, subtitle: d.subtitle, subtitle_ar: null, cta_label: d.ctaLabel, cta_label_ar: null, link_url: d.linkUrl, theme: d.theme, image_url: d.imageUrl, photos: d.photos, sort_order: 0, starts_at: null, ends_at: null, is_active: true },
+          false,
+          autoSlides,
+        );
+
   return (
-    <FormDialog icon="🖼️" title={d.id ? "Edit banner" : "New banner"} subtitle="A slide on the shop home page" saveLabel={d.id ? "Save changes" : "Add banner"} onClose={onClose} onSave={save}>
-      <DialogSection title="Text">
-        <Field label="Title" required className="sm:col-span-2">
-          <input value={d.title} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Fresh vegetables, delivered today" className={inputClass} />
+    <FormDialog size="xl" icon="🖼️" title={d.id ? "Edit banner" : "New banner"} subtitle="A slide on the shop home page" saveLabel={d.id ? "Save changes" : "Add banner"} onClose={onClose} onSave={save}>
+      <DialogSection title="Preview" hint="How the slide looks on a phone and on a computer. It updates as you type." cols={1}>
+        <BannerPreview slide={preview} />
+      </DialogSection>
+
+      <DialogSection title="Type" cols={1}>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {[
+            { kind: "custom" as const, title: "Custom", hint: "Your own text, colour and pictures." },
+            { kind: "auto" as const, title: "Automatic", hint: "Built from live shop data, so it stays up to date." },
+          ].map((o) => (
+            <button key={o.kind} type="button" onClick={() => set("kind", o.kind)} className={`rounded-xl border p-3 text-start transition ${d.kind === o.kind ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300"}`}>
+              <span className="block text-sm font-bold text-neutral-900">{o.title}</span>
+              <span className="block text-xs text-neutral-500">{o.hint}</span>
+            </button>
+          ))}
+        </div>
+        {auto && (
+          <Field label="Automatic banner" required hint={AUTO_BANNER_TYPES.find((x) => x.value === d.autoType)?.hint ?? "Photos, title and numbers come from the live shop. Anything you fill in below replaces the automatic wording."}>
+            <Select value={d.autoType ?? ""} onChange={(e) => set("autoType", (e.target.value || null) as AutoBannerType | null)} className="w-full">
+              <option value="">Choose…</option>
+              {AUTO_BANNER_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
+      </DialogSection>
+
+      <DialogSection title={auto ? "Wording" : "Text"} hint={auto ? "Leave a field empty to use the automatic wording." : undefined}>
+        <Field label="Title" required={!auto} className="sm:col-span-2">
+          <input value={d.title} onChange={(e) => set("title", e.target.value)} placeholder={base?.title ?? "e.g. Fresh vegetables, delivered today"} className={inputClass} />
         </Field>
         <Field label="Title in Arabic" className="sm:col-span-2">
-          <ArabicInput english={d.title} value={d.titleAr} onChange={(v) => set("titleAr", v)} className={inputClass} compact />
+          <ArabicInput english={d.title || base?.title || ""} value={d.titleAr} onChange={(v) => set("titleAr", v)} className={inputClass} compact />
         </Field>
         <Field label="Small line above the title" hint="Optional, for example a season or a promotion name." className="sm:col-span-2">
-          <input value={d.eyebrow} onChange={(e) => set("eyebrow", e.target.value)} className={inputClass} />
+          <input value={d.eyebrow} onChange={(e) => set("eyebrow", e.target.value)} placeholder={base?.eyebrow} className={inputClass} />
         </Field>
         <Field label="Subtitle" hint="Shown on larger screens.">
-          <input value={d.subtitle} onChange={(e) => set("subtitle", e.target.value)} className={inputClass} />
+          <input value={d.subtitle} onChange={(e) => set("subtitle", e.target.value)} placeholder={base?.subtitle} className={inputClass} />
         </Field>
         <Field label="Subtitle in Arabic">
           <ArabicInput english={d.subtitle} value={d.subtitleAr} onChange={(v) => set("subtitleAr", v)} className={inputClass} compact />
@@ -208,16 +265,17 @@ function BannerDialog({ draft, onClose, onSaved }: { draft: Draft; onClose: () =
 
       <DialogSection title="Button" hint="Leave the button text empty for a banner without a button.">
         <Field label="Button text">
-          <input value={d.ctaLabel} onChange={(e) => set("ctaLabel", e.target.value)} placeholder="Shop now" className={inputClass} />
+          <input value={d.ctaLabel} onChange={(e) => set("ctaLabel", e.target.value)} placeholder={base?.cta ?? "Shop now"} className={inputClass} />
         </Field>
         <Field label="Button text in Arabic">
           <ArabicInput english={d.ctaLabel} value={d.ctaLabelAr} onChange={(v) => set("ctaLabelAr", v)} className={inputClass} compact />
         </Field>
         <Field label="Link" hint="A page like /categories/dairy, a place on the home page like #offers, or a full https:// address." className="sm:col-span-2">
-          <input value={d.linkUrl} onChange={(e) => set("linkUrl", e.target.value)} placeholder="#offers" className={inputClass} />
+          <input value={d.linkUrl} onChange={(e) => set("linkUrl", e.target.value)} placeholder={base?.href ?? "#offers"} className={inputClass} />
         </Field>
       </DialogSection>
 
+      {!auto && (
       <DialogSection title="Look" hint="Use one picture over the whole banner, or a few small photos beside the text. Both can be left empty.">
         <Field label="Colour">
           <Select value={d.theme} onChange={(e) => set("theme", e.target.value as BannerTheme)} className="w-full">
@@ -240,6 +298,7 @@ function BannerDialog({ draft, onClose, onSaved }: { draft: Draft; onClose: () =
           </div>
         </Field>
       </DialogSection>
+      )}
 
       <DialogSection title="Schedule" hint="Leave both empty to show it whenever it is switched on.">
         <Field label="Starts">

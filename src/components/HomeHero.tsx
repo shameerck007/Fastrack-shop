@@ -64,7 +64,7 @@ function Collage({ images, art }: { images: HeroImage[]; art?: string }) {
   );
 }
 
-function Slide({ s, active }: { s: HeroSlide; active: boolean }) {
+export function Slide({ s, active }: { s: HeroSlide; active: boolean }) {
   const th = THEME[s.theme];
   return (
     <div className={`relative min-h-[236px] w-full shrink-0 snap-center overflow-hidden bg-gradient-to-br ${th.bg} px-4 pb-10 pt-5 sm:min-h-[300px] sm:px-10 sm:py-10`} aria-hidden={!active}>
