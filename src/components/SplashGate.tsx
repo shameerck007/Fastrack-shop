@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const MIN_SHOW_MS = 2500;
+const MIN_SHOW_MS = 4000;
 const GIVE_UP_MS = 9000;
 
 /** Fades the loading screen (see AppSplash) away once the app has started, after it has been visible long enough to look intentional. */
