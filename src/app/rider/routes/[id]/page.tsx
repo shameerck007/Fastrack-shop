@@ -1,3 +1,4 @@
+import { CrumbLabel } from "@/components/PortalBreadcrumbs";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
 import { getRouteForRider } from "@/lib/routes";
@@ -35,12 +36,10 @@ export default async function RiderRoutePage({ params }: { params: Promise<{ id:
 
   return (
     <div className="flex flex-col gap-4 pb-8">
+      <CrumbLabel label={`Route · ${route.areaLabel}`} />
       {!finished && <OffersPoller everySeconds={15} />}
       <div>
-        <Link href="/rider" className="text-sm font-semibold text-brand-700">
-          ← Back
-        </Link>
-        <h1 className="mt-1 text-xl font-extrabold tracking-tight">Route · {route.areaLabel}</h1>
+        <h1 className="text-xl font-extrabold tracking-tight">Route · {route.areaLabel}</h1>
         <p className="text-sm text-neutral-500">
           {route.delivered} of {route.stops.length} delivered
         </p>

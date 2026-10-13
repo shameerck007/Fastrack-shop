@@ -39,7 +39,7 @@ export default function PortalHeader({
 
         <div className="ms-auto flex shrink-0 items-center gap-2 text-sm sm:gap-3">
           <Link href="/api/enter-shop" prefetch={false} className="flex h-10 items-center gap-1.5 rounded-full px-3 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900">
-            <span aria-hidden className="rtl:-scale-x-100">←</span>
+            <span aria-hidden>🛍️</span>
             <span className="hidden md:inline">{backLabel}</span>
           </Link>
           {/* On a phone the language switch lives on the Account page, so the bar stays on one line. */}

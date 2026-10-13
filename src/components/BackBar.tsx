@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
 import { hasOwnMobileTopBar, isFullscreenMobileRoute } from "@/lib/mobile-fullscreen";
 import { nav, smartBack } from "@/lib/nav-history";
+import AutoBreadcrumbs from "@/components/AutoBreadcrumbs";
 
 // Portal sections (merchant/admin/rider) have their own chrome — a header
 // with a single explicit "Back to shop" exit and a sidebar nav — so this
@@ -27,11 +28,11 @@ function titleKeyFor(pathname: string): string | null {
   return TITLE_KEYS.find(([p]) => pathname === p || pathname.startsWith(p + "/"))?.[1] ?? null;
 }
 
-// Lives in the root layout so every page — for every role, and any page
-// added later — gets a Back control without doing anything itself.
+// Lives in the root layout so every page gets its navigation without doing anything itself.
 //
-// Desktop: the plain "← Back" strip. Phones: a Keeta-style slim title bar
-// with a round back button (product/category pages draw their own).
+// Desktop: breadcrumbs (Home / Your account / ...) instead of a "Back" strip. Phones: a Keeta-style slim title bar
+// with a round back button on the full-screen pages (product/category pages draw their own), because an installed
+// phone app has no browser back button.
 export default function BackBar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -94,18 +95,7 @@ export default function BackBar() {
         </div>
       )}
 
-      <div className={`border-b border-neutral-200 bg-white ${fullscreen ? "hidden md:block" : ""}`}>
-        <div className="mx-auto flex max-w-6xl items-center px-2 py-1">
-          <button
-            type="button"
-            onClick={goBack}
-            aria-label={t("common.back")}
-            className="flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200"
-          >
-            <span aria-hidden className="text-lg leading-none rtl:-scale-x-100">←</span> {t("common.back")}
-          </button>
-        </div>
-      </div>
+      <AutoBreadcrumbs pathname={pathname} desktopOnly={fullscreen} />
     </>
   );
 }

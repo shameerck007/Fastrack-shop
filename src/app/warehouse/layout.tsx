@@ -1,3 +1,4 @@
+import PortalBreadcrumbs from "@/components/PortalBreadcrumbs";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { getMyStaffWarehouse } from "@/lib/warehouse-staff";
@@ -30,7 +31,7 @@ export default async function WarehouseLayout({ children }: { children: React.Re
         <aside className="w-48 shrink-0 md:sticky md:top-[4.25rem] md:max-h-[calc(100dvh-5rem)] md:self-start md:overflow-y-auto">
           <WarehouseNav />
         </aside>
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1"><PortalBreadcrumbs portal="warehouse">{children}</PortalBreadcrumbs></div>
       </div>
     </div>
   );

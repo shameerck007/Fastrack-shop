@@ -1,3 +1,4 @@
+import { CrumbLabel } from "@/components/PortalBreadcrumbs";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -109,9 +110,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
 
   return (
     <div>
-      <Link href="/admin/users?role=rider" className="text-sm text-brand-600 hover:underline">
-        {t("rider_detail.all_riders")}
-      </Link>
+      <CrumbLabel label={name} />
 
       {/* header */}
       <div className="mb-4 mt-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">

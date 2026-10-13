@@ -1,4 +1,4 @@
-import Link from "@/components/Link";
+import { CrumbLabel } from "@/components/PortalBreadcrumbs";
 import { checkSaudiIban, formatIban } from "@/lib/iban";
 import { checkBankDetails } from "@/lib/saudi-banks";
 import { notFound } from "next/navigation";
@@ -92,9 +92,7 @@ export default async function AdminMerchantDetailPage({
 
   return (
     <div>
-      <Link href="/admin/merchants" className="text-sm text-brand-600 hover:underline">
-        {t("merchant_detail.all_merchants")}
-      </Link>
+      <CrumbLabel label={store.name} />
 
       <div className="mb-4 mt-2 flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">

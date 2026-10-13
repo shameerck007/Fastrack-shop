@@ -1,3 +1,4 @@
+import { CrumbLabel } from "@/components/PortalBreadcrumbs";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -26,10 +27,8 @@ export default async function AdminSettlementDetailPage({ params }: { params: Pr
 
   return (
     <div>
+      <CrumbLabel label={store.name} />
       <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-        <Link href="/admin/settlements" className="text-brand-600 hover:underline">
-          ← All suppliers
-        </Link>
         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[store.status] ?? "bg-neutral-100"}`}>{store.status}</span>
         {store.city && <span className="text-neutral-500">{store.city}</span>}
         <Link href="/admin/commission" className="text-neutral-500 hover:text-brand-600 hover:underline">

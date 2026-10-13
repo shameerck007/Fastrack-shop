@@ -1,3 +1,4 @@
+import PortalBreadcrumbs from "@/components/PortalBreadcrumbs";
 import Link from "@/components/Link";
 import { requireRole } from "@/lib/auth";
 import { signOut } from "@/lib/actions/auth";
@@ -29,7 +30,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
               <span className="sm:hidden">Admin</span>
             </Link>
             <Link href="/api/enter-shop" prefetch={false} className="flex items-center gap-1 text-neutral-500 hover:text-neutral-900">
-              <span className="rtl:-scale-x-100">←</span> <span className="hidden sm:inline">Back to shop</span>
+              <span aria-hidden>🛍️</span> <span className="hidden sm:inline">Customer shop</span>
             </Link>
             <span className="hidden rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 lg:inline">● {profile.full_name ?? "Platform owner"}</span>
             <form action={signOut}>
@@ -43,7 +44,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
         <aside className="shrink-0 md:sticky md:top-20 md:w-60 md:self-start">
           <PlatformNav />
         </aside>
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1"><PortalBreadcrumbs portal="platform">{children}</PortalBreadcrumbs></div>
       </div>
     </div>
   );

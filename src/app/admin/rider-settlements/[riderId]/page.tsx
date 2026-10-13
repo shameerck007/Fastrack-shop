@@ -1,3 +1,4 @@
+import { CrumbLabel } from "@/components/PortalBreadcrumbs";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -54,11 +55,8 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
 
   return (
     <div>
-      <Link href="/admin/rider-settlements" className="text-sm text-brand-600 hover:underline">
-        ← Rider settlements
-      </Link>
-
-      <div className="mb-5 mt-2 flex flex-wrap items-start justify-between gap-3">
+      <CrumbLabel label={profile?.full_name ?? "Rider"} />
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">{profile?.full_name ?? "Rider"}</h1>
           <p className="text-sm text-neutral-500">

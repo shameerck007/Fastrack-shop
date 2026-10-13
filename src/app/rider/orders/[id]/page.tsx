@@ -1,3 +1,4 @@
+import { CrumbLabel } from "@/components/PortalBreadcrumbs";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getRiderPayProfile } from "@/lib/rider";
@@ -107,6 +108,7 @@ export default async function RiderOrderPage({
 
   return (
     <div className="pb-8">
+      <CrumbLabel label={`#${order.order_number}`} />
       {isTrackable && <RiderLocationTracker />}
 
       {/* summary */}

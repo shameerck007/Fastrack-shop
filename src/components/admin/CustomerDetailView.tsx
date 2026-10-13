@@ -1,3 +1,4 @@
+import { CrumbLabel } from "@/components/PortalBreadcrumbs";
 import Link from "@/components/Link";
 import { getCustomerDetail } from "@/lib/admin-customers";
 import { moneyFor } from "@/lib/money";
@@ -50,10 +51,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href={backHref} className="text-xs font-bold text-brand-700 hover:underline lg:hidden">
-        ← All customers
-      </Link>
-
+      <CrumbLabel label={name} />
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3.5 shadow-sm">
         <div className="flex min-w-0 items-center gap-3.5">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xl font-extrabold text-white ring-4 ring-brand-50">{name.trim().charAt(0).toUpperCase()}</span>

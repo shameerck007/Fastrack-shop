@@ -1,3 +1,4 @@
+import { CrumbLabel } from "@/components/PortalBreadcrumbs";
 import { unwrapAction } from "@/lib/errors";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
@@ -79,9 +80,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
 
   return (
     <div>
-      <Link href="/admin/store" className="text-sm text-brand-600 hover:underline">
-        {t("fastrack_stores.all_stores")}
-      </Link>
+      <CrumbLabel label={w.name} />
 
       <div className="mb-4 mt-2 flex flex-wrap items-start justify-between gap-3">
         <div>

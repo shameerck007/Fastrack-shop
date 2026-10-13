@@ -1,4 +1,4 @@
-import Link from "@/components/Link";
+import { CrumbLabel } from "@/components/PortalBreadcrumbs";
 import { notFound } from "next/navigation";
 import OrderStatusSelect from "@/components/admin/OrderStatusSelect";
 import DownloadInvoiceButton from "@/components/DownloadInvoiceButton";
@@ -96,9 +96,7 @@ export default async function AdminOrderDetailPage({
 
   return (
     <div>
-      <Link href="/admin/orders" className="text-sm text-brand-600 hover:underline">
-        {t("admin.all_orders")}
-      </Link>
+      <CrumbLabel label={`#${order.order_number}`} />
 
       <div className="mb-4 mt-2 flex flex-wrap items-start justify-between gap-3">
         <div>

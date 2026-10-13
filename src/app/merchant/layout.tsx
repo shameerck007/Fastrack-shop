@@ -1,3 +1,4 @@
+import PortalBreadcrumbs from "@/components/PortalBreadcrumbs";
 import { requireRole } from "@/lib/auth";
 import { getMyStore } from "@/lib/merchant";
 import MerchantNav from "@/components/merchant/MerchantNav";
@@ -28,7 +29,7 @@ export default async function MerchantLayout({ children }: { children: React.Rea
         <aside className="shrink-0 md:sticky md:top-[4.25rem] md:max-h-[calc(100dvh-5rem)] md:w-52 md:self-start md:overflow-y-auto">
           <MerchantNav />
         </aside>
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1"><PortalBreadcrumbs portal="merchant">{children}</PortalBreadcrumbs></div>
       </div>
     </div>
   );

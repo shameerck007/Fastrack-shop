@@ -1,3 +1,4 @@
+import PortalBreadcrumbs from "@/components/PortalBreadcrumbs";
 import Link from "@/components/Link";
 import { cookies } from "next/headers";
 import { findCountry } from "@/lib/countries";
@@ -46,7 +47,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <aside className="shrink-0 md:sticky md:top-[4.25rem] md:max-h-[calc(100dvh-5rem)] md:w-52 md:self-start md:overflow-y-auto">
           <AdminNav />
         </aside>
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1"><PortalBreadcrumbs portal="admin">{children}</PortalBreadcrumbs></div>
       </div>
     </div>
   );
