@@ -137,8 +137,8 @@ export default async function MerchantDashboardPage() {
         <blockquote className="border-s-4 border-blue-200 ps-4 text-sm italic leading-relaxed text-neutral-600">“{quoteFor(part, clock.dayOfYear, locale)}”</blockquote>
       </section>
 
-      {/* needs attention */}
-      {attention.length > 0 ? (
+      {/* needs attention: only shown when something needs action */}
+      {attention.length > 0 && (
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {attention.map((a) => (
             <Link key={a.text} href={a.href} className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold leading-snug transition hover:shadow-md ${tone[a.tone]}`}>
@@ -147,10 +147,6 @@ export default async function MerchantDashboardPage() {
               <span aria-hidden className="rtl:-scale-x-100">→</span>
             </Link>
           ))}
-        </div>
-      ) : (
-        <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
-          <span className="text-lg" aria-hidden>✅</span> You are all caught up: no orders waiting, nothing running low.
         </div>
       )}
 
