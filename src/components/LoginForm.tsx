@@ -37,7 +37,7 @@ function describePhone(e164: string): string {
 }
 
 function groupDigits(d: string): string {
-  return d.replace(/(\d{2,3})(?=\d)/g, "$1 ").trim();
+  return d.replace(/(\d{3})(?=\d{3,})/g, "$1 ").trim();
 }
 
 function countryCodeOf(e164: string): string {

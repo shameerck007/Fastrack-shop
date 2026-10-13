@@ -55,7 +55,15 @@ const text = (v: unknown, max: number): string | null => {
 };
 const num = (v: unknown): number | null | "bad" => {
   if (v === undefined || v === null || String(v).trim() === "") return null;
-  const n = Number(String(v).replace(/,/g, ""));
+  const raw = String(v).trim().replace(/\s/g, "");
+  // "12,50" is a decimal comma (many regions); "1,250" or "1,250.50" is a thousands comma. Anything else with a comma is refused rather than guessed.
+  let normalized = raw;
+  if (raw.includes(",")) {
+    if (/^\d+,\d{1,2}$/.test(raw)) normalized = raw.replace(",", ".");
+    else if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(raw)) normalized = raw.replace(/,/g, "");
+    else return "bad";
+  }
+  const n = Number(normalized);
   return Number.isFinite(n) ? n : "bad";
 };
 const bool = (v: unknown): boolean | null => {
