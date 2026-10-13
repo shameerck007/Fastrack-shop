@@ -10,6 +10,7 @@ import { etaMinutes as estimateMinutes } from "@/lib/eta";
 import { useLocale } from "@/components/LocaleProvider";
 import type { OrderStatus } from "@/types/database";
 import { BRAND } from "@/lib/brand";
+import { riderIconSvg } from "@/lib/rider-icon";
 
 interface Point {
   lat: number;
@@ -52,13 +53,13 @@ function pin(emoji: string, tone: "blue" | "white", pulse = false) {
   );
 }
 
-/** The rider: pulsing ring, blue disc and a scooter that flips to face the way it is travelling. */
+/** The rider: pulsing ring, white disc and the FasTrack rider (drawn facing east) that flips to face the way it is travelling. */
 function riderPin() {
   return (
     `<div style="position:relative;width:44px;height:44px">` +
     `<span style="position:absolute;inset:-8px;border-radius:9999px;background:rgba(0,112,208,.28);animation:ping 1.8s cubic-bezier(0,0,.2,1) infinite"></span>` +
-    `<div style="position:relative;width:44px;height:44px;border-radius:9999px;background:linear-gradient(135deg,#0070d0,#005fb0);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,95,176,.45);border:3px solid #fff">` +
-    `<span class="ft-rider" style="display:inline-block;font-size:22px;line-height:1;transition:transform .35s ease">🛵</span></div>` +
+    `<div style="position:relative;width:44px;height:44px;border-radius:9999px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,95,176,.45);border:3px solid #0070d0">` +
+    `<span class="ft-rider" style="display:inline-block;line-height:0;transition:transform .35s ease">${riderIconSvg(20)}</span></div>` +
     `</div>`
   );
 }
@@ -230,7 +231,7 @@ export default function OrderTrackingHero({
     if (animFrame.current != null) cancelAnimationFrame(animFrame.current);
     const dLng = target.lng - start.lng;
     const face = marker.getElement()?.querySelector<HTMLElement>(".ft-rider");
-    if (face && Math.abs(dLng) > 0.000005) face.style.transform = dLng > 0 ? "scaleX(-1)" : "scaleX(1)";
+    if (face && Math.abs(dLng) > 0.000005) face.style.transform = dLng > 0 ? "scaleX(1)" : "scaleX(-1)";
     const t0 = performance.now();
     const duration = 2200;
     const step = (now: number) => {
@@ -418,7 +419,7 @@ export default function OrderTrackingHero({
                   style={{ left: `calc(0.75rem + (100% - 1.5rem) * ${journey.pos / 100})` }}
                   aria-hidden
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-4 ring-brand-200">🛵</span>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg ring-4 ring-brand-200" dangerouslySetInnerHTML={{ __html: riderIconSvg(22) }} />
                 </span>
               </div>
               <div className="mt-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-brand-700">
