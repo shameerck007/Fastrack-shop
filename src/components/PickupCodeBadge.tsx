@@ -28,15 +28,15 @@ export default function PickupCodeBadge({ orderId, status }: { orderId: string; 
 
   if (code) {
     return (
-      <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-700">Pickup code</p>
-        <p className="text-xl font-extrabold tracking-[0.3em] text-blue-900">{code}</p>
+      <div className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-1.5 text-center">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-brand-700">Pickup code</p>
+        <p className="text-xl font-extrabold tracking-[0.3em] text-brand-900">{code}</p>
       </div>
     );
   }
   return (
     <div className="flex flex-col items-end gap-1">
-      <button type="button" onClick={reveal} disabled={loading} className="rounded-lg border border-blue-300 px-3 py-1.5 text-xs font-bold text-blue-800 transition hover:bg-blue-50 disabled:opacity-50">
+      <button type="button" onClick={reveal} disabled={loading} className="rounded-lg border border-brand-300 px-3 py-1.5 text-xs font-bold text-brand-800 transition hover:bg-brand-50 disabled:opacity-50">
         {loading ? "…" : "🔑 Show pickup code"}
       </button>
       {error && <p className="text-xs text-red-600">{error}</p>}

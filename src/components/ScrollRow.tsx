@@ -71,7 +71,7 @@ export default function ScrollRow({ children, className = "", innerClassName = "
     el.scrollBy({ left: dir * (rtl ? -1 : 1) * el.clientWidth * 0.8, behavior: "smooth" });
   }
 
-  const arrow = "absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-lg font-bold text-neutral-700 shadow-md ring-1 ring-neutral-200 hover:bg-blue-50 md:flex";
+  const arrow = "absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-lg font-bold text-neutral-700 shadow-md ring-1 ring-neutral-200 hover:bg-brand-50 md:flex";
 
   return (
     <div className={`group/row relative ${className}`}>

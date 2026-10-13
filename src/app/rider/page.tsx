@@ -56,7 +56,7 @@ export default async function RiderHomePage() {
   return (
     <div className="flex flex-col gap-4">
       {/* status bar */}
-      <div className={`rounded-3xl p-4 text-white shadow-lg ${online ? "bg-gradient-to-br from-blue-700 to-sky-500 shadow-blue-600/20" : "bg-gradient-to-br from-neutral-700 to-neutral-500 shadow-neutral-600/20"}`}>
+      <div className={`rounded-3xl p-4 text-white shadow-lg ${online ? "bg-gradient-to-br from-brand-700 to-sky-500 shadow-brand-600/20" : "bg-gradient-to-br from-neutral-700 to-neutral-500 shadow-neutral-600/20"}`}>
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate text-lg font-extrabold">Hi, {firstName} 👋</p>
@@ -85,8 +85,8 @@ export default async function RiderHomePage() {
       {liveOffer && <ExpressOfferCard key={liveOffer.id} offer={liveOffer} salaryOnly={salaryOnly} />}
 
       {activeRoute && activeRoute.stops.some((x) => x.status !== "delivered" && x.status !== "cancelled") && (
-        <Link href={`/rider/routes/${activeRoute.id}`} className="block overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-lg shadow-blue-600/10 active:scale-[0.99]">
-          <div className="flex items-center justify-between bg-gradient-to-r from-blue-700 to-sky-500 px-4 py-3 text-white">
+        <Link href={`/rider/routes/${activeRoute.id}`} className="block overflow-hidden rounded-3xl border border-brand-200 bg-white shadow-lg shadow-brand-600/10 active:scale-[0.99]">
+          <div className="flex items-center justify-between bg-gradient-to-r from-brand-700 to-sky-500 px-4 py-3 text-white">
             <h2 className="flex items-center gap-2 text-sm font-bold">
               <span className="h-2 w-2 animate-pulse rounded-full bg-white" /> Your route
             </h2>
@@ -101,10 +101,10 @@ export default async function RiderHomePage() {
               {" · "}
               {activeRoute.stops.filter((x) => x.status !== "delivered" && x.status !== "cancelled").length} stops left
             </p>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-blue-100">
-              <div className="h-full rounded-full bg-blue-600" style={{ width: `${(activeRoute.delivered / Math.max(activeRoute.stops.length, 1)) * 100}%` }} />
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-brand-100">
+              <div className="h-full rounded-full bg-brand-600" style={{ width: `${(activeRoute.delivered / Math.max(activeRoute.stops.length, 1)) * 100}%` }} />
             </div>
-            <p className="mt-3 text-center text-sm font-extrabold text-blue-700">Open route →</p>
+            <p className="mt-3 text-center text-sm font-extrabold text-brand-700">Open route →</p>
           </div>
         </Link>
       )}
@@ -125,7 +125,7 @@ export default async function RiderHomePage() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-base font-extrabold text-neutral-900">{t("rider.nearby_orders")}</h2>
             {hasLocation && (
-              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">
+              <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700">
                 {availableOrders.length + availableRoutes.length} {availableOrders.length + availableRoutes.length === 1 ? "job" : "jobs"}
               </span>
             )}
@@ -138,8 +138,8 @@ export default async function RiderHomePage() {
             </div>
           ) : availableOrders.length === 0 && availableRoutes.length === 0 ? (
             <div className="flex flex-col items-center gap-2 rounded-3xl border border-neutral-200 bg-white p-8 text-center">
-              <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-2xl">
-                <span className="absolute inset-0 animate-ping rounded-full bg-blue-100" />
+              <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-2xl">
+                <span className="absolute inset-0 animate-ping rounded-full bg-brand-100" />
                 <span className="relative">🛵</span>
               </span>
               <p className="font-semibold text-neutral-800">Looking for orders near you</p>
@@ -165,7 +165,7 @@ export default async function RiderHomePage() {
 function dueBadge(dueAt: string | null): { text: string; tone: string } | null {
   if (!dueAt) return null;
   const ms = new Date(dueAt).getTime() - Date.now();
-  if (ms < 0) return { text: "⚠ Overdue", tone: "bg-blue-900 text-white" };
+  if (ms < 0) return { text: "⚠ Overdue", tone: "bg-brand-900 text-white" };
   const hours = ms / 3600000;
   if (hours < 24) return { text: `🕒 Due today · in ${Math.max(1, Math.round(hours))}h`, tone: "bg-sky-100 text-sky-900" };
   return { text: `📅 Due ${new Date(dueAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}`, tone: "bg-neutral-100 text-neutral-600" };
@@ -191,7 +191,7 @@ function AvailableRouteCard({ route, money, salaryOnly }: { route: AvailableRout
       <div className="flex items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50 px-4 py-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">{salaryOnly ? "Pay" : "You earn"}</p>
-          <p className="text-xl font-extrabold leading-tight text-blue-700">{salaryOnly ? "Salary" : money(route.pay)}</p>
+          <p className="text-xl font-extrabold leading-tight text-brand-700">{salaryOnly ? "Salary" : money(route.pay)}</p>
         </div>
         <AcceptRouteButton routeId={route.id} />
       </div>
@@ -208,7 +208,7 @@ function AvailableOrderCard({ order, t, money, salaryOnly = false }: { money: Mo
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-extrabold text-neutral-900">#{order.order_number}</span>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${express ? "bg-blue-100 text-blue-700" : "bg-neutral-100 text-neutral-600"}`}>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${express ? "bg-brand-100 text-brand-700" : "bg-neutral-100 text-neutral-600"}`}>
               {express ? "⚡ " : ""}
               {t(DELIVERY_TYPE_KEY[order.delivery_type] ?? "checkout.standard")}
             </span>
@@ -236,7 +236,7 @@ function AvailableOrderCard({ order, t, money, salaryOnly = false }: { money: Mo
       <div className="flex items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50 px-4 py-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">{salaryOnly ? "Pay" : "You earn"}</p>
-          <p className="text-xl font-extrabold leading-tight text-blue-700">{salaryOnly ? "Salary" : money(order.riderPay)}</p>
+          <p className="text-xl font-extrabold leading-tight text-brand-700">{salaryOnly ? "Salary" : money(order.riderPay)}</p>
         </div>
         <AcceptOrderButton orderId={order.id} />
       </div>

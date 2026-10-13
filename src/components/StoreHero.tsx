@@ -26,7 +26,7 @@ export default function StoreHero({ store }: { store: StoreInfo }) {
 
   return (
     <section className="bg-neutral-50 pb-2">
-      <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 sm:h-60">
+      <div className="relative h-44 w-full overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 sm:h-60">
         <StoreCover store={store} emojiSize={88} />
         <span aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
       </div>
@@ -54,7 +54,7 @@ export default function StoreHero({ store }: { store: StoreInfo }) {
             )}
             {store.opening_hours && (
               <details className="group relative">
-                <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600 hover:bg-blue-50 hover:text-blue-700 [&::-webkit-details-marker]:hidden">
+                <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600 hover:bg-brand-50 hover:text-brand-700 [&::-webkit-details-marker]:hidden">
                   🕒 {t("store.opening_hours")}
                   <span aria-hidden className="text-[9px] transition group-open:rotate-180">▾</span>
                 </summary>

@@ -44,7 +44,7 @@ function headline(
   });
   if (order.status === "delivered") return { text: t("orders.delivered_on", { date }), color: "text-emerald-700" };
   if (order.status === "cancelled") return { text: t("orders.cancelled_on"), color: "text-red-600" };
-  return { text: t(`order_status.${order.status}`), color: "text-blue-700" };
+  return { text: t(`order_status.${order.status}`), color: "text-brand-700" };
 }
 
 const FILTERS = [
@@ -83,7 +83,7 @@ export default async function OrdersPage({
 
       {orders.length === 0 ? (
         <p className="text-sm text-neutral-500">
-          {t("orders.no_orders")}. <Link href="/" className="text-blue-600 hover:underline">{t("cart.start_shopping")}</Link>.
+          {t("orders.no_orders")}. <Link href="/" className="text-brand-600 hover:underline">{t("cart.start_shopping")}</Link>.
         </p>
       ) : (
         <>
@@ -94,7 +94,7 @@ export default async function OrdersPage({
                 href={f.key === "all" ? "/orders" : `/orders?filter=${f.key}`}
                 className={`shrink-0 border-b-2 px-3 py-2 text-sm font-medium ${
                   filter === f.key
-                    ? "border-blue-700 text-blue-700"
+                    ? "border-brand-700 text-brand-700"
                     : "border-transparent text-neutral-500 hover:text-neutral-700"
                 }`}
               >
@@ -123,31 +123,31 @@ export default async function OrdersPage({
                     <div className="flex items-start justify-between gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-500 sm:items-center sm:text-sm">
                       <div className="flex flex-wrap gap-x-5 gap-y-1 sm:gap-x-6">
                         <span>
-                          <span className="block text-neutral-400">{t("orders.order_placed_label")}</span>
+                          <span className="block text-neutral-500">{t("orders.order_placed_label")}</span>
                           <span className="text-neutral-700">
                             {new Date(order.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
                           </span>
                         </span>
                         {order.country_code && order.country_code !== marketCountry && (
-                          <span className="self-center rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                          <span className="self-center rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700">
                             <Flag code={order.country_code} className="me-1 h-3 w-4 align-[-1px]" /> {findCountry(order.country_code).name}
                           </span>
                         )}
                         <span>
-                          <span className="block text-neutral-400">{t("orders.total_label")}</span>
+                          <span className="block text-neutral-500">{t("orders.total_label")}</span>
                           <span className="text-neutral-700">{(order.currency ? moneyFor(order.currency) : money)(order.total)}</span>
                         </span>
                         {shipTo && (
                           <span className="hidden sm:inline">
-                            <span className="block text-neutral-400">{t("orders.deliver_to_label")}</span>
+                            <span className="block text-neutral-500">{t("orders.deliver_to_label")}</span>
                             <span className="text-neutral-700">{shipTo}</span>
                           </span>
                         )}
                       </div>
                       <div className="text-end">
-                        <span className="block text-neutral-400">{t("orders.order_hash", { number: order.order_number })}</span>
+                        <span className="block text-neutral-500">{t("orders.order_hash", { number: order.order_number })}</span>
                         <span className="flex items-center justify-end gap-1.5 whitespace-nowrap text-xs sm:text-sm">
-                          <Link href={`/orders/${order.id}`} className="font-medium text-blue-700 hover:underline max-sm:hidden">
+                          <Link href={`/orders/${order.id}`} className="font-medium text-brand-700 hover:underline max-sm:hidden">
                             {t("orders.view_order_details")}
                           </Link>
                           <span className="text-neutral-300 max-sm:hidden">|</span>
@@ -192,7 +192,7 @@ export default async function OrdersPage({
                               .map((i) => (i.product_variants?.products ? localizedName(i.product_variants.products, locale) : i.product_name))
                               .join(locale === "ar" ? "، " : ", ")}
                           </p>
-                          <p className="text-xs text-neutral-400">
+                          <p className="text-xs text-neutral-500">
                             {t("orders.items_count", { count: itemCount, plural: itemCount === 1 ? "" : "s" })}
                           </p>
                         </div>

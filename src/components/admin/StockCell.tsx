@@ -42,7 +42,7 @@ export default function StockCell({
 
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] font-medium text-neutral-400">{t("stock_cell.stock")}</span>
+      <span className="text-[11px] font-medium text-neutral-500">{t("stock_cell.stock")}</span>
       <div className="flex items-center gap-1">
         <button
           type="button"

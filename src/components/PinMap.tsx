@@ -5,6 +5,7 @@ import type { Map as LeafletMap } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { TILE_URL, TILE_OPTIONS, marketGeo } from "@/lib/map-config";
 import { useMarket } from "@/components/MoneyProvider";
+import { BRAND } from "@/lib/brand";
 
 export interface MapTarget {
   lat: number;
@@ -67,7 +68,7 @@ export default function PinMap({ lat, lng, onMove, target }: { lat: number | nul
       <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 z-[500] -translate-x-1/2">
         <div className={`-translate-y-full transition-transform duration-150 ${moving ? "-translate-y-[130%]" : ""}`}>
           <svg width="40" height="52" viewBox="0 0 40 52" className="drop-shadow-lg">
-            <path d="M20 0C9 0 0 8.8 0 19.7 0 33.5 20 52 20 52s20-18.5 20-32.3C40 8.8 31 0 20 0z" fill="#1d4ed8" />
+            <path d="M20 0C9 0 0 8.8 0 19.7 0 33.5 20 52 20 52s20-18.5 20-32.3C40 8.8 31 0 20 0z" fill={BRAND[700]} />
             <circle cx="20" cy="19.5" r="7.5" fill="#fff" />
           </svg>
         </div>

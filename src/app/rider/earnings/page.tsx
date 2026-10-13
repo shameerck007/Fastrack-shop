@@ -6,6 +6,7 @@ import { getRiderWallet, formatWhen, earningsByDay } from "@/lib/rider-wallet";
 import { getMoney } from "@/lib/tenant-server";
 import CollectionsPanel from "@/components/CollectionsPanel";
 import { buildPeriods, type PeriodMode } from "@/lib/finance-periods";
+import { BRAND } from "@/lib/brand";
 
 export const metadata = { title: "Earnings" };
 
@@ -68,7 +69,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
     const pctHanded = s.cashCollected > 0 ? Math.min(100, Math.round((s.cashDeposited / s.cashCollected) * 100)) : 100;
     return (
       <div className="flex flex-col gap-4">
-        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-950 via-blue-900 to-blue-700 p-5 text-white shadow-lg shadow-blue-900/30">
+        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 p-5 text-white shadow-lg shadow-brand-900/30">
           <p className="text-xs font-semibold uppercase tracking-wider text-white/80">💵 Cash in your hand</p>
           <p className="mt-1 text-4xl font-extrabold tracking-tight">{money(cashInHand)}</p>
           <p className="mt-2 text-sm text-white/85">{cashInHand > 0 ? "Hand this cash to FasTrack at your next visit." : "No customer cash to hand in right now."}</p>
@@ -87,7 +88,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
             { label: "All time", value: s.deliveredCount },
           ].map((p) => (
             <div key={p.label} className="rounded-2xl border border-neutral-200 bg-white p-3 text-center shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{p.label}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{p.label}</p>
               <p className="mt-0.5 text-2xl font-extrabold text-neutral-900">{p.value}</p>
               <p className="text-xs text-neutral-500">deliveries</p>
             </div>
@@ -102,7 +103,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
               {handedIn.map((e) => (
                 <li key={e.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                   <span className="text-neutral-600">{formatWhen(e.createdAt, timeZone)}{e.reference ? ` · Ref ${e.reference}` : ""}</span>
-                  <span className="font-bold text-blue-800">{money(e.amount)}</span>
+                  <span className="font-bold text-brand-800">{money(e.amount)}</span>
                 </li>
               ))}
             </ul>
@@ -111,7 +112,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
         <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-bold text-neutral-800">Recent deliveries</h2>
-            <Link href="/rider/history" className="text-xs font-bold text-blue-700">
+            <Link href="/rider/history" className="text-xs font-bold text-brand-700">
               See all →
             </Link>
           </div>
@@ -125,7 +126,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
                     <p className="font-semibold text-neutral-900">#{o.orderNumber}</p>
                     <p className="text-xs text-neutral-500">{formatWhen(o.deliveredAt, timeZone)}</p>
                   </div>
-                  {o.cashCollected > 0 ? <span className="text-xs font-semibold text-sky-700">💵 Cash {money(o.cashCollected)}</span> : <span className="text-xs font-semibold text-neutral-400">Delivered</span>}
+                  {o.cashCollected > 0 ? <span className="text-xs font-semibold text-sky-700">💵 Cash {money(o.cashCollected)}</span> : <span className="text-xs font-semibold text-neutral-500">Delivered</span>}
                 </li>
               ))}
             </ul>
@@ -158,7 +159,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
       {/* balance */}
       <div
         className={`overflow-hidden rounded-3xl p-5 text-white shadow-lg ${
-          owed ? "bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 shadow-blue-600/25" : "bg-gradient-to-br from-blue-950 via-blue-900 to-blue-700 shadow-blue-900/30"
+          owed ? "bg-gradient-to-br from-brand-700 via-brand-600 to-sky-500 shadow-brand-600/25" : "bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 shadow-brand-900/30"
         }`}
       >
         <p className="text-xs font-semibold uppercase tracking-wider text-white/80">{owed ? "FasTrack owes you" : "⚠ You owe FasTrack"}</p>
@@ -192,7 +193,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {periods.map((p) => (
           <div key={p.label} className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{p.label}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{p.label}</p>
             <p className="mt-0.5 text-lg font-extrabold text-neutral-900">{money(p.earnings)}</p>
             <p className="text-xs text-neutral-500">
               {p.deliveries} {p.deliveries === 1 ? "delivery" : "deliveries"}
@@ -204,14 +205,14 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
       <CollectionsPanel rows={buildPeriods(orders, entries, mode, timeZone)} mode={mode} basePath="/rider/earnings" money={money} heading="My collections" />
 
       {pay.payType === "salary" && (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-4">
           <div>
-            <p className="text-sm font-extrabold text-blue-900">💼 Monthly salary</p>
-            <p className="text-xs text-blue-800/70">
+            <p className="text-sm font-extrabold text-brand-900">💼 Monthly salary</p>
+            <p className="text-xs text-brand-800/70">
               {pay.earnsPerDelivery ? "Your salary, plus the pay for each delivery." : "Your salary is added each month. Deliveries do not change it."}
             </p>
           </div>
-          {pay.monthlySalary != null && <span className="text-lg font-extrabold text-blue-900">{money(pay.monthlySalary)}</span>}
+          {pay.monthlySalary != null && <span className="text-lg font-extrabold text-brand-900">{money(pay.monthlySalary)}</span>}
         </div>
       )}
 
@@ -225,10 +226,10 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
         </p>
         <div className="flex flex-col gap-4">
           {(pay.earnsPerDelivery || deliveryPay > 0) && (
-            <Row sign="+" label="Delivery pay" hint={`${s.deliveredCount} delivered orders`} amount={money(deliveryPay)} width={pct(deliveryPay)} color="#1d4ed8" />
+            <Row sign="+" label="Delivery pay" hint={`${s.deliveredCount} delivered orders`} amount={money(deliveryPay)} width={pct(deliveryPay)} color={BRAND[700]} />
           )}
           {s.salaryBonus > 0 && (
-            <Row sign="+" label="Salary and bonuses" hint="Monthly salary and daily-target bonuses" amount={money(s.salaryBonus)} width={pct(s.salaryBonus)} color="#1e40af" />
+            <Row sign="+" label="Salary and bonuses" hint="Monthly salary and daily-target bonuses" amount={money(s.salaryBonus)} width={pct(s.salaryBonus)} color={BRAND[800]} />
           )}
           <Row sign="−" label="Cash you collected" hint="Cash-on-delivery money you took from customers" amount={money(s.cashCollected)} width={pct(s.cashCollected)} color="#38bdf8" />
           <Row sign="+" label="Cash you handed in" hint="Deposits recorded by FasTrack" amount={money(s.cashDeposited)} width={pct(s.cashDeposited)} color="#0369a1" />
@@ -239,7 +240,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
         </div>
         <div className="mt-4 flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5 text-sm">
           <span className="font-semibold text-neutral-700">= Balance</span>
-          <span className={`font-extrabold ${owed ? "text-blue-700" : "text-blue-900"}`}>
+          <span className={`font-extrabold ${owed ? "text-brand-700" : "text-brand-900"}`}>
             {owed ? "" : "−"}
             {money(Math.abs(s.balance))}
           </span>
@@ -250,10 +251,10 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
       <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-neutral-800">💵 Cash in your hand</h2>
-          <span className={`text-lg font-extrabold ${cashInHand > 0 ? "text-blue-900" : "text-blue-700"}`}>{money(cashInHand)}</span>
+          <span className={`text-lg font-extrabold ${cashInHand > 0 ? "text-brand-900" : "text-brand-700"}`}>{money(cashInHand)}</span>
         </div>
         <div className="mt-3 h-3 overflow-hidden rounded-full bg-sky-100">
-          <div className="h-full rounded-full bg-blue-600" style={{ width: `${depositedPct}%` }} />
+          <div className="h-full rounded-full bg-brand-600" style={{ width: `${depositedPct}%` }} />
         </div>
         <div className="mt-1.5 flex justify-between text-[11px] text-neutral-500">
           <span>Handed in {money(s.cashDeposited)}</span>
@@ -276,7 +277,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
             {entries.map((e) => (
               <li key={e.id} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${e.kind === "payout" ? "bg-blue-100" : "bg-sky-100"}`}>
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base ${e.kind === "payout" ? "bg-brand-100" : "bg-sky-100"}`}>
                     {ENTRY_ICON[e.kind] ?? "💸"}
                   </span>
                   <div className="min-w-0">
@@ -288,7 +289,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
                     </p>
                   </div>
                 </div>
-                <span className={`shrink-0 text-sm font-bold ${e.kind === "deduction" ? "text-sky-700" : "text-blue-800"}`}>{e.kind === "deduction" ? "−" : ""}{money(e.amount)}</span>
+                <span className={`shrink-0 text-sm font-bold ${e.kind === "deduction" ? "text-sky-700" : "text-brand-800"}`}>{e.kind === "deduction" ? "−" : ""}{money(e.amount)}</span>
               </li>
             ))}
           </ul>
@@ -299,7 +300,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
       <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-sm font-bold text-neutral-800">Recent deliveries</h2>
-          <Link href="/rider/history" className="text-xs font-bold text-blue-700">
+          <Link href="/rider/history" className="text-xs font-bold text-brand-700">
             See all →
           </Link>
         </div>
@@ -313,7 +314,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
                   <p className="font-semibold text-neutral-900">#{o.orderNumber}</p>
                   <p className="text-xs text-neutral-500">{formatWhen(o.deliveredAt, timeZone)}</p>
                 </div>
-                {pay.earnsPerDelivery ? <span className="font-bold text-blue-700">+{money(o.deliveryFee)}</span> : <span className="text-xs font-semibold text-neutral-400">Delivered</span>}
+                {pay.earnsPerDelivery ? <span className="font-bold text-brand-700">+{money(o.deliveryFee)}</span> : <span className="text-xs font-semibold text-neutral-500">Delivered</span>}
               </li>
             ))}
           </ul>

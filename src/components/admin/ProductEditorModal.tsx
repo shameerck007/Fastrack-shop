@@ -73,7 +73,7 @@ function Section({ icon, title, hint, children }: { icon: string; title: string;
   return (
     <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center gap-2.5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-base">{icon}</span>
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-50 text-base">{icon}</span>
         <div>
           <h3 className="text-sm font-extrabold tracking-tight text-neutral-900">{title}</h3>
           {hint && <p className="text-xs text-neutral-500">{hint}</p>}
@@ -169,7 +169,7 @@ export default function ProductEditorModal({
     <Modal open onClose={onClose} size="xl">
       <div className="-m-5 flex flex-col">
         {/* header */}
-        <div className="flex items-center gap-4 border-b border-neutral-100 bg-gradient-to-r from-blue-50 via-white to-white px-5 py-4">
+        <div className="flex items-center gap-4 border-b border-neutral-100 bg-gradient-to-r from-brand-50 via-white to-white px-5 py-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-neutral-200">
             {imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -179,7 +179,7 @@ export default function ProductEditorModal({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">Edit product</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-brand-700">Edit product</p>
             <h2 className="truncate text-lg font-extrabold tracking-tight text-neutral-900">{name || "Untitled product"}</h2>
             <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs">
               {categoryName && <span className="rounded-full bg-neutral-100 px-2 py-0.5 font-semibold text-neutral-600">{localizedName(categoryName, locale)}</span>}
@@ -187,7 +187,7 @@ export default function ProductEditorModal({
               {variant && <span className="text-neutral-500">{variant.label}</span>}
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700">
+          <button type="button" onClick={onClose} aria-label="Close" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-700">
             ✕
           </button>
         </div>
@@ -196,11 +196,11 @@ export default function ProductEditorModal({
         <div className="grid gap-4 bg-neutral-50 p-4 sm:p-5 lg:grid-cols-[16rem_minmax(0,1fr)]">
           <div className="flex flex-col gap-4">
             <section className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-neutral-400">Photo</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-neutral-500">Photo</p>
               <ImageUploader value={imageUrl} onChange={setImageUrl} />
             </section>
             <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-neutral-400">At a glance</p>
+              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-neutral-500">At a glance</p>
               <dl className="grid gap-2.5 text-sm">
                 <div className="flex items-baseline justify-between gap-2">
                   <dt className="text-neutral-500">Price</dt>
@@ -218,7 +218,7 @@ export default function ProductEditorModal({
                   <dd className="font-bold text-neutral-900">{maxOrderQty || "—"} per order</dd>
                 </div>
               </dl>
-              <p className="mt-3 border-t border-neutral-100 pt-2 text-[11px] text-neutral-400">Stock is changed on the product card, so counts never get overwritten here.</p>
+              <p className="mt-3 border-t border-neutral-100 pt-2 text-[11px] text-neutral-500">Stock is changed on the product card, so counts never get overwritten here.</p>
             </section>
           </div>
 
@@ -299,7 +299,7 @@ export default function ProductEditorModal({
 
         {/* footer */}
         <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 bg-white px-5 py-3">
-          <p className={`min-w-0 flex-1 text-sm font-medium ${error ? "text-rose-700" : "text-neutral-400"}`}>{error ?? "Changes apply to the shop as soon as you save."}</p>
+          <p className={`min-w-0 flex-1 text-sm font-medium ${error ? "text-rose-700" : "text-neutral-500"}`}>{error ?? "Changes apply to the shop as soon as you save."}</p>
           <div className="flex gap-2">
             <button type="button" onClick={onClose} className={secondaryButton}>
               Cancel

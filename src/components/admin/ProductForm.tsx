@@ -159,20 +159,20 @@ export default function ProductForm({
           placeholder={t("product_form.product_name")}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
-        <ArabicInput english={name} value={nameAr} onChange={setNameAr} placeholder={t("product_form.name_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+        <ArabicInput english={name} value={nameAr} onChange={setNameAr} placeholder={t("product_form.name_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
         <input
           placeholder={t("product_form.brand")}
           value={brand}
           onChange={(e) => setBrand(e.target.value)}
-          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
-        <ArabicInput english={brand} value={brandAr} onChange={setBrandAr} placeholder={t("product_form.brand_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+        <ArabicInput english={brand} value={brandAr} onChange={setBrandAr} placeholder={t("product_form.brand_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
         <Select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
-          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         >
           {orderedCategories(categories).map((c) => (
             <option key={c.id} value={c.id}>
@@ -184,7 +184,7 @@ export default function ProductForm({
           placeholder={t("product_form.sku_optional")}
           value={sku}
           onChange={(e) => setSku(e.target.value)}
-          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
       </div>
 
@@ -193,22 +193,22 @@ export default function ProductForm({
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         rows={3}
-        className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+        className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
       />
-      <ArabicInput english={description} value={descriptionAr} onChange={setDescriptionAr} placeholder={t("product_form.description_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" multiline rows={3} />
+      <ArabicInput english={description} value={descriptionAr} onChange={setDescriptionAr} placeholder={t("product_form.description_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" multiline rows={3} />
 
       <div className={`grid grid-cols-2 gap-3 ${existing ? "sm:grid-cols-3" : "sm:grid-cols-4"}`}>
         <input
           placeholder={t("product_form.variant_label")}
           value={variantLabel}
           onChange={(e) => setVariantLabel(e.target.value)}
-          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
-        <ArabicInput english={variantLabel} value={variantLabelAr} onChange={setVariantLabelAr} placeholder={t("product_form.variant_label_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" compact />
+        <ArabicInput english={variantLabel} value={variantLabelAr} onChange={setVariantLabelAr} placeholder={t("product_form.variant_label_ar_placeholder")} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" compact />
         <Select
           value={unit}
           onChange={(e) => setUnit(e.target.value)}
-          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         >
           {UNITS.map((u) => (
             <option key={u} value={u}>
@@ -222,7 +222,7 @@ export default function ProductForm({
           placeholder={t("product_form.qty_per_unit")}
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
-          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
         {!existing && (
           <input
@@ -231,7 +231,7 @@ export default function ProductForm({
             placeholder={t("product_form.initial_stock")}
             value={stock}
             onChange={(e) => setStock(e.target.value)}
-            className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
           />
         )}
       </div>
@@ -243,7 +243,7 @@ export default function ProductForm({
           placeholder={t("product_form.price_sar", { currency })}
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
         <input
           type="number"
@@ -251,12 +251,12 @@ export default function ProductForm({
           placeholder={t("product_form.compare_at_price")}
           value={compareAtPrice}
           onChange={(e) => setCompareAtPrice(e.target.value)}
-          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
         {compareAtPrice && (
           <label className="col-span-full flex items-center gap-2 text-xs text-neutral-500">
             Offer ends
-            <input type="date" value={compareAtUntil} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setCompareAtUntil(e.target.value)} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+            <input type="date" value={compareAtUntil} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setCompareAtUntil(e.target.value)} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
             <span>(optional, the old price is removed after this day)</span>
           </label>
         )}
@@ -267,7 +267,7 @@ export default function ProductForm({
       <OrderLimitField value={maxOrderQty} onChange={setMaxOrderQty} />
 
       {existing && (
-        <p className="text-xs text-neutral-400">{t("product_form.stock_managed_separately")}</p>
+        <p className="text-xs text-neutral-500">{t("product_form.stock_managed_separately")}</p>
       )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -275,7 +275,7 @@ export default function ProductForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+          className="rounded-full bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-50"
         >
           {pending ? t("common.saving") : existing ? t("category_form.save_changes") : t("product_form.add_product")}
         </button>
@@ -298,7 +298,7 @@ export default function ProductForm({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md"
+        className="flex items-center gap-2 rounded-full bg-brand-700 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-brand-800 hover:shadow-md"
       >
         <span className="text-base leading-none">+</span> {t("product_form.add_product")}
       </button>

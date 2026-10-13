@@ -155,7 +155,7 @@ export default function PushOptIn() {
           <button
             type="button"
             onClick={dismiss}
-            className="shrink-0 rounded-full bg-blue-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-800"
+            className="shrink-0 rounded-full bg-brand-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-800"
           >
             {t("push.got_it")}
           </button>
@@ -178,11 +178,11 @@ export default function PushOptIn() {
             type="button"
             onClick={enable}
             disabled={busy}
-            className="rounded-full bg-blue-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+            className="rounded-full bg-brand-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-800 disabled:opacity-50"
           >
             {busy ? t("common.saving") : t("push.enable")}
           </button>
-          <button type="button" onClick={dismiss} className="text-xs text-neutral-400 hover:text-neutral-600">
+          <button type="button" onClick={dismiss} className="text-xs text-neutral-500 hover:text-neutral-600">
             {t("push.not_now")}
           </button>
         </div>

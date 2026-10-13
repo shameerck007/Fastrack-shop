@@ -198,14 +198,14 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
 
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 overflow-y-auto p-4">
         {!location && (
-          <div className="flex flex-col items-center gap-2 rounded-3xl bg-gradient-to-br from-blue-50 via-sky-50 to-white px-5 pb-6 pt-7 text-center ring-1 ring-blue-100">
-            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-5xl shadow-lg shadow-blue-200/60">📍</span>
+          <div className="flex flex-col items-center gap-2 rounded-3xl bg-gradient-to-br from-brand-50 via-sky-50 to-white px-5 pb-6 pt-7 text-center ring-1 ring-brand-100">
+            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-5xl shadow-lg shadow-brand-200/60">📍</span>
             <h2 className="mt-1 text-xl font-extrabold tracking-tight text-neutral-900">{t("common.where_deliver_title")}</h2>
             <p className="max-w-xs text-sm text-neutral-600">{t("common.where_deliver_sub")}</p>
             <button
               onClick={useCurrentLocation}
               disabled={locating}
-              className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-blue-700 text-base font-bold text-white shadow-lg shadow-blue-700/25 transition hover:bg-blue-800 disabled:opacity-60"
+              className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-700 text-base font-bold text-white shadow-lg shadow-brand-700/25 transition hover:bg-brand-800 disabled:opacity-60"
             >
               <span aria-hidden>🧭</span>
               {locating ? t("common.detecting") : t("common.current_location")}
@@ -218,7 +218,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
           <button
             onClick={useCurrentLocation}
             disabled={locating}
-            className={`${location ? "" : "hidden "}flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-2 py-2.5 text-[13px] font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-60 sm:gap-2 sm:px-3 sm:text-sm`}
+            className={`${location ? "" : "hidden "}flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-brand-200 bg-brand-50 px-2 py-2.5 text-[13px] font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-60 sm:gap-2 sm:px-3 sm:text-sm`}
           >
             <span aria-hidden>🧭</span>
             {locating ? t("common.detecting") : t("common.current_location")}
@@ -227,7 +227,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
             onClick={() => setShowAddNew((v) => !v)}
             className={`flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-2.5 text-[13px] font-medium sm:gap-2 sm:px-3 sm:text-sm ${
               showAddNew
-                ? "border-blue-700 bg-blue-700 text-white"
+                ? "border-brand-700 bg-brand-700 text-white"
                 : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
             }`}
           >
@@ -240,19 +240,19 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
 
         {nearby.length > 0 && (
           <div className="flex flex-col gap-1">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">Nearby places</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">Nearby places</p>
             {nearby.map((p) => (
               <button
                 key={`${p.label}-${p.lat}-${p.lng}`}
                 onClick={() => pickSearchResult({ label: p.label, detail: p.detail, lat: p.lat, lng: p.lng })}
                 className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-start text-sm transition hover:bg-neutral-50"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-base">📍</span>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-base">📍</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium text-neutral-900">{p.label}</span>
                   {p.detail && <span className="block truncate text-xs text-neutral-500">{p.detail}</span>}
                 </span>
-                <span className="shrink-0 text-xs text-neutral-400">{p.distanceM} m</span>
+                <span className="shrink-0 text-xs text-neutral-500">{p.distanceM} m</span>
               </button>
             ))}
           </div>
@@ -271,7 +271,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
               <button
                 onClick={confirmPin}
                 disabled={!pin || saving}
-                className="flex-1 rounded-full bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-40"
+                className="flex-1 rounded-full bg-brand-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-40"
               >
                 {saving ? t("common.saving") : t("common.use_this_location")}
               </button>
@@ -290,7 +290,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
 
         {addresses.length > 0 && (
           <div className="flex flex-col gap-1">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">{t("common.saved_addresses")}</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{t("common.saved_addresses")}</p>
             {addresses.map((a) => {
               const pinned = a.lat != null && a.lng != null;
               const ok = pinned ? serviceableAt(a.lat as number, a.lng as number) : null;
@@ -301,7 +301,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
                   onClick={() => chooseAddress(a)}
                   disabled={!pinned}
                   className={`flex items-start gap-3 rounded-xl border p-3 text-start text-sm transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                    selected ? "border-blue-600 bg-blue-50" : "border-neutral-200 hover:bg-neutral-50"
+                    selected ? "border-brand-600 bg-brand-50" : "border-neutral-200 hover:bg-neutral-50"
                   }`}
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-base">
@@ -311,13 +311,13 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
                     <span className="flex items-center gap-2">
                       <span className="font-medium capitalize text-neutral-900">{a.label}</span>
                       {ok === false && (
-                        <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">
+                        <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">
                           {t("common.not_serviceable")}
                         </span>
                       )}
                     </span>
                     <span className="block truncate text-neutral-500">{a.address_line}</span>
-                    <span className="block truncate text-xs text-neutral-400">
+                    <span className="block truncate text-xs text-neutral-500">
                       {[a.district, a.city].filter(Boolean).join(", ")}
                       {!pinned && ` ${t("common.no_map_pin")}`}
                     </span>
@@ -330,7 +330,7 @@ export default function DeliveryLocationModal({ open, onClose }: { open: boolean
 
         {!location && (
           <div className="mt-auto flex flex-col items-center gap-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
-            <button onClick={onClose} className="flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-neutral-300 bg-white text-base font-bold text-neutral-800 transition hover:border-blue-400 hover:bg-blue-50">
+            <button onClick={onClose} className="flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-neutral-300 bg-white text-base font-bold text-neutral-800 transition hover:border-brand-400 hover:bg-brand-50">
               {t("common.browse_without_location")} <span aria-hidden className="rtl:-scale-x-100">→</span>
             </button>
             <p className="text-xs text-neutral-500">{t("common.browse_without_location_hint")}</p>

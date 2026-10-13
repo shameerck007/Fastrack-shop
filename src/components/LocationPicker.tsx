@@ -120,7 +120,7 @@ export default function LocationPicker({
           type="button"
           onClick={useMyLocation}
           disabled={locating}
-          className="shrink-0 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+          className="shrink-0 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-50"
         >
           {locating ? t("common.locating") : t("common.use_my_current_location")}
         </button>
@@ -136,14 +136,14 @@ export default function LocationPicker({
           onChange={(e) => setManualLat(e.target.value)}
           placeholder={t("common.latitude")}
           inputMode="decimal"
-          className="w-1/2 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-1/2 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
         <input
           value={manualLng}
           onChange={(e) => setManualLng(e.target.value)}
           placeholder={t("common.longitude")}
           inputMode="decimal"
-          className="w-1/2 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-1/2 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
         <button
           type="button"
@@ -156,7 +156,7 @@ export default function LocationPicker({
 
       {error && <p className="text-xs text-red-600">{error}</p>}
       {lat != null && lng != null && (
-        <p className="text-xs text-neutral-400">
+        <p className="text-xs text-neutral-500">
           {lat.toFixed(6)}, {lng.toFixed(6)}
         </p>
       )}

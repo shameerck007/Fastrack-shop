@@ -34,17 +34,17 @@ export default function DeliveryProgressStepper({
             <div className="flex flex-col items-center gap-1">
               <div
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition ${
-                  done ? "bg-blue-700 text-white" : "bg-neutral-200 text-neutral-500"
+                  done ? "bg-brand-700 text-white" : "bg-neutral-200 text-neutral-500"
                 }`}
               >
                 {i < current ? "✓" : i + 1}
               </div>
-              <span className={`whitespace-nowrap text-[10px] font-medium ${done ? "text-blue-700" : "text-neutral-400"}`}>
+              <span className={`whitespace-nowrap text-[10px] font-medium ${done ? "text-brand-700" : "text-neutral-500"}`}>
                 {t(`rider.${key}`)}
               </span>
             </div>
             {!isLast && (
-              <div className={`mx-1 h-0.5 flex-1 rounded-full transition ${i < current ? "bg-blue-700" : "bg-neutral-200"}`} />
+              <div className={`mx-1 h-0.5 flex-1 rounded-full transition ${i < current ? "bg-brand-700" : "bg-neutral-200"}`} />
             )}
           </div>
         );

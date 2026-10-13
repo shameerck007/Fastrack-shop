@@ -41,7 +41,7 @@ export default function SettlementsList({ rows }: { rows: AdminSettlementOvervie
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
             <thead>
-              <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+              <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                 <th className="px-5 py-2.5">{t("settlements_list.supplier_th")}</th>
                 <th className="px-3 py-2.5 text-right">{t("settlements_list.gross_sales_th")}</th>
                 <th className="px-3 py-2.5 text-right">{t("settlements_list.commission_th")}</th>
@@ -55,14 +55,14 @@ export default function SettlementsList({ rows }: { rows: AdminSettlementOvervie
               {filtered.map((r) => (
                 <tr key={r.storeId} className="transition hover:bg-neutral-50">
                   <td className="px-5 py-3">
-                    <Link href={`/admin/settlements/${r.storeId}`} className="font-medium text-neutral-900 hover:text-blue-600">
+                    <Link href={`/admin/settlements/${r.storeId}`} className="font-medium text-neutral-900 hover:text-brand-600">
                       {r.storeName}
                     </Link>
                     <div className="mt-0.5 flex items-center gap-2">
                       <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[r.storeStatus] ?? "bg-neutral-100"}`}>
                         {r.storeStatus}
                       </span>
-                      <span className="text-[11px] text-neutral-400">
+                      <span className="text-[11px] text-neutral-500">
                         {t("settlements_list.delivered_orders_count", { count: r.deliveredOrderCount })}
                       </span>
                     </div>
@@ -77,7 +77,7 @@ export default function SettlementsList({ rows }: { rows: AdminSettlementOvervie
                     {money(r.balanceDue)}
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <Link href={`/admin/settlements/${r.storeId}`} className="text-xs font-medium text-blue-600 hover:underline">
+                    <Link href={`/admin/settlements/${r.storeId}`} className="text-xs font-medium text-brand-600 hover:underline">
                       {t("settlements_list.ledger")}
                     </Link>
                   </td>

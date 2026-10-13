@@ -3,14 +3,15 @@ import { getCustomerDetail } from "@/lib/admin-customers";
 import { moneyFor } from "@/lib/money";
 import { getMoney } from "@/lib/tenant-server";
 import { BlockButton, ContactCard, NoteForm } from "@/components/admin/CustomerPanel";
+import { BRAND } from "@/lib/brand";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
-  confirmed: "bg-blue-50 text-blue-700",
-  preparing: "bg-blue-50 text-blue-700",
-  ready_for_pickup: "bg-blue-50 text-blue-700",
-  rider_assigned: "bg-blue-50 text-blue-700",
-  out_for_delivery: "bg-blue-50 text-blue-700",
+  confirmed: "bg-brand-50 text-brand-700",
+  preparing: "bg-brand-50 text-brand-700",
+  ready_for_pickup: "bg-brand-50 text-brand-700",
+  rider_assigned: "bg-brand-50 text-brand-700",
+  out_for_delivery: "bg-brand-50 text-brand-700",
   delivered: "bg-emerald-50 text-emerald-700",
   cancelled: "bg-red-50 text-red-600",
 };
@@ -40,7 +41,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
   if (!c) {
     return (
       <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
-        This customer was not found. <Link href={backHref} className="font-semibold text-blue-700 hover:underline">Back to the list</Link>
+        This customer was not found. <Link href={backHref} className="font-semibold text-brand-700 hover:underline">Back to the list</Link>
       </div>
     );
   }
@@ -49,17 +50,17 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href={backHref} className="text-xs font-bold text-blue-700 hover:underline lg:hidden">
+      <Link href={backHref} className="text-xs font-bold text-brand-700 hover:underline lg:hidden">
         ← All customers
       </Link>
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3.5 shadow-sm">
         <div className="flex min-w-0 items-center gap-3.5">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xl font-extrabold text-white ring-4 ring-blue-50">{name.trim().charAt(0).toUpperCase()}</span>
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xl font-extrabold text-white ring-4 ring-brand-50">{name.trim().charAt(0).toUpperCase()}</span>
           <div className="min-w-0">
             <h1 className="truncate text-xl font-extrabold tracking-tight text-neutral-900">{name}</h1>
             <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-neutral-500">
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-800">🛍️ Customer</span>
+              <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-bold text-brand-800">🛍️ Customer</span>
               {c.blocked_at ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">Blocked from ordering</span> : <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Active</span>}
               <span>Joined {when(c.joined_at)}</span>
             </p>
@@ -76,7 +77,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[
-          ["🧾", "Orders", c.stats.orders, "#2563eb"],
+          ["🧾", "Orders", c.stats.orders, BRAND[600]],
           ["💰", "Spent (delivered)", money(Number(c.stats.spent)), "#059669"],
           ["📊", "Average order", money(avg), "#7c3aed"],
           ["↩️", "Cancelled", c.stats.cancelled, "#d97706"],
@@ -101,14 +102,14 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
 
           <Card title={`📍 Saved addresses (${c.addresses.length})`}>
             {c.addresses.length === 0 ? (
-              <p className="text-sm text-neutral-400">No saved addresses.</p>
+              <p className="text-sm text-neutral-500">No saved addresses.</p>
             ) : (
               <ul className="flex flex-col gap-2.5 text-sm">
                 {c.addresses.map((a) => (
                   <li key={a.id} className="rounded-xl bg-neutral-50 p-2.5">
                     <p className="flex items-center gap-1.5 font-semibold capitalize text-neutral-800">
                       {a.label}
-                      {a.is_default && <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-700">Default</span>}
+                      {a.is_default && <span className="rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-bold text-brand-700">Default</span>}
                     </p>
                     <p className="text-xs text-neutral-600">
                       {[a.address_line, a.district, a.city].filter(Boolean).join(", ")}
@@ -128,7 +129,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
                 {c.notes.map((n) => (
                   <li key={n.id} className="rounded-xl bg-amber-50/60 p-2.5 text-sm">
                     <p className="whitespace-pre-wrap text-neutral-800">{n.body}</p>
-                    <p className="mt-1 text-[11px] text-neutral-400">
+                    <p className="mt-1 text-[11px] text-neutral-500">
                       {n.author} · {when(n.created_at)}
                     </p>
                   </li>
@@ -141,7 +142,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
         <div className="flex flex-col gap-4">
           <Card title={`🧾 Orders (${c.orders.length}${c.orders.length === 50 ? "+" : ""})`}>
             {c.orders.length === 0 ? (
-              <p className="text-sm text-neutral-400">No orders yet.</p>
+              <p className="text-sm text-neutral-500">No orders yet.</p>
             ) : (
               <ul className="divide-y divide-neutral-100">
                 {c.orders.map((o) => (
@@ -163,7 +164,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
           {c.access_log && (
             <Card title="🛡️ Access log (super admin only)">
               {c.access_log.length === 0 ? (
-                <p className="text-sm text-neutral-400">Nothing recorded yet.</p>
+                <p className="text-sm text-neutral-500">Nothing recorded yet.</p>
               ) : (
                 <ul className="divide-y divide-neutral-100 text-sm">
                   {c.access_log.map((l, i) => (
@@ -171,7 +172,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
                       <span className="text-neutral-800">
                         <b>{l.actor}</b> · {ACTION_LABELS[l.action] ?? l.action}
                       </span>
-                      <span className="text-xs text-neutral-400">{when(l.created_at)}</span>
+                      <span className="text-xs text-neutral-500">{when(l.created_at)}</span>
                     </li>
                   ))}
                 </ul>

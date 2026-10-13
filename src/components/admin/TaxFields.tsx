@@ -4,7 +4,7 @@ import { useMarket } from "@/components/MoneyProvider";
 import { taxProfileFor } from "@/lib/tax";
 import Select from "@/components/ui/Select";
 
-const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
 /** Tax rate (and HSN code for India) for a product. The choices follow the current market. */
 export default function TaxFields({

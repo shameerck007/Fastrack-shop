@@ -240,9 +240,9 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
   }
 
   const inputClass =
-    "h-12 rounded-xl border border-neutral-300 bg-white px-4 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100";
+    "h-12 rounded-xl border border-neutral-300 bg-white px-4 text-base focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100";
   const primaryButton =
-    "flex h-11 items-center justify-center rounded-full bg-blue-700 text-[15px] font-bold text-white shadow-md shadow-blue-700/20 transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50";
+    "flex h-11 items-center justify-center rounded-full bg-brand-700 text-[15px] font-bold text-white shadow-md shadow-brand-700/20 transition active:scale-[0.98] hover:bg-brand-800 disabled:opacity-50";
 
   return (
     <div className={modal ? "flex flex-col items-center" : "mx-auto flex max-w-sm flex-col items-center px-5 pb-10 pt-6 md:py-10"}>
@@ -281,10 +281,10 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
 
               {error && <p className="text-sm text-red-600">{error}</p>}
               {noAccountEmail && (
-                <div className="rounded-2xl bg-blue-50 p-4 text-center">
+                <div className="rounded-2xl bg-brand-50 p-4 text-center">
                   <span className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-white text-xl shadow-sm">👋</span>
-                  <p className="text-base font-extrabold text-blue-950">{t("auth.no_account_email")}</p>
-                  <p className="mt-1 break-all text-xs text-blue-900/70">{t("auth.no_account_hint", { email: noAccountEmail })}</p>
+                  <p className="text-base font-extrabold text-brand-950">{t("auth.no_account_email")}</p>
+                  <p className="mt-1 break-all text-xs text-brand-900/70">{t("auth.no_account_hint", { email: noAccountEmail })}</p>
                   {onRegister ? (
                     <button type="button" onClick={() => onRegister({ email: noAccountEmail })} className={`${primaryButton} mt-3 w-full`}>
                       {t("auth.create_account_for_email")}
@@ -318,13 +318,13 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
                 {t("auth.sign_in_with_code")}
               </button>
 
-              <p className="text-center text-[11px] leading-snug text-neutral-400">{t("auth.terms_notice")}</p>
+              <p className="text-center text-[11px] leading-snug text-neutral-500">{t("auth.terms_notice")}</p>
             </form>
           ) : step === "password" ? (
             <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
               <p className="text-sm text-neutral-600">
                 {t("auth.signing_in_as", { identifier })}{" "}
-                <button type="button" onClick={backToIdentifier} className="font-medium text-blue-600 hover:underline">
+                <button type="button" onClick={backToIdentifier} className="font-medium text-brand-600 hover:underline">
                   {t("auth.change")}
                 </button>
               </p>
@@ -353,7 +353,7 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
                   <span className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-neutral-500 ring-1 ring-neutral-200">{countryCodeOf(phone)}</span>
                   <span className="truncate">{describePhone(phone)}</span>
                 </span>
-                <button type="button" onClick={backToIdentifier} className="shrink-0 text-sm font-medium text-blue-600 hover:underline">
+                <button type="button" onClick={backToIdentifier} className="shrink-0 text-sm font-medium text-brand-600 hover:underline">
                   {t("auth.change")}
                 </button>
               </div>
@@ -378,7 +378,7 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
                 type="button"
                 disabled={loading}
                 onClick={handleSendPhoneCode}
-                className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-50"
+                className="text-sm font-medium text-brand-600 hover:underline disabled:opacity-50"
               >
                 {t("auth.email_me_a_code")}
               </button>
@@ -390,7 +390,7 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
                   <span className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-neutral-500 ring-1 ring-neutral-200">{countryCodeOf(phone)}</span>
                   <span className="truncate">{describePhone(phone)}</span>
                 </span>
-                <button type="button" onClick={backToIdentifier} className="shrink-0 text-sm font-medium text-blue-600 hover:underline">
+                <button type="button" onClick={backToIdentifier} className="shrink-0 text-sm font-medium text-brand-600 hover:underline">
                   {t("auth.change")}
                 </button>
               </div>
@@ -420,7 +420,7 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
                   setPhoneCode("");
                   setError(null);
                 }}
-                className="text-sm font-medium text-blue-600 hover:underline"
+                className="text-sm font-medium text-brand-600 hover:underline"
               >
                 {t("auth.use_password_instead")}
               </button>
@@ -432,7 +432,7 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
                   <span className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-neutral-500 ring-1 ring-neutral-200">{countryCodeOf(phone)}</span>
                   <span className="truncate">{describePhone(phone)}</span>
                 </span>
-                <button type="button" onClick={backToIdentifier} className="shrink-0 text-sm font-medium text-blue-600 hover:underline">
+                <button type="button" onClick={backToIdentifier} className="shrink-0 text-sm font-medium text-brand-600 hover:underline">
                   {t("auth.change")}
                 </button>
               </div>
@@ -515,7 +515,7 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
               setError(null);
               setOtpError(null);
             }}
-            className="mt-4 w-full text-center text-sm font-bold text-blue-700 hover:underline"
+            className="mt-4 w-full text-center text-sm font-bold text-brand-700 hover:underline"
           >
             {t("auth.sign_in_with_password")}
           </button>

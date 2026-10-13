@@ -32,7 +32,7 @@ export default function LanguageToggle({ className = "" }: { className?: string 
         onClick={() => switchTo("en")}
         disabled={pending}
         className={`rounded-full px-2.5 py-1.5 transition ${
-          locale === "en" ? "bg-blue-700 text-white" : "text-neutral-500 hover:text-neutral-900"
+          locale === "en" ? "bg-brand-700 text-white" : "text-neutral-500 hover:text-neutral-900"
         }`}
       >
         EN
@@ -42,7 +42,7 @@ export default function LanguageToggle({ className = "" }: { className?: string 
         onClick={() => switchTo("ar")}
         disabled={pending}
         className={`rounded-full px-2.5 py-1.5 transition ${
-          locale === "ar" ? "bg-blue-700 text-white" : "text-neutral-500 hover:text-neutral-900"
+          locale === "ar" ? "bg-brand-700 text-white" : "text-neutral-500 hover:text-neutral-900"
         }`}
       >
         عربي

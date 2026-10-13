@@ -84,7 +84,7 @@ export default function MarketSwitchDialog({
           type="button"
           onClick={confirm}
           disabled={pending}
-          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-blue-700 px-6 font-extrabold text-white shadow-lg shadow-blue-700/25 hover:bg-blue-800 disabled:opacity-70"
+          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-brand-700 px-6 font-extrabold text-white shadow-lg shadow-brand-700/25 hover:bg-brand-800 disabled:opacity-70"
         >
           {pending ? (
             <>

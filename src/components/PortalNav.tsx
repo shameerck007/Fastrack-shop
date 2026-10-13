@@ -31,20 +31,20 @@ export default function PortalNav({ items, rootHref }: { items: PortalNavItem[];
         return (
           <Fragment key={item.href}>
           {showSection && (
-            <span className="hidden px-3.5 pb-0.5 pt-3.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400 first:pt-0 md:block">{item.section}</span>
+            <span className="hidden px-3.5 pb-0.5 pt-3.5 text-[10px] font-bold uppercase tracking-wider text-neutral-500 first:pt-0 md:block">{item.section}</span>
           )}
           <Link
             href={item.href}
             className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-semibold transition md:rounded-xl md:py-2 ${
               active
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/25"
-                : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-blue-50 hover:text-blue-700 md:bg-transparent md:ring-0"
+                ? "bg-brand-600 text-white shadow-md shadow-brand-600/25"
+                : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-brand-50 hover:text-brand-700 md:bg-transparent md:ring-0"
             }`}
           >
             <span
               className={`flex h-6 w-6 items-center justify-center rounded-lg text-[13px] ${active ? "bg-white/20" : "bg-neutral-100 md:bg-white md:shadow-sm md:ring-1 md:ring-neutral-200"}`}
             >
-              {item.icon === "gps" ? <span className={active ? "text-white" : "text-blue-600"}><Glyph icon={item.icon} className="h-4 w-4" /></span> : item.icon}
+              {item.icon === "gps" ? <span className={active ? "text-white" : "text-brand-600"}><Glyph icon={item.icon} className="h-4 w-4" /></span> : item.icon}
             </span>
             {item.label ?? t(item.labelKey ?? "")}
           </Link>

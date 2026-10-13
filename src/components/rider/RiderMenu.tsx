@@ -57,7 +57,7 @@ export default function RiderMenu({ backToShop, logOut }: { backToShop: string; 
             <LanguageToggle />
           </div>
           <form action={signOut} className="border-t border-neutral-100 pt-1">
-            <button className={`${item} text-red-600 hover:bg-red-50`}>
+            <button className={`${item} text-red-700 hover:bg-red-50`}>
               <span>⎋</span> {logOut}
             </button>
           </form>

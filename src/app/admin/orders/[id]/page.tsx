@@ -96,7 +96,7 @@ export default async function AdminOrderDetailPage({
 
   return (
     <div>
-      <Link href="/admin/orders" className="text-sm text-blue-600 hover:underline">
+      <Link href="/admin/orders" className="text-sm text-brand-600 hover:underline">
         {t("admin.all_orders")}
       </Link>
 
@@ -112,7 +112,7 @@ export default async function AdminOrderDetailPage({
             })}
           </p>
           <div className="mt-1.5 flex items-center gap-1.5">
-            <span className="text-xs text-neutral-400">{t("admin.fulfilled_by")}</span>
+            <span className="text-xs text-neutral-500">{t("admin.fulfilled_by")}</span>
             <FulfillmentBadge fulfillment={fulfillment} />
           </div>
         </div>
@@ -150,12 +150,12 @@ export default async function AdminOrderDetailPage({
                     >
                       {done ? "✓" : index + 1}
                     </span>
-                    <span className={`text-xs font-medium ${done ? "text-neutral-900" : "text-neutral-400"}`}>
+                    <span className={`text-xs font-medium ${done ? "text-neutral-900" : "text-neutral-500"}`}>
                       {t(`order_status.${step}`)}
                     </span>
                   </div>
                   {at && (
-                    <span className="ps-7 text-[11px] text-neutral-400">
+                    <span className="ps-7 text-[11px] text-neutral-500">
                       {new Date(at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}
                     </span>
                   )}
@@ -188,7 +188,7 @@ export default async function AdminOrderDetailPage({
                     <div className="mt-1 flex items-center gap-1.5">
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                          item.store_name ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"
+                          item.store_name ? "bg-amber-50 text-amber-700" : "bg-brand-50 text-brand-700"
                         }`}
                       >
                         {item.store_name ? `🏪 ${item.store_name}` : "🏬 FasTrack"}
@@ -218,7 +218,7 @@ export default async function AdminOrderDetailPage({
             </Row>
             {order.discount > 0 && (
               <Row label={`${t("orders.discount")}${order.coupon_code ? ` (${order.coupon_code})` : ""}`}>
-                <span className="text-blue-600">-{money(order.discount)}</span>
+                <span className="text-brand-600">-{money(order.discount)}</span>
               </Row>
             )}
             <div className="mt-2 flex justify-between border-t border-neutral-200 pt-2 font-semibold">
@@ -229,16 +229,16 @@ export default async function AdminOrderDetailPage({
 
           <Card title={t("admin.status_history")}>
             {order.order_status_history.length === 0 ? (
-              <p className="text-sm text-neutral-400">{t("admin.no_history")}</p>
+              <p className="text-sm text-neutral-500">{t("admin.no_history")}</p>
             ) : (
               <ul className="flex flex-col gap-2">
                 {[...order.order_status_history].reverse().map((h) => (
                   <li key={h.id} className="flex justify-between gap-4 text-sm">
                     <span>
                       {t(`order_status.${h.status}`)}
-                      {h.note && <span className="ms-2 text-neutral-400">— {h.note}</span>}
+                      {h.note && <span className="ms-2 text-neutral-500">— {h.note}</span>}
                     </span>
-                    <span className="shrink-0 text-xs text-neutral-400">
+                    <span className="shrink-0 text-xs text-neutral-500">
                       {new Date(h.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}
                     </span>
                   </li>
@@ -263,23 +263,23 @@ export default async function AdminOrderDetailPage({
           <Card title={t("admin.customer")}>
             <p className="font-medium">{order.profiles?.full_name ?? "—"}</p>
             {order.profiles?.phone ? (
-              <a href={`tel:${order.profiles.phone}`} className="text-sm text-blue-600 hover:underline">
+              <a href={`tel:${order.profiles.phone}`} className="text-sm text-brand-600 hover:underline">
                 📞 {order.profiles.phone}
               </a>
             ) : (
-              <p className="text-sm text-neutral-400">{t("admin.no_phone")}</p>
+              <p className="text-sm text-neutral-500">{t("admin.no_phone")}</p>
             )}
           </Card>
 
           <Card title={t("admin.delivery_address")}>
             {addr ? (
               <div className="text-sm">
-                <p className="mb-0.5 text-xs font-medium uppercase text-neutral-400">{addr.label}</p>
+                <p className="mb-0.5 text-xs font-medium uppercase text-neutral-500">{addr.label}</p>
                 {addr.receiver_name && (
                   <p className="font-medium">
                     {t("admin.receiver", { name: addr.receiver_name })}
                     {addr.receiver_phone && (
-                      <a href={`tel:${addr.receiver_phone}`} className="ms-2 font-normal text-blue-600 hover:underline">
+                      <a href={`tel:${addr.receiver_phone}`} className="ms-2 font-normal text-brand-600 hover:underline">
                         📞 {addr.receiver_phone}
                       </a>
                     )}
@@ -305,14 +305,14 @@ export default async function AdminOrderDetailPage({
                     href={`https://www.openstreetmap.org/?mlat=${addr.lat}&mlon=${addr.lng}#map=17/${addr.lat}/${addr.lng}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-1 inline-block text-blue-600 hover:underline"
+                    className="mt-1 inline-block text-brand-600 hover:underline"
                   >
                     {t("admin.view_on_map")}
                   </a>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-neutral-400">{t("admin.no_address_recorded")}</p>
+              <p className="text-sm text-neutral-500">{t("admin.no_address_recorded")}</p>
             )}
           </Card>
 
@@ -326,13 +326,13 @@ export default async function AdminOrderDetailPage({
                 <>
                   {rider.full_name ?? "—"}
                   {rider.phone && (
-                    <a href={`tel:${rider.phone}`} className="block text-xs text-blue-600 hover:underline">
+                    <a href={`tel:${rider.phone}`} className="block text-xs text-brand-600 hover:underline">
                       📞 {rider.phone}
                     </a>
                   )}
                 </>
               ) : (
-                <span className="text-neutral-400">{t("admin.not_assigned")}</span>
+                <span className="text-neutral-500">{t("admin.not_assigned")}</span>
               )}
             </Row>
             {rider && <div className="mt-1 flex justify-end"><PickupCodeBadge orderId={id} status={order.status} /></div>}
@@ -376,7 +376,7 @@ export default async function AdminOrderDetailPage({
                 )}
               </>
             ) : (
-              <p className="text-sm text-neutral-400">{t("admin.no_payment_record")}</p>
+              <p className="text-sm text-neutral-500">{t("admin.no_payment_record")}</p>
             )}
           </Card>
         </div>

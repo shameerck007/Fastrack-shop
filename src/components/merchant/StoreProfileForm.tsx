@@ -70,7 +70,7 @@ export default function StoreProfileForm({
   return (
     <>
       <section className={`overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm ${storeId ? "" : "mt-6"}`}>
-        <div className="relative h-24 bg-gradient-to-r from-blue-100 via-indigo-50 to-sky-100">
+        <div className="relative h-24 bg-gradient-to-r from-brand-100 via-indigo-50 to-sky-100">
           {p.coverUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={p.coverUrl} alt="" className="h-full w-full object-cover" />
@@ -94,7 +94,7 @@ export default function StoreProfileForm({
             <dl className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
               <div className="flex gap-2">
                 <dt className="text-neutral-500">Tagline</dt>
-                <dd className={`min-w-0 truncate font-semibold ${p.tagline ? "text-neutral-900" : "font-normal text-neutral-300"}`}>{p.tagline || "Not set"}</dd>
+                <dd className={`min-w-0 truncate font-semibold ${p.tagline ? "text-neutral-900" : "font-normal text-neutral-500"}`}>{p.tagline || "Not set"}</dd>
               </div>
               <div className="flex gap-2">
                 <dt className="text-neutral-500">Hours</dt>
@@ -109,7 +109,7 @@ export default function StoreProfileForm({
               setAccepting(saved.accepting);
               setOpen(true);
             }}
-            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700"
           >
             <span aria-hidden>✎</span> Edit
           </button>
@@ -119,7 +119,7 @@ export default function StoreProfileForm({
       {open && (
         <FormDialog icon="🏪" title="Shop page & opening hours" subtitle="Logo, cover photo, tagline and weekly hours" size="xl" onClose={() => setOpen(false)} onSave={save}>
           <label className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 text-sm shadow-sm">
-            <input type="checkbox" className="mt-0.5 h-4 w-4 accent-blue-700" checked={accepting} onChange={(e) => setAccepting(e.target.checked)} />
+            <input type="checkbox" className="mt-0.5 h-4 w-4 accent-brand-700" checked={accepting} onChange={(e) => setAccepting(e.target.checked)} />
             <span>
               <span className="font-bold text-neutral-900">Accepting orders</span>
               <span className="block text-xs text-neutral-500">Turn off to pause orders right now (for example when you are too busy). Customers see the shop as closed.</span>

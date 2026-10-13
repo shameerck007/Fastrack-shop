@@ -46,7 +46,7 @@ export default async function SellPage() {
             <p className="mt-1 text-sm text-red-700">{store.rejection_reason}</p>
           )}
           <p className="mt-2 text-sm text-neutral-600">
-            Questions? <Link href="/account" className="text-blue-700 hover:underline">Contact support</Link>.
+            Questions? <Link href="/account" className="text-brand-700 hover:underline">Contact support</Link>.
           </p>
         </div>
       )}

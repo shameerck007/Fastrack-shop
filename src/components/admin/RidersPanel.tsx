@@ -4,6 +4,7 @@ import RidersList, { type RiderRow } from "@/components/admin/RidersList";
 import { StatGrid, StatTile } from "@/components/admin/AdminUi";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { BRAND } from "@/lib/brand";
 
 /** Rider management (numbers, applications, the list) for the Users page. */
 export default async function RidersPanel() {
@@ -29,7 +30,7 @@ export default async function RidersPanel() {
   return (
     <div className="flex flex-col gap-1">
       <StatGrid>
-        <StatTile icon="🛵" label={t("admin.total_riders")} value={riders.length} accent="#2563eb" />
+        <StatTile icon="🛵" label={t("admin.total_riders")} value={riders.length} accent={BRAND[600]} />
         <StatTile icon="⏳" label={t("admin.pending_review")} value={pending} accent="#d97706" />
         <StatTile icon="✅" label={t("admin.approved")} value={approved} accent="#059669" />
         <StatTile icon="🟢" label={t("admin.online_now")} value={online} accent="#7c3aed" />

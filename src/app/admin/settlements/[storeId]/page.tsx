@@ -27,15 +27,15 @@ export default async function AdminSettlementDetailPage({ params }: { params: Pr
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-        <Link href="/admin/settlements" className="text-blue-600 hover:underline">
+        <Link href="/admin/settlements" className="text-brand-600 hover:underline">
           ← All suppliers
         </Link>
         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[store.status] ?? "bg-neutral-100"}`}>{store.status}</span>
         {store.city && <span className="text-neutral-500">{store.city}</span>}
-        <Link href="/admin/commission" className="text-neutral-500 hover:text-blue-600 hover:underline">
+        <Link href="/admin/commission" className="text-neutral-500 hover:text-brand-600 hover:underline">
           Commission rates →
         </Link>
-        <Link href={`/admin/merchants/${store.id}`} className="text-neutral-500 hover:text-blue-600 hover:underline">
+        <Link href={`/admin/merchants/${store.id}`} className="text-neutral-500 hover:text-brand-600 hover:underline">
           Supplier profile →
         </Link>
       </div>

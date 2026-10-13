@@ -75,7 +75,7 @@ function Row({ label, value }: { label: string; value: string | null | undefined
   return (
     <div className="flex items-baseline justify-between gap-4 py-1.5 text-sm">
       <dt className="shrink-0 text-neutral-500">{label}</dt>
-      <dd className={`min-w-0 truncate text-end font-semibold ${empty ? "font-normal text-neutral-300" : "text-neutral-900"}`}>{empty ? "Not set" : value}</dd>
+      <dd className={`min-w-0 truncate text-end font-semibold ${empty ? "font-normal text-neutral-500" : "text-neutral-900"}`}>{empty ? "Not set" : value}</dd>
     </div>
   );
 }
@@ -85,13 +85,13 @@ function Card({ icon, title, hint, onEdit, children }: { icon: string; title: st
     <section className="flex min-w-0 flex-col rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="mb-2 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-lg">{icon}</span>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-lg">{icon}</span>
           <div className="min-w-0">
             <h2 className="text-sm font-extrabold tracking-tight text-neutral-900">{title}</h2>
             <p className="truncate text-xs text-neutral-500">{hint}</p>
           </div>
         </div>
-        <button type="button" onClick={onEdit} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700">
+        <button type="button" onClick={onEdit} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700">
           <span aria-hidden>✎</span> Edit
         </button>
       </div>
@@ -208,13 +208,13 @@ export default function BusinessSettings({ settings }: { settings: CompanySettin
         <Card icon="🛒" title="Ordering" hint="Limits and fees for orders" onEdit={() => edit("ordering")}>
           <Row label="Default maximum order quantity" value={`${v.maxQty} per product`} />
           <div className="flex flex-wrap gap-x-4 gap-y-1 py-2 text-xs">
-            <Link href="/admin/delivery-fees" className="font-semibold text-blue-700 hover:underline">
+            <Link href="/admin/delivery-fees" className="font-semibold text-brand-700 hover:underline">
               Delivery fees →
             </Link>
-            <Link href="/admin/offers" className="font-semibold text-blue-700 hover:underline">
+            <Link href="/admin/offers" className="font-semibold text-brand-700 hover:underline">
               Offers &amp; coupons →
             </Link>
-            <Link href="/admin/commission" className="font-semibold text-blue-700 hover:underline">
+            <Link href="/admin/commission" className="font-semibold text-brand-700 hover:underline">
               Commission rates →
             </Link>
           </div>
@@ -309,7 +309,7 @@ export default function BusinessSettings({ settings }: { settings: CompanySettin
         <FormDialog icon="⚡" title="Express dispatch" subtitle="Automatic rider offers for quick orders" onClose={closeDialog} onSave={save}>
           <DialogSection title="How offers work" hint="Express orders go to one rider at a time: the nearest free rider within the distance below. If they decline or time runs out, the next nearest is offered, and the distance grows each time up to the general rider distance." cols={1}>
             <label className="flex items-center gap-2 text-sm font-semibold text-neutral-800">
-              <input type="checkbox" checked={draft.autoDispatch} onChange={(e) => set("autoDispatch", e.target.checked)} className="h-4 w-4 accent-blue-700" />
+              <input type="checkbox" checked={draft.autoDispatch} onChange={(e) => set("autoDispatch", e.target.checked)} className="h-4 w-4 accent-brand-700" />
               Offer Express orders automatically
             </label>
           </DialogSection>

@@ -44,7 +44,7 @@ export default function ZonesCoverageButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+        className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700"
       >
         {t("zones_coverage.view_coverage_map")}
       </button>
@@ -71,7 +71,7 @@ export default function ZonesCoverageButton({
                 <button
                   onClick={close}
                   aria-label="Close"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-700"
                 >
                   ✕
                 </button>

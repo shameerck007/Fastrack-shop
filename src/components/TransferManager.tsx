@@ -9,12 +9,12 @@ import { cancelStockTransfer, createStockTransfer, receiveStockTransfer, sendSto
 import type { Location, LowStockRow, StockOption, Transfer } from "@/lib/transfers";
 import Select from "@/components/ui/Select";
 
-const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
 const STATUS: Record<Transfer["status"], { label: string; tone: string }> = {
   draft: { label: "Draft", tone: "bg-neutral-100 text-neutral-600" },
   in_transit: { label: "On its way", tone: "bg-sky-100 text-sky-800" },
-  received: { label: "Received", tone: "bg-blue-50 text-blue-700" },
+  received: { label: "Received", tone: "bg-brand-50 text-brand-700" },
   cancelled: { label: "Cancelled", tone: "bg-neutral-100 text-neutral-500" },
 };
 
@@ -57,7 +57,7 @@ export default function TransferManager({
 
   return (
     <div className="flex flex-col gap-5">
-      {message && <p className="rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-900">{message}</p>}
+      {message && <p className="rounded-xl bg-brand-50 px-3 py-2 text-sm text-brand-900">{message}</p>}
 
       {low.length > 0 && (
         <section className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
@@ -73,7 +73,7 @@ export default function TransferManager({
                   </span>
                 </span>
                 {!myLocationId && locations.length > 1 && (
-                  <button type="button" onClick={() => setCreating({ toId: r.warehouseId, variantId: r.variantId })} className="shrink-0 rounded-full bg-blue-700 px-3 py-1.5 text-xs font-bold text-white">
+                  <button type="button" onClick={() => setCreating({ toId: r.warehouseId, variantId: r.variantId })} className="shrink-0 rounded-full bg-brand-700 px-3 py-1.5 text-xs font-bold text-white">
                     Transfer in
                   </button>
                 )}
@@ -91,12 +91,12 @@ export default function TransferManager({
               ["done", "History"],
             ] as const
           ).map(([k, l]) => (
-            <button key={k} type="button" onClick={() => setTab(k)} className={`rounded-full px-4 py-1.5 ${tab === k ? "bg-blue-700 text-white shadow" : "text-neutral-500"}`}>
+            <button key={k} type="button" onClick={() => setTab(k)} className={`rounded-full px-4 py-1.5 ${tab === k ? "bg-brand-700 text-white shadow" : "text-neutral-500"}`}>
               {l}
             </button>
           ))}
         </div>
-        <button type="button" onClick={() => setCreating({})} className="ms-auto rounded-full bg-blue-700 px-5 py-2 text-sm font-bold text-white hover:bg-blue-800">
+        <button type="button" onClick={() => setCreating({})} className="ms-auto rounded-full bg-brand-700 px-5 py-2 text-sm font-bold text-white hover:bg-brand-800">
           + New transfer
         </button>
       </div>
@@ -119,19 +119,19 @@ export default function TransferManager({
                   <p className="text-sm text-neutral-600">
                     {t.fromName} → <b>{t.toName}</b>
                   </p>
-                  {t.note && <p className="text-xs text-neutral-400">{t.note}</p>}
+                  {t.note && <p className="text-xs text-neutral-500">{t.note}</p>}
                 </div>
-                <p className="text-xs text-neutral-400">{new Date(t.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</p>
+                <p className="text-xs text-neutral-500">{new Date(t.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</p>
               </div>
               <ul className="mt-2 divide-y divide-neutral-100 text-sm">
                 {t.items.map((i) => (
                   <li key={i.id} className="flex justify-between py-1.5">
                     <span className="min-w-0 truncate text-neutral-800">
-                      {i.name} <span className="text-neutral-400">· {i.label}</span>
+                      {i.name} <span className="text-neutral-500">· {i.label}</span>
                     </span>
                     <span className="shrink-0 font-semibold">
                       {i.quantity}
-                      {i.receivedQuantity != null && i.receivedQuantity !== i.quantity && <span className="ms-1 text-xs text-blue-800">(received {i.receivedQuantity})</span>}
+                      {i.receivedQuantity != null && i.receivedQuantity !== i.quantity && <span className="ms-1 text-xs text-brand-800">(received {i.receivedQuantity})</span>}
                     </span>
                   </li>
                 ))}
@@ -139,12 +139,12 @@ export default function TransferManager({
               {(t.status === "draft" || t.status === "in_transit") && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {t.status === "draft" && canSend(t) && (
-                    <button type="button" disabled={busy === t.id} onClick={() => act(t.id, () => unwrapAction(sendStockTransfer)(t.id))} className="rounded-full bg-blue-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
+                    <button type="button" disabled={busy === t.id} onClick={() => act(t.id, () => unwrapAction(sendStockTransfer)(t.id))} className="rounded-full bg-brand-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
                       Send now (stock leaves {t.fromName})
                     </button>
                   )}
                   {t.status === "in_transit" && canReceive(t) && (
-                    <button type="button" disabled={busy === t.id} onClick={() => act(t.id, () => unwrapAction(receiveStockTransfer)(t.id))} className="rounded-full bg-blue-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
+                    <button type="button" disabled={busy === t.id} onClick={() => act(t.id, () => unwrapAction(receiveStockTransfer)(t.id))} className="rounded-full bg-brand-700 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
                       Receive all at {t.toName}
                     </button>
                   )}
@@ -258,7 +258,7 @@ function NewTransfer({
               <li className="p-4 text-center text-sm text-neutral-500">No stock to send from this location.</li>
             ) : (
               options.map((o) => (
-                <li key={o.variantId} className={`flex items-center justify-between gap-3 px-3 py-2 ${preset.variantId === o.variantId ? "bg-blue-50" : ""}`}>
+                <li key={o.variantId} className={`flex items-center justify-between gap-3 px-3 py-2 ${preset.variantId === o.variantId ? "bg-brand-50" : ""}`}>
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-semibold text-neutral-900">{o.name}</span>
                     <span className="block text-xs text-neutral-500">
@@ -283,17 +283,17 @@ function NewTransfer({
 
         <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (optional)" className={field} />
         <label className="flex items-center gap-2 text-sm text-neutral-700">
-          <input type="checkbox" checked={sendNow} onChange={(e) => setSendNow(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+          <input type="checkbox" checked={sendNow} onChange={(e) => setSendNow(e.target.checked)} className="h-4 w-4 accent-brand-700" />
           Send it now (the stock leaves {locations.find((l) => l.id === fromId)?.name ?? "the sending location"} immediately)
         </label>
-        {error && <p className="text-sm text-blue-900">{error}</p>}
+        {error && <p className="text-sm text-brand-900">{error}</p>}
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs text-neutral-500">{chosen.length} {chosen.length === 1 ? "product" : "products"} selected</p>
           <div className="flex gap-2">
             <button type="button" onClick={onClose} className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-semibold text-neutral-700">
               Cancel
             </button>
-            <button type="button" onClick={submit} disabled={saving || chosen.length === 0 || !toId} className="rounded-full bg-blue-700 px-6 py-2 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50">
+            <button type="button" onClick={submit} disabled={saving || chosen.length === 0 || !toId} className="rounded-full bg-brand-700 px-6 py-2 text-sm font-bold text-white hover:bg-brand-800 disabled:opacity-50">
               {saving ? "Saving…" : sendNow ? "Create and send" : "Save as draft"}
             </button>
           </div>

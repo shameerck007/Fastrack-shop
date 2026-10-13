@@ -72,31 +72,31 @@ export default function CategoryTile({ category, subs, parentOptions, counts }: 
               {localizedName(s, locale)}
             </span>
           ))}
-          {subs.length > 3 && <span className="rounded-full bg-blue-600/10 px-2 py-0.5 text-[10px] font-bold text-blue-700">+{subs.length - 3}</span>}
+          {subs.length > 3 && <span className="rounded-full bg-brand-600/10 px-2 py-0.5 text-[10px] font-bold text-brand-700">+{subs.length - 3}</span>}
         </span>
       </button>
 
       {open && (
         <Modal open onClose={() => setOpen(false)} size="xl">
           <div className="-m-5 flex flex-col">
-            <div className="flex items-center gap-4 border-b border-neutral-100 bg-gradient-to-r from-blue-50 via-white to-white px-5 py-4">
+            <div className="flex items-center gap-4 border-b border-neutral-100 bg-gradient-to-r from-brand-50 via-white to-white px-5 py-4">
               <Look category={category} className="h-16 w-16 rounded-2xl text-4xl" />
               <div className="min-w-0 flex-1">
                 <h2 className="truncate text-lg font-extrabold tracking-tight text-neutral-900">{localizedName(category, locale)}</h2>
                 <p className="truncate text-xs text-neutral-500">
                   {category.name_ar && locale !== "ar" ? `${category.name_ar} · ` : ""}/{category.slug} · order {category.sort_order}
                 </p>
-                <p className="mt-1 text-xs font-semibold text-blue-700">
+                <p className="mt-1 text-xs font-semibold text-brand-700">
                   {total} product{total === 1 ? "" : "s"} in all
                 </p>
               </div>
-              <button type="button" onClick={() => setEditing(category)} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-neutral-300 bg-white px-4 text-xs font-bold text-neutral-700 transition hover:border-blue-400 hover:text-blue-700">
+              <button type="button" onClick={() => setEditing(category)} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-neutral-300 bg-white px-4 text-xs font-bold text-neutral-700 transition hover:border-brand-400 hover:text-brand-700">
                 ✎ Edit
               </button>
               <button type="button" onClick={() => remove(category)} disabled={pending} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-neutral-300 bg-white px-4 text-xs font-bold text-neutral-500 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50">
                 🗑 Delete
               </button>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700">
+              <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-700">
                 ✕
               </button>
             </div>
@@ -116,15 +116,15 @@ export default function CategoryTile({ category, subs, parentOptions, counts }: 
                       <Look category={s} className="h-11 w-11 rounded-xl text-2xl" />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-bold text-neutral-900">{localizedName(s, locale)}</p>
-                        <p className="truncate text-[11px] text-neutral-400">
+                        <p className="truncate text-[11px] text-neutral-500">
                           {s.name_ar && locale !== "ar" ? `${s.name_ar} · ` : ""}order {s.sort_order}
                         </p>
                       </div>
-                      <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">{counts[s.id] ?? 0}</span>
-                      <button type="button" aria-label="Edit" title="Edit" onClick={() => setEditing(s)} className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition hover:bg-blue-50 hover:text-blue-700">
+                      <span className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-bold text-brand-700">{counts[s.id] ?? 0}</span>
+                      <button type="button" aria-label="Edit" title="Edit" onClick={() => setEditing(s)} className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition hover:bg-brand-50 hover:text-brand-700">
                         ✎
                       </button>
-                      <button type="button" aria-label="Delete" title="Delete" disabled={pending} onClick={() => remove(s)} className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40">
+                      <button type="button" aria-label="Delete" title="Delete" disabled={pending} onClick={() => remove(s)} className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40">
                         🗑
                       </button>
                     </li>

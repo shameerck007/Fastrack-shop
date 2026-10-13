@@ -11,6 +11,7 @@ import type { AdminSettlementOverviewRow, MonthlyPoint } from "@/lib/settlements
 import SettlementChart from "@/components/settlement/SettlementChart";
 import PortalPageHeader from "@/components/ui/PortalPageHeader";
 import RecordPayoutForm from "@/components/admin/RecordPayoutForm";
+import { BRAND } from "@/lib/brand";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -30,7 +31,7 @@ function Tile({ icon, label, value, accent, hint }: { icon: string; label: strin
       <div className="min-w-0">
         <p className="text-xs font-medium text-neutral-500">{label}</p>
         <p className="break-words text-lg font-bold leading-tight text-neutral-900 sm:text-xl">{value}</p>
-        {hint && <p className="text-[11px] text-neutral-400">{hint}</p>}
+        {hint && <p className="text-[11px] text-neutral-500">{hint}</p>}
       </div>
     </div>
   );
@@ -115,7 +116,7 @@ export default function AdminSettlementsOverview({ rows, monthly }: { rows: Admi
   }
 
   const btn = "h-10 rounded-full border border-neutral-300 px-4 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50";
-  const field = "h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+  const field = "h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
   return (
     <div className="flex flex-col gap-5">
@@ -124,7 +125,7 @@ export default function AdminSettlementsOverview({ rows, monthly }: { rows: Admi
         title="Supplier ledger"
         subtitle="What each supplier has sold, what FasTrack kept, what was paid, and what is still owed. Open a supplier to see every entry."
         actions={
-          <button onClick={payoutSheet} disabled={busy} className="h-10 rounded-full bg-blue-700 px-5 text-sm font-bold text-white transition hover:bg-blue-800 disabled:opacity-60">
+          <button onClick={payoutSheet} disabled={busy} className="h-10 rounded-full bg-brand-700 px-5 text-sm font-bold text-white transition hover:bg-brand-800 disabled:opacity-60">
             {busy ? "Preparing…" : "⬇ Payouts to make (Excel)"}
           </button>
         }
@@ -133,7 +134,7 @@ export default function AdminSettlementsOverview({ rows, monthly }: { rows: Admi
 
       <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
         <Tile icon="⏳" label="Outstanding balance" value={money(totals.due)} accent="#dc2626" hint={`${totals.owed} supplier${totals.owed === 1 ? "" : "s"} to pay`} />
-        <Tile icon="💰" label="Net earned (all time)" value={money(totals.net)} accent="#2563eb" hint={`on ${money(totals.gross)} sales`} />
+        <Tile icon="💰" label="Net earned (all time)" value={money(totals.net)} accent={BRAND[600]} hint={`on ${money(totals.gross)} sales`} />
         <Tile icon="✅" label="Paid out (all time)" value={money(totals.paid)} accent="#059669" />
         <Tile icon="🏷️" label="FasTrack commission" value={money(totals.commission)} accent="#7c3aed" hint={totals.refunds > 0 ? `${money(totals.refunds)} refunded` : undefined} />
       </div>
@@ -171,19 +172,19 @@ export default function AdminSettlementsOverview({ rows, monthly }: { rows: Admi
               <option value="name">Name A–Z</option>
             </select>
             <label className="col-span-2 flex items-center gap-2 text-sm text-neutral-700 sm:col-span-1">
-              <input type="checkbox" checked={owedOnly} onChange={(e) => setOwedOnly(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+              <input type="checkbox" checked={owedOnly} onChange={(e) => setOwedOnly(e.target.checked)} className="h-4 w-4 accent-brand-700" />
               Only suppliers owed money
             </label>
           </div>
         </div>
 
         {shown.length === 0 ? (
-          <p className="p-6 text-center text-sm text-neutral-400">{rows.length === 0 ? "No suppliers yet." : "No supplier matches these filters."}</p>
+          <p className="p-6 text-center text-sm text-neutral-500">{rows.length === 0 ? "No suppliers yet." : "No supplier matches these filters."}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-sm">
               <thead>
-                <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                   <th className="px-5 py-2.5">Supplier</th>
                   <th className="px-3 py-2.5 text-right">Sales</th>
                   <th className="px-3 py-2.5 text-right">Commission</th>
@@ -197,12 +198,12 @@ export default function AdminSettlementsOverview({ rows, monthly }: { rows: Admi
                 {shown.map((r) => (
                   <tr key={r.storeId} className="transition hover:bg-neutral-50">
                     <td className="px-5 py-3">
-                      <Link href={`/admin/settlements/${r.storeId}`} className="font-medium text-neutral-900 hover:text-blue-700">
+                      <Link href={`/admin/settlements/${r.storeId}`} className="font-medium text-neutral-900 hover:text-brand-700">
                         {r.storeName}
                       </Link>
                       <div className="mt-0.5 flex items-center gap-2">
                         <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[r.storeStatus] ?? "bg-neutral-100"}`}>{r.storeStatus}</span>
-                        <span className="text-[11px] text-neutral-400">
+                        <span className="text-[11px] text-neutral-500">
                           {r.deliveredOrderCount} delivered order{r.deliveredOrderCount === 1 ? "" : "s"}
                         </span>
                       </div>
@@ -223,7 +224,7 @@ export default function AdminSettlementsOverview({ rows, monthly }: { rows: Admi
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-2">
-                        <Link href={`/admin/settlements/${r.storeId}`} className="text-xs font-semibold text-blue-700 hover:underline">
+                        <Link href={`/admin/settlements/${r.storeId}`} className="text-xs font-semibold text-brand-700 hover:underline">
                           Open →
                         </Link>
                         {r.balanceDue > 0.005 && r.storeStatus === "approved" && (

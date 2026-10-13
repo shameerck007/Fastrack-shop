@@ -11,7 +11,7 @@ export default function SettlementChart({ points, title = "Earned and paid out b
   const money = useMoney();
   const [hover, setHover] = useState<number | null>(null);
   const data = points.slice(-12);
-  if (data.length === 0) return <p className="py-8 text-center text-sm text-neutral-400">Nothing to chart yet.</p>;
+  if (data.length === 0) return <p className="py-8 text-center text-sm text-neutral-500">Nothing to chart yet.</p>;
 
   const W = 640;
   const H = 220;
@@ -30,7 +30,7 @@ export default function SettlementChart({ points, title = "Earned and paid out b
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-neutral-800">{title}</h3>
         <div className="flex items-center gap-3 text-xs text-neutral-500">
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-blue-600" /> Net earned</span>
+          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-brand-600" /> Net earned</span>
           <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" /> Paid out</span>
         </div>
       </div>
@@ -46,8 +46,8 @@ export default function SettlementChart({ points, title = "Earned and paid out b
             return (
               <g key={d.month} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onClick={() => setHover(i === hover ? null : i)}>
                 <rect x={cx - slot / 2} y={0} width={slot} height={H} fill="transparent" />
-                {hover === i && <rect x={cx - slot / 2 + 2} y={padT} width={slot - 4} height={base - padT} rx="6" className="fill-blue-50" />}
-                <rect x={cx - bar - 1} y={y(d.net)} width={bar} height={Math.max(0, base - y(d.net))} rx="4" className="fill-blue-600" />
+                {hover === i && <rect x={cx - slot / 2 + 2} y={padT} width={slot - 4} height={base - padT} rx="6" className="fill-brand-50" />}
+                <rect x={cx - bar - 1} y={y(d.net)} width={bar} height={Math.max(0, base - y(d.net))} rx="4" className="fill-brand-600" />
                 <rect x={cx + 1} y={y(d.paidOut)} width={bar} height={Math.max(0, base - y(d.paidOut))} rx="4" className="fill-emerald-500" />
                 <text x={cx} y={H - 8} textAnchor="middle" className="fill-neutral-500" fontSize="11">
                   {MONTHS[d0.getMonth()]}
@@ -65,7 +65,7 @@ export default function SettlementChart({ points, title = "Earned and paid out b
             <p className="text-neutral-600">Sales {money(h.gross)}</p>
             <p className="text-neutral-600">Commission −{money(h.commission)}</p>
             {h.refunds > 0 && <p className="text-amber-700">Refunds −{money(h.refunds)}</p>}
-            <p className="text-blue-700">Net earned {money(h.net)}</p>
+            <p className="text-brand-700">Net earned {money(h.net)}</p>
             <p className="text-emerald-700">Paid out {money(h.paidOut)}</p>
           </div>
         )}

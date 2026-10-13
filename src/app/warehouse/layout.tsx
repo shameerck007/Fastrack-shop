@@ -16,7 +16,7 @@ export default async function WarehouseLayout({ children }: { children: React.Re
   const t = (key: string) => translate(locale, key);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/70 via-neutral-50 to-neutral-50">
+    <div className="min-h-screen bg-gradient-to-b from-brand-50/70 via-neutral-50 to-neutral-50">
       <PortalHeader
         homeHref="/warehouse"
         title={warehouse.name}

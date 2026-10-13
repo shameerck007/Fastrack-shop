@@ -39,7 +39,7 @@ export default function LandingPreference({
   return (
     <div className="mb-4 rounded-xl border border-neutral-200 bg-white p-4">
       <div className="mb-3 flex items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xl">🏠</span>
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xl">🏠</span>
         <span className="flex flex-col">
           <span className="font-medium text-neutral-900">Default landing page</span>
           <span className="text-sm text-neutral-500">Choose what opens first when you use FasTrack.</span>
@@ -53,7 +53,7 @@ export default function LandingPreference({
             disabled={pending}
             onClick={() => choose(o.key)}
             className={`flex items-start gap-3 rounded-xl border p-3 text-left transition disabled:opacity-60 ${
-              value === o.key ? "border-blue-600 bg-blue-50" : "border-neutral-300 hover:border-blue-300"
+              value === o.key ? "border-brand-600 bg-brand-50" : "border-neutral-300 hover:border-brand-300"
             }`}
           >
             <span className="text-xl">{o.icon}</span>
@@ -63,7 +63,7 @@ export default function LandingPreference({
             </span>
             <span
               className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] ${
-                value === o.key ? "border-blue-600 bg-blue-600 text-white" : "border-neutral-300"
+                value === o.key ? "border-brand-600 bg-brand-600 text-white" : "border-neutral-300"
               }`}
             >
               {value === o.key ? "✓" : ""}

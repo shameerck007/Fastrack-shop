@@ -93,10 +93,10 @@ export default function CartItemRow({
 
       <div className="flex min-w-0 flex-1 flex-col justify-between">
         <div>
-          <Link href={`/products/${product.id}`} className="font-medium text-neutral-900 hover:text-blue-700 hover:underline">
+          <Link href={`/products/${product.id}`} className="font-medium text-neutral-900 hover:text-brand-700 hover:underline">
             {name}
           </Link>
-          {product.brand && <p className="text-xs text-neutral-400">{localizedField(product.brand, product.brand_ar, locale)}</p>}
+          {product.brand && <p className="text-xs text-neutral-500">{localizedField(product.brand, product.brand_ar, locale)}</p>}
           <p className="text-sm text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</p>
           {maxQty !== null && <p className="mt-0.5 text-xs font-medium text-amber-700">{t("cart.limit_per_order", { count: maxQty })}</p>}
           {undeliverable && (
@@ -128,7 +128,7 @@ export default function CartItemRow({
             onClick={remove}
             disabled={pending}
             className={`text-sm hover:underline disabled:opacity-40 ${
-              undeliverable ? "font-medium text-red-600 hover:text-red-800" : "text-blue-600 hover:text-blue-800"
+              undeliverable ? "font-medium text-red-600 hover:text-red-800" : "text-brand-600 hover:text-brand-800"
             }`}
           >
             {t("cart.remove")}

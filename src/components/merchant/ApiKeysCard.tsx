@@ -64,7 +64,7 @@ export default function ApiKeysCard({ keys }: { keys: KeyRow[] }) {
               onClick={() => {
                 navigator.clipboard?.writeText(fresh).then(() => setCopied(true));
               }}
-              className="h-10 rounded-full bg-blue-700 px-5 text-sm font-bold text-white hover:bg-blue-800"
+              className="h-10 rounded-full bg-brand-700 px-5 text-sm font-bold text-white hover:bg-brand-800"
             >
               {copied ? "Copied ✓" : "Copy"}
             </button>
@@ -87,20 +87,20 @@ export default function ApiKeysCard({ keys }: { keys: KeyRow[] }) {
           onChange={(e) => setName(e.target.value)}
           maxLength={60}
           placeholder="Name, for example Warehouse system"
-          className="min-h-[2.75rem] flex-1 rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] flex-1 rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
-        <button onClick={create} disabled={pending || !name.trim()} className="h-11 rounded-full bg-blue-700 px-6 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50">
+        <button onClick={create} disabled={pending || !name.trim()} className="h-11 rounded-full bg-brand-700 px-6 text-sm font-bold text-white hover:bg-brand-800 disabled:opacity-50">
           Create key
         </button>
       </div>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       <ul className="mt-4 divide-y divide-neutral-100">
-        {keys.length === 0 && <li className="py-3 text-sm text-neutral-400">No keys yet.</li>}
+        {keys.length === 0 && <li className="py-3 text-sm text-neutral-500">No keys yet.</li>}
         {keys.map((k) => (
           <li key={k.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
             <div className="min-w-0">
-              <p className={`font-medium ${k.revoked_at ? "text-neutral-400 line-through" : "text-neutral-900"}`}>{k.name}</p>
+              <p className={`font-medium ${k.revoked_at ? "text-neutral-500 line-through" : "text-neutral-900"}`}>{k.name}</p>
               <p className="text-xs text-neutral-500">
                 <code>{k.key_prefix}…</code> · created {fmt(k.created_at)} · last used {fmt(k.last_used_at)}
                 {k.revoked_at && ` · revoked ${fmt(k.revoked_at)}`}

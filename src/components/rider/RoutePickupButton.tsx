@@ -30,11 +30,11 @@ export default function RoutePickupButton({ routeId, count }: { routeId: string;
         type="button"
         onClick={pickUp}
         disabled={pending}
-        className="h-12 w-full rounded-full bg-blue-700 text-base font-extrabold text-white shadow-lg shadow-blue-700/25 active:scale-[0.98] disabled:opacity-50"
+        className="h-12 w-full rounded-full bg-brand-700 text-base font-extrabold text-white shadow-lg shadow-brand-700/25 active:scale-[0.98] disabled:opacity-50"
       >
         {pending ? "Updating…" : `I have all ${count} ${count === 1 ? "order" : "orders"}: start delivering`}
       </button>
-      {error && <p className="mt-2 text-center text-xs text-blue-900">{error}</p>}
+      {error && <p className="mt-2 text-center text-xs text-brand-900">{error}</p>}
     </div>
   );
 }

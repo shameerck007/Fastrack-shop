@@ -21,7 +21,7 @@ export default async function FulfillmentBadge({ fulfillment }: { fulfillment: F
 
   if (fromFastrack && merchantNames.length === 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+      <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700">
         {t("fulfillment.fastrack")}
       </span>
     );

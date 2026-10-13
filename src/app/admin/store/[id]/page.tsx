@@ -14,11 +14,12 @@ import { getWarehouseStaffList } from "@/lib/actions/admin-warehouse-staff";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getMoney } from "@/lib/tenant-server";
+import { BRAND } from "@/lib/brand";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-neutral-100 text-neutral-600",
-  confirmed: "bg-blue-50 text-blue-700",
-  preparing: "bg-blue-50 text-blue-700",
+  confirmed: "bg-brand-50 text-brand-700",
+  preparing: "bg-brand-50 text-brand-700",
   ready_for_pickup: "bg-amber-50 text-amber-700",
   rider_assigned: "bg-amber-50 text-amber-700",
   out_for_delivery: "bg-amber-50 text-amber-700",
@@ -29,10 +30,10 @@ const STATUS_STYLES: Record<string, string> = {
 const STATUS_BAR_COLORS: Record<string, string> = {
   pending: "#bfdbfe",
   confirmed: "#93c5fd",
-  preparing: "#60a5fa",
+  preparing: BRAND[400],
   ready_for_pickup: "#3b82f6",
-  rider_assigned: "#2563eb",
-  out_for_delivery: "#1d4ed8",
+  rider_assigned: BRAND[600],
+  out_for_delivery: BRAND[700],
   delivered: "#059669",
   cancelled: "#dc2626",
 };
@@ -78,7 +79,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
 
   return (
     <div>
-      <Link href="/admin/store" className="text-sm text-blue-600 hover:underline">
+      <Link href="/admin/store" className="text-sm text-brand-600 hover:underline">
         {t("fastrack_stores.all_stores")}
       </Link>
 
@@ -87,7 +88,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold">{w.name}</h1>
             {w.is_default && (
-              <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+              <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">
                 {t("fastrack_stores.default_badge")}
               </span>
             )}
@@ -100,7 +101,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
             </span>
           </div>
           <p className="text-sm text-neutral-500">{w.address_line ?? t("fastrack_stores.no_address")}</p>
-          <Link href="/admin/zones" className="mt-1 inline-block text-xs text-blue-600 hover:underline">
+          <Link href="/admin/zones" className="mt-1 inline-block text-xs text-brand-600 hover:underline">
             {t("fastrack_stores.set_delivery_boundary")}
           </Link>
         </div>
@@ -108,7 +109,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
       </div>
 
       {w.is_default && (
-        <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+        <div className="mb-4 rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm text-brand-800">
           {t("fastrack_stores.default_note")}
         </div>
       )}
@@ -120,14 +121,14 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <Stat icon="📈" label={t("admin.revenue_30d")} value={money(analytics.revenue30d)} accent="#059669" />
-        <Stat icon="🧾" label={t("admin.orders_30d")} value={analytics.orders30d} accent="#2563eb" />
+        <Stat icon="🧾" label={t("admin.orders_30d")} value={analytics.orders30d} accent={BRAND[600]} />
         <Stat icon="⚠️" label={t("admin.low_stock_items")} value={analytics.lowStockCount} accent={analytics.lowStockCount > 0 ? "#dc2626" : "#a3a3a3"} />
       </div>
 
       <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4">
         <div className="mb-1 flex items-center justify-between">
           <p className="text-sm font-medium">{t("admin.revenue_trend")}</p>
-          <span className="text-xs text-neutral-400">{t("admin.last_14_days")}</span>
+          <span className="text-xs text-neutral-500">{t("admin.last_14_days")}</span>
         </div>
         <RevenueTrendChart data={analytics.dailyRevenue} money={money} />
       </div>
@@ -160,12 +161,12 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
         <div className="mb-3 flex items-center justify-between">
           <div>
             <p className="text-sm font-medium">{t("warehouse_staff.section_title")}</p>
-            <p className="text-xs text-neutral-400">{t("warehouse_staff.section_intro")}</p>
+            <p className="text-xs text-neutral-500">{t("warehouse_staff.section_intro")}</p>
           </div>
           <AddWarehouseStaffForm warehouseId={w.id} />
         </div>
         {staff.length === 0 ? (
-          <p className="text-sm text-neutral-400">{t("warehouse_staff.no_staff_yet")}</p>
+          <p className="text-sm text-neutral-500">{t("warehouse_staff.no_staff_yet")}</p>
         ) : (
           <div className="flex flex-col divide-y divide-neutral-100">
             {staff.map((s) => (
@@ -181,12 +182,12 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
       <div className="rounded-xl border border-neutral-200 bg-white p-4">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-medium">{t("admin.recent_orders")}</p>
-          <Link href="/admin/orders" className="text-xs text-blue-600 hover:underline">
+          <Link href="/admin/orders" className="text-xs text-brand-600 hover:underline">
             {t("admin.view_all")}
           </Link>
         </div>
         {analytics.recentOrders.length === 0 ? (
-          <p className="text-sm text-neutral-400">{t("admin.no_orders_yet")}</p>
+          <p className="text-sm text-neutral-500">{t("admin.no_orders_yet")}</p>
         ) : (
           <div className="flex flex-col divide-y divide-neutral-100">
             {analytics.recentOrders.map((order) => (
@@ -197,7 +198,7 @@ export default async function AdminFastrackStoreDetailPage({ params }: { params:
               >
                 <div>
                   <p className="font-medium">#{order.order_number}</p>
-                  <p className="text-xs text-neutral-400">
+                  <p className="text-xs text-neutral-500">
                     {new Date(order.created_at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}
                   </p>
                 </div>

@@ -2,6 +2,7 @@ import CatalogManager from "@/components/admin/CatalogManager";
 import { PageHeader, StatGrid, StatTile } from "@/components/admin/AdminUi";
 import { countMaster, searchMasterCatalog } from "@/lib/master-catalog";
 import { createClient } from "@/lib/supabase/server";
+import { BRAND } from "@/lib/brand";
 
 export const metadata = { title: "Master catalog" };
 
@@ -47,12 +48,12 @@ export default async function AdminCatalogPage({ searchParams }: { searchParams:
         subtitle="What each product is: name, brand, photo, category, barcode and tax. Suppliers sell a product by adding their own price and stock, so it is never listed twice. Prices and stock are under Listings & stock."
       />
       <StatGrid>
-        <StatTile icon="📚" label="Catalog products" value={approvedCount.toLocaleString()} accent="#2563eb" />
+        <StatTile icon="📚" label="Catalog products" value={approvedCount.toLocaleString()} accent={BRAND[600]} />
         <StatTile icon="📭" label="Requests to review" value={pendingCount} accent="#0369a1" hint={pendingCount > 0 ? "Suppliers are waiting" : undefined} />
-        <StatTile icon="🏪" label="Supplier listings" value={offers.toLocaleString()} accent="#1e40af" hint="Offers linked to catalog products" />
+        <StatTile icon="🏪" label="Supplier listings" value={offers.toLocaleString()} accent={BRAND[800]} hint="Offers linked to catalog products" />
         <StatTile icon="🔗" label="Average suppliers per product" value={approvedCount ? (offers / approvedCount).toFixed(1) : "0"} accent="#0ea5e9" />
       </StatGrid>
-      {result.error && <p className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">The catalog could not be loaded: {result.error}</p>}
+      {result.error && <p className="mb-3 rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm text-brand-900">The catalog could not be loaded: {result.error}</p>}
       <CatalogManager products={result.items} total={result.total} page={page} pageSize={PAGE_SIZE} tab={tab} q={sp.q ?? ""} cat={sp.cat ?? "all"} approvedCount={approvedCount} pendingCount={pendingCount} categories={(categories ?? []) as { id: string; name: string; parent_id: string | null }[]} fastrackLocations={fastrackLocations} fastrackIds={fastrackIds} />
     </div>
   );

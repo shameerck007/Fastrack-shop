@@ -32,11 +32,11 @@ export default function AcceptRouteButton({ routeId }: { routeId: string }) {
         type="button"
         onClick={accept}
         disabled={pending}
-        className="h-11 min-w-[8.5rem] rounded-full bg-blue-700 px-6 text-sm font-extrabold text-white shadow-md shadow-blue-700/25 transition active:scale-95 hover:bg-blue-800 disabled:opacity-50"
+        className="h-11 min-w-[8.5rem] rounded-full bg-brand-700 px-6 text-sm font-extrabold text-white shadow-md shadow-brand-700/25 transition active:scale-95 hover:bg-brand-800 disabled:opacity-50"
       >
         {pending ? "Taking…" : "Take route"}
       </button>
-      {error && <p className="max-w-[14rem] text-end text-xs text-blue-900">{error}</p>}
+      {error && <p className="max-w-[14rem] text-end text-xs text-brand-900">{error}</p>}
     </div>
   );
 }

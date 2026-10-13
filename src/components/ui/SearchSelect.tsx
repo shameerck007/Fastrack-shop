@@ -156,11 +156,11 @@ export default function SearchSelect({
             openList();
           }
         }}
-        className={`flex w-full items-center justify-between gap-2 border bg-white text-start transition focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400 ${pad} ${
-          open ? "border-blue-500 ring-2 ring-blue-500/20" : "border-neutral-300 hover:border-neutral-400"
+        className={`flex w-full items-center justify-between gap-2 border bg-white text-start transition focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-500 ${pad} ${
+          open ? "border-brand-500 ring-2 ring-brand-500/20" : "border-neutral-300 hover:border-neutral-400"
         }`}
       >
-        <span className={`min-w-0 flex-1 truncate ${selected && selected.value !== "" ? "text-neutral-900" : "text-neutral-400"}`}>{selected ? selected.label : placeholder}</span>
+        <span className={`min-w-0 flex-1 truncate ${selected && selected.value !== "" ? "text-neutral-900" : "text-neutral-500"}`}>{selected ? selected.label : placeholder}</span>
         {clearable && selected && selected.value !== "" && !disabled ? (
           <span
             role="button"
@@ -169,12 +169,12 @@ export default function SearchSelect({
               e.stopPropagation();
               onChange("");
             }}
-            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
           >
             ✕
           </span>
         ) : null}
-        <svg aria-hidden viewBox="0 0 20 20" fill="currentColor" className={`h-4 w-4 shrink-0 text-neutral-400 transition ${open ? "rotate-180" : ""}`}>
+        <svg aria-hidden viewBox="0 0 20 20" fill="currentColor" className={`h-4 w-4 shrink-0 text-neutral-500 transition ${open ? "rotate-180" : ""}`}>
           <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clipRule="evenodd" />
         </svg>
       </button>
@@ -190,7 +190,7 @@ export default function SearchSelect({
             {showSearch && (
               <div className="shrink-0 border-b border-neutral-100 p-2">
                 <div className="relative">
-                  <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400">🔍</span>
+                  <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500">🔍</span>
                   <input
                     ref={search}
                     type="search"
@@ -201,19 +201,19 @@ export default function SearchSelect({
                     }}
                     placeholder={searchPlaceholder}
                     aria-controls={`${uid}-list`}
-                    className="h-10 w-full rounded-xl border border-neutral-200 bg-neutral-50 pe-3 ps-9 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+                    className="h-10 w-full rounded-xl border border-neutral-200 bg-neutral-50 pe-3 ps-9 text-sm focus:border-brand-500 focus:bg-white focus:outline-none"
                   />
                 </div>
               </div>
             )}
             <ul ref={list} id={`${uid}-list`} role="listbox" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1.5">
-              {rows.length === 0 && <li className="px-3 py-6 text-center text-sm text-neutral-400">{emptyText}</li>}
+              {rows.length === 0 && <li className="px-3 py-6 text-center text-sm text-neutral-500">{emptyText}</li>}
               {rows.map((o, i) => {
                 const heading = o.group && o.group !== rows[i - 1]?.group ? o.group : null;
                 const isSel = o.value === value;
                 return (
                   <li key={`${o.value}-${i}`} role="presentation">
-                    {heading && <p className="px-3 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">{heading}</p>}
+                    {heading && <p className="px-3 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-wider text-neutral-500">{heading}</p>}
                     <button
                       type="button"
                       role="option"
@@ -223,12 +223,12 @@ export default function SearchSelect({
                       onMouseEnter={() => setActive(i)}
                       onClick={() => pick(o.value)}
                       className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-start text-sm disabled:opacity-40 ${
-                        i === active ? "bg-blue-50" : ""
-                      } ${isSel ? "font-bold text-blue-700" : "text-neutral-800"}`}
+                        i === active ? "bg-brand-50" : ""
+                      } ${isSel ? "font-bold text-brand-700" : "text-neutral-800"}`}
                     >
                       <span className={o.hint ? "shrink-0 whitespace-nowrap" : "min-w-0 flex-1 truncate"}>{o.label}</span>
-                      {o.hint && <span className="min-w-0 flex-1 truncate text-end text-xs text-neutral-400">{o.hint}</span>}
-                      {isSel && <span aria-hidden className="shrink-0 text-blue-700">✓</span>}
+                      {o.hint && <span className="min-w-0 flex-1 truncate text-end text-xs text-neutral-500">{o.hint}</span>}
+                      {isSel && <span aria-hidden className="shrink-0 text-brand-700">✓</span>}
                     </button>
                   </li>
                 );

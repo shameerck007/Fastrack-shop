@@ -75,7 +75,7 @@ export default async function PlatformMarketsPage() {
         })}
       </div>
 
-      <p className="rounded-2xl bg-blue-50 px-4 py-3 text-xs text-blue-900">
+      <p className="rounded-2xl bg-brand-50 px-4 py-3 text-xs text-brand-900">
         Numbers in brackets are applications waiting for review. A market that is a draft or suspended is invisible to customers; its staff can still sign in and set things up.
       </p>
     </div>

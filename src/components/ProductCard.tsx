@@ -67,7 +67,7 @@ export default function ProductCard({
 
         <div className="absolute start-2 top-2 flex flex-col gap-1">
           {product.is_fresh && (
-            <span className="rounded-full bg-white/95 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 shadow-sm">
+            <span className="rounded-full bg-white/95 px-2.5 py-0.5 text-[10px] font-bold text-brand-700 shadow-sm">
               {locale === "ar" ? "طازج" : "Fresh"}
             </span>
           )}
@@ -78,7 +78,7 @@ export default function ProductCard({
           </span>
         ) : (
           discountPct && (
-            <span className="absolute end-2 top-2 rounded-full bg-blue-700 px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-sm">
+            <span className="absolute end-2 top-2 rounded-full bg-brand-700 px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-sm">
               -{discountPct}%
             </span>
           )
@@ -99,7 +99,7 @@ export default function ProductCard({
           <span className="text-xs text-neutral-500">{localizedField(variant.label, variant.label_ar, locale)}</span>
         )}
         {ui.deliveryBadges && delivery.state === "ok" && !outOfStock && (
-          <span className={`mt-0.5 inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${delivery.express ? "bg-blue-50 text-blue-700" : "bg-neutral-100 text-neutral-600"}`}>
+          <span className={`mt-0.5 inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${delivery.express ? "bg-brand-50 text-brand-700" : "bg-neutral-100 text-neutral-600"}`}>
             {delivery.express
               ? `${etaRangeForCard ? formatEta(etaRangeForCard) : "Express"}`
               : `📦 ${formatDeliveryDate(standardDeliveryDate(delivery.standardDays, new Date(), marketOffsetMinutes(countryCode)), locale)}`}
@@ -111,7 +111,7 @@ export default function ProductCard({
               {variant ? money(variant.price) : "—"}
             </span>
             {variant?.compare_at_price && (
-              <span className="text-xs text-neutral-400 line-through">
+              <span className="text-xs text-neutral-500 line-through">
                 {money(variant.compare_at_price)}
               </span>
             )}

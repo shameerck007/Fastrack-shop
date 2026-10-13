@@ -25,9 +25,9 @@ export default function RiderBottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold ${active ? "text-blue-700" : "text-neutral-500"}`}
+              className={`flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold ${active ? "text-brand-700" : "text-neutral-500"}`}
             >
-              <span className={`flex h-7 w-12 items-center justify-center rounded-full text-lg leading-none ${active ? "bg-blue-100" : ""}`}>
+              <span className={`flex h-7 w-12 items-center justify-center rounded-full text-lg leading-none ${active ? "bg-brand-100" : ""}`}>
                 {item.icon}
               </span>
               {item.label}

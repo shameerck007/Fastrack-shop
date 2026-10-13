@@ -82,7 +82,7 @@ export default function AddRiderForm() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800"
+        className="flex items-center gap-2 rounded-full bg-brand-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-800"
       >
         {t("add_rider.add_rider_btn")}
       </button>
@@ -102,7 +102,7 @@ export default function AddRiderForm() {
               }}
               placeholder={t("add_rider.rider_email_placeholder")}
               type="email"
-              className="flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
             <button
               onClick={search}
@@ -124,7 +124,7 @@ export default function AddRiderForm() {
               <Select
                 value={vehicleType}
                 onChange={(e) => setVehicleType(e.target.value)}
-                className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               >
                 <option value="motorbike">{t("become_rider.vehicle_motorbike")}</option>
                 <option value="car">{t("become_rider.vehicle_car")}</option>
@@ -134,13 +134,13 @@ export default function AddRiderForm() {
                 value={licenseNumber}
                 onChange={(e) => setLicenseNumber(e.target.value)}
                 placeholder={t("add_rider.license_number")}
-                className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
 
               <button
                 onClick={submit}
                 disabled={saving}
-                className="mt-1 rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+                className="mt-1 rounded-full bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-50"
               >
                 {saving ? t("add_rider.creating") : t("add_rider.create_rider")}
               </button>

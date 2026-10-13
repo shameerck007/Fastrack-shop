@@ -78,13 +78,13 @@ export default function DeliveryActions({ orderId, orderNumber, status, requireP
     });
   }
 
-  const card = "rounded-3xl border border-blue-200 bg-white p-4 shadow-sm";
-  const primary = "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-blue-700 px-5 text-sm font-bold text-white transition active:scale-[0.98] hover:bg-blue-800 disabled:opacity-50";
+  const card = "rounded-3xl border border-brand-200 bg-white p-4 shadow-sm";
+  const primary = "inline-flex h-10 items-center justify-center gap-2 rounded-full bg-brand-700 px-5 text-sm font-bold text-white transition active:scale-[0.98] hover:bg-brand-800 disabled:opacity-50";
   const secondary = "inline-flex h-10 items-center justify-center rounded-full border border-neutral-300 px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50";
-  const codeInput = "h-10 w-32 rounded-xl border border-neutral-300 px-3 text-center text-base font-bold tracking-[0.35em] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200";
+  const codeInput = "h-10 w-32 rounded-xl border border-neutral-300 px-3 text-center text-base font-bold tracking-[0.35em] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200";
 
   if (status === "delivered") {
-    return <p className="rounded-2xl bg-blue-50 p-3 text-sm font-medium text-blue-700">{t("rider.delivered_check")}</p>;
+    return <p className="rounded-2xl bg-brand-50 p-3 text-sm font-medium text-brand-700">{t("rider.delivered_check")}</p>;
   }
 
   if (status === "rider_assigned" || status === "ready_for_pickup") {
@@ -97,7 +97,7 @@ export default function DeliveryActions({ orderId, orderNumber, status, requireP
             <button type="button" onClick={() => setScanning("pickup")} className={primary}>
               📷 Scan label
             </button>
-            <span className="text-xs text-neutral-400">or</span>
+            <span className="text-xs text-neutral-500">or</span>
             <form onSubmit={handlePickupCode} className="flex items-center gap-2">
               <input
                 value={pickupCode}
@@ -115,7 +115,7 @@ export default function DeliveryActions({ orderId, orderNumber, status, requireP
           </div>
           {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           {!requirePickupScan && (
-            <button onClick={handlePickedUp} disabled={pending} className="mt-3 text-xs font-semibold text-blue-700 underline-offset-2 hover:underline disabled:opacity-50">
+            <button onClick={handlePickedUp} disabled={pending} className="mt-3 text-xs font-semibold text-brand-700 underline-offset-2 hover:underline disabled:opacity-50">
               {t("rider.mark_picked_up")} without scanning
             </button>
           )}
@@ -135,7 +135,7 @@ export default function DeliveryActions({ orderId, orderNumber, status, requireP
             <button type="button" onClick={() => setScanning("delivery")} className={primary}>
               📷 Scan customer QR
             </button>
-            <span className="text-xs text-neutral-400">or</span>
+            <span className="text-xs text-neutral-500">or</span>
             <form onSubmit={handleComplete} className="flex items-center gap-2">
               <input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} inputMode="numeric" maxLength={4} placeholder="OTP" aria-label={t("rider.enter_otp_label")} className={codeInput} />
               <button type="submit" disabled={pending || otp.length !== 4} className={secondary}>

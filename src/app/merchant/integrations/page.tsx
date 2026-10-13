@@ -102,7 +102,7 @@ export default async function IntegrationsPage() {
           {ENDPOINTS.map(([m, p, d]) => (
             <li key={m + p} className="flex flex-col gap-1 py-2.5 sm:flex-row sm:items-baseline sm:gap-4">
               <span className="flex shrink-0 items-center gap-2 sm:w-64">
-                <span className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${m === "GET" ? "bg-emerald-50 text-emerald-700" : m === "POST" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{m}</span>
+                <span className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${m === "GET" ? "bg-emerald-50 text-emerald-700" : m === "POST" ? "bg-brand-50 text-brand-700" : "bg-amber-50 text-amber-700"}`}>{m}</span>
                 <code className="font-mono text-xs text-neutral-900">{p}</code>
               </span>
               <span>{d}</span>

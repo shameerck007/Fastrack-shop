@@ -73,20 +73,20 @@ export default function RiderStatementDialog({ riderId, label = "Statement" }: {
       {open && (
         <Modal open onClose={() => setOpen(false)} size="md">
           <div className="-m-5 flex flex-col">
-            <div className="flex items-center gap-3 border-b border-neutral-100 bg-gradient-to-r from-blue-50 via-white to-white px-5 py-4">
+            <div className="flex items-center gap-3 border-b border-neutral-100 bg-gradient-to-r from-brand-50 via-white to-white px-5 py-4">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-lg shadow-sm ring-1 ring-neutral-200">📄</span>
               <div className="min-w-0 flex-1">
                 <h2 className="text-base font-extrabold tracking-tight text-neutral-900">Rider statement</h2>
                 <p className="truncate text-xs text-neutral-500">{data?.rider.name ?? "Pick a period"}</p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100">
+              <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100">
                 ✕
               </button>
             </div>
             <div className="flex flex-col gap-4 bg-neutral-50 p-4 sm:p-5">
               <div className="flex flex-wrap gap-1.5">
                 {presets().map((p) => (
-                  <button key={p.id} type="button" onClick={() => load(p.from, p.to)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${from === p.from && to === p.to ? "bg-blue-700 text-white" : "bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100"}`}>
+                  <button key={p.id} type="button" onClick={() => load(p.from, p.to)} className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${from === p.from && to === p.to ? "bg-brand-700 text-white" : "bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100"}`}>
                     {p.label}
                   </button>
                 ))}
@@ -103,7 +103,7 @@ export default function RiderStatementDialog({ riderId, label = "Statement" }: {
                 {error ? (
                   <p className="text-sm font-medium text-rose-700">{error}</p>
                 ) : loading || !data ? (
-                  <p className="py-6 text-center text-sm text-neutral-400">Loading…</p>
+                  <p className="py-6 text-center text-sm text-neutral-500">Loading…</p>
                 ) : (
                   <div className="divide-y divide-neutral-100">
                     <Line label="Opening balance" value={money(data.opening_balance)} />
@@ -114,7 +114,7 @@ export default function RiderStatementDialog({ riderId, label = "Statement" }: {
                     <Line label="Cash handed in" value={money(data.cash_handed_in)} />
                     <Line label="Paid out (incl. advances)" value={`-${money(data.paid_out)}`} />
                     {data.deductions > 0 && <Line label="Deductions" value={`-${money(data.deductions)}`} tone="text-amber-700" />}
-                    <Line label={data.closing_balance >= 0 ? "Closing balance (owed to the rider)" : "Closing balance (rider owes FasTrack)"} value={money(Math.abs(data.closing_balance))} strong tone="text-blue-700" />
+                    <Line label={data.closing_balance >= 0 ? "Closing balance (owed to the rider)" : "Closing balance (rider owes FasTrack)"} value={money(Math.abs(data.closing_balance))} strong tone="text-brand-700" />
                   </div>
                 )}
               </section>

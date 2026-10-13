@@ -58,8 +58,8 @@ function ReviewDialog({ ret, riders, onClose }: { ret: AdminReturn; riders: Ride
       <DialogSection cols={1}>
         <div className="grid gap-2">
           {opts.map(([id, title, hint]) => (
-            <label key={id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 text-sm ${mode === id ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200"}`}>
-              <input type="radio" name="mode" checked={mode === id} onChange={() => setMode(id)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+            <label key={id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 text-sm ${mode === id ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200"}`}>
+              <input type="radio" name="mode" checked={mode === id} onChange={() => setMode(id)} className="mt-0.5 h-4 w-4 accent-brand-700" />
               <span>
                 <span className="block font-bold text-neutral-900">{title}</span>
                 <span className="block text-xs text-neutral-500">{hint}</span>
@@ -71,7 +71,7 @@ function ReviewDialog({ ret, riders, onClose }: { ret: AdminReturn; riders: Ride
       {mode !== "reject" && (
         <DialogSection cols={1}>
           <label className="flex items-center gap-2 text-sm text-neutral-700">
-            <input type="checkbox" checked={refundDelivery} onChange={(e) => setRefundDelivery(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+            <input type="checkbox" checked={refundDelivery} onChange={(e) => setRefundDelivery(e.target.checked)} className="h-4 w-4 accent-brand-700" />
             Also refund the delivery fee (when the fault was ours)
           </label>
         </DialogSection>
@@ -129,8 +129,8 @@ export default function ReturnsBoard({ rows, riders }: { rows: AdminReturn[]; ri
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex flex-wrap gap-1.5">
           {FILTERS.map((f) => (
-            <button key={f.id} type="button" onClick={() => setFilter(f.id)} className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${filter === f.id ? "bg-blue-700 text-white shadow-sm" : "bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100"}`}>
-              {f.label} <span className={filter === f.id ? "text-blue-100" : "text-neutral-400"}>{counts[f.id]}</span>
+            <button key={f.id} type="button" onClick={() => setFilter(f.id)} className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${filter === f.id ? "bg-brand-700 text-white shadow-sm" : "bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100"}`}>
+              {f.label} <span className={filter === f.id ? "text-brand-100" : "text-neutral-500"}>{counts[f.id]}</span>
             </button>
           ))}
         </div>
@@ -156,7 +156,7 @@ export default function ReturnsBoard({ rows, riders }: { rows: AdminReturn[]; ri
                     </p>
                     <p className="text-xs text-neutral-500">
                       {r.return_number} · order{" "}
-                      <Link href={`/admin/orders/${r.order_id}`} className="text-blue-600 hover:underline">
+                      <Link href={`/admin/orders/${r.order_id}`} className="text-brand-600 hover:underline">
                         #{r.order_number}
                       </Link>{" "}
                       · {when(r.created_at)}
@@ -197,17 +197,17 @@ export default function ReturnsBoard({ rows, riders }: { rows: AdminReturn[]; ri
                 {r.status === "refunded" && r.refund_amount != null && <p className="mt-2 text-sm font-bold text-emerald-700">{money(Number(r.refund_amount))} refunded</p>}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {r.status === "requested" && (
-                    <button type="button" onClick={() => setReview(r)} className="h-9 rounded-full bg-blue-700 px-4 text-sm font-bold text-white hover:bg-blue-800">
+                    <button type="button" onClick={() => setReview(r)} className="h-9 rounded-full bg-brand-700 px-4 text-sm font-bold text-white hover:bg-brand-800">
                       Review
                     </button>
                   )}
                   {r.stock_status === "awaiting_dropoff" && (
-                    <button type="button" onClick={() => setReceive(r)} className="h-9 rounded-full border border-blue-300 px-4 text-sm font-bold text-blue-800 hover:bg-blue-50">
+                    <button type="button" onClick={() => setReceive(r)} className="h-9 rounded-full border border-brand-300 px-4 text-sm font-bold text-brand-800 hover:bg-brand-50">
                       📥 Mark received
                     </button>
                   )}
                   {(r.status === "approved" || r.status === "pickup_assigned") && r.resolution === "pickup" && (
-                    <button type="button" onClick={() => setAssign(r)} className="h-9 rounded-full bg-blue-700 px-4 text-sm font-bold text-white hover:bg-blue-800">
+                    <button type="button" onClick={() => setAssign(r)} className="h-9 rounded-full bg-brand-700 px-4 text-sm font-bold text-white hover:bg-brand-800">
                       {r.status === "approved" ? "Send a rider" : "Change rider"}
                     </button>
                   )}

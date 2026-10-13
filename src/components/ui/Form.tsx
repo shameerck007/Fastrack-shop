@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 /** The one input look used across the app's forms (text, number, date, textarea). */
 export const inputClass =
-  "h-11 w-full rounded-xl border border-neutral-300 bg-white px-3.5 text-sm text-neutral-900 placeholder:text-neutral-400 transition hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400";
+  "h-11 w-full rounded-xl border border-neutral-300 bg-white px-3.5 text-sm text-neutral-900 placeholder:text-neutral-500 transition hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-500";
 export const textareaClass = inputClass.replace("h-11 ", "min-h-[5.5rem] py-2.5 ");
 
 /** A label above a control, with optional help text and an error. */
@@ -28,11 +28,11 @@ export function Field({
       {label && (
         <label htmlFor={htmlFor} className="text-xs font-semibold text-neutral-700">
           {label}
-          {required && <span className="ms-0.5 text-blue-700">*</span>}
+          {required && <span className="ms-0.5 text-brand-700">*</span>}
         </label>
       )}
       {children}
-      {error ? <p className="text-xs font-medium text-blue-800">{error}</p> : hint ? <p className="text-xs text-neutral-400">{hint}</p> : null}
+      {error ? <p className="text-xs font-medium text-brand-800">{error}</p> : hint ? <p className="text-xs text-neutral-500">{hint}</p> : null}
     </div>
   );
 }
@@ -56,6 +56,6 @@ export function FormActions({ children, className = "" }: { children: ReactNode;
 }
 
 export const primaryButton =
-  "inline-flex h-11 items-center justify-center rounded-full bg-blue-700 px-6 text-sm font-bold text-white transition hover:bg-blue-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex h-11 items-center justify-center rounded-full bg-brand-700 px-6 text-sm font-bold text-white transition hover:bg-brand-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50";
 export const secondaryButton =
   "inline-flex h-11 items-center justify-center rounded-full border border-neutral-300 bg-white px-5 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 active:scale-[0.98] disabled:opacity-50";

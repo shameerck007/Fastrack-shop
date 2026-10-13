@@ -3,14 +3,15 @@ import { CountUp, Donut, Gauge, PerformanceChart, RadialBars, Columns, Ring, Sal
 import { OrderClock, SupplierBubbles } from "@/components/admin/dashboard/Infographics";
 import { AMBER, BRAND, EMERALD, PALETTE, ROSE, SLATE, TEAL } from "@/components/admin/dashboard/palette";
 import { pctChange, type DashboardData } from "@/lib/admin-dashboard";
+import { BRAND as BLUES } from "@/lib/brand";
 
 export const RANGES = [7, 30, 90] as const;
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "#94a3b8",
   confirmed: "#0ea5e9",
-  preparing: "#2563eb",
-  ready_for_pickup: "#1e40af",
+  preparing: BLUES[600],
+  ready_for_pickup: BLUES[800],
   rider_assigned: "#0d9488",
   out_for_delivery: "#f59e0b",
   delivered: "#059669",
@@ -51,7 +52,7 @@ function Glassy({ title, hint, children }: { title: string; hint?: string; child
 }
 
 function Chip({ change, goodWhenDown = false }: { change: number | null; goodWhenDown?: boolean }) {
-  if (change === null) return <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">New</span>;
+  if (change === null) return <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-bold text-brand-700">New</span>;
   if (change === 0) return <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold text-neutral-500">steady</span>;
   const up = change > 0;
   const good = goodWhenDown ? !up : up;
@@ -96,13 +97,13 @@ export default function DashboardView({ data, days, money, t }: { data: Dashboar
     { n: att.awaiting_rider, label: "waiting for a rider", href: "/admin/orders", c: "#f59e0b" },
     { n: att.low_stock, label: "low stock", href: "/admin/products", c: "#e11d48" },
     { n: att.pending_merchants, label: "supplier applications", href: "/admin/merchants", c: "#0ea5e9" },
-    { n: att.pending_riders, label: "rider applications", href: "/admin/users", c: "#2563eb" },
+    { n: att.pending_riders, label: "rider applications", href: "/admin/users", c: BLUES[600] },
   ].filter((a) => a.n > 0);
 
   const statusSlices = STATUS_ORDER.filter((s) => (data.status[s] ?? 0) > 0).map((s) => ({ label: t(`order_status.${s}`), value: data.status[s], color: STATUS_COLORS[s] }));
   const deliverySlices = [
     { label: "Express", value: data.delivery_types.express ?? 0, color: BRAND },
-    { label: "Standard", value: data.delivery_types.standard ?? 0, color: "#60a5fa" },
+    { label: "Standard", value: data.delivery_types.standard ?? 0, color: BLUES[400] },
     { label: "Scheduled", value: data.delivery_types.scheduled ?? 0, color: "#94a3b8" },
   ].filter((s) => s.value > 0);
   const customerSlices = [
@@ -125,7 +126,7 @@ export default function DashboardView({ data, days, money, t }: { data: Dashboar
         </div>
         <div className="inline-flex rounded-full border border-neutral-200 bg-white p-1 shadow-sm" role="tablist" aria-label="Period">
           {RANGES.map((r) => (
-            <Link key={r} href={r === 30 ? "/admin" : `/admin?range=${r}`} role="tab" aria-selected={r === days} className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${r === days ? "bg-blue-700 text-white shadow-sm" : "text-neutral-600 hover:bg-neutral-100"}`}>
+            <Link key={r} href={r === 30 ? "/admin" : `/admin?range=${r}`} role="tab" aria-selected={r === days} className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${r === days ? "bg-brand-700 text-white shadow-sm" : "text-neutral-600 hover:bg-neutral-100"}`}>
               {r} days
             </Link>
           ))}
@@ -145,11 +146,11 @@ export default function DashboardView({ data, days, money, t }: { data: Dashboar
 
       <div className="grid gap-4 lg:grid-cols-12">
         <section className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 lg:col-span-5">
-          <span aria-hidden className="absolute inset-y-6 left-0 w-1 rounded-r-full bg-blue-700" />
+          <span aria-hidden className="absolute inset-y-6 left-0 w-1 rounded-r-full bg-brand-700" />
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-neutral-500">Total sales</p>
-              <p className="text-xs text-neutral-400">Last {days} days, cancellations left out</p>
+              <p className="text-xs text-neutral-500">Last {days} days, cancellations left out</p>
             </div>
             <Chip change={pctChange(cur.revenue, prev.revenue)} />
           </div>
@@ -162,16 +163,16 @@ export default function DashboardView({ data, days, money, t }: { data: Dashboar
           </div>
           <dl className="mt-3 grid grid-cols-3 divide-x divide-neutral-100 border-t border-neutral-100 pt-3 text-center">
             <div className="px-2">
-              <dt className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Daily average</dt>
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Daily average</dt>
               <dd className="mt-0.5 text-sm font-extrabold text-neutral-900">{money(Math.round((cur.revenue / days) * 100) / 100)}</dd>
             </div>
             <div className="px-2">
-              <dt className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Best day</dt>
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Best day</dt>
               <dd className="mt-0.5 text-sm font-extrabold text-neutral-900">{money(bestDay.revenue)}</dd>
-              <dd className="text-[10px] text-neutral-400">{shortDate(bestDay.date)}</dd>
+              <dd className="text-[10px] text-neutral-500">{shortDate(bestDay.date)}</dd>
             </div>
             <div className="px-2">
-              <dt className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Orders a day</dt>
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Orders a day</dt>
               <dd className="mt-0.5 text-sm font-extrabold text-neutral-900">{Math.round((cur.orders / days) * 10) / 10}</dd>
             </div>
           </dl>
@@ -179,7 +180,7 @@ export default function DashboardView({ data, days, money, t }: { data: Dashboar
         <Glass title="Operations health" hint="Live meters for the period" className="lg:col-span-7">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Gauge value={delivered} label="Delivered" caption={`${cur.delivered} of ${cur.placed - cur.cancelled} orders`} />
-            <Gauge value={loyalty} label="Loyalty" caption="Customers who came back" colors={["#93c5fd", "#3b82f6", "#1d4ed8"]} />
+            <Gauge value={loyalty} label="Loyalty" caption="Customers who came back" colors={["#93c5fd", "#3b82f6", BLUES[700]]} />
             <Gauge value={express} label="Express share" caption="Orders delivered fast" colors={["#5eead4", "#14b8a6", "#0f766e"]} />
           </div>
         </Glass>
@@ -189,7 +190,7 @@ export default function DashboardView({ data, days, money, t }: { data: Dashboar
         <Tile icon="🧾" label="Orders" value={cur.orders} kind="int" change={pctChange(cur.orders, prev.orders)} color={BRAND} pct={fill(cur.orders, prev.orders)} />
         <Tile icon="🧮" label="Average order" value={aov} kind="money" decimals={2} change={pctChange(aov, aovPrev)} color={"#0ea5e9"} pct={fill(aov, aovPrev)} />
         <Tile icon="👥" label="Active customers" value={cur.buyers} kind="int" change={pctChange(cur.buyers, prev.buyers)} color={TEAL} pct={fill(cur.buyers, prev.buyers)} />
-        <Tile icon="✨" label="New sign-ups" value={data.signups.cur} kind="int" change={pctChange(data.signups.cur, data.signups.prev)} color={"#2563eb"} pct={fill(data.signups.cur, data.signups.prev)} />
+        <Tile icon="✨" label="New sign-ups" value={data.signups.cur} kind="int" change={pctChange(data.signups.cur, data.signups.prev)} color={BLUES[600]} pct={fill(data.signups.cur, data.signups.prev)} />
         <Tile icon="💰" label="Commission" value={data.commission.cur} kind="money" decimals={2} change={pctChange(data.commission.cur, data.commission.prev)} color={EMERALD} pct={fill(data.commission.cur, data.commission.prev)} />
         <Tile icon="🛵" label="Delivery fees" value={cur.delivery_fees} kind="money" decimals={2} change={pctChange(cur.delivery_fees, prev.delivery_fees)} color={SLATE} pct={fill(cur.delivery_fees, prev.delivery_fees)} />
         <Tile icon="🏷️" label="Discounts" value={cur.discounts} kind="money" decimals={2} change={pctChange(cur.discounts, prev.discounts)} goodWhenDown color={AMBER} pct={fill(cur.discounts, prev.discounts)} />
@@ -228,7 +229,7 @@ export default function DashboardView({ data, days, money, t }: { data: Dashboar
 
       <section className="relative mt-4 overflow-hidden rounded-[2rem] p-3 sm:p-5" style={{ background: "linear-gradient(135deg, #e0f2fe 0%, #eef2ff 45%, #f1f5f9 100%)" }}>
         <span aria-hidden className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-sky-200/60 blur-3xl" />
-        <span aria-hidden className="pointer-events-none absolute -bottom-20 right-0 h-72 w-72 rounded-full bg-blue-200/50 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -bottom-20 right-0 h-72 w-72 rounded-full bg-brand-200/50 blur-3xl" />
         <span aria-hidden className="pointer-events-none absolute right-1/3 top-1/2 h-48 w-48 rounded-full bg-teal-100/60 blur-3xl" />
         <div className="relative grid gap-4">
           <Glassy title="When customers order" hint="Every hour of the day as a ray: longer is busier. Hover a ray for its hour.">

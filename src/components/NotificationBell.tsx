@@ -105,9 +105,9 @@ export default function NotificationBell() {
             {t("notifications.title")}
           </div>
           {items === null ? (
-            <p className="p-4 text-sm text-neutral-400">{t("notifications.loading")}</p>
+            <p className="p-4 text-sm text-neutral-500">{t("notifications.loading")}</p>
           ) : items.length === 0 ? (
-            <p className="p-6 text-center text-sm text-neutral-400">{t("notifications.empty")}</p>
+            <p className="p-6 text-center text-sm text-neutral-500">{t("notifications.empty")}</p>
           ) : (
             <div className="max-h-96 overflow-y-auto">
               {items.map((item) => (
@@ -116,12 +116,12 @@ export default function NotificationBell() {
                   type="button"
                   onClick={() => openItem(item)}
                   className={`block w-full border-b border-neutral-50 px-4 py-3 text-start transition hover:bg-neutral-50 ${
-                    !item.read_at ? "bg-blue-50/40" : ""
+                    !item.read_at ? "bg-brand-50/40" : ""
                   }`}
                 >
                   <p className="text-sm font-medium text-neutral-900">{item.title}</p>
                   <p className="mt-0.5 text-xs text-neutral-500">{item.body}</p>
-                  <p className="mt-1 text-[11px] text-neutral-400">{relativeTime(item.created_at, locale)}</p>
+                  <p className="mt-1 text-[11px] text-neutral-500">{relativeTime(item.created_at, locale)}</p>
                 </button>
               ))}
             </div>

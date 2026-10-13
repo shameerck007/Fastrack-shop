@@ -60,7 +60,7 @@ export default function MerchantsList({ merchants }: { merchants: MerchantRow[] 
     <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 px-5 py-3">
         <h2 className="text-sm font-semibold text-neutral-700">
-          {t("merchants_list.merchants")} <span className="font-normal text-neutral-400">({filtered.length})</span>
+          {t("merchants_list.merchants")} <span className="font-normal text-neutral-500">({filtered.length})</span>
         </h2>
         <div className="flex flex-wrap gap-2">
         <input
@@ -68,7 +68,7 @@ export default function MerchantsList({ merchants }: { merchants: MerchantRow[] 
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="🔍 Search by name, phone, number…"
-          className="w-full rounded-full border border-neutral-300 px-4 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-64"
+          className="w-full rounded-full border border-neutral-300 px-4 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:w-64"
         />
 
           <Select
@@ -109,7 +109,7 @@ export default function MerchantsList({ merchants }: { merchants: MerchantRow[] 
                 href={`/admin/merchants/${m.id}`}
                 className="flex flex-wrap items-center gap-4 px-5 py-4 transition hover:bg-neutral-50"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-600 text-xs font-bold text-white">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-600 text-xs font-bold text-white">
                   {m.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={m.logoUrl} alt={m.name} className="h-full w-full object-cover" />
@@ -142,7 +142,7 @@ export default function MerchantsList({ merchants }: { merchants: MerchantRow[] 
                 <span className="hidden shrink-0 text-xs text-neutral-500 sm:block">
                   {t("merchants_list.products_count", { count: m.productCount })}
                 </span>
-                <span className="ms-auto shrink-0 text-xs font-medium text-blue-600">{t("merchants_list.view_details")}</span>
+                <span className="ms-auto shrink-0 text-xs font-medium text-brand-600">{t("merchants_list.view_details")}</span>
               </Link>
             </li>
           ))}

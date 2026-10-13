@@ -50,9 +50,9 @@ export default function GlobalErrorToast() {
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-neutral-900">That didn&apos;t work</p>
           <p className="mt-0.5 text-sm text-neutral-600">{info.message}</p>
-          {info.ref && <p className="mt-1 text-xs text-neutral-400">Reference <b className="font-mono text-neutral-600">{info.ref}</b></p>}
+          {info.ref && <p className="mt-1 text-xs text-neutral-500">Reference <b className="font-mono text-neutral-600">{info.ref}</b></p>}
         </div>
-        <button type="button" onClick={() => setInfo(null)} aria-label="Dismiss" className="shrink-0 text-neutral-400 hover:text-neutral-700">
+        <button type="button" onClick={() => setInfo(null)} aria-label="Dismiss" className="shrink-0 text-neutral-500 hover:text-neutral-700">
           ✕
         </button>
       </div>

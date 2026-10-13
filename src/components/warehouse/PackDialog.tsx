@@ -63,7 +63,7 @@ export default function PackDialog({ orderId, orderNumber, onClose, onPacked }: 
           <p className="text-xs text-neutral-500">
             {done} of {total} items packed
           </p>
-          {!items && !error && <p className="py-4 text-center text-sm text-neutral-400">Loading…</p>}
+          {!items && !error && <p className="py-4 text-center text-sm text-neutral-500">Loading…</p>}
           {items && (
             <ul className="divide-y divide-neutral-100">
               {items.map((i) => {

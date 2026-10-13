@@ -25,7 +25,7 @@ export default function WarehouseOrderStatusAction({ orderId, orderNumber, statu
   const labelKey = LABEL_KEY[status];
   if (!labelKey) {
     if (status === "ready_for_pickup") {
-      return <p className="text-xs font-medium text-blue-700">{t("merchant.awaiting_rider_pickup")}</p>;
+      return <p className="text-xs font-medium text-brand-700">{t("merchant.awaiting_rider_pickup")}</p>;
     }
     return null;
   }
@@ -54,7 +54,7 @@ export default function WarehouseOrderStatusAction({ orderId, orderNumber, statu
   return (
     <div className="flex flex-col items-end gap-1">
       {status === "preparing" && (
-        <button type="button" onClick={() => setPacking(true)} className="rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-blue-800">
+        <button type="button" onClick={() => setPacking(true)} className="rounded-lg bg-brand-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-brand-800">
           📷 Pack &amp; scan
         </button>
       )}

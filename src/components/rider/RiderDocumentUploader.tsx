@@ -87,7 +87,7 @@ export default function RiderDocumentUploader({
           <span className="truncate text-xs text-neutral-500">✓ {fileName ?? "Uploaded"}</span>
         )}
       </div>
-      {!error && <p className="mt-1 text-[11px] text-neutral-400">{hint ?? t("become_rider.license_hint")}</p>}
+      {!error && <p className="mt-1 text-[11px] text-neutral-500">{hint ?? t("become_rider.license_hint")}</p>}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
   );

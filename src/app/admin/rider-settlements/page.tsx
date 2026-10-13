@@ -2,6 +2,7 @@ import ListFilter from "@/components/admin/ListFilter";
 import Link from "@/components/Link";
 import { getRiderSettlementOverview, type RiderSettlementOverviewRow } from "@/lib/rider-settlements";
 import { getMoney } from "@/lib/tenant-server";
+import { BRAND } from "@/lib/brand";
 
 
 function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
@@ -35,8 +36,8 @@ export default async function AdminRiderSettlementsPage() {
 
   return (
     <div>
-      <div className="mb-5 flex items-start gap-3 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-5">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-sm">🛵</span>
+      <div className="mb-5 flex items-start gap-3 rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 via-white to-white p-5">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-xl text-white shadow-sm">🛵</span>
         <div>
           <h1 className="text-xl font-semibold text-neutral-900">Rider settlements</h1>
           <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">
@@ -53,7 +54,7 @@ export default async function AdminRiderSettlementsPage() {
       ) : (
         <>
           <div className="mb-5 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
-            <Stat icon="💰" label="Earned by riders (all time)" value={money(totalEarned)} accent="#2563eb" />
+            <Stat icon="💰" label="Earned by riders (all time)" value={money(totalEarned)} accent={BRAND[600]} />
             <Stat icon="✅" label="Paid to riders" value={money(totalPaid)} accent="#059669" />
             <Stat icon="⏳" label="We owe riders" value={money(owedToRiders)} accent="#d97706" />
             <Stat icon="💵" label="Riders owe us (cash held)" value={money(owedByRiders)} accent="#dc2626" />
@@ -67,7 +68,7 @@ export default async function AdminRiderSettlementsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[820px] text-sm">
                   <thead>
-                    <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                    <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                       <th className="px-5 py-2.5">Rider</th>
                       <th className="px-3 py-2.5 text-right">Deliveries</th>
                       <th className="px-3 py-2.5 text-right">Earned</th>
@@ -81,10 +82,10 @@ export default async function AdminRiderSettlementsPage() {
                     {rows.map((r) => (
                       <tr key={r.riderId} data-filter={r.riderName} className="transition hover:bg-neutral-50">
                         <td className="px-5 py-3">
-                          <Link href={`/admin/rider-settlements/${r.riderId}`} className="font-medium text-neutral-900 hover:text-blue-600">
+                          <Link href={`/admin/rider-settlements/${r.riderId}`} className="font-medium text-neutral-900 hover:text-brand-600">
                             {r.riderName}
                           </Link>
-                          <div className="text-[11px] text-neutral-400">
+                          <div className="text-[11px] text-neutral-500">
                             {r.payType === "salary" ? "💼 Salary" : "🛵 Per delivery"} · {r.payoutMethod === "bank" ? "🏦 Bank transfer" : "💵 Cash"}
                           </div>
                         </td>
@@ -103,7 +104,7 @@ export default async function AdminRiderSettlementsPage() {
                           </div>
                         </td>
                         <td className="px-5 py-3 text-right">
-                          <Link href={`/admin/rider-settlements/${r.riderId}`} className="text-xs font-medium text-blue-600 hover:underline">
+                          <Link href={`/admin/rider-settlements/${r.riderId}`} className="text-xs font-medium text-brand-600 hover:underline">
                             Ledger
                           </Link>
                         </td>

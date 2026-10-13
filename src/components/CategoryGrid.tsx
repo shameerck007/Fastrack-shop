@@ -58,7 +58,7 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
               <span className="flex max-w-full items-center justify-center gap-0.5 whitespace-nowrap text-center text-xs font-semibold text-neutral-800 sm:text-sm">
                 <span className="truncate">{localizedName(category, locale)}</span>
                 {hasChildren && (
-                  <span aria-hidden className="text-[8px] text-neutral-400">
+                  <span aria-hidden className="text-[8px] text-neutral-500">
                     ▾
                   </span>
                 )}
@@ -74,7 +74,7 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
               >
                 <Link
                   href={`/categories/${category.slug}`}
-                  className="block whitespace-nowrap px-4 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-50"
+                  className="block whitespace-nowrap px-4 py-1.5 text-sm font-medium text-brand-700 hover:bg-brand-50"
                 >
                   {t("category.all_of", { name: localizedName(category, locale) })}
                 </Link>
@@ -83,7 +83,7 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
                   <Link
                     key={sub.id}
                     href={`/categories/${sub.slug}`}
-                    className="flex items-center gap-2 whitespace-nowrap px-4 py-1.5 text-sm text-neutral-700 hover:bg-blue-50 hover:text-blue-700"
+                    className="flex items-center gap-2 whitespace-nowrap px-4 py-1.5 text-sm text-neutral-700 hover:bg-brand-50 hover:text-brand-700"
                   >
                     {sub.icon && <span aria-hidden>{sub.icon}</span>}
                     {localizedName(sub, locale)}

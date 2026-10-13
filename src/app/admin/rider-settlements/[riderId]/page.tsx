@@ -54,7 +54,7 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
 
   return (
     <div>
-      <Link href="/admin/rider-settlements" className="text-sm text-blue-600 hover:underline">
+      <Link href="/admin/rider-settlements" className="text-sm text-brand-600 hover:underline">
         ← Rider settlements
       </Link>
 
@@ -63,7 +63,7 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
           <h1 className="text-xl font-semibold">{profile?.full_name ?? "Rider"}</h1>
           <p className="text-sm text-neutral-500">
             Payout: {rider.payout_method === "bank" ? "Bank transfer" : "Cash"} ·{" "}
-            <Link href={`/admin/riders/${riderId}`} className="text-blue-600 hover:underline">
+            <Link href={`/admin/riders/${riderId}`} className="text-brand-600 hover:underline">
               rider profile
             </Link>
           </p>
@@ -107,12 +107,12 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
                 Delivered orders ({data.orders.length})
               </h2>
               {data.orders.length === 0 ? (
-                <p className="p-4 text-sm text-neutral-400">No delivered orders yet.</p>
+                <p className="p-4 text-sm text-neutral-500">No delivered orders yet.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[520px] text-sm">
                     <thead>
-                      <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                      <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                         <th className="px-4 py-2.5">Order</th>
                         <th className="px-3 py-2.5">Delivered</th>
                         <th className="px-3 py-2.5 text-right">Fee earned</th>
@@ -139,7 +139,7 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
                 Payments ({data.entries.length})
               </h2>
               {data.entries.length === 0 ? (
-                <p className="p-4 text-sm text-neutral-400">Nothing recorded yet.</p>
+                <p className="p-4 text-sm text-neutral-500">Nothing recorded yet.</p>
               ) : (
                 <ul className="divide-y divide-neutral-100">
                   {data.entries.map((e) => (
@@ -152,9 +152,9 @@ export default async function AdminRiderSettlementDetailPage({ params }: { param
                           {METHOD_LABELS[e.method] ?? e.method}
                           {e.reference && ` · Ref ${e.reference}`}
                         </p>
-                        {e.note && <p className="mt-0.5 text-xs text-neutral-400">{e.note}</p>}
+                        {e.note && <p className="mt-0.5 text-xs text-neutral-500">{e.note}</p>}
                       </div>
-                      <span className="shrink-0 text-xs text-neutral-400">{new Date(e.createdAt).toLocaleDateString("en-US")}</span>
+                      <span className="shrink-0 text-xs text-neutral-500">{new Date(e.createdAt).toLocaleDateString("en-US")}</span>
                     </li>
                   ))}
                 </ul>

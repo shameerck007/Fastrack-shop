@@ -53,13 +53,13 @@ export default function ReviewForm({
     <>
       <button
         onClick={handleTriggerClick}
-        className="flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-blue-600 hover:text-blue-700"
+        className="flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-brand-600 hover:text-brand-700"
       >
         {t("reviews.write_a_review")}
       </button>
       <Modal open={open} onClose={() => setOpen(false)} title={t("reviews.write_a_review_title")}>
         {submitted ? (
-          <p className="text-sm text-blue-700">{t("reviews.thanks")}</p>
+          <p className="text-sm text-brand-700">{t("reviews.thanks")}</p>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <div className="flex gap-1" onMouseLeave={() => setHoverRating(0)}>
@@ -83,13 +83,13 @@ export default function ReviewForm({
               onChange={(e) => setComment(e.target.value)}
               placeholder={t("reviews.share_experience")}
               rows={3}
-              className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               type="submit"
               disabled={pending}
-              className="self-start rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+              className="self-start rounded-full bg-brand-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-50"
             >
               {pending ? t("reviews.submitting") : t("reviews.submit")}
             </button>

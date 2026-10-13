@@ -53,7 +53,7 @@ export default function ProductBuyBox({
         )}
         <button
           onClick={openPicker}
-          className="mt-3 w-full rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
+          className="mt-3 w-full rounded-full bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800"
         >
           {t("header.change_location")}
         </button>

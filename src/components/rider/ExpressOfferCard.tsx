@@ -64,15 +64,15 @@ export default function ExpressOfferCard({ offer, salaryOnly = false }: { offer:
   }
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-xl shadow-blue-600/15">
-      <div className="flex items-center justify-between bg-gradient-to-r from-blue-700 to-sky-500 px-4 py-3 text-white">
+    <div className="overflow-hidden rounded-3xl border border-brand-200 bg-white shadow-xl shadow-brand-600/15">
+      <div className="flex items-center justify-between bg-gradient-to-r from-brand-700 to-sky-500 px-4 py-3 text-white">
         <p className="flex items-center gap-2 text-sm font-extrabold">
           <span className="h-2 w-2 animate-ping rounded-full bg-white" /> New Express order
         </p>
         <span className="flex h-9 min-w-9 items-center justify-center rounded-full bg-white/20 px-2 text-base font-extrabold tabular-nums">{left}s</span>
       </div>
-      <div className="h-1 bg-blue-100">
-        <div className="h-full bg-blue-600 transition-all duration-500" style={{ width: `${pct}%` }} />
+      <div className="h-1 bg-brand-100">
+        <div className="h-full bg-brand-600 transition-all duration-500" style={{ width: `${pct}%` }} />
       </div>
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
@@ -87,12 +87,12 @@ export default function ExpressOfferCard({ offer, salaryOnly = false }: { offer:
               </span>
             </div>
           </div>
-          <div className="shrink-0 rounded-2xl bg-blue-50 px-3 py-2 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-700">{salaryOnly ? "Pay" : "You earn"}</p>
-            <p className="text-lg font-extrabold text-blue-700">{salaryOnly ? "Salary" : money(offer.deliveryFee)}</p>
+          <div className="shrink-0 rounded-2xl bg-brand-50 px-3 py-2 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-brand-700">{salaryOnly ? "Pay" : "You earn"}</p>
+            <p className="text-lg font-extrabold text-brand-700">{salaryOnly ? "Salary" : money(offer.deliveryFee)}</p>
           </div>
         </div>
-        {error && <p className="mt-2 text-xs font-semibold text-blue-900">{error}</p>}
+        {error && <p className="mt-2 text-xs font-semibold text-brand-900">{error}</p>}
         <div className="mt-4 flex gap-2">
           <button
             type="button"
@@ -106,7 +106,7 @@ export default function ExpressOfferCard({ offer, salaryOnly = false }: { offer:
             type="button"
             onClick={accept}
             disabled={pending || left === 0}
-            className="h-12 flex-[2] rounded-full bg-blue-700 text-base font-extrabold text-white shadow-lg shadow-blue-700/25 active:scale-95 disabled:opacity-50"
+            className="h-12 flex-[2] rounded-full bg-brand-700 text-base font-extrabold text-white shadow-lg shadow-brand-700/25 active:scale-95 disabled:opacity-50"
           >
             {pending ? "Accepting…" : "Accept"}
           </button>

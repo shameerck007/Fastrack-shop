@@ -45,12 +45,12 @@ export default function ErrorPanel({ error, reset, area = "shop" }: { error: Err
       {info.ref && (
         <p className="mt-3 rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600">
           Reference <b className="font-mono tracking-wider text-neutral-900">{info.ref}</b>
-          <span className="text-neutral-400"> · quote it if you contact support</span>
+          <span className="text-neutral-500"> · quote it if you contact support</span>
         </p>
       )}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
         {reset && (
-          <button type="button" onClick={reset} className="inline-flex h-11 items-center rounded-full bg-blue-700 px-6 text-sm font-bold text-white transition hover:bg-blue-800 active:scale-[0.98]">
+          <button type="button" onClick={reset} className="inline-flex h-11 items-center rounded-full bg-brand-700 px-6 text-sm font-bold text-white transition hover:bg-brand-800 active:scale-[0.98]">
             Try again
           </button>
         )}
@@ -66,7 +66,7 @@ export default function ErrorPanel({ error, reset, area = "shop" }: { error: Err
             setTimeout(() => setCopied(false), 2000);
           });
         }}
-        className="mt-4 text-xs font-semibold text-blue-700 hover:underline"
+        className="mt-4 text-xs font-semibold text-brand-700 hover:underline"
       >
         {copied ? "Copied ✓" : "Copy the problem details"}
       </button>

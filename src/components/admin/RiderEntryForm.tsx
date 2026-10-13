@@ -93,7 +93,7 @@ export default function RiderEntryForm({
                       setNote((n) => n || `Salary: ${new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" })}`);
                     }
                   }}
-                  className={`rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${kind === value ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600" : "border-neutral-200 text-neutral-600 hover:border-neutral-300"}`}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${kind === value ? "border-brand-600 bg-brand-50 text-brand-700 ring-1 ring-brand-600" : "border-neutral-200 text-neutral-600 hover:border-neutral-300"}`}
                 >
                   {label}
                 </button>

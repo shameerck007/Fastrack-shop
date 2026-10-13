@@ -39,7 +39,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
       <Link
         key={value}
         href={value === "all" ? "/admin/users" : `/admin/users?role=${value}`}
-        className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition ${active ? "bg-blue-700 text-white shadow" : "bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-blue-50"}`}
+        className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition ${active ? "bg-brand-700 text-white shadow" : "bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-brand-50"}`}
       >
         <span aria-hidden>{icon}</span>
         {label}
@@ -56,7 +56,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
         subtitle="Customers, suppliers, riders and staff in one place. Pick a type, search, and open an account to manage it. Contact details are masked."
         actions={
           role === "merchant" ? (
-            <Link href="/admin/merchants" className="inline-flex h-10 items-center rounded-full bg-blue-700 px-4 text-sm font-bold text-white hover:bg-blue-800">
+            <Link href="/admin/merchants" className="inline-flex h-10 items-center rounded-full bg-brand-700 px-4 text-sm font-bold text-white hover:bg-brand-800">
               Add or approve suppliers
             </Link>
           ) : undefined
@@ -101,7 +101,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
             Customer management isn&apos;t set up in the database yet. Run migration <b>0075_admin_customers.sql</b> in the Supabase SQL editor, then reload this page.
           </p>
         ) : "error" in result ? (
-          <p className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">The customers could not be loaded: {result.error}</p>
+          <p className="rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-900">The customers could not be loaded: {result.error}</p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
             <div className={`flex min-w-0 flex-col gap-3 ${selected ? "hidden lg:flex" : ""}`}>
@@ -113,23 +113,23 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-                  <div className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+                  <div className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
                     <span>Customer</span>
                     <span>Spent · orders</span>
                   </div>
                   <ul className="divide-y divide-neutral-100">
                     {result.items.map((c) => (
                       <li key={c.id}>
-                        <Link href={hrefFor(c.id)} className={`relative flex items-center gap-3 px-4 py-3 transition hover:bg-neutral-50 ${selected === c.id ? "bg-blue-50/70" : ""}`}>
-                          {selected === c.id && <span aria-hidden className="absolute inset-y-0 start-0 w-1 rounded-e bg-blue-600" />}
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-extrabold text-blue-800">{(c.name ?? "?").trim().charAt(0).toUpperCase() || "?"}</span>
+                        <Link href={hrefFor(c.id)} className={`relative flex items-center gap-3 px-4 py-3 transition hover:bg-neutral-50 ${selected === c.id ? "bg-brand-50/70" : ""}`}>
+                          {selected === c.id && <span aria-hidden className="absolute inset-y-0 start-0 w-1 rounded-e bg-brand-600" />}
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-extrabold text-brand-800">{(c.name ?? "?").trim().charAt(0).toUpperCase() || "?"}</span>
                           <span className="min-w-0 flex-1">
                             <span className="flex items-center gap-1.5">
                               <span className="truncate text-sm font-bold text-neutral-900">{c.name ?? "No name"}</span>
                               {c.blocked && <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">Blocked</span>}
                             </span>
                             <span className="block truncate font-mono text-[11px] text-neutral-500">{c.phone_masked ?? c.email_masked ?? "—"}</span>
-                            <span className="block truncate text-[11px] text-neutral-400">
+                            <span className="block truncate text-[11px] text-neutral-500">
                               {c.city ?? "No address yet"} · last order {ago(c.last_order_at).toLowerCase()}
                             </span>
                           </span>
@@ -174,7 +174,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
           Users aren&apos;t set up in the database yet. Run migration <b>0076_admin_people.sql</b> in the Supabase SQL editor, then reload this page.
         </p>
       ) : "error" in result ? (
-        <p className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">The users could not be loaded: {result.error}</p>
+        <p className="rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-900">The users could not be loaded: {result.error}</p>
       ) : (
         <>
           <PeopleToolbar q={sp.q ?? ""} page={page} pageSize={PAGE_SIZE} total={result.total} />

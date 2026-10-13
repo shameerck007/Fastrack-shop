@@ -75,7 +75,7 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+          className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
         >
           <circle cx="9" cy="9" r="6" />
           <path d="m14 14 4 4" strokeLinecap="round" />
@@ -88,7 +88,7 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
           placeholder={t("header.search_placeholder")}
-          className="w-full rounded-full border border-transparent bg-neutral-100 py-2.5 pe-4 ps-10 text-base outline-none md:text-sm transition placeholder:text-neutral-400 focus:border-blue-500 focus:bg-white"
+          className="w-full rounded-full border border-transparent bg-neutral-100 py-2.5 pe-4 ps-10 text-base outline-none md:text-sm transition placeholder:text-neutral-500 focus:border-brand-500 focus:bg-white"
         />
       </form>
 
@@ -114,13 +114,13 @@ export default function SearchBar({ defaultValue = "" }: { defaultValue?: string
                 {s.brand && <span className="ms-1 text-neutral-500">· {s.brand}</span>}
               </span>
               {s.price !== null && (
-                <span className="text-sm font-medium text-blue-700">{money(s.price)}</span>
+                <span className="text-sm font-medium text-brand-700">{money(s.price)}</span>
               )}
             </Link>
           ))}
           <button
             onClick={() => goToSearch(value)}
-            className="block w-full px-4 py-2 text-start text-sm font-medium text-blue-700 hover:bg-neutral-50"
+            className="block w-full px-4 py-2 text-start text-sm font-medium text-brand-700 hover:bg-neutral-50"
           >
             {t("header.see_all_results_for", { query: value })}
           </button>

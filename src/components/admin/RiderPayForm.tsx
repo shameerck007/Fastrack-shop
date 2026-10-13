@@ -58,7 +58,7 @@ export default function RiderPayForm({
           <p className="text-xs text-neutral-500">
             {saved.payType === "salary" ? `${saved.salary != null ? money(saved.salary) : "No salary set"} a month${saved.extra ? ", plus pay on each delivery" : ""}${saved.auto ? `, added automatically on day ${saved.day}` : ""}` : "Paid for each delivery"}
           </p>
-          {saved.hide && <p className="mt-0.5 text-xs font-semibold text-blue-700">Earnings are hidden from the rider&apos;s app</p>}
+          {saved.hide && <p className="mt-0.5 text-xs font-semibold text-brand-700">Earnings are hidden from the rider&apos;s app</p>}
         </div>
         <button
           type="button"
@@ -72,7 +72,7 @@ export default function RiderPayForm({
             setDay(String(saved.day));
             setOpen(true);
           }}
-          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700"
         >
           <span aria-hidden>✎</span> Change
         </button>
@@ -87,7 +87,7 @@ export default function RiderPayForm({
                   ["salary", "Monthly salary", "Employee: fixed salary each month"],
                 ] as const
               ).map(([value, title, hint]) => (
-                <button key={value} type="button" onClick={() => setPayType(value)} className={`rounded-xl border p-3 text-start transition ${payType === value ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200 hover:border-neutral-300"}`}>
+                <button key={value} type="button" onClick={() => setPayType(value)} className={`rounded-xl border p-3 text-start transition ${payType === value ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300"}`}>
                   <span className="block text-sm font-bold text-neutral-900">{title}</span>
                   <span className="block text-xs text-neutral-500">{hint}</span>
                 </button>
@@ -100,11 +100,11 @@ export default function RiderPayForm({
                 <input type="number" min={0} step={0.01} value={salary} onChange={(e) => setSalary(e.target.value)} className={`${inputClass} sm:w-56`} required />
               </Field>
               <label className="flex items-center gap-2 text-sm text-neutral-700">
-                <input type="checkbox" checked={extra} onChange={(e) => setExtra(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+                <input type="checkbox" checked={extra} onChange={(e) => setExtra(e.target.checked)} className="h-4 w-4 accent-brand-700" />
                 Deliveries also earn the per-delivery pay on top of the salary
               </label>
               <label className="flex items-center gap-2 text-sm text-neutral-700">
-                <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+                <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="h-4 w-4 accent-brand-700" />
                 Add the salary automatically each month
               </label>
               {auto && (
@@ -116,7 +116,7 @@ export default function RiderPayForm({
           )}
           <DialogSection cols={1} title="What the rider sees and gets">
             <label className="flex items-start gap-2 text-sm text-neutral-700">
-              <input type="checkbox" checked={hide} onChange={(e) => setHide(e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+              <input type="checkbox" checked={hide} onChange={(e) => setHide(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-700" />
               <span>
                 Hide earnings from the rider
                 <span className="block text-xs text-neutral-500">The rider still sees deliveries, history, ratings and the cash to hand in, but no earned amounts, balance, salary or statement. Admins see everything.</span>

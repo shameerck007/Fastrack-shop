@@ -6,6 +6,7 @@ import AddFastrackStoreForm from "@/components/admin/AddFastrackStoreForm";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getMoney } from "@/lib/tenant-server";
+import { BRAND } from "@/lib/brand";
 
 function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
   return (
@@ -41,9 +42,9 @@ export default async function AdminFastrackStoresPage() {
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-5">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 via-white to-white p-5">
         <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-sm">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-xl text-white shadow-sm">
             🏬
           </span>
           <div>
@@ -55,7 +56,7 @@ export default async function AdminFastrackStoresPage() {
       </div>
 
       <div className="mb-5 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
-        <Stat icon="🏬" label={t("fastrack_stores.total_locations")} value={warehouses.length} accent="#2563eb" />
+        <Stat icon="🏬" label={t("fastrack_stores.total_locations")} value={warehouses.length} accent={BRAND[600]} />
         <Stat icon="✅" label={t("admin.approved")} value={activeCount} accent="#059669" />
         <Stat icon="🧾" label={t("admin.orders_30d")} value={totalOrders30d} accent="#7c3aed" />
         <Stat icon="📈" label={t("admin.revenue_30d")} value={money(totalRevenue30d)} accent="#d97706" />
@@ -77,14 +78,14 @@ export default async function AdminFastrackStoresPage() {
                   href={`/admin/store/${w.id}`}
                   className="flex flex-wrap items-center gap-4 px-5 py-4 transition hover:bg-neutral-50"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">
                     {initials(w.name)}
                   </span>
                   <div className="min-w-[10rem] flex-1">
                     <p className="flex items-center gap-2 truncate font-medium text-neutral-900">
                       {w.name}
                       {w.is_default && (
-                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                        <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700">
                           {t("fastrack_stores.default_badge")}
                         </span>
                       )}
@@ -104,7 +105,7 @@ export default async function AdminFastrackStoresPage() {
                   <span className="hidden shrink-0 text-xs font-medium text-neutral-700 sm:block">
                     {money(w.revenue30d)}
                   </span>
-                  <span className="ms-auto shrink-0 text-xs font-medium text-blue-600">{t("fastrack_stores.view_details")}</span>
+                  <span className="ms-auto shrink-0 text-xs font-medium text-brand-600">{t("fastrack_stores.view_details")}</span>
                 </Link>
               </li>
             ))}

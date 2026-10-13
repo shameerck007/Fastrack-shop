@@ -36,7 +36,7 @@ export default function ReturnSettingsCard({ defaultWindowDays, autoApprove }: {
     <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
       <div className="mb-2 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-800">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-sm">↩️</span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-sm">↩️</span>
           Returns
         </h2>
         <button
@@ -46,7 +46,7 @@ export default function ReturnSettingsCard({ defaultWindowDays, autoApprove }: {
             setAuto(saved.auto);
             setOpen(true);
           }}
-          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700"
         >
           <span aria-hidden>✎</span> Edit
         </button>
@@ -60,7 +60,7 @@ export default function ReturnSettingsCard({ defaultWindowDays, autoApprove }: {
               <input type="number" min={0} max={90} step={1} value={days} onChange={(e) => setDays(e.target.value)} className={`${inputClass} sm:w-40`} />
             </Field>
             <label className="flex items-start gap-3 text-sm">
-              <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+              <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-700" />
               <span>
                 <span className="font-bold text-neutral-900">Approve damaged, wrong or incomplete items at once</span>
                 <span className="block text-xs text-neutral-500">When the customer adds a photo, a rider is sent without waiting for review. Other reasons always wait for an admin.</span>

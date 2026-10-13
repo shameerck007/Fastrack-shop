@@ -12,7 +12,7 @@ export interface BankValue {
   iban: string;
 }
 
-const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
 /** Bank picker + IBAN input that validates as you type: exact Saudi format,
  * the checksum, and that the bank code inside the IBAN is the chosen bank's.
@@ -101,7 +101,7 @@ export default function BankFields({
         {verdict.state === "bad" && <p className="mt-1 text-xs text-red-600">{verdict.message}</p>}
         {verdict.state === "good" && <p className="mt-1 text-xs text-emerald-600">✓ {verdict.message}</p>}
         {(verdict.state === "empty" || verdict.state === "typing") && (
-          <p className="mt-1 text-xs text-neutral-400">
+          <p className="mt-1 text-xs text-neutral-500">
             Your settlement payouts are sent to this account — copy the IBAN from your bank app or bank letter.
           </p>
         )}

@@ -18,7 +18,7 @@ import {
 import { INDIAN_STATES } from "@/lib/india";
 import Select from "@/components/ui/Select";
 
-const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
 /** Alphanumeric identifier box: uppercases, strips punctuation, and shows a live tick or reason. */
 function CodeInput({
@@ -114,7 +114,7 @@ export default function IndiaSupplierFields({
       <div>
         <label className="mb-1 block text-sm font-medium">FSSAI licence number</label>
         <CodeInput value={value.fssai} maxLength={14} placeholder="14 digits" numericOnly check={checkFssai} onChange={(v) => set({ fssai: v })} />
-        <p className="mt-1 text-[11px] text-neutral-400">Required by law for anyone selling food. Leave empty if you only sell non-food items.</p>
+        <p className="mt-1 text-[11px] text-neutral-500">Required by law for anyone selling food. Leave empty if you only sell non-food items.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -165,7 +165,7 @@ export default function IndiaSupplierFields({
           <div>
             <label className="mb-1 block text-sm font-medium">Account holder name *</label>
             <input value={value.accountHolder} onChange={(e) => set({ accountHolder: e.target.value })} className={inputClass} />
-            <p className="mt-1 text-[11px] text-neutral-400">As written on the bank account.</p>
+            <p className="mt-1 text-[11px] text-neutral-500">As written on the bank account.</p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
@@ -187,7 +187,7 @@ export default function IndiaSupplierFields({
               )}
             </div>
           </div>
-          <p className="text-[11px] text-neutral-400">Your settlement payouts are sent to this account. Copy the details from your cheque book or bank app.</p>
+          <p className="text-[11px] text-neutral-500">Your settlement payouts are sent to this account. Copy the details from your cheque book or bank app.</p>
         </div>
       </div>
     </div>

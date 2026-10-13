@@ -33,7 +33,7 @@ export function MarketStatusButtons({ tenantId, status, name }: { tenantId: stri
     <div className="flex flex-col items-end gap-1">
       <div className="flex flex-wrap justify-end gap-1.5">
         {status !== "active" && (
-          <button disabled={pending} onClick={() => change("active")} className={`${btn} bg-emerald-600 text-white hover:bg-emerald-700`}>
+          <button disabled={pending} onClick={() => change("active")} className={`${btn} bg-emerald-700 text-white hover:bg-emerald-800`}>
             Open to customers
           </button>
         )}
@@ -71,7 +71,7 @@ export function CreateMarketForm({ countries }: { countries: { code: string; nam
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="rounded-full bg-blue-700 px-5 py-2 text-sm font-bold text-white hover:bg-blue-800">
+      <button type="button" onClick={() => setOpen(true)} className="rounded-full bg-brand-700 px-5 py-2 text-sm font-bold text-white hover:bg-brand-800">
         + Add a market
       </button>
       {open && (

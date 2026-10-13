@@ -35,14 +35,14 @@ export default function OrderOtherCountry({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="mt-6 h-12 rounded-full bg-blue-700 px-8 font-extrabold text-white shadow-lg shadow-blue-700/25 hover:bg-blue-800"
+          className="mt-6 h-12 rounded-full bg-brand-700 px-8 font-extrabold text-white shadow-lg shadow-brand-700/25 hover:bg-brand-800"
         >
           Switch to {country.name} to view it
         </button>
       ) : (
         <p className="mt-5 text-sm text-neutral-500">Sign in with a customer login for {country.name} to view this order.</p>
       )}
-      <Link href="/orders" className="mt-4 block text-sm font-medium text-blue-600 hover:underline">
+      <Link href="/orders" className="mt-4 block text-sm font-medium text-brand-600 hover:underline">
         Back to my orders
       </Link>
       <MarketSwitchDialog open={open} target={target} current={current} onClose={() => setOpen(false)} />

@@ -58,7 +58,7 @@ export default function ReturnPickupCard({ p }: { p: ReturnPickup }) {
             {p.return_number} · order #{p.order_number} · {reasonLabel(p.reason)}
           </p>
         </div>
-        <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-800">Collect</span>
+        <span className="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-bold text-brand-800">Collect</span>
       </div>
       <div className="mt-3 rounded-2xl bg-neutral-50 p-3 text-sm">
         <p className="font-semibold text-neutral-900">{p.customer_name ?? "Customer"}</p>
@@ -69,7 +69,7 @@ export default function ReturnPickupCard({ p }: { p: ReturnPickup }) {
         ))}
         <div className="mt-2 flex flex-wrap gap-2">
           {nav && (
-            <a href={nav} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center rounded-full bg-blue-700 px-4 text-sm font-semibold text-white">
+            <a href={nav} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center rounded-full bg-brand-700 px-4 text-sm font-semibold text-white">
               🧭 Navigate
             </a>
           )}
@@ -88,9 +88,9 @@ export default function ReturnPickupCard({ p }: { p: ReturnPickup }) {
           maxLength={4}
           placeholder="Code"
           aria-label="The customer's return code"
-          className="h-10 w-28 rounded-xl border border-neutral-300 px-3 text-center text-base font-bold tracking-[0.35em] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="h-10 w-28 rounded-xl border border-neutral-300 px-3 text-center text-base font-bold tracking-[0.35em] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
         />
-        <button type="submit" disabled={pending || code.length !== 4} className="h-10 rounded-full bg-blue-700 px-5 text-sm font-bold text-white disabled:opacity-50">
+        <button type="submit" disabled={pending || code.length !== 4} className="h-10 rounded-full bg-brand-700 px-5 text-sm font-bold text-white disabled:opacity-50">
           {pending ? "Checking…" : "Confirm collected"}
         </button>
       </form>
@@ -126,12 +126,12 @@ export function ReturnDropoffCard({ d }: { d: ReturnDropoff }) {
         {d.return_number} · order #{d.order_number}
       </p>
       <div className="mt-3 rounded-2xl bg-neutral-50 p-3 text-sm">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">{d.return_to === "supplier" ? "Take it back to the supplier" : "Take it to the warehouse"}</p>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{d.return_to === "supplier" ? "Take it back to the supplier" : "Take it to the warehouse"}</p>
         <p className="font-semibold text-neutral-900">{d.dest_name ?? "Store"}</p>
         {d.dest_address && <p className="text-neutral-600">{d.dest_address}</p>}
         <div className="mt-2 flex flex-wrap gap-2">
           {nav && (
-            <a href={nav} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center rounded-full bg-blue-700 px-4 text-sm font-semibold text-white">
+            <a href={nav} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center rounded-full bg-brand-700 px-4 text-sm font-semibold text-white">
               🧭 Navigate
             </a>
           )}

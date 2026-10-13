@@ -21,7 +21,7 @@ function Card({ title, icon, children, action }: { title: string; icon: string; 
     <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-800">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-sm">{icon}</span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-sm">{icon}</span>
           {title}
         </h2>
         {action}
@@ -36,7 +36,7 @@ function Row({ label, children }: { label: string; children?: React.ReactNode })
   return (
     <div className="flex justify-between gap-4 py-2 text-sm">
       <dt className="shrink-0 text-neutral-500">{label}</dt>
-      <dd className={`min-w-0 break-words text-right ${empty ? "text-neutral-300" : "font-medium text-neutral-900"}`}>
+      <dd className={`min-w-0 break-words text-right ${empty ? "text-neutral-500" : "font-medium text-neutral-900"}`}>
         {empty ? "Not provided" : children}
       </dd>
     </div>
@@ -109,7 +109,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
 
   return (
     <div>
-      <Link href="/admin/users?role=rider" className="text-sm text-blue-600 hover:underline">
+      <Link href="/admin/users?role=rider" className="text-sm text-brand-600 hover:underline">
         {t("rider_detail.all_riders")}
       </Link>
 
@@ -118,9 +118,9 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
         <div className="flex items-center gap-4">
           {selfieUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={selfieUrl} alt={name} className="h-16 w-16 rounded-full object-cover ring-2 ring-blue-100" />
+            <img src={selfieUrl} alt={name} className="h-16 w-16 rounded-full object-cover ring-2 ring-brand-100" />
           ) : (
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-2xl font-semibold text-blue-700">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-2xl font-semibold text-brand-700">
               {name.charAt(0).toUpperCase()}
             </span>
           )}
@@ -134,7 +134,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
             <p className="text-sm text-neutral-500">
               {[rider.city, rider.vehicle_type, rider.payout_method === "bank" ? "Bank payout" : "Cash payout"].filter(Boolean).join(" · ")}
             </p>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-neutral-500">
               {t("rider_detail.joined", {
                 date: new Date(rider.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US"),
               })}
@@ -166,7 +166,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
           {
             label: "Licence",
             value: rider.license_expiry ? (rider.license_expiry < today ? "Expired" : "Valid") : "No expiry on file",
-            tone: rider.license_expiry ? (rider.license_expiry < today ? "text-red-600" : "text-emerald-600") : "text-neutral-400",
+            tone: rider.license_expiry ? (rider.license_expiry < today ? "text-red-600" : "text-emerald-600") : "text-neutral-500",
           },
         ].map((k) => (
           <div key={k.label} className="rounded-2xl border border-neutral-200 bg-white p-4 text-center shadow-sm">
@@ -182,7 +182,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
           <Row label={t("rider_detail.email")}>{typeof ownerEmail === "string" ? ownerEmail : null}</Row>
           <Row label={t("rider_detail.phone")}>
             {profile?.phone ? (
-              <a href={`tel:${profile.phone}`} className="text-blue-600 hover:underline">
+              <a href={`tel:${profile.phone}`} className="text-brand-600 hover:underline">
                 {profile.phone}
               </a>
             ) : null}
@@ -197,7 +197,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
                 {rider.emergency_contact_phone && (
                   <>
                     {" · "}
-                    <a href={`tel:${rider.emergency_contact_phone}`} className="text-blue-600 hover:underline">
+                    <a href={`tel:${rider.emergency_contact_phone}`} className="text-brand-600 hover:underline">
                       {rider.emergency_contact_phone}
                     </a>
                   </>
@@ -232,7 +232,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
 
         <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-neutral-800">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-sm">💼</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-sm">💼</span>
             How this rider is paid
           </h2>
           <RiderPayForm
@@ -251,7 +251,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
           title="Payout"
           icon="💳"
           action={
-            <Link href={`/admin/rider-settlements/${rider.id}`} className="text-xs font-medium text-blue-600 hover:underline">
+            <Link href={`/admin/rider-settlements/${rider.id}`} className="text-xs font-medium text-brand-600 hover:underline">
               View settlement →
             </Link>
           }
@@ -288,7 +288,7 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
 
       <section className="mt-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-neutral-800">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-sm">📎</span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-sm">📎</span>
           {t("rider_detail.documents")}
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
@@ -307,17 +307,17 @@ export default async function AdminRiderDetailPage({ params }: { params: Promise
                   ) : (
                     <span className="flex h-full w-full flex-col items-center justify-center gap-1 text-neutral-500">
                       <span className="text-2xl">📄</span>
-                      <span className="text-xs text-blue-600">Open PDF</span>
+                      <span className="text-xs text-brand-600">Open PDF</span>
                     </span>
                   )}
                 </a>
               ) : (
-                <div className="flex aspect-[4/3] items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-xs text-neutral-400">
+                <div className="flex aspect-[4/3] items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-xs text-neutral-500">
                   {d.required ? "Missing" : "Not provided"}
                 </div>
               )}
               <p className="mt-1.5 text-xs font-medium text-neutral-700">{d.label}</p>
-              {!d.required && !d.path && <p className="text-[10px] text-neutral-400">Optional</p>}
+              {!d.required && !d.path && <p className="text-[10px] text-neutral-500">Optional</p>}
             </div>
           ))}
         </div>

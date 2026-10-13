@@ -64,14 +64,14 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
             <button
               onClick={() => run(() => unwrapAction(approveStore)(storeId))}
               disabled={pending}
-              className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+              className="rounded-full bg-brand-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-50"
             >
               {t("store_status.approve")}
             </button>
             <button
               onClick={() => setShowReject(true)}
               disabled={pending}
-              className="rounded-full border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+              className="rounded-full border border-red-300 px-4 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
             >
               {t("store_status.reject")}
             </button>
@@ -81,7 +81,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
           <button
             onClick={() => run(() => unwrapAction(suspendStore)(storeId))}
             disabled={pending}
-            className="rounded-full border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+            className="rounded-full border border-red-300 px-4 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
           >
             {t("store_status.suspend")}
           </button>
@@ -90,7 +90,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
           <button
             onClick={() => run(() => unwrapAction(reinstateStore)(storeId))}
             disabled={pending}
-            className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+            className="rounded-full bg-brand-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-50"
           >
             {t("store_status.reinstate")}
           </button>
@@ -99,7 +99,7 @@ export default function StoreStatusActions({ storeId, status }: { storeId: strin
           <button
             onClick={() => run(() => unwrapAction(approveStore)(storeId))}
             disabled={pending}
-            className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+            className="rounded-full bg-brand-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-50"
           >
             {t("store_status.approve_anyway")}
           </button>

@@ -83,16 +83,16 @@ export default function WebhookCard({ webhook, events }: { webhook: WebhookSetti
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://your-system.com/fastrack"
           inputMode="url"
-          className="min-h-[2.75rem] rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="min-h-[2.75rem] rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
       </label>
       <label className="mt-3 flex items-center gap-2 text-sm text-neutral-700">
-        <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+        <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="h-4 w-4 accent-brand-700" />
         Send messages
       </label>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <button onClick={save} disabled={pending || !url.trim()} className="h-11 rounded-full bg-blue-700 px-6 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50">
+        <button onClick={save} disabled={pending || !url.trim()} className="h-11 rounded-full bg-brand-700 px-6 text-sm font-bold text-white hover:bg-brand-800 disabled:opacity-50">
           Save
         </button>
         <button onClick={test} disabled={pending || !webhook} className="h-11 rounded-full border border-neutral-300 px-5 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:opacity-50">
@@ -119,7 +119,7 @@ export default function WebhookCard({ webhook, events }: { webhook: WebhookSetti
 
       <h3 className="mt-6 text-sm font-semibold">Recent messages</h3>
       {events.length === 0 ? (
-        <p className="mt-2 text-sm text-neutral-400">Nothing sent yet.</p>
+        <p className="mt-2 text-sm text-neutral-500">Nothing sent yet.</p>
       ) : (
         <ul className="mt-2 divide-y divide-neutral-100">
           {events.map((e) => (

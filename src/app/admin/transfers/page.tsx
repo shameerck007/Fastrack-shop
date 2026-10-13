@@ -1,6 +1,7 @@
 import TransferManager from "@/components/TransferManager";
 import { PageHeader, StatGrid, StatTile } from "@/components/admin/AdminUi";
 import { getFastrackLocations, getFastrackStock, getTransfers } from "@/lib/transfers";
+import { BRAND } from "@/lib/brand";
 
 export const metadata = { title: "Stock transfers" };
 
@@ -27,9 +28,9 @@ export default async function AdminTransfersPage() {
     <div>
       <PageHeader icon="🔁" title="Stock transfers" subtitle="Move stock between FasTrack's own locations. Stock leaves the sending location when sent and arrives when received. Items below their minimum are listed first." />
       <StatGrid>
-        <StatTile icon="🏬" label="FasTrack locations" value={locations.length} accent="#2563eb" />
+        <StatTile icon="🏬" label="FasTrack locations" value={locations.length} accent={BRAND[600]} />
         <StatTile icon="🚚" label="On their way" value={inTransit} accent="#0369a1" />
-        <StatTile icon="📝" label="Drafts" value={draft} accent="#1e40af" />
+        <StatTile icon="📝" label="Drafts" value={draft} accent={BRAND[800]} />
         <StatTile icon="⚠️" label="Running low" value={stock.low.length} accent="#0ea5e9" hint="Below minimum stock" />
       </StatGrid>
       <TransferManager

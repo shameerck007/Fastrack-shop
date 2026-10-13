@@ -41,12 +41,12 @@ export default async function AdminCategoriesPage() {
 
       <section className="relative overflow-hidden rounded-[2rem] p-3 sm:p-5" style={{ background: "linear-gradient(135deg, #e0f2fe 0%, #eef2ff 45%, #f1f5f9 100%)" }}>
         <span aria-hidden className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-sky-200/60 blur-3xl" />
-        <span aria-hidden className="pointer-events-none absolute -bottom-20 right-0 h-72 w-72 rounded-full bg-blue-200/50 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -bottom-20 right-0 h-72 w-72 rounded-full bg-brand-200/50 blur-3xl" />
         <div className="relative flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <Pill icon="🗂️" label="Main" value={topLevel.length} />
             <Pill icon="📑" label="Sub" value={all.length - topLevel.length} />
-            <Pill icon="📦" label="Products" value={countsResult.error ? "—" : totalProducts} tone="text-blue-700" />
+            <Pill icon="📦" label="Products" value={countsResult.error ? "—" : totalProducts} tone="text-brand-700" />
             {withoutLook > 0 && <Pill icon="🖼️" label="No photo or icon" value={withoutLook} tone="text-amber-600" />}
           </div>
 

@@ -7,6 +7,7 @@ import "leaflet/dist/leaflet.css";
 import { TILE_URL, TILE_OPTIONS, marketGeo } from "@/lib/map-config";
 import { useMarket } from "@/components/MoneyProvider";
 import { polygonAreaKm2, type LatLng } from "@/lib/geo-polygon";
+import { BRAND as BLUES } from "@/lib/brand";
 
 export interface OverviewZone {
   id: string;
@@ -52,7 +53,7 @@ export interface OverviewPoint {
   outside?: boolean;
 }
 
-const BRAND = "#1d4ed8";
+const BRAND = BLUES[700];
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 
@@ -74,7 +75,7 @@ function popupHtml(z: OverviewZone): string {
       <div style="width:38px;height:38px;border-radius:12px;background:#fff;border:3px solid ${accent};display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 12px rgba(0,0,0,.18);overflow:hidden">${hub ? '<img src="/icon-192.png" alt="FasTrack" style="width:100%;height:100%;object-fit:cover"/>' : "🏪"}</div>
       <div style="min-width:0">
         <div style="font-size:14px;font-weight:800;color:#0f172a;line-height:1.2">${esc(z.name)}</div>
-        <div style="margin-top:3px"><span style="font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:${hub ? "#dbeafe" : "#fef3c7"};color:${hub ? "#1e40af" : "#92400e"}">${hub ? "FasTrack hub" : "Supplier shop"}</span>${z.status && z.status !== "approved" ? ` <span style="font-size:10px;font-weight:700;color:#b45309">${esc(z.status)}</span>` : ""}</div>
+        <div style="margin-top:3px"><span style="font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:${hub ? "#dbeafe" : "#fef3c7"};color:${hub ? BLUES[800] : "#92400e"}">${hub ? "FasTrack hub" : "Supplier shop"}</span>${z.status && z.status !== "approved" ? ` <span style="font-size:10px;font-weight:700;color:#b45309">${esc(z.status)}</span>` : ""}</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -315,9 +316,9 @@ export default function ZonesOverviewMap({
 
         {/* legend */}
         <div className="pointer-events-none absolute bottom-3 start-3 z-[1000] rounded-2xl bg-white/92 p-3 text-[11px] shadow-lg backdrop-blur">
-          <p className="mb-1.5 font-extrabold uppercase tracking-wider text-neutral-400">Legend</p>
+          <p className="mb-1.5 font-extrabold uppercase tracking-wider text-neutral-500">Legend</p>
           <div className="flex items-center gap-2 text-neutral-700">
-            <span className="flex h-5 w-5 items-center justify-center rounded-md border-2 border-blue-700 bg-white"><img src="/icon-192.png" alt="" className="h-full w-full object-cover" /></span>
+            <span className="flex h-5 w-5 items-center justify-center rounded-md border-2 border-brand-700 bg-white"><img src="/icon-192.png" alt="" className="h-full w-full object-cover" /></span>
             FasTrack hub
           </div>
           <div className="mt-1 flex items-center gap-2 text-neutral-700">
@@ -327,7 +328,7 @@ export default function ZonesOverviewMap({
           {areaShapes && (
             <>
               <div className="mt-1 flex items-center gap-2 text-neutral-700">
-                <span className="h-3 w-5 rounded-sm border-2 border-blue-600 bg-blue-100" /> Delivery area (Standard)
+                <span className="h-3 w-5 rounded-sm border-2 border-brand-600 bg-brand-100" /> Delivery area (Standard)
               </div>
               <div className="mt-1 flex items-center gap-2 text-neutral-700">
                 <span className="h-3 w-5 rounded-full border-2 border-dashed border-teal-700" /> Express reach of a shop
@@ -378,7 +379,7 @@ export default function ZonesOverviewMap({
                   type="button"
                   onClick={() => focus(z.id)}
                   className={`flex shrink-0 items-center gap-2 rounded-2xl border px-3 py-2 text-start transition hover:shadow-md ${
-                    hub ? "border-blue-200 bg-blue-50" : "border-neutral-200 bg-white"
+                    hub ? "border-brand-200 bg-brand-50" : "border-neutral-200 bg-white"
                   }`}
                 >
                   <span

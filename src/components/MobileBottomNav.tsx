@@ -57,19 +57,19 @@ export default function MobileBottomNav() {
                 setTapped(item.href);
               }}
               className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold ${
-                isActive ? "text-blue-700" : "text-neutral-500"
+                isActive ? "text-brand-700" : "text-neutral-500"
               }`}
             >
               <span
                 className={`flex h-7 w-12 items-center justify-center rounded-full text-lg leading-none transition ${
-                  isActive ? "bg-blue-100" : ""
+                  isActive ? "bg-brand-100" : ""
                 }`}
               >
                 {item.icon}
               </span>
               {item.label}
               {item.href === "/cart" && cartCount > 0 && (
-                <span className="absolute right-[22%] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-700 px-1 text-[9px] font-semibold text-white">
+                <span className="absolute right-[22%] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-700 px-1 text-[9px] font-semibold text-white">
                   {cartCount}
                 </span>
               )}

@@ -18,7 +18,7 @@ export interface IndianBankValue {
   ifsc: string;
 }
 
-const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
 /** Indian bank account for payouts: searchable bank, account holder, account number and IFSC (checked against the bank). */
 export default function IndianBankFields({ value, onChange }: { value: IndianBankValue; onChange: (next: IndianBankValue) => void }) {
@@ -58,7 +58,7 @@ export default function IndianBankFields({ value, onChange }: { value: IndianBan
       <div>
         <label className="mb-1 block text-sm font-medium">Account holder name *</label>
         <input value={value.accountHolder} onChange={(e) => set({ accountHolder: e.target.value })} className={inputClass} />
-        <p className="mt-1 text-[11px] text-neutral-400">As written on the bank account.</p>
+        <p className="mt-1 text-[11px] text-neutral-500">As written on the bank account.</p>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>

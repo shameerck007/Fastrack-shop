@@ -34,7 +34,7 @@ export default function StorefrontSettingsCard({ showShops, marketDefault }: { s
     <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
       <div className="mb-2 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-800">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-sm">🏪</span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-sm">🏪</span>
           Storefront
         </h2>
         <button
@@ -43,7 +43,7 @@ export default function StorefrontSettingsCard({ showShops, marketDefault }: { s
             setMode(saved);
             setOpen(true);
           }}
-          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700"
         >
           <span aria-hidden>✎</span> Edit
         </button>
@@ -57,8 +57,8 @@ export default function StorefrontSettingsCard({ showShops, marketDefault }: { s
           <DialogSection cols={1} title="Shops">
             <div className="grid gap-2">
               {opts.map(([id, title, hint]) => (
-                <label key={id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 text-sm ${mode === id ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200"}`}>
-                  <input type="radio" name="shops" checked={mode === id} onChange={() => setMode(id)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+                <label key={id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 text-sm ${mode === id ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200"}`}>
+                  <input type="radio" name="shops" checked={mode === id} onChange={() => setMode(id)} className="mt-0.5 h-4 w-4 accent-brand-700" />
                   <span>
                     <span className="block font-bold text-neutral-900">{title}</span>
                     <span className="block text-xs text-neutral-500">{hint}</span>

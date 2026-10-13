@@ -69,7 +69,7 @@ export default function LiveOrderStatus({
       <div className="mb-4 flex items-start justify-end">
         <span
           className={`rounded-full px-3 py-1 text-sm font-medium ${
-            isCancelled ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-700"
+            isCancelled ? "bg-red-50 text-red-700" : "bg-brand-50 text-brand-700"
           }`}
         >
           {t(`order_status.${status}`)}
@@ -91,23 +91,23 @@ export default function LiveOrderStatus({
                 {!isLast && (
                   <span
                     className={`absolute top-5 h-full w-0.5 ${
-                      i < currentStepIndex ? "bg-blue-700" : "bg-neutral-200"
+                      i < currentStepIndex ? "bg-brand-700" : "bg-neutral-200"
                     } start-[9px]`}
                   />
                 )}
                 <span
                   className={`z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                    done ? "bg-blue-700 text-white" : "border-2 border-neutral-300 bg-white"
+                    done ? "bg-brand-700 text-white" : "border-2 border-neutral-300 bg-white"
                   }`}
                 >
                   {done && "✓"}
                 </span>
                 <div className="flex flex-wrap items-baseline gap-x-2">
-                  <p className={`text-sm font-medium ${done ? "text-neutral-900" : "text-neutral-400"}`}>
+                  <p className={`text-sm font-medium ${done ? "text-neutral-900" : "text-neutral-500"}`}>
                     {t(`order_status.${s}`)}
                   </p>
                   {at && (
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-neutral-500">
                       {new Date(at).toLocaleString(locale === "ar" ? "ar-SA" : "en-US", {
                         dateStyle: "medium",
                         timeStyle: "short",
@@ -122,9 +122,9 @@ export default function LiveOrderStatus({
       )}
 
       {deliveryOtp && !["delivered", "cancelled"].includes(status) && (
-        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-center">
+        <div className="mb-6 rounded-xl border border-brand-200 bg-brand-50 p-4 text-center">
           <p className="text-sm text-neutral-600">{t("orders.share_otp")}</p>
-          <p className="text-2xl font-bold tracking-widest text-blue-700">{deliveryOtp}</p>
+          <p className="text-2xl font-bold tracking-widest text-brand-700">{deliveryOtp}</p>
           {orderNumber && <DeliveryQr orderNumber={orderNumber} otp={deliveryOtp} />}
           {orderNumber && <p className="mt-1 text-xs text-neutral-500">The rider can scan this code, or you can tell them the number.</p>}
         </div>

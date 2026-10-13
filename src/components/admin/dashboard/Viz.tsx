@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useMoney } from "@/components/MoneyProvider";
 
 import { PALETTE } from "./palette";
+import { BRAND } from "@/lib/brand";
 
 const uid = (raw: string) => raw.replace(/[^a-zA-Z0-9]/g, "");
 
@@ -287,7 +288,7 @@ export function StackedBars({ items }: { items: { label: string; total: number; 
               <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
                 <span className="min-w-0 truncate font-bold text-neutral-900">{it.label}</span>
                 <span className="shrink-0 font-mono text-xs font-bold tabular-nums text-neutral-900">
-                  {money(it.total)} <span className="font-sans font-normal text-neutral-400">· {it.note}</span>
+                  {money(it.total)} <span className="font-sans font-normal text-neutral-500">· {it.note}</span>
                 </span>
               </div>
               <div className="h-3.5 w-full overflow-hidden rounded-full bg-neutral-200/70">
@@ -362,7 +363,7 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
     <div ref={ref} className="relative" onMouseMove={move} onMouseLeave={() => setHover(null)}>
       <div className="mb-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] font-semibold text-neutral-500">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-1 w-5 rounded-full bg-blue-700" /> Sales
+          <span className="h-1 w-5 rounded-full bg-brand-700" /> Sales
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="w-5 border-t-2 border-dashed border-slate-500" /> Previous period
@@ -374,12 +375,12 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
       <svg viewBox={`0 0 ${W} ${H1 + H2 + 8}`} className="h-auto w-full" role="img" aria-label="Sales and orders per day with the previous period for comparison">
         <defs>
           <linearGradient id={`a${id}`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
+            <stop offset="0%" stopColor={BRAND[600]} stopOpacity="0.28" />
+            <stop offset="100%" stopColor={BRAND[600]} stopOpacity="0" />
           </linearGradient>
           <linearGradient id={`l${id}`} x1={padL} x2={W - padR} y1="0" y2="0" gradientUnits="userSpaceOnUse">
             <stop offset="0%" stopColor="#0ea5e9" />
-            <stop offset="100%" stopColor="#1d4ed8" />
+            <stop offset="100%" stopColor={BRAND[700]} />
           </linearGradient>
           <linearGradient id={`b${id}`} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor="#2dd4bf" />
@@ -425,7 +426,7 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
         {hover !== null && h && (
           <g>
             <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H1 + H2 + 8} stroke="rgba(15,23,42,0.25)" />
-            <circle cx={x(hover)} cy={y1(h.revenue)} r="6" fill="#ffffff" stroke="#1d4ed8" strokeWidth="3" />
+            <circle cx={x(hover)} cy={y1(h.revenue)} r="6" fill="#ffffff" stroke={BRAND[700]} strokeWidth="3" />
           </g>
         )}
       </svg>
@@ -434,7 +435,7 @@ export function PerformanceChart({ series, previous }: { series: Point[]; previo
           <p className="font-bold text-neutral-900">{dayLabel(h.date, true)}</p>
           <p className="mt-1.5 flex justify-between gap-2">
             <span className="text-neutral-500">Sales</span>
-            <b className="text-blue-700">{money(h.revenue)}</b>
+            <b className="text-brand-700">{money(h.revenue)}</b>
           </p>
           <p className="flex justify-between gap-2">
             <span className="text-neutral-500">Before</span>
@@ -470,8 +471,8 @@ export function SalesTrend({ series, previous }: { series: Point[]; previous: Po
     <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-24 w-full" role="img" aria-label="Sales per day compared with the previous period">
       <defs>
         <linearGradient id={`st${id}`} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#2563eb" stopOpacity="0.30" />
-          <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
+          <stop offset="0%" stopColor={BRAND[600]} stopOpacity="0.30" />
+          <stop offset="100%" stopColor={BRAND[600]} stopOpacity="0" />
         </linearGradient>
         <clipPath id={`sc${id}`}>
           <rect x="0" y="0" width={on ? W : 0} height={H} style={{ transition: "width 1.3s cubic-bezier(.2,.8,.2,1)" }} />
@@ -480,7 +481,7 @@ export function SalesTrend({ series, previous }: { series: Point[]; previous: Po
       <g clipPath={`url(#sc${id})`}>
         {area && <path d={area} fill={`url(#st${id})`} />}
         {prevLine && <path d={prevLine} fill="none" stroke="#94a3b8" strokeWidth="1.4" strokeDasharray="4 3" vectorEffect="non-scaling-stroke" />}
-        {line && <path d={line} fill="none" stroke="#1d4ed8" strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />}
+        {line && <path d={line} fill="none" stroke={BRAND[700]} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />}
       </g>
     </svg>
   );

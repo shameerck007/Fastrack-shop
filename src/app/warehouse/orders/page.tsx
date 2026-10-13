@@ -11,11 +11,11 @@ import { getCompanySettings } from "@/lib/company-settings";
 
 const STATUS_BADGE: Record<OrderStatus, string> = {
   pending: "bg-amber-50 text-amber-700",
-  confirmed: "bg-blue-50 text-blue-700",
-  preparing: "bg-blue-50 text-blue-700",
-  ready_for_pickup: "bg-blue-50 text-blue-700",
-  rider_assigned: "bg-blue-50 text-blue-700",
-  out_for_delivery: "bg-blue-50 text-blue-700",
+  confirmed: "bg-brand-50 text-brand-700",
+  preparing: "bg-brand-50 text-brand-700",
+  ready_for_pickup: "bg-brand-50 text-brand-700",
+  rider_assigned: "bg-brand-50 text-brand-700",
+  out_for_delivery: "bg-brand-50 text-brand-700",
   delivered: "bg-emerald-50 text-emerald-700",
   cancelled: "bg-red-50 text-red-600",
 };
@@ -41,7 +41,7 @@ export default async function WarehouseOrdersPage() {
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4">
           <p className="text-sm text-neutral-500">{t("merchant.preparing_orders")}</p>
-          <p className="text-2xl font-semibold text-blue-700">{kpis.preparingCount}</p>
+          <p className="text-2xl font-semibold text-brand-700">{kpis.preparingCount}</p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4">
           <p className="text-sm text-neutral-500">{t("merchant.ready_orders")}</p>
@@ -65,17 +65,17 @@ export default async function WarehouseOrdersPage() {
               <div key={order.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-500 sm:text-sm">
                   <span>
-                    <span className="block text-neutral-400">{t("orders.placed_on")}</span>
+                    <span className="block text-neutral-500">{t("orders.placed_on")}</span>
                     <span className="text-neutral-700">
                       {new Date(order.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
                     </span>
                   </span>
                   <span>
-                    <span className="block text-neutral-400">{t("orders.total_label")}</span>
+                    <span className="block text-neutral-500">{t("orders.total_label")}</span>
                     <span className="font-medium text-neutral-700">{money(order.total)}</span>
                   </span>
                   <div className="text-end">
-                    <span className="block text-neutral-400">
+                    <span className="block text-neutral-500">
                       {t("orders.order_hash", { number: order.order_number })}
                     </span>
                     <span className={`inline-block rounded-full px-2 py-0.5 font-medium ${STATUS_BADGE[order.status]}`}>
@@ -115,7 +115,7 @@ export default async function WarehouseOrdersPage() {
                         .map((i) => (i.product_variants?.products ? localizedName(i.product_variants.products, locale) : i.product_name))
                         .join(locale === "ar" ? "، " : ", ")}
                     </p>
-                    <p className="text-xs text-neutral-400">{t("admin.units", { count: itemCount })}</p>
+                    <p className="text-xs text-neutral-500">{t("admin.units", { count: itemCount })}</p>
                   </div>
                 </div>
 

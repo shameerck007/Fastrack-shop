@@ -32,7 +32,7 @@ export interface HeroTile {
 }
 
 const THEME: Record<HeroSlide["theme"], { bg: string; eyebrow: string; title: string; chip: string; cta: string; blob1: string; blob2: string }> = {
-  blue: { bg: "from-blue-50 via-blue-100 to-blue-200", eyebrow: "text-blue-700", title: "text-blue-950", chip: "text-blue-800", cta: "bg-blue-700 hover:bg-blue-800", blob1: "bg-blue-300/50", blob2: "bg-white/60" },
+  blue: { bg: "from-brand-50 via-brand-100 to-brand-200", eyebrow: "text-brand-700", title: "text-brand-950", chip: "text-brand-800", cta: "bg-brand-700 hover:bg-brand-800", blob1: "bg-brand-300/50", blob2: "bg-white/60" },
   green: { bg: "from-emerald-50 via-emerald-100 to-lime-200", eyebrow: "text-emerald-700", title: "text-emerald-950", chip: "text-emerald-800", cta: "bg-emerald-700 hover:bg-emerald-800", blob1: "bg-emerald-300/50", blob2: "bg-white/60" },
   orange: { bg: "from-amber-50 via-orange-100 to-rose-200", eyebrow: "text-orange-700", title: "text-rose-950", chip: "text-orange-800", cta: "bg-rose-600 hover:bg-rose-700", blob1: "bg-orange-300/50", blob2: "bg-white/60" },
   teal: { bg: "from-cyan-50 via-teal-100 to-sky-200", eyebrow: "text-teal-700", title: "text-teal-950", chip: "text-teal-800", cta: "bg-teal-700 hover:bg-teal-800", blob1: "bg-teal-300/50", blob2: "bg-white/60" },

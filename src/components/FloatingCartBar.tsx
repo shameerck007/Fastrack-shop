@@ -40,30 +40,30 @@ export function PlaceOrderPill({ className = "", compact = false }: { className?
   return (
     <div className={className}>
       {!compact && pricing.freeEnabled && toFree > 0 && (
-        <div className="flex items-center justify-between gap-3 rounded-t-3xl bg-blue-50 px-4 py-2 text-xs font-medium text-blue-900">
+        <div className="flex items-center justify-between gap-3 rounded-t-3xl bg-brand-50 px-4 py-2 text-xs font-medium text-brand-900">
           <span>{t("cartbar.add_for_free_delivery", { amount: money(toFree) })}</span>
-          <Link href="/" className="shrink-0 rounded-full border border-blue-700 px-3 py-1 font-semibold text-blue-700">
+          <Link href="/" className="shrink-0 rounded-full border border-brand-700 px-3 py-1 font-semibold text-brand-700">
             {t("cartbar.add_items")}
           </Link>
         </div>
       )}
       <div className={`flex items-center gap-3 px-4 py-3 ${compact ? "rounded-2xl bg-neutral-50" : "bg-white"}`}>
-        <Link href="/cart" aria-label={t("header.cart")} className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+        <Link href="/cart" aria-label={t("header.cart")} className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
           <CartIcon />
-          <span className="absolute -end-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-700 px-1 text-[11px] font-bold text-white">
+          <span className="absolute -end-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-700 px-1 text-[11px] font-bold text-white">
             {cartCount}
           </span>
         </Link>
         <Link href="/cart" className="min-w-0 flex-1">
           <p className="flex items-baseline gap-2">
             <span className="text-lg font-extrabold text-neutral-900">{money(cartTotal)}</span>
-            {cartSavings > 0 && <span className="text-xs text-neutral-400 line-through">{money(cartTotal + cartSavings)}</span>}
+            {cartSavings > 0 && <span className="text-xs text-neutral-500 line-through">{money(cartTotal + cartSavings)}</span>}
           </p>
           <p className="truncate text-xs text-neutral-500">{subline}</p>
         </Link>
         <Link
           href="/checkout"
-          className="shrink-0 rounded-full bg-blue-700 px-7 py-3 text-sm font-extrabold text-white transition hover:bg-blue-800 active:scale-95"
+          className="shrink-0 rounded-full bg-brand-700 px-7 py-3 text-sm font-extrabold text-white transition hover:bg-brand-800 active:scale-95"
         >
           {t("cartbar.checkout")}
         </Link>

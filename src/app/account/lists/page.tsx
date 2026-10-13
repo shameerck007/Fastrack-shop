@@ -33,7 +33,7 @@ export default async function ListsPage() {
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center">
           <span className="text-4xl">🤍</span>
           <p className="text-sm text-neutral-500">{t("lists.empty")}</p>
-          <Link href="/" className="text-blue-600 hover:underline">
+          <Link href="/" className="text-brand-600 hover:underline">
             {t("lists.browse_products")}
           </Link>
         </div>

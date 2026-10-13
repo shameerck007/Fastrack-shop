@@ -132,7 +132,7 @@ export default function ImageUploader({
             Remove
           </button>
         )}
-        {!error && <p className="text-[11px] text-neutral-400">JPG, PNG, WEBP or GIF — large photos are resized automatically</p>}
+        {!error && <p className="text-[11px] text-neutral-500">JPG, PNG, WEBP or GIF — large photos are resized automatically</p>}
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
     </div>

@@ -11,7 +11,7 @@ const BATCH = 50;
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <li className="flex gap-3">
-      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white">{n}</span>
+      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-700 text-xs font-bold text-white">{n}</span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-neutral-900">{title}</p>
         <div className="mt-2">{children}</div>
@@ -93,14 +93,14 @@ export default function ProductImport() {
               setOver(false);
               if (!busy) onFile(e.dataTransfer.files?.[0]);
             }}
-            className={`flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-4 py-8 text-center transition ${over ? "border-blue-500 bg-blue-50" : "border-neutral-300 bg-neutral-50"}`}
+            className={`flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-4 py-8 text-center transition ${over ? "border-brand-500 bg-brand-50" : "border-neutral-300 bg-neutral-50"}`}
           >
             <span className="text-3xl" aria-hidden>📄</span>
             <p className="text-sm text-neutral-600">{busy ? progress || "Working…" : "Drop your Excel file here, or"}</p>
             <button
               onClick={() => input.current?.click()}
               disabled={busy}
-              className="h-11 rounded-full bg-blue-700 px-6 text-sm font-bold text-white transition hover:bg-blue-800 disabled:opacity-50"
+              className="h-11 rounded-full bg-brand-700 px-6 text-sm font-bold text-white transition hover:bg-brand-800 disabled:opacity-50"
             >
               {busy ? "Uploading…" : "Choose Excel file"}
             </button>
@@ -116,7 +116,7 @@ export default function ProductImport() {
             />
           </div>
           <label className="mt-3 flex items-center gap-2 text-sm text-neutral-700">
-            <input type="checkbox" checked={createMissing} onChange={(e) => setCreateMissing(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+            <input type="checkbox" checked={createMissing} onChange={(e) => setCreateMissing(e.target.checked)} className="h-4 w-4 accent-brand-700" />
             Create products that do not exist yet (untick to only update existing ones)
           </label>
         </Step>
@@ -130,7 +130,7 @@ export default function ProductImport() {
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
               ["Created", count("created"), "text-emerald-700 bg-emerald-50"],
-              ["Updated", count("updated"), "text-blue-700 bg-blue-50"],
+              ["Updated", count("updated"), "text-brand-700 bg-brand-50"],
               ["Unchanged", count("unchanged"), "text-neutral-600 bg-neutral-100"],
               ["Problems", problems.length, problems.length ? "text-red-700 bg-red-50" : "text-neutral-600 bg-neutral-100"],
             ].map(([label, n, cls]) => (

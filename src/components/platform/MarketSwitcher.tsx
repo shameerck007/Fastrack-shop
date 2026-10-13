@@ -22,13 +22,13 @@ export default function MarketSwitcher({ markets, current }: { markets: Switcher
   const c = findCountry(cur.country_code);
   return (
     <details className="group relative">
-      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full bg-blue-600 px-3.5 py-1.5 text-sm font-bold text-white shadow-md shadow-blue-600/25 [&::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full bg-brand-600 px-3.5 py-1.5 text-sm font-bold text-white shadow-md shadow-brand-600/25 [&::-webkit-details-marker]:hidden">
         <Flag code={cur.country_code} className="h-4 w-[22px]" />
         <span>{c.name}</span>
         <span className="text-[10px] transition group-open:rotate-180">▼</span>
       </summary>
       <div className="absolute end-0 top-full z-40 mt-2 w-56 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-xl">
-        <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Viewing country</p>
+        <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Viewing country</p>
         {markets.map((m) => {
           const mc = findCountry(m.country_code);
           const active = m.slug === cur.slug;
@@ -36,7 +36,7 @@ export default function MarketSwitcher({ markets, current }: { markets: Switcher
             <Link
               key={m.slug}
               href={hrefFor(m.country_code.toLowerCase())}
-              className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold ${active ? "bg-blue-50 text-blue-700" : "text-neutral-700 hover:bg-neutral-50"}`}
+              className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold ${active ? "bg-brand-50 text-brand-700" : "text-neutral-700 hover:bg-neutral-50"}`}
             >
               <Flag code={m.country_code} className="h-[18px] w-6" />
               <span className="flex-1">{mc.name}</span>

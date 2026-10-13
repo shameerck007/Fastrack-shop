@@ -11,8 +11,9 @@ import { type AreaShopRow } from "@/components/admin/AreaShops";
 import { areaAt, parseAreas } from "@/lib/delivery-areas";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { BRAND } from "@/lib/brand";
 
-const COLORS = ["#1d4ed8", "#059669", "#d97706", "#7c3aed", "#db2777", "#0891b2", "#65a30d", "#dc2626"];
+const COLORS = [BRAND[700], "#059669", "#d97706", "#7c3aed", "#db2777", "#0891b2", "#65a30d", "#dc2626"];
 
 interface WarehouseRow {
   id: string;
@@ -51,7 +52,7 @@ function Stat({
       <div className="min-w-0">
         <p className="text-xs font-medium text-neutral-500">{label}</p>
         <p className="text-lg font-semibold leading-tight text-neutral-900 sm:text-2xl">{value}</p>
-        {hint && <p className="truncate text-xs text-neutral-400">{hint}</p>}
+        {hint && <p className="truncate text-xs text-neutral-500">{hint}</p>}
       </div>
     </div>
   );
@@ -224,7 +225,7 @@ export default async function AdminZonesPage() {
   const zonedCount = cards.filter((c) => c.zoned).length;
 
   const coverageLink = (
-    <Link href="/admin/zones/coverage" className="inline-flex h-10 items-center rounded-full border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+    <Link href="/admin/zones/coverage" className="inline-flex h-10 items-center rounded-full border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 shadow-sm transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700">
       {t("zones_coverage.view_coverage_map")}
     </Link>
   );
@@ -240,7 +241,7 @@ export default async function AdminZonesPage() {
         />
 
         <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
-          <Stat icon="🗺️" label="Zones" value={areas.length} accent="#2563eb" />
+          <Stat icon="🗺️" label="Zones" value={areas.length} accent={BRAND[600]} />
           <Stat icon="🏪" label="Shops and warehouses" value={shopRows.length} accent="#059669" hint={shopsWithoutPin > 0 ? `${shopsWithoutPin} without a GPS pin` : "All have a GPS pin"} />
           <Stat icon="📍" label="Inside a zone" value={shopRows.filter((r) => r.areaName).length} accent="#7c3aed" hint="Get Express and Standard" />
           <Stat icon="⚠️" label="Outside every zone" value={shopsOutside} accent={shopsOutside > 0 ? "#d97706" : "#404040"} hint={shopsOutside > 0 ? "Standard only" : "None"} />
@@ -271,9 +272,9 @@ export default async function AdminZonesPage() {
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-5">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 via-white to-white p-5">
         <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-sm">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-xl text-white shadow-sm">
             📍
           </span>
           <div>
@@ -287,7 +288,7 @@ export default async function AdminZonesPage() {
       <AreasManager areas={areaCards} />
 
       <div className="mb-5 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
-        <Stat icon="🏪" label={t("admin.stores_warehouses")} value={cards.length} accent="#2563eb" />
+        <Stat icon="🏪" label={t("admin.stores_warehouses")} value={cards.length} accent={BRAND[600]} />
         <Stat
           icon="🎯"
           label={t("admin.with_a_boundary")}

@@ -22,14 +22,15 @@ import {
   type StatusCount,
   type TopSupplier,
 } from "@/lib/platform";
+import { BRAND } from "@/lib/brand";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "#bfdbfe",
   confirmed: "#93c5fd",
-  preparing: "#60a5fa",
+  preparing: BRAND[400],
   ready_for_pickup: "#3b82f6",
-  rider_assigned: "#2563eb",
-  out_for_delivery: "#1d4ed8",
+  rider_assigned: BRAND[600],
+  out_for_delivery: BRAND[700],
   delivered: "#059669",
   cancelled: "#dc2626",
 };
@@ -53,7 +54,7 @@ function Kpi({ label, value, hint, tone }: { label: string; value: string; hint?
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
       <p className="text-xs font-medium text-neutral-500">{label}</p>
       <p className={`mt-0.5 text-2xl font-extrabold leading-tight tracking-tight ${tone === "warn" ? "text-amber-600" : tone === "good" ? "text-emerald-600" : "text-neutral-900"}`}>{value}</p>
-      {hint && <p className="mt-0.5 text-[11px] text-neutral-400">{hint}</p>}
+      {hint && <p className="mt-0.5 text-[11px] text-neutral-500">{hint}</p>}
     </div>
   );
 }
@@ -81,7 +82,7 @@ function MarketPanel({ m, sales, status, suppliers }: { m: MarketSummary; sales:
 
   return (
     <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 bg-gradient-to-r from-blue-50 to-white px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 bg-gradient-to-r from-brand-50 to-white px-5 py-4">
         <div className="flex items-center gap-3">
           <Flag code={country.code} className="h-8 w-11" />
           <div>
@@ -95,7 +96,7 @@ function MarketPanel({ m, sales, status, suppliers }: { m: MarketSummary; sales:
           <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_BADGE[m.status] ?? "bg-neutral-100"}`}>
             {m.status === "draft" ? "Draft — hidden from customers" : m.status === "active" ? "Live" : "Suspended"}
           </span>
-          <Link href="/platform/markets" className="text-xs font-semibold text-blue-700 hover:underline">
+          <Link href="/platform/markets" className="text-xs font-semibold text-brand-700 hover:underline">
             Manage
           </Link>
         </div>
@@ -139,7 +140,7 @@ function MarketPanel({ m, sales, status, suppliers }: { m: MarketSummary; sales:
         <div className="rounded-2xl border border-neutral-200 p-4">
           <div className="mb-1 flex items-center justify-between">
             <p className="text-sm font-bold text-neutral-800">Sales trend</p>
-            <span className="text-xs text-neutral-400">last 14 days</span>
+            <span className="text-xs text-neutral-500">last 14 days</span>
           </div>
           <RevenueTrendChart data={trend} money={money} />
         </div>
@@ -152,14 +153,14 @@ function MarketPanel({ m, sales, status, suppliers }: { m: MarketSummary; sales:
           <div className="rounded-2xl border border-neutral-200 p-4">
             <p className="mb-3 text-sm font-bold text-neutral-800">Top suppliers · 30 days</p>
             {suppliers.length === 0 ? (
-              <p className="text-sm text-neutral-400">No supplier sales yet</p>
+              <p className="text-sm text-neutral-500">No supplier sales yet</p>
             ) : (
               <ol className="flex flex-col gap-2.5">
                 {suppliers.map((s, i) => (
                   <li key={s.store_id} className="flex items-center gap-3 text-sm">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-blue-700">{i + 1}</span>
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">{i + 1}</span>
                     <span className="min-w-0 flex-1 truncate font-medium text-neutral-800">{s.store_name}</span>
-                    <span className="shrink-0 text-xs text-neutral-400">{s.orders} orders</span>
+                    <span className="shrink-0 text-xs text-neutral-500">{s.orders} orders</span>
                     <span className="shrink-0 font-bold text-neutral-900">{money(s.gross_sales)}</span>
                   </li>
                 ))}
@@ -177,12 +178,12 @@ function GlanceTable({ markets }: { markets: MarketSummary[] }) {
     <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
         <h2 className="text-base font-extrabold tracking-tight">Markets at a glance</h2>
-        <span className="text-xs text-neutral-400">money in each market&apos;s own currency</span>
+        <span className="text-xs text-neutral-500">money in each market&apos;s own currency</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[820px] text-sm">
           <thead>
-            <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+            <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
               <th className="px-5 py-2.5">Market</th>
               <th className="px-3 py-2.5 text-right">Sales today</th>
               <th className="px-3 py-2.5 text-right">Sales · 30d</th>
@@ -228,8 +229,8 @@ function GlanceTable({ markets }: { markets: MarketSummary[] }) {
 
 const STATUS_PILL: Record<string, string> = {
   pending: "bg-neutral-100 text-neutral-700",
-  confirmed: "bg-blue-50 text-blue-700",
-  preparing: "bg-blue-50 text-blue-700",
+  confirmed: "bg-brand-50 text-brand-700",
+  preparing: "bg-brand-50 text-brand-700",
   ready_for_pickup: "bg-amber-50 text-amber-700",
   rider_assigned: "bg-amber-50 text-amber-700",
   out_for_delivery: "bg-violet-50 text-violet-700",
@@ -324,7 +325,7 @@ export default async function PlatformOverviewPage({ params }: { params: Promise
             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
             Live orders
           </h2>
-          <Link href="/admin/orders" className="text-xs font-semibold text-blue-700 hover:underline">
+          <Link href="/admin/orders" className="text-xs font-semibold text-brand-700 hover:underline">
             Open the order board →
           </Link>
         </div>
@@ -334,7 +335,7 @@ export default async function PlatformOverviewPage({ params }: { params: Promise
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
-                <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                   <th className="px-5 py-2.5">Order</th>
                   <th className="px-3 py-2.5">Market</th>
                   <th className="px-3 py-2.5">Status</th>
@@ -350,7 +351,7 @@ export default async function PlatformOverviewPage({ params }: { params: Promise
                   return (
                     <tr key={o.id} className="hover:bg-neutral-50">
                       <td className="px-5 py-2.5">
-                        <Link href={`/admin/orders/${o.id}`} className="font-semibold text-neutral-900 hover:text-blue-600">
+                        <Link href={`/admin/orders/${o.id}`} className="font-semibold text-neutral-900 hover:text-brand-600">
                           #{o.order_number}
                         </Link>
                       </td>

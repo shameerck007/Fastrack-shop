@@ -129,13 +129,13 @@ export function CatalogSearch({
   return (
     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
       <div className="relative min-w-[14rem] flex-1 sm:max-w-sm">
-        <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400">🔍</span>
+        <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500">🔍</span>
         <input
           type="search"
           value={q}
           onChange={(e) => onChange({ q: e.target.value })}
           placeholder={placeholder}
-          className="h-10 w-full rounded-full border border-neutral-300 bg-white pe-4 ps-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="h-10 w-full rounded-full border border-neutral-300 bg-white pe-4 ps-9 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
       <Select value={cat} onChange={(e) => onChange({ cat: e.target.value })} className="min-w-[12rem]">
@@ -158,7 +158,7 @@ export function CatalogSearch({
           );
         })}
       </Select>
-      <span className={`h-2 w-2 rounded-full bg-blue-600 transition-opacity ${loading ? "animate-pulse opacity-100" : "opacity-0"}`} aria-hidden />
+      <span className={`h-2 w-2 rounded-full bg-brand-600 transition-opacity ${loading ? "animate-pulse opacity-100" : "opacity-0"}`} aria-hidden />
     </div>
   );
 }
@@ -169,7 +169,7 @@ export function CatalogPager({ page, pageSize, total, onPage, busy }: { page: nu
   if (total === 0) return null;
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(total, page * pageSize);
-  const btn = "h-9 rounded-full border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-700 hover:bg-blue-50 disabled:opacity-40 disabled:hover:bg-white";
+  const btn = "h-9 rounded-full border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-700 hover:bg-brand-50 disabled:opacity-40 disabled:hover:bg-white";
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-neutral-600">
       <span>
@@ -195,9 +195,9 @@ export function CatalogTabs({ tab, tabs, onTab }: { tab: string; tabs: { key: st
   return (
     <div className="flex w-fit rounded-full bg-neutral-100 p-0.5 text-sm font-bold">
       {tabs.map((t) => (
-        <button key={t.key} type="button" onClick={() => onTab(t.key)} className={`h-9 rounded-full px-4 ${tab === t.key ? "bg-blue-700 text-white shadow" : "text-neutral-500"}`}>
+        <button key={t.key} type="button" onClick={() => onTab(t.key)} className={`h-9 rounded-full px-4 ${tab === t.key ? "bg-brand-700 text-white shadow" : "text-neutral-500"}`}>
           {t.label}
-          {t.dot && tab !== t.key && <span className="ms-1 inline-block h-2 w-2 rounded-full bg-blue-500" />}
+          {t.dot && tab !== t.key && <span className="ms-1 inline-block h-2 w-2 rounded-full bg-brand-500" />}
         </button>
       ))}
     </div>

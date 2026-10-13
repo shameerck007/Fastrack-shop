@@ -29,20 +29,20 @@ export function SettlementSummaryCards({ summary, t, money }: { summary: Settlem
         value={money(summary.balanceDue)}
         tone={summary.balanceDue > 0.005 ? "amber" : "emerald"}
       />
-      <p className="col-span-full text-center text-xs text-neutral-400">Sales include {money(summary.taxInside)} of tax (VAT / GST) that is part of the customer prices.</p>
+      <p className="col-span-full text-center text-xs text-neutral-500">Sales include {money(summary.taxInside)} of tax (VAT / GST) that is part of the customer prices.</p>
     </div>
   );
 }
 
 export function SettlementOrdersTable({ orders, t, locale, money }: { orders: SettlementOrderRow[]; t: T; locale: Locale; money: MoneyFormatter }) {
   if (orders.length === 0) {
-    return <p className="p-4 text-sm text-neutral-400">{t("merchant.no_delivered_orders")}</p>;
+    return <p className="p-4 text-sm text-neutral-500">{t("merchant.no_delivered_orders")}</p>;
   }
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[560px] text-sm">
         <thead>
-          <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+          <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
             <th className="px-4 py-2.5">{t("merchant.order_th")}</th>
             <th className="px-3 py-2.5">{t("merchant.delivered_th")}</th>
             <th className="px-3 py-2.5 text-right">{t("merchant.items_th")}</th>
@@ -74,7 +74,7 @@ export function SettlementOrdersTable({ orders, t, locale, money }: { orders: Se
 
 export function SettlementPayoutsList({ payouts, t, locale, money }: { payouts: SettlementPayout[]; t: T; locale: Locale; money: MoneyFormatter }) {
   if (payouts.length === 0) {
-    return <p className="p-4 text-sm text-neutral-400">{t("merchant.no_payouts")}</p>;
+    return <p className="p-4 text-sm text-neutral-500">{t("merchant.no_payouts")}</p>;
   }
   const methodLabel = (method: string) =>
     method === "bank_transfer" || method === "cheque" || method === "cash" || method === "other"
@@ -90,9 +90,9 @@ export function SettlementPayoutsList({ payouts, t, locale, money }: { payouts: 
               {methodLabel(p.method)}
               {p.reference && ` ${t("merchant.ref", { ref: p.reference })}`}
             </p>
-            {p.note && <p className="mt-0.5 text-xs text-neutral-400">{p.note}</p>}
+            {p.note && <p className="mt-0.5 text-xs text-neutral-500">{p.note}</p>}
           </div>
-          <span className="shrink-0 text-xs text-neutral-400">
+          <span className="shrink-0 text-xs text-neutral-500">
             {new Date(p.createdAt).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
           </span>
         </li>

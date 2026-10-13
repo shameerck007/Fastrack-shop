@@ -15,7 +15,7 @@ export function LegalPageShell({
 }) {
   return (
     <div className="bg-white">
-      <div className="border-b border-blue-100 bg-blue-50/60">
+      <div className="border-b border-brand-100 bg-brand-50/60">
         <div className="mx-auto max-w-5xl px-4 py-8">
           <h1 className="text-2xl font-bold text-neutral-900">{title}</h1>
           <p className="mt-1 text-sm text-neutral-500">Effective {effectiveDate}</p>
@@ -26,13 +26,13 @@ export function LegalPageShell({
       <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-4 py-8 md:grid-cols-[220px_1fr]">
         <nav className="hidden md:block">
           <div className="sticky top-6">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">On this page</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">On this page</p>
             <ul className="space-y-1 border-s border-neutral-200 text-sm">
               {toc.map((item) => (
                 <li key={item.id}>
                   <a
                     href={`#${item.id}`}
-                    className="block border-s-2 border-transparent py-1 ps-3 text-neutral-600 hover:border-blue-600 hover:text-blue-700"
+                    className="block border-s-2 border-transparent py-1 ps-3 text-neutral-600 hover:border-brand-600 hover:text-brand-700"
                   >
                     {item.label}
                   </a>
@@ -40,10 +40,10 @@ export function LegalPageShell({
               ))}
             </ul>
             <div className="mt-6 space-y-1 text-sm">
-              <Link href="/terms" className="block text-blue-600 hover:underline">
+              <Link href="/terms" className="block text-brand-600 hover:underline">
                 Conditions of Use
               </Link>
-              <Link href="/privacy" className="block text-blue-600 hover:underline">
+              <Link href="/privacy" className="block text-brand-600 hover:underline">
                 Privacy Notice
               </Link>
             </div>

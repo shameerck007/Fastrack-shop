@@ -17,7 +17,7 @@ export default async function RiderHeader() {
       <div className="mx-auto flex h-14 max-w-2xl items-center justify-between gap-3 px-4">
         <Link href="/rider" className="flex min-w-0 items-center gap-2">
           <Wordmark height={24} />
-          <span className="rounded-full bg-blue-700 px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wide text-white">
+          <span className="rounded-full bg-brand-700 px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wide text-white">
             {t("rider.rider")}
           </span>
         </Link>

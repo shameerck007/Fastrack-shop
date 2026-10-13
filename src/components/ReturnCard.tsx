@@ -42,9 +42,9 @@ export default function ReturnCard({ orderId, ret, itemName }: { orderId: string
         <span className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${s.tone}`}>{s.customer}</span>
       </div>
       {ret.status === "pickup_assigned" && (
-        <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-center">
+        <div className="mt-3 rounded-xl border border-brand-200 bg-brand-50 p-3 text-center">
           <p className="text-xs text-neutral-600">Give this code to the rider when they collect the item</p>
-          <p className="text-2xl font-extrabold tracking-[0.35em] text-blue-800">{ret.pickup_code}</p>
+          <p className="text-2xl font-extrabold tracking-[0.35em] text-brand-800">{ret.pickup_code}</p>
         </div>
       )}
       {ret.status === "approved" && ret.resolution === "pickup" && <p className="mt-2 text-xs text-neutral-600">We are arranging a rider. You will see a code here when one is on the way.</p>}

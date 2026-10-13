@@ -51,7 +51,7 @@ export default function ReturnsInbox({ rows, empty }: { rows: InboxReturn[]; emp
         {r.resolution === "keep" && <p className="mt-2 text-xs text-neutral-500">The customer keeps this item. Nothing comes back.</p>}
         {r.received_note && <p className="mt-2 text-xs text-neutral-500">Note: {r.received_note}</p>}
         {r.stock_status === "awaiting_dropoff" && (
-          <button type="button" onClick={() => setReceiving(r)} className="mt-3 h-9 rounded-full bg-blue-700 px-4 text-sm font-bold text-white hover:bg-blue-800">
+          <button type="button" onClick={() => setReceiving(r)} className="mt-3 h-9 rounded-full bg-brand-700 px-4 text-sm font-bold text-white hover:bg-brand-800">
             📥 Mark received
           </button>
         )}

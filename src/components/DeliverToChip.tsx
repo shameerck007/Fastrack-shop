@@ -24,8 +24,8 @@ export default function DeliverToChip({
     return (
       <button onClick={openPicker} className={`group flex max-w-full items-center gap-2 text-start leading-tight ${className}`} aria-label={t("header.change_location")}>
         {/* Phones: a pin like Keeta's header; wider screens already have room for the headline alone. */}
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 sm:hidden">
-          <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-[18px] w-[18px] text-blue-700">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 sm:hidden">
+          <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-[18px] w-[18px] text-brand-700">
             <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11Z" strokeLinejoin="round" />
             <circle cx="12" cy="10" r="2.3" fill="currentColor" stroke="none" />
           </svg>
@@ -46,12 +46,12 @@ export default function DeliverToChip({
               <span className="h-3.5 w-24 animate-pulse rounded bg-neutral-200" />
             ) : (
               <>
-                <span className="truncate font-medium group-hover:text-blue-700">{location?.label ?? t("header.choose_location")}</span>
-                <svg aria-hidden viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 shrink-0 text-blue-700">
+                <span className="truncate font-medium group-hover:text-brand-700">{location?.label ?? t("header.choose_location")}</span>
+                <svg aria-hidden viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 shrink-0 text-brand-700">
                   <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clipRule="evenodd" />
                 </svg>
                 {location && serviceable === false && (
-                  <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-800">{t("header.not_serviceable")}</span>
+                  <span className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-800">{t("header.not_serviceable")}</span>
                 )}
               </>
             )}
@@ -66,24 +66,24 @@ export default function DeliverToChip({
       onClick={openPicker}
       className={`group flex max-w-full items-center gap-2 text-start transition ${
         variant === "pill"
-          ? "rounded-full border border-neutral-200 bg-white py-1 ps-1 pe-3 shadow-sm hover:border-blue-300 hover:bg-blue-50/60"
+          ? "rounded-full border border-neutral-200 bg-white py-1 ps-1 pe-3 shadow-sm hover:border-brand-300 hover:bg-brand-50/60"
           : "py-0.5"
       } ${className}`}
       aria-label={t("header.change_location")}
     >
       <span
         className={`flex shrink-0 items-center justify-center rounded-full transition ${
-          variant === "pill" ? "h-7 w-7 bg-blue-50 group-hover:bg-blue-100" : "h-5 w-5"
+          variant === "pill" ? "h-7 w-7 bg-brand-50 group-hover:bg-brand-100" : "h-5 w-5"
         }`}
       >
-        <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-blue-700 ${variant === "pill" ? "h-3.5 w-3.5" : "h-[18px] w-[18px]"}`}>
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-brand-700 ${variant === "pill" ? "h-3.5 w-3.5" : "h-[18px] w-[18px]"}`}>
           <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11Z" strokeLinejoin="round" />
           <circle cx="12" cy="10" r="2.3" fill="currentColor" stroke="none" />
         </svg>
       </span>
       <span className="flex min-w-0 flex-col leading-tight">
         {variant === "pill" && (
-          <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">{t("header.deliver_to")}</span>
+          <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-500">{t("header.deliver_to")}</span>
         )}
         {!ready ? (
           <span className="h-3.5 w-20 animate-pulse rounded bg-neutral-200" />
@@ -93,19 +93,19 @@ export default function DeliverToChip({
           </span>
         )}
         {ready && location && serviceable !== false && eta && (
-          <span className="text-[11px] font-semibold leading-tight text-blue-700">{formatEta(eta)}</span>
+          <span className="text-[11px] font-semibold leading-tight text-brand-700">{formatEta(eta)}</span>
         )}
       </span>
       <svg
         aria-hidden
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="h-3.5 w-3.5 shrink-0 text-neutral-400 transition group-hover:text-blue-600"
+        className="h-3.5 w-3.5 shrink-0 text-neutral-500 transition group-hover:text-brand-600"
       >
         <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clipRule="evenodd" />
       </svg>
       {location && serviceable === false && (
-        <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600">
+        <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700">
           {t("header.not_serviceable")}
         </span>
       )}

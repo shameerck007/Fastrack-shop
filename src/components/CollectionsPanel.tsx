@@ -6,15 +6,15 @@ function Card({ icon, label, value, hint, tone }: { icon: string; label: string;
   return (
     <div
       className={`rounded-2xl p-4 shadow-sm ${
-        tone === "dark" ? "bg-gradient-to-br from-blue-700 to-sky-500 text-white shadow-blue-600/20" : "border border-neutral-200 bg-white"
+        tone === "dark" ? "bg-gradient-to-br from-brand-700 to-sky-500 text-white shadow-brand-600/20" : "border border-neutral-200 bg-white"
       }`}
     >
       <div className="flex items-center gap-2">
-        <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-base ${tone === "dark" ? "bg-white/20" : "bg-blue-50"}`}>{icon}</span>
+        <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-base ${tone === "dark" ? "bg-white/20" : "bg-brand-50"}`}>{icon}</span>
         <p className={`text-xs font-semibold ${tone === "dark" ? "text-white/80" : "text-neutral-500"}`}>{label}</p>
       </div>
       <p className={`mt-2 truncate text-2xl font-extrabold leading-tight ${tone === "dark" ? "" : "text-neutral-900"}`}>{value}</p>
-      {hint && <p className={`mt-0.5 text-[11px] ${tone === "dark" ? "text-white/75" : "text-neutral-400"}`}>{hint}</p>}
+      {hint && <p className={`mt-0.5 text-[11px] ${tone === "dark" ? "text-white/75" : "text-neutral-500"}`}>{hint}</p>}
     </div>
   );
 }
@@ -68,7 +68,7 @@ export default function CollectionsPanel({
               key={m}
               href={`${basePath}?view=${m}`}
               scroll={false}
-              className={`rounded-full px-3.5 py-1.5 ${mode === m ? "bg-blue-700 text-white shadow" : "text-neutral-500"}`}
+              className={`rounded-full px-3.5 py-1.5 ${mode === m ? "bg-brand-700 text-white shadow" : "text-neutral-500"}`}
             >
               {m === "daily" ? "Daily" : "Monthly"}
             </Link>
@@ -92,7 +92,7 @@ export default function CollectionsPanel({
           <p className="text-sm font-bold text-neutral-800">Cash collected vs handed in</p>
           <div className="flex gap-3 text-[11px] font-semibold text-neutral-500">
             <span className="flex items-center gap-1">
-              <span className="h-2.5 w-2.5 rounded-sm bg-blue-700" /> Collected
+              <span className="h-2.5 w-2.5 rounded-sm bg-brand-700" /> Collected
             </span>
             <span className="flex items-center gap-1">
               <span className="h-2.5 w-2.5 rounded-sm bg-sky-300" /> Handed in
@@ -103,7 +103,7 @@ export default function CollectionsPanel({
           {chart.map((r) => (
             <div key={r.key} className="flex h-full min-w-[22px] flex-1 flex-col items-center justify-end gap-1" title={`${r.label}: collected ${money(r.cashCollected)}, handed in ${money(r.handedIn)}`}>
               <div className="flex h-full w-full items-end gap-0.5">
-                <div className="w-1/2 rounded-t bg-blue-700" style={{ height: `${Math.max((r.cashCollected / max) * 100, r.cashCollected > 0 ? 4 : 1)}%` }} />
+                <div className="w-1/2 rounded-t bg-brand-700" style={{ height: `${Math.max((r.cashCollected / max) * 100, r.cashCollected > 0 ? 4 : 1)}%` }} />
                 <div className="w-1/2 rounded-t bg-sky-300" style={{ height: `${Math.max((r.handedIn / max) * 100, r.handedIn > 0 ? 4 : 1)}%` }} />
               </div>
             </div>
@@ -111,7 +111,7 @@ export default function CollectionsPanel({
         </div>
         <div className="mt-1.5 flex gap-1.5 overflow-hidden">
           {chart.map((r) => (
-            <span key={r.key} className="min-w-[22px] flex-1 truncate text-center text-[9px] font-medium text-neutral-400">
+            <span key={r.key} className="min-w-[22px] flex-1 truncate text-center text-[9px] font-medium text-neutral-500">
               {mode === "daily" ? r.label.split(" ").slice(0, 2).join(" ") : r.label.split(" ")[0]}
             </span>
           ))}
@@ -123,7 +123,7 @@ export default function CollectionsPanel({
         <div className="overflow-x-auto">
           <table className="w-full min-w-[620px] text-sm">
             <thead>
-              <tr className="border-b border-neutral-100 text-start text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+              <tr className="border-b border-neutral-100 text-start text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                 <th className="px-4 py-2.5 text-start">{mode === "daily" ? "Day" : "Month"}</th>
                 <th className="px-3 py-2.5 text-end">Deliveries</th>
                 <th className="px-3 py-2.5 text-end">Collected</th>
@@ -135,7 +135,7 @@ export default function CollectionsPanel({
             </thead>
             <tbody className="divide-y divide-neutral-100">
               {rows.map((r) => (
-                <tr key={r.key} className={r.deliveries + r.handedIn + r.paidOut === 0 ? "text-neutral-300" : ""}>
+                <tr key={r.key} className={r.deliveries + r.handedIn + r.paidOut === 0 ? "text-neutral-500" : ""}>
                   <td className="px-4 py-2.5 font-semibold">{r.label}</td>
                   <td className="px-3 py-2.5 text-end">{r.deliveries}</td>
                   <td className="px-3 py-2.5 text-end font-semibold">{money(r.cashCollected)}</td>

@@ -117,7 +117,7 @@ export default async function ProductPage({
             <div className="mb-1 flex items-center gap-2">
               <p className="text-sm text-neutral-500">{localizedField(product.brand, product.brand_ar, locale)}</p>
               {product.is_fresh && (
-                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-700">
                   {locale === "ar" ? "طازج" : "Fresh"}
                 </span>
               )}
@@ -128,7 +128,7 @@ export default async function ProductPage({
                 <StarRating rating={rating.avg_rating} count={rating.review_count} />
               </a>
             ) : (
-              <p className="mt-1 text-xs text-neutral-400">{t("product.no_reviews_yet")}</p>
+              <p className="mt-1 text-xs text-neutral-500">{t("product.no_reviews_yet")}</p>
             )}
           </div>
 
@@ -173,10 +173,10 @@ export default async function ProductPage({
             <PlaceOrderPill compact className="mb-2 md:hidden" />
             {/* On a phone this bar covers the page, so the price lives here too and is always in view. */}
             <div className="mb-2 flex items-baseline gap-2 md:hidden">
-              <SelectedPrice className="text-2xl font-extrabold text-neutral-900" compareClassName="text-sm text-neutral-400 line-through" showSaving />
+              <SelectedPrice className="text-2xl font-extrabold text-neutral-900" compareClassName="text-sm text-neutral-500 line-through" showSaving />
             </div>
             <div className="mb-2 flex items-baseline gap-2 max-md:hidden">
-              <SelectedPrice className="text-2xl font-bold text-blue-700" showSaving />
+              <SelectedPrice className="text-2xl font-bold text-brand-700" showSaving />
             </div>
             {product.is_variable_weight && product.price_per_kg && (
               <p className="mb-2 text-xs text-neutral-500 max-md:hidden">
@@ -230,7 +230,7 @@ export default async function ProductPage({
                   <span className="text-sm font-medium">{review.reviewer_name ?? t("reviews.fastrack_customer")}</span>
                 </div>
                 {review.comment && <p className="text-sm text-neutral-600">{review.comment}</p>}
-                <p className="mt-1 text-xs text-neutral-400">
+                <p className="mt-1 text-xs text-neutral-500">
                   {new Date(review.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
                 </p>
               </div>

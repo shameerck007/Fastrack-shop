@@ -57,13 +57,13 @@ export default function RidersList({ riders }: { riders: RiderRow[] }) {
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
         <div className="relative min-w-[14rem] flex-1 sm:max-w-sm">
-          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400">🔍</span>
+          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500">🔍</span>
           <input
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search name, phone, licence or vehicle…"
-            className="h-10 w-full rounded-full border border-neutral-300 bg-white pe-4 ps-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="h-10 w-full rounded-full border border-neutral-300 bg-white pe-4 ps-9 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
           />
         </div>
         <Select value={status} onChange={(e) => setStatus(e.target.value)} className="w-48">
@@ -85,7 +85,7 @@ export default function RidersList({ riders }: { riders: RiderRow[] }) {
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-          <div className={`hidden items-center gap-4 border-b border-neutral-100 bg-neutral-50 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-neutral-400 lg:grid ${COLS}`}>
+          <div className={`hidden items-center gap-4 border-b border-neutral-100 bg-neutral-50 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-neutral-500 lg:grid ${COLS}`}>
             <span>Rider</span>
             <span>Vehicle</span>
             <span>Contact</span>
@@ -106,7 +106,7 @@ export default function RidersList({ riders }: { riders: RiderRow[] }) {
                 </div>
 
                 <div className="row-start-1 flex justify-end lg:order-last lg:row-auto">
-                  <Link href={`/admin/riders/${r.id}`} className="inline-flex h-9 items-center rounded-full border border-neutral-300 bg-white px-4 text-xs font-bold text-neutral-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">
+                  <Link href={`/admin/riders/${r.id}`} className="inline-flex h-9 items-center rounded-full border border-neutral-300 bg-white px-4 text-xs font-bold text-neutral-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700">
                     {r.status === "pending" ? "Review" : t("riders_list.view_details")}
                   </Link>
                 </div>

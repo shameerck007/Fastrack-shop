@@ -31,7 +31,7 @@ export default function ReturnItemDialog({ orderId, itemId, name, variant, maxQt
     <>
       <span className="text-xs text-neutral-500">
         {closesAt && <>Return window closes {new Date(closesAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · </>}
-        <button type="button" onClick={() => setOpen(true)} className="text-blue-700 hover:text-orange-700 hover:underline">
+        <button type="button" onClick={() => setOpen(true)} className="text-brand-700 hover:text-orange-700 hover:underline">
           Return item
         </button>
       </span>
@@ -53,8 +53,8 @@ export default function ReturnItemDialog({ orderId, itemId, name, variant, maxQt
           <DialogSection cols={1} title="Why are you returning it?">
             <div className="grid gap-2">
               {RETURN_REASONS.map((r) => (
-                <label key={r.id} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition ${reason === r.id ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200 hover:border-neutral-300"}`}>
-                  <input type="radio" name="reason" checked={reason === r.id} onChange={() => setReason(r.id)} className="h-4 w-4 accent-blue-700" />
+                <label key={r.id} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition ${reason === r.id ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300"}`}>
+                  <input type="radio" name="reason" checked={reason === r.id} onChange={() => setReason(r.id)} className="h-4 w-4 accent-brand-700" />
                   <span className="flex-1 font-medium text-neutral-900">{r.label}</span>
                   {r.defect && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">Fast approval</span>}
                 </label>

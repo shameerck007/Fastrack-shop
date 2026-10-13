@@ -11,7 +11,7 @@ import type { MasterProduct } from "@/lib/master-catalog";
 import Select from "@/components/ui/Select";
 import ArabicInput from "@/components/ui/ArabicInput";
 
-const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 const lab = "mb-1 block text-xs font-medium text-neutral-500";
 
 interface Cat {
@@ -93,7 +93,7 @@ export default function MasterProductForm({
     <Modal open={open} onClose={onClose} title={existing ? "Edit catalog product" : "Add a catalog product"} size="xl">
       <form onSubmit={submit} className="flex flex-col gap-4">
         {existing && existing.offers > 0 && (
-          <p className="rounded-xl bg-blue-50 px-3 py-2 text-xs text-blue-900">
+          <p className="rounded-xl bg-brand-50 px-3 py-2 text-xs text-brand-900">
             {existing.offers} {existing.offers === 1 ? "supplier sells" : "suppliers sell"} this product. Saving updates their listings too (name, brand, photo, category, tax). Their prices and stock stay theirs.
           </p>
         )}
@@ -183,17 +183,17 @@ export default function MasterProductForm({
               </div>
             ))}
           </div>
-          <button type="button" onClick={() => setVariants((vs) => [...vs, { label: "", unit: "unit", quantity: 1 }])} className="mt-2 text-sm font-semibold text-blue-700">
+          <button type="button" onClick={() => setVariants((vs) => [...vs, { label: "", unit: "unit", quantity: 1 }])} className="mt-2 text-sm font-semibold text-brand-700">
             + Add a pack size
           </button>
         </div>
 
-        {error && <p className="text-sm text-blue-900">{error}</p>}
+        {error && <p className="text-sm text-brand-900">{error}</p>}
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-semibold text-neutral-700">
             Cancel
           </button>
-          <button type="submit" disabled={saving} className="rounded-full bg-blue-700 px-6 py-2 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50">
+          <button type="submit" disabled={saving} className="rounded-full bg-brand-700 px-6 py-2 text-sm font-bold text-white hover:bg-brand-800 disabled:opacity-50">
             {saving ? "Saving…" : existing ? "Save changes" : "Add to catalog"}
           </button>
         </div>

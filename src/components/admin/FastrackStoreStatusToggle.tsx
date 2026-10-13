@@ -32,8 +32,8 @@ export default function FastrackStoreStatusToggle({ warehouseId, isActive }: { w
         disabled={pending}
         className={`rounded-full px-4 py-1.5 text-sm font-medium disabled:opacity-50 ${
           isActive
-            ? "border border-red-300 text-red-600 hover:bg-red-50"
-            : "bg-blue-700 text-white hover:bg-blue-800"
+            ? "border border-red-300 text-red-700 hover:bg-red-50"
+            : "bg-brand-700 text-white hover:bg-brand-800"
         }`}
       >
         {isActive ? t("fastrack_stores.deactivate") : t("fastrack_stores.activate")}

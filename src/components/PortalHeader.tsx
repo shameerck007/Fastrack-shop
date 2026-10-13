@@ -33,7 +33,7 @@ export default function PortalHeader({
           <span aria-hidden className="hidden h-6 w-px shrink-0 bg-neutral-200 sm:block" />
           <span className="hidden min-w-0 leading-tight sm:block">
             <span className="block truncate text-sm font-bold text-neutral-900">{title}</span>
-            {subtitle && <span className="block truncate text-[11px] text-neutral-400">{subtitle}</span>}
+            {subtitle && <span className="block truncate text-[11px] text-neutral-500">{subtitle}</span>}
           </span>
         </Link>
 
@@ -45,7 +45,7 @@ export default function PortalHeader({
           {/* On a phone the language switch lives on the Account page, so the bar stays on one line. */}
           <LanguageToggle className="max-sm:hidden" />
           <NotificationBell />
-          {chip && <span className="hidden max-w-[11rem] truncate rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 lg:inline">● {chip}</span>}
+          {chip && <span className="hidden max-w-[11rem] truncate rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 lg:inline">● {chip}</span>}
           <form action={signOut}>
             <button aria-label={logoutLabel} className="flex h-10 items-center justify-center rounded-full px-3 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 max-sm:w-10 max-sm:px-0">
               <span className="max-sm:hidden">{logoutLabel}</span>

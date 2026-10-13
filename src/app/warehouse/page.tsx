@@ -22,7 +22,7 @@ export default async function WarehouseDashboardPage() {
 
   const stats = [
     { label: t("merchant.new_orders"), value: kpis.newCount, icon: "🆕", color: "bg-amber-50 text-amber-700", href: "/warehouse/orders" },
-    { label: t("merchant.preparing_orders"), value: kpis.preparingCount, icon: "👨‍🍳", color: "bg-blue-50 text-blue-700", href: "/warehouse/orders" },
+    { label: t("merchant.preparing_orders"), value: kpis.preparingCount, icon: "👨‍🍳", color: "bg-brand-50 text-brand-700", href: "/warehouse/orders" },
     { label: t("merchant.ready_orders"), value: kpis.readyCount, icon: "📦", color: "bg-emerald-50 text-emerald-700", href: "/warehouse/orders" },
     {
       label: t("warehouse.status_out_of_stock"),
@@ -66,7 +66,7 @@ export default async function WarehouseDashboardPage() {
       <div className="mt-4 flex gap-2">
         <Link
           href="/warehouse/orders"
-          className="inline-flex items-center gap-1 rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
+          className="inline-flex items-center gap-1 rounded-full bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800"
         >
           {t("warehouse.manage_orders")}
         </Link>
@@ -82,7 +82,7 @@ export default async function WarehouseDashboardPage() {
         <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-medium">{t("warehouse.needs_attention")}</p>
-            <Link href="/warehouse/stock" className="text-xs text-blue-600 hover:underline">
+            <Link href="/warehouse/stock" className="text-xs text-brand-600 hover:underline">
               {t("warehouse.manage_stock")}
             </Link>
           </div>

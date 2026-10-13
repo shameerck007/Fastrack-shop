@@ -54,7 +54,7 @@ export default function ShopsRow() {
                 {info.text}
               </span>
               {(store.tagline || store.city) && (
-                <span className="mt-0.5 block truncate text-[11px] text-neutral-400">{store.tagline || store.city}</span>
+                <span className="mt-0.5 block truncate text-[11px] text-neutral-500">{store.tagline || store.city}</span>
               )}
             </span>
           </Link>

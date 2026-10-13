@@ -52,7 +52,7 @@ export default function RiderProfileCard({
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
       <div className="flex items-center gap-3">
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-700 text-lg font-bold text-white">
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-700 text-lg font-bold text-white">
           {initials(name)}
         </span>
         <div>
@@ -60,7 +60,7 @@ export default function RiderProfileCard({
           {deliveryPartner.rating != null ? (
             <Stars rating={deliveryPartner.rating} />
           ) : (
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
               {t("rider.new_rider_badge")}
             </span>
           )}

@@ -35,7 +35,7 @@ export interface RuleRow {
 
 type Tab = "categories" | "exceptions" | "checker";
 
-const searchClass = "h-10 w-full rounded-xl border border-neutral-300 bg-white ps-9 pe-3 text-sm placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const searchClass = "h-10 w-full rounded-xl border border-neutral-300 bg-white ps-9 pe-3 text-sm placeholder:text-neutral-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
 function Card({ title, hint, children, className = "" }: { title?: string; hint?: string; children: React.ReactNode; className?: string }) {
   return (
@@ -54,7 +54,7 @@ function Card({ title, hint, children, className = "" }: { title?: string; hint?
 function Stat({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone: string }) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm">
-      <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">{label}</p>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">{label}</p>
       <p className={`mt-0.5 text-2xl font-extrabold tracking-tight ${tone}`}>{value}</p>
       {hint && <p className="text-xs text-neutral-500">{hint}</p>}
     </div>
@@ -64,7 +64,7 @@ function Stat({ label, value, hint, tone }: { label: string; value: string; hint
 function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
     <div className="relative min-w-[12rem] flex-1">
-      <svg className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <svg className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
         <circle cx="9" cy="9" r="6" />
         <path d="m14 14 4 4" />
       </svg>
@@ -114,14 +114,14 @@ export default function CommissionManager({ categories, stores, rules, defaultRa
 
       <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
         <DefaultRate defaultRate={defaultRate} disabled={disabled || pending} onSave={(r) => run(() => unwrapAction(saveDefaultCommission)(r), "Default rate saved.")} />
-        <Stat label="Average category rate" value={`${Math.round(average * 10) / 10}%`} hint={`${rated.length} of ${categories.length} categories have a rate`} tone="text-blue-700" />
+        <Stat label="Average category rate" value={`${Math.round(average * 10) / 10}%`} hint={`${rated.length} of ${categories.length} categories have a rate`} tone="text-brand-700" />
         <Stat label="Supplier exceptions" value={String(exceptions.length)} hint={exceptions.length ? "Override the category rate" : "None yet"} tone="text-amber-600" />
         <div className="col-span-2 rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm lg:col-span-1">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Which rate applies</p>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">Which rate applies</p>
           <ol className="mt-1 space-y-0.5 text-xs text-neutral-600">
             {["Product rule", "Supplier + category", "Supplier (all products)", "Category (sub-categories inherit)", "Default rate"].map((t, i) => (
               <li key={t} className="flex items-center gap-1.5">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[10px] font-bold text-blue-800">{i + 1}</span>
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[10px] font-bold text-brand-800">{i + 1}</span>
                 {t}
               </li>
             ))}
@@ -138,7 +138,7 @@ export default function CommissionManager({ categories, stores, rules, defaultRa
               role="tab"
               aria-selected={tab === t.id}
               onClick={() => setTab(t.id)}
-              className={`rounded-full px-4 py-1.5 text-sm font-bold transition ${tab === t.id ? "bg-blue-700 text-white shadow-sm" : "text-neutral-600 hover:bg-neutral-100"}`}
+              className={`rounded-full px-4 py-1.5 text-sm font-bold transition ${tab === t.id ? "bg-brand-700 text-white shadow-sm" : "text-neutral-600 hover:bg-neutral-100"}`}
             >
               {t.label}
               {t.count != null && <span className={`ms-1.5 rounded-full px-1.5 text-[11px] ${tab === t.id ? "bg-white/20" : "bg-neutral-100 text-neutral-500"}`}>{t.count}</span>}
@@ -184,13 +184,13 @@ function DefaultRate({ defaultRate, disabled, onSave }: { defaultRate: number; d
   const [v, setV] = useState(String(defaultRate));
   const changed = v.trim() !== "" && Number(v) !== defaultRate;
   return (
-    <div className="rounded-2xl border border-blue-200 bg-blue-50/60 px-4 py-3 shadow-sm">
-      <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700/70">Default rate</p>
+    <div className="rounded-2xl border border-brand-200 bg-brand-50/60 px-4 py-3 shadow-sm">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-brand-700/70">Default rate</p>
       <div className="mt-1 flex items-center gap-1.5">
-        <input type="number" min={0} max={100} step={0.5} value={v} onChange={(e) => setV(e.target.value)} aria-label="Default commission rate" className="h-9 w-20 rounded-lg border border-blue-200 bg-white px-2.5 text-base font-extrabold text-blue-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
-        <span className="text-sm font-bold text-blue-700">%</span>
+        <input type="number" min={0} max={100} step={0.5} value={v} onChange={(e) => setV(e.target.value)} aria-label="Default commission rate" className="h-9 w-20 rounded-lg border border-brand-200 bg-white px-2.5 text-base font-extrabold text-brand-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
+        <span className="text-sm font-bold text-brand-700">%</span>
         {changed && (
-          <button type="button" disabled={disabled} onClick={() => onSave(Number(v))} className="ms-auto h-8 rounded-full bg-blue-700 px-3 text-xs font-bold text-white hover:bg-blue-800 disabled:opacity-50">
+          <button type="button" disabled={disabled} onClick={() => onSave(Number(v))} className="ms-auto h-8 rounded-full bg-brand-700 px-3 text-xs font-bold text-white hover:bg-brand-800 disabled:opacity-50">
             Save
           </button>
         )}
@@ -259,14 +259,14 @@ function CategoryRates({ categories, categoryRule, defaultRate, disabled, onSave
         </button>
       </div>
 
-      <div className="hidden grid-cols-[minmax(0,1fr)_9rem_8rem] items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-neutral-400 sm:grid">
+      <div className="hidden grid-cols-[minmax(0,1fr)_9rem_8rem] items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-neutral-500 sm:grid">
         <span>Category</span>
         <span>Commission</span>
         <span>Applies</span>
       </div>
 
       {visible.length === 0 ? (
-        <p className="p-8 text-center text-sm text-neutral-400">No category matches your search.</p>
+        <p className="p-8 text-center text-sm text-neutral-500">No category matches your search.</p>
       ) : (
         <ul className="divide-y divide-neutral-100">
           {visible.map(({ p, sub }) => {
@@ -319,7 +319,7 @@ function CategoryRates({ categories, categoryRule, defaultRate, disabled, onSave
       )}
 
       {dirtyIds.length > 0 && (
-        <div className="sticky bottom-3 z-10 m-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-blue-200 bg-white px-4 py-2.5 shadow-lg">
+        <div className="sticky bottom-3 z-10 m-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-brand-200 bg-white px-4 py-2.5 shadow-lg">
           <p className="text-sm font-semibold text-neutral-800">
             {dirtyIds.length} unsaved change{dirtyIds.length === 1 ? "" : "s"}
           </p>
@@ -357,11 +357,11 @@ function Row({ cat, value, saved, status, placeholder, onChange, lead, child, bo
           placeholder={placeholder}
           aria-label={`${cat.name} commission %`}
           onChange={(e) => onChange(e.target.value)}
-          className={`h-9 w-full rounded-lg border bg-white px-2.5 text-sm font-semibold placeholder:font-normal placeholder:text-neutral-300 focus:outline-none focus:ring-2 ${bad ? "border-rose-400 focus:ring-rose-400/20" : dirty ? "border-amber-400 bg-amber-50/50 focus:ring-amber-400/20" : "border-neutral-300 focus:border-blue-500 focus:ring-blue-500/20"}`}
+          className={`h-9 w-full rounded-lg border bg-white px-2.5 text-sm font-semibold placeholder:font-normal placeholder:text-neutral-500 focus:outline-none focus:ring-2 ${bad ? "border-rose-400 focus:ring-rose-400/20" : dirty ? "border-amber-400 bg-amber-50/50 focus:ring-amber-400/20" : "border-neutral-300 focus:border-brand-500 focus:ring-brand-500/20"}`}
         />
-        <span className="text-xs text-neutral-400">%</span>
+        <span className="text-xs text-neutral-500">%</span>
       </div>
-      <span className={`col-span-2 w-fit rounded-full px-2.5 py-0.5 text-[11px] font-bold sm:col-span-1 ${status.own ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>{status.text}</span>
+      <span className={`col-span-2 w-fit rounded-full px-2.5 py-0.5 text-[11px] font-bold sm:col-span-1 ${status.own ? "bg-brand-50 text-brand-800" : "bg-neutral-100 text-neutral-500"}`}>{status.text}</span>
     </div>
   );
 }
@@ -387,7 +387,7 @@ function Exceptions({ exceptions, stores, categories, disabled, pending, onAdd, 
         </div>
       ) : (
         <>
-          <div className="hidden grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_5rem_5rem] items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-neutral-400 md:grid">
+          <div className="hidden grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1.2fr)_5rem_5rem] items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-neutral-500 md:grid">
             <span>Supplier</span>
             <span>Applies to</span>
             <span>Period</span>
@@ -458,7 +458,7 @@ function Simulator({ stores, categories, disabled }: { stores: StoreOption[]; ca
           <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm font-medium text-rose-800">{result.error}</p>
         ) : (
           <div className="mt-4 grid grid-cols-3 gap-3">
-            <Stat label="Rate" value={`${result.rate}%`} tone="text-blue-700" />
+            <Stat label="Rate" value={`${result.rate}%`} tone="text-brand-700" />
             <Stat label="FasTrack keeps" value={String(result.commission)} tone="text-amber-600" />
             <Stat label="Supplier receives" value={String(result.supplierGets)} tone="text-emerald-600" />
           </div>

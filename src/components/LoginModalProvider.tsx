@@ -52,7 +52,7 @@ export default function LoginModalProvider({ children }: { children: React.React
         <div className="fixed inset-0 z-[2000] flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={view === "login" ? "Sign in" : "Create account"}>
           <div className="absolute inset-0 bg-neutral-900/55 backdrop-blur-sm" onClick={close} />
           <div className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:max-w-[420px] sm:rounded-3xl">
-            <div className="h-1.5 w-full bg-gradient-to-r from-blue-700 via-sky-500 to-blue-700" />
+            <div className="h-1.5 w-full bg-gradient-to-r from-brand-700 via-sky-500 to-brand-700" />
             <button
               onClick={close}
               aria-label="Close"

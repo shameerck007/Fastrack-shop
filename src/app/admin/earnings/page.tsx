@@ -77,7 +77,7 @@ function figures(e: Earnings) {
 }
 
 function Chip({ change, goodWhenDown = false }: { change: number | null; goodWhenDown?: boolean }) {
-  if (change === null) return <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">New</span>;
+  if (change === null) return <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-bold text-brand-700">New</span>;
   if (change === 0) return <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold text-neutral-500">steady</span>;
   const up = change > 0;
   const good = goodWhenDown ? !up : up;
@@ -147,7 +147,7 @@ export default async function AdminEarningsPage({ searchParams }: { searchParams
       </div>
       <div className="inline-flex flex-wrap rounded-full border border-neutral-200 bg-white p-1 shadow-sm" role="tablist" aria-label="Period">
         {RANGES.map((r) => (
-          <Link key={r.id} href={r.id === "this" ? "/admin/earnings" : `/admin/earnings?range=${r.id}`} role="tab" aria-selected={r.id === range} className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${r.id === range ? "bg-blue-700 text-white shadow-sm" : "text-neutral-600 hover:bg-neutral-100"}`}>
+          <Link key={r.id} href={r.id === "this" ? "/admin/earnings" : `/admin/earnings?range=${r.id}`} role="tab" aria-selected={r.id === range} className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${r.id === range ? "bg-brand-700 text-white shadow-sm" : "text-neutral-600 hover:bg-neutral-100"}`}>
             {r.label}
           </Link>
         ))}
@@ -198,7 +198,7 @@ export default async function AdminEarningsPage({ searchParams }: { searchParams
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
                 {[
-                  { k: "Earned", v: revenue, c: "text-blue-800" },
+                  { k: "Earned", v: revenue, c: "text-brand-800" },
                   { k: "Spent", v: costs, c: "text-rose-700" },
                   { k: "Kept", v: f.margin, c: f.margin >= 0 ? "text-emerald-700" : "text-rose-700" },
                 ].map((x) => (

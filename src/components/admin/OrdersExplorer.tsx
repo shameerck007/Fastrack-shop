@@ -7,6 +7,7 @@ import LiveEtaChip from "@/components/LiveEtaChip";
 import { useLocale } from "@/components/LocaleProvider";
 import { useMoney } from "@/components/MoneyProvider";
 import type { OrderStatus } from "@/types/database";
+import { BRAND } from "@/lib/brand";
 
 export interface ExplorerOrder {
   id: string;
@@ -51,7 +52,7 @@ const STAGE_OF: Record<OrderStatus, Exclude<Stage, "all">> = {
 const STAGES: { key: Exclude<Stage, "all">; label: string; icon: string; accent: string; hint: string }[] = [
   { key: "pending", label: "New", icon: "🆕", accent: "#dc2626", hint: "Waiting for you" },
   { key: "preparing", label: "Preparing", icon: "👨‍🍳", accent: "#d97706", hint: "Confirmed or being packed" },
-  { key: "ready", label: "Ready", icon: "📦", accent: "#2563eb", hint: "Waiting for a rider" },
+  { key: "ready", label: "Ready", icon: "📦", accent: BRAND[600], hint: "Waiting for a rider" },
   { key: "out", label: "On the way", icon: "🛵", accent: "#7c3aed", hint: "Rider assigned or out" },
   { key: "delivered", label: "Delivered", icon: "✅", accent: "#059669", hint: "In the latest orders" },
   { key: "cancelled", label: "Cancelled", icon: "✕", accent: "#64748b", hint: "In the latest orders" },
@@ -61,7 +62,7 @@ const STATUS_BADGE: Record<OrderStatus, string> = {
   pending: "bg-red-50 text-red-700 ring-red-100",
   confirmed: "bg-amber-50 text-amber-700 ring-amber-100",
   preparing: "bg-amber-50 text-amber-700 ring-amber-100",
-  ready_for_pickup: "bg-blue-50 text-blue-700 ring-blue-100",
+  ready_for_pickup: "bg-brand-50 text-brand-700 ring-brand-100",
   rider_assigned: "bg-violet-50 text-violet-700 ring-violet-100",
   out_for_delivery: "bg-violet-50 text-violet-700 ring-violet-100",
   delivered: "bg-emerald-50 text-emerald-700 ring-emerald-100",
@@ -69,7 +70,7 @@ const STATUS_BADGE: Record<OrderStatus, string> = {
 };
 
 const FULFIL_TONE = {
-  fastrack: "bg-blue-50 text-blue-700",
+  fastrack: "bg-brand-50 text-brand-700",
   merchant: "bg-amber-50 text-amber-700",
   mixed: "bg-purple-50 text-purple-700",
   none: "bg-neutral-100 text-neutral-500",
@@ -78,7 +79,7 @@ const FULFIL_TONE = {
 function FulfilBadge({ f }: { f: ExplorerOrder["fulfilledBy"] }) {
   if (f.tone === "fastrack") {
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1" title={f.text}>
+      <span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-1" title={f.text}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/fastrack-logo-wordmark.png" alt="FasTrack" className="h-3 w-auto" />
       </span>
@@ -164,7 +165,7 @@ export default function OrdersExplorer({
           { label: "Revenue today", value: money(today.revenue), icon: "💰" },
         ].map((x, i) => (
           <div key={x.label} className={`flex items-center gap-3 px-4 py-3 ${i > 1 ? "border-t border-neutral-100 sm:border-t-0" : ""}`}>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-base">{x.icon}</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-base">{x.icon}</span>
             <div className="min-w-0">
               <p className="text-[11px] font-medium text-neutral-500">{x.label}</p>
               <p className="text-base font-extrabold leading-tight text-neutral-900 sm:text-lg">{x.value}</p>
@@ -184,7 +185,7 @@ export default function OrdersExplorer({
               type="button"
               onClick={() => setStage(active ? "all" : s.key)}
               className={`relative flex min-w-[8.5rem] shrink-0 flex-col items-start gap-1 rounded-2xl border bg-white p-3 text-start shadow-sm transition sm:min-w-0 ${
-                active ? "border-transparent ring-2" : "border-neutral-200 hover:border-blue-200 hover:shadow"
+                active ? "border-transparent ring-2" : "border-neutral-200 hover:border-brand-200 hover:shadow"
               }`}
               style={active ? { boxShadow: `0 0 0 2px ${s.accent}` } : undefined}
             >
@@ -195,7 +196,7 @@ export default function OrdersExplorer({
                 <span className="text-2xl font-extrabold leading-none text-neutral-900">{n}</span>
               </span>
               <span className="text-sm font-bold text-neutral-800">{s.label}</span>
-              <span className="text-[11px] text-neutral-400">{s.hint}</span>
+              <span className="text-[11px] text-neutral-500">{s.hint}</span>
               {s.key === "pending" && n > 0 && <span className="absolute end-2 top-2 h-2 w-2 animate-ping rounded-full bg-red-500" />}
             </button>
           );
@@ -205,13 +206,13 @@ export default function OrdersExplorer({
       {/* toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full max-w-sm">
-          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400">🔍</span>
+          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500">🔍</span>
           <input
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search order no., customer, phone, product…"
-            className="w-full rounded-full border border-neutral-300 bg-white py-2 pe-4 ps-9 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-full border border-neutral-300 bg-white py-2 pe-4 ps-9 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </div>
         <div className="flex items-center gap-2 text-xs text-neutral-500">
@@ -219,7 +220,7 @@ export default function OrdersExplorer({
             Showing <b className="text-neutral-800">{rows.length}</b> {stage === "all" ? "recent orders" : `${STAGES.find((s) => s.key === stage)?.label.toLowerCase()} orders`}
           </span>
           {stage !== "all" && (
-            <button type="button" onClick={() => setStage("all")} className="rounded-full bg-blue-50 px-2.5 py-1 font-semibold text-blue-700 hover:bg-blue-100">
+            <button type="button" onClick={() => setStage("all")} className="rounded-full bg-brand-50 px-2.5 py-1 font-semibold text-brand-700 hover:bg-brand-100">
               Clear filter ✕
             </button>
           )}
@@ -240,7 +241,7 @@ export default function OrdersExplorer({
           <div className="hidden overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm md:block">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-neutral-100 bg-neutral-50 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+                <tr className="border-b border-neutral-100 bg-neutral-50 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                   <th className="px-4 py-2.5 text-start">Order</th>
                   <th className="px-3 py-2.5 text-start">Customer</th>
                   <th className="px-3 py-2.5 text-start">Items and delivery</th>
@@ -252,24 +253,24 @@ export default function OrdersExplorer({
                 {rows.map((o) => {
                   const a = age(o.createdAt);
                   return (
-                    <tr key={o.id} className="align-top transition hover:bg-blue-50/40">
+                    <tr key={o.id} className="align-top transition hover:bg-brand-50/40">
                       <td className="px-4 py-3">
-                        <Link href={`/admin/orders/${o.id}`} className="font-extrabold text-neutral-900 hover:text-blue-700">
+                        <Link href={`/admin/orders/${o.id}`} className="font-extrabold text-neutral-900 hover:text-brand-700">
                           #{o.number}
                         </Link>
-                        <p className="mt-0.5 text-[11px] text-neutral-400">{new Date(o.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+                        <p className="mt-0.5 text-[11px] text-neutral-500">{new Date(o.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
                         {isOpen(o.status) && <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${a.tone}`}>⏱ {a.label}</span>}
                       </td>
                       <td className="px-3 py-3">
                         <p className="font-semibold text-neutral-800">{o.customer}</p>
-                        {o.phone && <p className="text-xs text-neutral-400">{o.phone}</p>}
+                        {o.phone && <p className="text-xs text-neutral-500">{o.phone}</p>}
                       </td>
                       <td className="px-3 py-3">
                         <Link href={`/admin/orders/${o.id}`} className="flex items-center gap-2.5">
                           <Thumbs thumbs={o.thumbs} extra={Math.max(o.itemCount - o.thumbs.length, 0)} />
                           <span className="min-w-0">
                             <span className="block max-w-[15rem] truncate text-neutral-700">{o.itemsText}</span>
-                            <span className="text-[11px] text-neutral-400">
+                            <span className="text-[11px] text-neutral-500">
                               {o.itemCount} {o.itemCount === 1 ? "item" : "items"}
                             </span>
                           </span>
@@ -277,7 +278,7 @@ export default function OrdersExplorer({
                         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
                           <FulfilBadge f={o.fulfilledBy} />
                           <span className="rounded-full bg-neutral-100 px-2 py-0.5 font-semibold text-neutral-600">{o.delivery}</span>
-                          {o.area && <span className="text-neutral-400">{o.area}</span>}
+                          {o.area && <span className="text-neutral-500">{o.area}</span>}
                           <span className="rounded-full bg-neutral-100 px-2 py-0.5 font-semibold text-neutral-600">{o.payment}</span>
                           <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${o.paid ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{o.paid ? "Paid" : "Unpaid"}</span>
                         </div>
@@ -309,7 +310,7 @@ export default function OrdersExplorer({
                         #{o.number}
                       </Link>
                       <p className="truncate text-sm text-neutral-600">{o.customer}</p>
-                      <p className="text-[11px] text-neutral-400">{new Date(o.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+                      <p className="text-[11px] text-neutral-500">{new Date(o.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
                     </div>
                     <div className="text-end">
                       <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1 ${STATUS_BADGE[o.status]}`}>{t(`order_status.${o.status}`)}</span>
@@ -321,7 +322,7 @@ export default function OrdersExplorer({
                     <Thumbs thumbs={o.thumbs} extra={Math.max(o.itemCount - o.thumbs.length, 0)} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm text-neutral-700">{o.itemsText}</span>
-                      <span className="text-[11px] text-neutral-400">
+                      <span className="text-[11px] text-neutral-500">
                         {o.itemCount} {o.itemCount === 1 ? "item" : "items"} · {o.delivery} · {o.payment}
                       </span>
                     </span>

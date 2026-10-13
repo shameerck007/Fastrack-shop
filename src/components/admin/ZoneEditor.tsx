@@ -19,6 +19,7 @@ import {
 import { useLocale } from "@/components/LocaleProvider";
 import { useMarket } from "@/components/MoneyProvider";
 import { MAX_POINTS, polygonAreaKm2, polygonCenter, polygonProblem, type LatLng } from "@/lib/geo-polygon";
+import { BRAND } from "@/lib/brand";
 
 const PRESETS = [1, 2, 3, 5, 8, 10, 15, 20];
 
@@ -87,7 +88,7 @@ export default function ZoneEditor({
       const marker = L.marker(start, { icon: L.icon(MARKER_ICON), draggable: true }).addTo(map);
       const circle = L.circle(start, {
         radius: radiusRef.current * 1000,
-        color: "#1d4ed8",
+        color: BRAND[700],
         fillColor: "#3b82f6",
         fillOpacity: 0.18,
         weight: 2,
@@ -325,7 +326,7 @@ export default function ZoneEditor({
           >
             {t("zone_editor.use_store_address")}
           </button>
-          <p className="text-xs text-neutral-400">{t("zone_editor.on_file", { address: storeAddress })}</p>
+          <p className="text-xs text-neutral-500">{t("zone_editor.on_file", { address: storeAddress })}</p>
         </div>
       )}
 
@@ -337,7 +338,7 @@ export default function ZoneEditor({
             type="button"
             onClick={() => (m === "area" && points.length < 3 ? startFromCircle() : setMode(m))}
             className={`rounded-full border px-3 py-1 text-xs font-medium ${
-              mode === m ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-300 hover:bg-neutral-50"
+              mode === m ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-300 hover:bg-neutral-50"
             }`}
           >
             {m === "circle" ? "⭕ Circle (km)" : "✏️ Draw custom area"}
@@ -356,7 +357,7 @@ export default function ZoneEditor({
           className="absolute bottom-3 end-3 z-[1000] flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-300 bg-white text-base shadow-md transition hover:bg-neutral-50 disabled:opacity-50"
         >
           {busy ? (
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-blue-600" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-brand-600" />
           ) : (
             "🎯"
           )}
@@ -407,7 +408,7 @@ export default function ZoneEditor({
               type="button"
               onClick={() => setRadius(km)}
               className={`rounded-full border px-3 py-1 text-xs font-medium ${
-                radius === km ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-300 hover:bg-neutral-50"
+                radius === km ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-300 hover:bg-neutral-50"
               }`}
             >
               {km} km
@@ -448,7 +449,7 @@ export default function ZoneEditor({
         <button
           onClick={save}
           disabled={pending}
-          className="rounded-full bg-blue-700 px-5 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+          className="rounded-full bg-brand-700 px-5 py-2 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-50"
         >
           {pending ? t("common.saving") : (saveLabel ?? t("zone_editor.save_boundary"))}
         </button>

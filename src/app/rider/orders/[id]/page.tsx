@@ -38,9 +38,9 @@ function StopCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`rounded-3xl border p-4 shadow-sm ${active ? "border-blue-300 bg-blue-50 ring-2 ring-blue-100" : "border-neutral-200 bg-white"}`}>
+    <div className={`rounded-3xl border p-4 shadow-sm ${active ? "border-brand-300 bg-brand-50 ring-2 ring-brand-100" : "border-neutral-200 bg-white"}`}>
       <div className="flex items-center gap-2">
-        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${active ? "bg-blue-700 text-white" : "bg-neutral-100 text-neutral-500"}`}>
+        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${active ? "bg-brand-700 text-white" : "bg-neutral-100 text-neutral-500"}`}>
           {label}
         </span>
       </div>
@@ -114,12 +114,12 @@ export default async function RiderOrderPage({
         <div>
           <h1 className="text-xl font-extrabold tracking-tight">{t("orders.order_hash", { number: order.order_number })}</h1>
           {isActive && (
-            <p className="text-sm font-semibold text-blue-700">{isPickupStage ? t("rider_task.next_pickup") : t("rider_task.next_dropoff")}</p>
+            <p className="text-sm font-semibold text-brand-700">{isPickupStage ? t("rider_task.next_pickup") : t("rider_task.next_dropoff")}</p>
           )}
         </div>
         {!hideEarnings && (
-          <div className="rounded-2xl bg-blue-700 px-4 py-2 text-end text-white shadow-md shadow-blue-700/20">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-100">{t("rider_task.you_earn")}</p>
+          <div className="rounded-2xl bg-brand-700 px-4 py-2 text-end text-white shadow-md shadow-brand-700/20">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-brand-100">{t("rider_task.you_earn")}</p>
             <p className="text-lg font-extrabold leading-tight">{money(earning)}</p>
           </div>
         )}
@@ -139,19 +139,19 @@ export default async function RiderOrderPage({
       {isActive && (
         <div
           className={`mb-4 flex items-center gap-3 rounded-3xl border p-4 ${
-            collectCash ? "border-blue-300 bg-blue-50" : "border-sky-200 bg-sky-50"
+            collectCash ? "border-brand-300 bg-brand-50" : "border-sky-200 bg-sky-50"
           }`}
         >
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">{collectCash ? "💵" : "✅"}</span>
           <div className="min-w-0 flex-1">
-            <p className={`text-sm font-bold ${collectCash ? "text-blue-900" : "text-sky-900"}`}>
+            <p className={`text-sm font-bold ${collectCash ? "text-brand-900" : "text-sky-900"}`}>
               {collectCash ? t("rider_task.collect_cash") : t("rider_task.paid_online")}
             </p>
-            <p className={`text-xs ${collectCash ? "text-blue-700" : "text-sky-700"}`}>
+            <p className={`text-xs ${collectCash ? "text-brand-700" : "text-sky-700"}`}>
               {collectCash ? t("rider_task.collect_cash_hint") : t("rider_task.paid_online_hint")}
             </p>
           </div>
-          {collectCash && <p className="shrink-0 text-xl font-extrabold text-blue-900">{money(order.total)}</p>}
+          {collectCash && <p className="shrink-0 text-xl font-extrabold text-brand-900">{money(order.total)}</p>}
         </div>
       )}
 
@@ -176,7 +176,7 @@ export default async function RiderOrderPage({
               href={directionsUrl(order.warehouses, order.warehouses.address_line ?? order.warehouses.name)}
               target="_blank"
               rel="noopener noreferrer"
-              className={`${actionBtn} bg-blue-700 text-white`}
+              className={`${actionBtn} bg-brand-700 text-white`}
             >
               🧭 {t("rider_task.navigate")}
             </a>
@@ -203,7 +203,7 @@ export default async function RiderOrderPage({
               href={directionsUrl(order.addresses, order.addresses.address_line)}
               target="_blank"
               rel="noopener noreferrer"
-              className={`${actionBtn} bg-blue-700 text-white`}
+              className={`${actionBtn} bg-brand-700 text-white`}
             >
               🧭 {t("rider_task.navigate")}
             </a>
@@ -218,7 +218,7 @@ export default async function RiderOrderPage({
 
       {order.notes && (
         <div className="mb-4 rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-wide text-neutral-400">{t("rider_task.customer_note")}</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-neutral-500">{t("rider_task.customer_note")}</p>
           <p className="mt-1 text-sm text-neutral-800">{order.notes}</p>
         </div>
       )}
@@ -230,7 +230,7 @@ export default async function RiderOrderPage({
         </div>
         {order.order_items.map((item: { id: string; product_name: string; variant_label: string; ordered_quantity: number; line_total: number }) => (
           <div key={item.id} className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3 text-sm last:border-none">
-            <span className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-blue-50 px-1 text-sm font-extrabold text-blue-700">{item.ordered_quantity}×</span>
+            <span className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-brand-50 px-1 text-sm font-extrabold text-brand-700">{item.ordered_quantity}×</span>
             <span className="min-w-0 flex-1">
               <span className="block truncate font-medium text-neutral-900">{item.product_name}</span>
               <span className="block text-xs text-neutral-500">{item.variant_label}</span>

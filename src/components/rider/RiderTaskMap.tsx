@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, Marker, Polyline } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { TILE_URL, TILE_OPTIONS } from "@/lib/map-config";
+import { BRAND } from "@/lib/brand";
 
 interface Point {
   lat: number;
@@ -62,7 +63,7 @@ export default function RiderTaskMap({
       const icon = (html: string) => L.divIcon({ html, className: "", iconSize: [40, 40], iconAnchor: [20, 20] });
       if (shop) L.marker([shop.lat, shop.lng], { icon: icon(pin("🏪", "white")) }).addTo(map);
       if (dest) L.marker([dest.lat, dest.lng], { icon: icon(pin("🏠", "blue")) }).addTo(map);
-      line.current = L.polyline([], { color: "#1d4ed8", weight: 4, opacity: 0.7, dashArray: "2 10", lineCap: "round" }).addTo(map);
+      line.current = L.polyline([], { color: BRAND[700], weight: 4, opacity: 0.7, dashArray: "2 10", lineCap: "round" }).addTo(map);
       mapRef.current = map;
       setReady(true);
     });
@@ -108,7 +109,7 @@ export default function RiderTaskMap({
   return (
     <div
       ref={containerRef}
-      className="h-56 w-full overflow-hidden rounded-3xl border border-neutral-200 bg-blue-50 shadow-sm [&_.leaflet-control-attribution]:text-[9px]"
+      className="h-56 w-full overflow-hidden rounded-3xl border border-neutral-200 bg-brand-50 shadow-sm [&_.leaflet-control-attribution]:text-[9px]"
     />
   );
 }

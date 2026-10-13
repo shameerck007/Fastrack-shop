@@ -67,7 +67,7 @@ function toLocalInput(iso: string | null): string {
 const fromLocalInput = (v: string) => (v ? new Date(v).toISOString() : null);
 const dateText = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : null);
 
-const searchClass = "h-10 w-full rounded-xl border border-neutral-300 bg-white ps-9 pe-3 text-sm placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const searchClass = "h-10 w-full rounded-xl border border-neutral-300 bg-white ps-9 pe-3 text-sm placeholder:text-neutral-500 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
 interface Draft {
   id?: string;
@@ -128,7 +128,7 @@ function draftOf(o: OfferRow): Draft {
 
 function SearchIcon() {
   return (
-    <svg className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <svg className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
       <circle cx="9" cy="9" r="6" />
       <path d="m14 14 4 4" />
     </svg>
@@ -190,11 +190,11 @@ export default function OffersManager({ offers, categories, stores, disabled }: 
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: "Live offers", value: String(live), tone: "text-emerald-600" },
-          { label: "Times used", value: String(totalUses), tone: "text-blue-700" },
+          { label: "Times used", value: String(totalUses), tone: "text-brand-700" },
           { label: "Discount given", value: money(given), tone: "text-amber-600" },
         ].map((s) => (
           <div key={s.label} className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">{s.label}</p>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">{s.label}</p>
             <p className={`mt-0.5 text-xl font-extrabold tracking-tight sm:text-2xl ${s.tone}`}>{s.value}</p>
           </div>
         ))}
@@ -224,7 +224,7 @@ export default function OffersManager({ offers, categories, stores, disabled }: 
             <p className="mb-3 text-xs text-neutral-500">Pick one, adjust the numbers and save. You can change everything.</p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
               {TEMPLATES.map((t) => (
-                <button key={t.title} type="button" disabled={disabled} onClick={() => setEditing({ ...blank, ...t.draft })} className="rounded-xl border border-neutral-200 p-3 text-start transition hover:border-blue-400 hover:bg-blue-50/50 disabled:opacity-50">
+                <button key={t.title} type="button" disabled={disabled} onClick={() => setEditing({ ...blank, ...t.draft })} className="rounded-xl border border-neutral-200 p-3 text-start transition hover:border-brand-400 hover:bg-brand-50/50 disabled:opacity-50">
                   <span className="block text-sm font-bold text-neutral-900">{t.title}</span>
                   <span className="block text-xs text-neutral-500">{t.hint}</span>
                 </button>
@@ -234,10 +234,10 @@ export default function OffersManager({ offers, categories, stores, disabled }: 
         )}
 
         {list.length === 0 ? (
-          <p className="p-10 text-center text-sm text-neutral-400">{offers.length === 0 ? "No offers yet." : "No offer matches your search."}</p>
+          <p className="p-10 text-center text-sm text-neutral-500">{offers.length === 0 ? "No offers yet." : "No offer matches your search."}</p>
         ) : (
           <>
-            <div className="hidden grid-cols-[minmax(0,1.6fr)_minmax(0,1.1fr)_minmax(0,1.4fr)_6.5rem_6rem_9rem] items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-neutral-400 lg:grid">
+            <div className="hidden grid-cols-[minmax(0,1.6fr)_minmax(0,1.1fr)_minmax(0,1.4fr)_6.5rem_6rem_9rem] items-center gap-3 border-b border-neutral-100 bg-neutral-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-neutral-500 lg:grid">
               <span>Offer</span>
               <span>Benefit</span>
               <span>Conditions</span>
@@ -259,11 +259,11 @@ export default function OffersManager({ offers, categories, stores, disabled }: 
                         <span>{o.starts_at || o.ends_at ? `${dateText(o.starts_at) ?? "now"} → ${dateText(o.ends_at) ?? "no end"}` : "No end date"}</span>
                       </p>
                     </div>
-                    <p className="text-sm font-extrabold text-blue-800">{benefit(o)}</p>
+                    <p className="text-sm font-extrabold text-brand-800">{benefit(o)}</p>
                     <p className="text-xs text-neutral-600">{conds.length ? conds.join(" · ") : "No conditions"}</p>
                     <p className="text-sm text-neutral-700">
                       <b>{o.used}</b>
-                      {o.usage_limit ? <span className="text-neutral-400"> / {o.usage_limit}</span> : null}
+                      {o.usage_limit ? <span className="text-neutral-500"> / {o.usage_limit}</span> : null}
                     </p>
                     <span className={`w-fit rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUS_STYLE[st]}`}>{STATUS_LABEL[st]}</span>
                     <div className="flex flex-wrap gap-1.5 lg:justify-end">
@@ -389,7 +389,7 @@ function OfferModal({ draft, categories, stores, onClose, onSaved }: { draft: Dr
               { auto: false, title: "Coupon code", hint: "The shopper types a code at checkout." },
               { auto: true, title: "Automatic", hint: "Applied by itself when the cart qualifies." },
             ].map((opt) => (
-              <button key={opt.title} type="button" onClick={() => set("auto", opt.auto)} className={`rounded-xl border p-3 text-start transition ${d.auto === opt.auto ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200 hover:border-neutral-300"}`}>
+              <button key={opt.title} type="button" onClick={() => set("auto", opt.auto)} className={`rounded-xl border p-3 text-start transition ${d.auto === opt.auto ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300"}`}>
                 <span className="block text-sm font-bold text-neutral-900">{opt.title}</span>
                 <span className="block text-xs text-neutral-500">{opt.hint}</span>
               </button>
@@ -457,7 +457,7 @@ function OfferModal({ draft, categories, stores, onClose, onSaved }: { draft: Dr
                 { v: "fastrack" as const, title: "FasTrack", hint: "The supplier is paid the full price." },
                 { v: "supplier" as const, title: "The supplier", hint: "The discount is taken off that supplier's settlement." },
               ].map((opt) => (
-                <button key={opt.v} type="button" onClick={() => set("fundedBy", opt.v)} className={`rounded-xl border p-3 text-start transition ${d.fundedBy === opt.v ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200 hover:border-neutral-300"}`}>
+                <button key={opt.v} type="button" onClick={() => set("fundedBy", opt.v)} className={`rounded-xl border p-3 text-start transition ${d.fundedBy === opt.v ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300"}`}>
                   <span className="block text-sm font-bold text-neutral-900">{opt.title}</span>
                   <span className="block text-xs text-neutral-500">{opt.hint}</span>
                 </button>
@@ -469,25 +469,25 @@ function OfferModal({ draft, categories, stores, onClose, onSaved }: { draft: Dr
 
         <div className="flex flex-col gap-2 text-sm">
           <label className="flex items-start gap-2">
-            <input type="checkbox" checked={d.showOnHome} onChange={(e) => set("showOnHome", e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+            <input type="checkbox" checked={d.showOnHome} onChange={(e) => set("showOnHome", e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-700" />
             <span>
               Show on the shop home page
               <span className="block text-xs text-neutral-500">Appears in the Offers row while it is active and in date. Turn off for a private code you hand out yourself.</span>
             </span>
           </label>
           <label className="flex items-start gap-2">
-            <input type="checkbox" checked={d.stackable} onChange={(e) => set("stackable", e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+            <input type="checkbox" checked={d.stackable} onChange={(e) => set("stackable", e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-700" />
             <span>
               Can be combined with another offer
               <span className="block text-xs text-neutral-500">One more automatic offer that is also marked combinable (for example free delivery) can apply on top. Off = this offer applies alone.</span>
             </span>
           </label>
           <label className="flex items-center gap-2">
-            <input type="checkbox" checked={d.firstOrderOnly} onChange={(e) => set("firstOrderOnly", e.target.checked)} className="h-4 w-4 accent-blue-700" />
+            <input type="checkbox" checked={d.firstOrderOnly} onChange={(e) => set("firstOrderOnly", e.target.checked)} className="h-4 w-4 accent-brand-700" />
             First order only
           </label>
           <label className="flex items-center gap-2">
-            <input type="checkbox" checked={d.isActive} onChange={(e) => set("isActive", e.target.checked)} className="h-4 w-4 accent-blue-700" />
+            <input type="checkbox" checked={d.isActive} onChange={(e) => set("isActive", e.target.checked)} className="h-4 w-4 accent-brand-700" />
             Switched on
           </label>
         </div>

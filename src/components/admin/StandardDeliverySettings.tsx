@@ -44,7 +44,7 @@ export default function StandardDeliverySettings({
 
   return (
     <>
-      <section className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+      <section className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-100 bg-brand-50/50 p-4">
         <div className="min-w-0">
           <h3 className="text-sm font-extrabold text-neutral-900">Express vs Standard delivery</h3>
           <p className="mt-1 text-xs text-neutral-600">
@@ -62,7 +62,7 @@ export default function StandardDeliverySettings({
             setDays(String(saved.days));
             setOpen(true);
           }}
-          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3.5 text-xs font-bold text-blue-700 transition hover:bg-blue-50"
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-brand-200 bg-white px-3.5 text-xs font-bold text-brand-700 transition hover:bg-brand-50"
         >
           <span aria-hidden>✎</span> Change
         </button>
@@ -72,7 +72,7 @@ export default function StandardDeliverySettings({
         <FormDialog icon="🚚" title="Standard delivery" subtitle="Customers outside the Express radius can still order with Standard" saveLabel="Save delivery settings" onClose={() => setOpen(false)} onSave={save}>
           <DialogSection cols={1} hint="The radius you draw on the map controls Express only. Standard is the broader service.">
             <label className="flex items-center gap-2 text-sm font-semibold text-neutral-800">
-              <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+              <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="h-4 w-4 accent-brand-700" />
               Standard delivery is available
             </label>
           </DialogSection>
@@ -80,11 +80,11 @@ export default function StandardDeliverySettings({
             <DialogSection>
               <div>
                 <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-neutral-700">
-                  <input type="checkbox" checked={limit} onChange={(e) => setLimit(e.target.checked)} className="h-4 w-4 accent-blue-700" />
+                  <input type="checkbox" checked={limit} onChange={(e) => setLimit(e.target.checked)} className="h-4 w-4 accent-brand-700" />
                   Limit Standard to a distance
                 </label>
                 <input type="number" min={0.1} step={0.1} disabled={!limit} value={radius} onChange={(e) => setRadius(e.target.value)} placeholder="No limit" className={inputClass} />
-                <p className="mt-1 text-xs text-neutral-400">km from the shop. Leave unticked for no limit.</p>
+                <p className="mt-1 text-xs text-neutral-500">km from the shop. Leave unticked for no limit.</p>
               </div>
               <Field label="Estimated delivery time (days)" hint="Shown to customers as “Delivery by <date>”.">
                 <input type="number" min={0} max={30} step={1} value={days} onChange={(e) => setDays(e.target.value)} className={inputClass} />

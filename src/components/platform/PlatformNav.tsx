@@ -58,7 +58,7 @@ export default function PlatformNav() {
     <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:block md:overflow-visible md:rounded-3xl md:border md:border-neutral-200 md:bg-white md:p-3 md:pb-3 md:shadow-sm [&::-webkit-scrollbar]:hidden">
       {SECTIONS.map((section, si) => (
         <div key={section.title} className={`flex gap-2 md:block ${si === 2 ? "max-md:hidden" : ""}`}>
-          <p className="hidden px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400 first:pt-1 md:block">{section.title}</p>
+          <p className="hidden px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-widest text-neutral-500 first:pt-1 md:block">{section.title}</p>
           <div className="flex gap-2 md:flex-col md:gap-0.5">
             {section.items.map((item) => {
               const active = isActive(item);
@@ -68,8 +68,8 @@ export default function PlatformNav() {
                   href={link(item)}
                   className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition md:rounded-xl md:py-2.5 ${
                     active
-                      ? "bg-blue-600 text-white shadow-md shadow-blue-600/25"
-                      : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-blue-50 hover:text-blue-700 md:bg-transparent md:ring-0"
+                      ? "bg-brand-600 text-white shadow-md shadow-brand-600/25"
+                      : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-brand-50 hover:text-brand-700 md:bg-transparent md:ring-0"
                   }`}
                 >
                   <span className={`flex h-6 w-6 items-center justify-center rounded-lg text-sm ${active ? "bg-white/20" : "bg-neutral-100"}`}>{item.icon}</span>

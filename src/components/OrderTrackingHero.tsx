@@ -9,6 +9,7 @@ import { distanceKm } from "@/lib/delivery-geo";
 import { etaMinutes as estimateMinutes } from "@/lib/eta";
 import { useLocale } from "@/components/LocaleProvider";
 import type { OrderStatus } from "@/types/database";
+import { BRAND } from "@/lib/brand";
 
 interface Point {
   lat: number;
@@ -171,7 +172,7 @@ export default function OrderTrackingHero({
         shownPos.current = riderPos;
       }
       routeCasing.current = L.polyline([], { color: "#ffffff", weight: 9, opacity: 0.95, lineCap: "round", lineJoin: "round" }).addTo(map);
-      routeLine.current = L.polyline([], { color: "#1d4ed8", weight: 7, opacity: 1, dashArray: "0.1 11", lineCap: "round", lineJoin: "round" }).addTo(map);
+      routeLine.current = L.polyline([], { color: BRAND[700], weight: 7, opacity: 1, dashArray: "0.1 11", lineCap: "round", lineJoin: "round" }).addTo(map);
       mapRef.current = map;
       setMapReady(true);
     });
@@ -354,7 +355,7 @@ export default function OrderTrackingHero({
     <section className="isolate -mx-4 -mt-6 mb-6 md:mx-0 md:mt-0 md:overflow-hidden md:rounded-3xl md:border md:border-neutral-200 md:shadow-sm">
       {hasMap && (
         <div className="relative">
-          <div ref={containerRef} className="h-[46vh] min-h-[260px] w-full bg-blue-50 md:h-[380px] [&_.leaflet-bottom]:mb-7 md:[&_.leaflet-bottom]:mb-0 [&_.leaflet-control-attribution]:text-[9px]" />
+          <div ref={containerRef} className="h-[46vh] min-h-[260px] w-full bg-brand-50 md:h-[380px] [&_.leaflet-bottom]:mb-7 md:[&_.leaflet-bottom]:mb-0 [&_.leaflet-control-attribution]:text-[9px]" />
           {live && !done && (
             <span className="absolute start-3 top-3 z-[500] flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-emerald-600 shadow-md">
               <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
@@ -362,7 +363,7 @@ export default function OrderTrackingHero({
             </span>
           )}
           {etaMinutes != null && (
-            <span className="absolute end-3 top-3 z-[500] rounded-full bg-blue-700 px-3 py-1.5 text-xs font-extrabold text-white shadow-lg">
+            <span className="absolute end-3 top-3 z-[500] rounded-full bg-brand-700 px-3 py-1.5 text-xs font-extrabold text-white shadow-lg">
               {t("tracking.arriving_in", { min: etaMinutes })}
             </span>
           )}
@@ -384,13 +385,13 @@ export default function OrderTrackingHero({
         </div>
 
         {etaMinutes != null && !done && (
-          <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-600 p-4 text-white shadow-lg shadow-blue-700/20">
+          <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-600 to-indigo-600 p-4 text-white shadow-lg shadow-brand-700/20">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-blue-100">{t("tracking.eta_label")}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-brand-100">{t("tracking.eta_label")}</p>
                 <p className="mt-0.5 flex items-baseline gap-1.5 leading-none">
                   <span className="font-mono text-5xl font-extrabold tabular-nums">{etaMinutes}</span>
-                  <span className="text-lg font-bold text-blue-100">min</span>
+                  <span className="text-lg font-bold text-brand-100">min</span>
                 </p>
               </div>
               <div className="text-end">
@@ -420,7 +421,7 @@ export default function OrderTrackingHero({
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg shadow-lg ring-4 ring-white/30">🛵</span>
                 </span>
               </div>
-              <div className="mt-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-blue-100">
+              <div className="mt-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-brand-100">
                 <span>{t("tracking.stage_rider")}</span>
                 <span>{journey.kmAway != null ? t("tracking.km_away", { km: journey.kmAway.toFixed(1) }) : ""}</span>
                 <span>{t("tracking.stage_you")}</span>
@@ -436,12 +437,12 @@ export default function OrderTrackingHero({
               const current = i === stepIndex && !done;
               return (
                 <li key={s.key} className="flex flex-col items-center gap-1.5 text-center">
-                  <span className={`relative flex h-11 w-11 items-center justify-center rounded-full text-xl transition ${reached ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" : "bg-neutral-100 text-neutral-400"}`}>
-                    {current && <span className="absolute inset-0 animate-ping rounded-full bg-blue-400/40" />}
+                  <span className={`relative flex h-11 w-11 items-center justify-center rounded-full text-xl transition ${reached ? "bg-brand-600 text-white shadow-md shadow-brand-600/30" : "bg-neutral-100 text-neutral-500"}`}>
+                    {current && <span className="absolute inset-0 animate-ping rounded-full bg-brand-400/40" />}
                     <span className={`relative ${reached ? "" : "opacity-50 grayscale"}`}>{s.icon}</span>
                   </span>
-                  <span className={`text-[11px] font-semibold leading-tight ${reached ? "text-neutral-900" : "text-neutral-400"}`}>{t(`tracking.${s.key}`)}</span>
-                  <span className={`h-1 w-full rounded-full ${reached ? "bg-blue-600" : "bg-neutral-200"}`} />
+                  <span className={`text-[11px] font-semibold leading-tight ${reached ? "text-neutral-900" : "text-neutral-500"}`}>{t(`tracking.${s.key}`)}</span>
+                  <span className={`h-1 w-full rounded-full ${reached ? "bg-brand-600" : "bg-neutral-200"}`} />
                 </li>
               );
             })}
@@ -450,7 +451,7 @@ export default function OrderTrackingHero({
 
         {rider && !done && (
           <div className="mt-4 flex items-center gap-3 rounded-2xl border border-neutral-200 p-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 text-lg font-bold text-blue-700">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-100 to-indigo-100 text-lg font-bold text-brand-700">
               {(rider.name ?? "R").charAt(0).toUpperCase()}
             </span>
             <div className="min-w-0 flex-1">
@@ -460,7 +461,7 @@ export default function OrderTrackingHero({
                 {rider.rating != null && Number(rider.rating) > 0 ? (
                   <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
                     ★ {Number(rider.rating).toFixed(1)}
-                    {rider.ratingCount ? <span className="font-normal text-neutral-400">({rider.ratingCount})</span> : null}
+                    {rider.ratingCount ? <span className="font-normal text-neutral-500">({rider.ratingCount})</span> : null}
                   </span>
                 ) : (
                   <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700">New rider</span>
@@ -478,7 +479,7 @@ export default function OrderTrackingHero({
               {t("tracking.chat")}
             </a>
             {rider.phone && (
-              <a href={`tel:${rider.phone}`} className="flex h-10 items-center rounded-full bg-blue-700 px-4 text-sm font-semibold text-white active:scale-95">
+              <a href={`tel:${rider.phone}`} className="flex h-10 items-center rounded-full bg-brand-700 px-4 text-sm font-semibold text-white active:scale-95">
                 {t("tracking.call")}
               </a>
             )}

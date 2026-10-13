@@ -52,14 +52,14 @@ export default function ListFilter({
     <div className="mb-3 flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full max-w-sm">
-          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400">🔍</span>
+          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500">🔍</span>
           <input
             ref={inputRef}
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={placeholder}
-            className="w-full rounded-full border border-neutral-300 bg-white py-2 pe-4 ps-9 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-full border border-neutral-300 bg-white py-2 pe-4 ps-9 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </div>
         {shown && active && (
@@ -77,7 +77,7 @@ export default function ListFilter({
               type="button"
               onClick={() => setGroup(g.value)}
               className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition ${
-                group === g.value ? "bg-blue-600 text-white shadow" : "bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-blue-50"
+                group === g.value ? "bg-brand-600 text-white shadow" : "bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-brand-50"
               }`}
             >
               {g.label}

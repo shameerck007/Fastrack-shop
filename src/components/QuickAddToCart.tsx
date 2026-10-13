@@ -147,7 +147,7 @@ export default function QuickAddToCart({
             onClick={handleMinus}
             disabled={pending}
             aria-label="-"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold text-blue-700 active:scale-90 disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold text-brand-700 active:scale-90 disabled:opacity-50"
           >
             −
           </button>
@@ -158,7 +158,7 @@ export default function QuickAddToCart({
             disabled={pending || qty >= stock || (maxQty !== null && qty >= maxQty)}
             title={maxQty !== null && qty >= maxQty ? t("cart.limit_reached", { count: maxQty }) : undefined}
             aria-label={t("product.add_to_cart")}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-700 text-xl font-bold text-white active:scale-90 disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-700 text-xl font-bold text-white active:scale-90 disabled:opacity-50"
           >
             +
           </button>
@@ -171,7 +171,7 @@ export default function QuickAddToCart({
         aria-label={t("product.add_to_cart")}
         title={t("product.add_to_cart")}
         className={`flex h-10 w-10 items-center justify-center rounded-full text-2xl font-bold leading-none shadow-lg ring-4 ring-white transition active:scale-90 disabled:opacity-50 ${
-          justAdded ? "bg-emerald-500 text-white" : "bg-blue-700 text-white hover:bg-blue-800"
+          justAdded ? "bg-emerald-500 text-white" : "bg-brand-700 text-white hover:bg-brand-800"
         }`}
       >
         {pending ? (

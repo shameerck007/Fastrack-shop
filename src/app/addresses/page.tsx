@@ -40,7 +40,7 @@ export default async function AddressesPage() {
         </div>
       ) : (
         <>
-          <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wider text-neutral-400">
+          <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wider text-neutral-500">
             {sorted.length} saved {sorted.length === 1 ? "address" : "addresses"}
           </p>
           <div className="flex flex-col gap-3">

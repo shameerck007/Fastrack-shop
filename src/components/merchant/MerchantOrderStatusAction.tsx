@@ -23,7 +23,7 @@ export default function MerchantOrderStatusAction({ orderId, status }: { orderId
   const labelKey = LABEL_KEY[status];
   if (!labelKey) {
     if (status === "ready_for_pickup") {
-      return <p className="text-xs font-medium text-blue-700">{t("merchant.awaiting_rider_pickup")}</p>;
+      return <p className="text-xs font-medium text-brand-700">{t("merchant.awaiting_rider_pickup")}</p>;
     }
     return null;
   }

@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 export interface BarListItem {
   label: string;
   value: number;
@@ -14,7 +15,7 @@ export default function BarList({
   emptyLabel?: string;
 }) {
   if (items.length === 0) {
-    return <p className="text-sm text-neutral-400">{emptyLabel}</p>;
+    return <p className="text-sm text-neutral-500">{emptyLabel}</p>;
   }
 
   const max = Math.max(...items.map((i) => i.value), 1);
@@ -31,7 +32,7 @@ export default function BarList({
               className="h-full rounded-full"
               style={{
                 width: `${Math.max((item.value / max) * 100, item.value > 0 ? 3 : 0)}%`,
-                backgroundColor: item.color ?? "#2563eb",
+                backgroundColor: item.color ?? BRAND[600],
               }}
             />
           </div>

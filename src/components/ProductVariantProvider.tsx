@@ -27,7 +27,7 @@ export function useVariantSelection(): Ctx {
 }
 
 /** The price of the pack size that is selected, with its crossed-out old price and the saving. */
-export function SelectedPrice({ className = "", compareClassName = "text-neutral-400 line-through", showSaving = false }: { className?: string; compareClassName?: string; showSaving?: boolean }) {
+export function SelectedPrice({ className = "", compareClassName = "text-neutral-500 line-through", showSaving = false }: { className?: string; compareClassName?: string; showSaving?: boolean }) {
   const money = useMoney();
   const { variant } = useVariantSelection();
   const off = variant?.compare_at_price && variant.compare_at_price > variant.price ? Math.round((1 - variant.price / variant.compare_at_price) * 100) : 0;

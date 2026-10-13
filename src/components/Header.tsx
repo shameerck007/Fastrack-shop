@@ -27,7 +27,7 @@ export default async function Header() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 pb-3 pt-2.5 md:flex-nowrap md:py-3">
         <Link href="/" className="hidden shrink-0 items-center gap-1.5 sm:flex">
           <Wordmark height={14} />
-          <span className="inline-block rounded bg-blue-50 px-1 py-px text-[9px] font-semibold text-blue-700">Shop</span>
+          <span className="inline-block rounded bg-brand-50 px-1 py-px text-[9px] font-semibold text-brand-700">Shop</span>
         </Link>
 
         <DeliverToChip variant="stack" className="min-w-0 flex-1 basis-0 sm:flex-none sm:basis-auto" />
@@ -44,7 +44,7 @@ export default async function Header() {
         </div>
       </div>
 
-      <div className="hidden border-t border-blue-100 bg-blue-50/60 md:block">
+      <div className="hidden border-t border-brand-100 bg-brand-50/60 md:block">
         <CategoryNavBar categories={categories} />
       </div>
     </header>

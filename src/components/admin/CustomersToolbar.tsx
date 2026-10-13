@@ -39,13 +39,13 @@ export default function CustomersToolbar({ q, filter, page, pageSize, total }: {
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
         <div className="relative min-w-[14rem] flex-1 sm:max-w-sm">
-          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400">🔍</span>
+          <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500">🔍</span>
           <input
             type="search"
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Search name, phone, email or order number…"
-            className="h-10 w-full rounded-full border border-neutral-300 bg-white pe-4 ps-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="h-10 w-full rounded-full border border-neutral-300 bg-white pe-4 ps-9 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
           />
         </div>
         <Select value={filter} onChange={(e) => go({ filter: e.target.value === "all" ? "" : e.target.value, page: "" })} className="w-56">
@@ -55,7 +55,7 @@ export default function CustomersToolbar({ q, filter, page, pageSize, total }: {
             </option>
           ))}
         </Select>
-        <span className={`h-2 w-2 rounded-full bg-blue-600 transition-opacity ${pending ? "animate-pulse opacity-100" : "opacity-0"}`} aria-hidden />
+        <span className={`h-2 w-2 rounded-full bg-brand-600 transition-opacity ${pending ? "animate-pulse opacity-100" : "opacity-0"}`} aria-hidden />
       </div>
       <CatalogPager page={page} pageSize={pageSize} total={total} busy={pending} onPage={(p) => go({ page: p > 1 ? String(p) : "" })} />
     </div>

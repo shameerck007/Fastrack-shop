@@ -41,7 +41,7 @@ export default function IntegrationsTabs({ tabs }: { tabs: IntegrationTab[] }) {
                 history.replaceState(null, "", `#${t.id}`);
               }}
               className={`flex shrink-0 items-center gap-2 rounded-2xl border px-4 py-2.5 text-left transition ${
-                on ? "border-blue-600 bg-blue-50 text-blue-900 shadow-sm" : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
+                on ? "border-brand-600 bg-brand-50 text-brand-900 shadow-sm" : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
               }`}
             >
               <span className="text-lg" aria-hidden>{t.icon}</span>

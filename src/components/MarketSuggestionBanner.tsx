@@ -19,9 +19,9 @@ export default function MarketSuggestionBanner({ suggested }: { suggested: Tenan
   const country = findCountry(suggested.country_code);
 
   return (
-    <div className="border-b border-blue-100 bg-blue-50 px-4 py-2.5">
+    <div className="border-b border-brand-100 bg-brand-50 px-4 py-2.5">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-        <span className="min-w-0 flex-1 text-blue-900">
+        <span className="min-w-0 flex-1 text-brand-900">
           <Flag code={suggested.country_code} className="me-1.5 h-4 w-[22px] align-[-3px]" />
           {t("market.suggest", { country: country.name })}
         </span>
@@ -41,7 +41,7 @@ export default function MarketSuggestionBanner({ suggested }: { suggested: Tenan
                 }
               })
             }
-            className="rounded-full bg-blue-700 px-4 py-1.5 text-xs font-bold text-white hover:bg-blue-800 disabled:opacity-60"
+            className="rounded-full bg-brand-700 px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-800 disabled:opacity-60"
           >
             {t("market.switch")}
           </button>
@@ -51,7 +51,7 @@ export default function MarketSuggestionBanner({ suggested }: { suggested: Tenan
               setHidden(true);
               unwrapAction(dismissMarketSuggestion)();
             }}
-            className="rounded-full border border-blue-200 bg-white px-4 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-100"
+            className="rounded-full border border-brand-200 bg-white px-4 py-1.5 text-xs font-semibold text-brand-800 hover:bg-brand-100"
           >
             {t("market.stay")}
           </button>

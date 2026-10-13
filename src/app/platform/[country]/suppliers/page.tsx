@@ -68,7 +68,7 @@ export default async function PlatformSuppliersPage({ params }: { params: Promis
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[760px] text-sm">
                   <thead>
-                    <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                    <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                       <th className="px-5 py-2.5">Supplier</th>
                       <th className="px-3 py-2.5">Status</th>
                       <th className="px-3 py-2.5">{isIndia ? "GSTIN" : "VAT no."}</th>
@@ -84,10 +84,10 @@ export default async function PlatformSuppliersPage({ params }: { params: Promis
                       return (
                         <tr key={s.id} className="hover:bg-neutral-50">
                           <td className="px-5 py-3">
-                            <Link href={`/admin/merchants/${s.id}`} className="font-semibold text-neutral-900 hover:text-blue-600">
+                            <Link href={`/admin/merchants/${s.id}`} className="font-semibold text-neutral-900 hover:text-brand-600">
                               {s.name}
                             </Link>
-                            <p className="text-[11px] text-neutral-400">{[s.city, s.state].filter(Boolean).join(", ")}</p>
+                            <p className="text-[11px] text-neutral-500">{[s.city, s.state].filter(Boolean).join(", ")}</p>
                           </td>
                           <td className="px-3 py-3">
                             <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${STATUS_BADGE[s.status] ?? "bg-neutral-100"}`}>{s.status}</span>
@@ -97,7 +97,7 @@ export default async function PlatformSuppliersPage({ params }: { params: Promis
                           <td className="px-3 py-3 text-right text-neutral-600">{sale?.orders ?? 0}</td>
                           <td className="px-3 py-3 text-right font-semibold text-neutral-900">{money(sale?.gross_sales ?? 0)}</td>
                           <td className="px-5 py-3 text-right">
-                            <Link href={`/admin/settlements/${s.id}`} className="text-xs font-medium text-blue-600 hover:underline">
+                            <Link href={`/admin/settlements/${s.id}`} className="text-xs font-medium text-brand-600 hover:underline">
                               Settlement
                             </Link>
                           </td>

@@ -22,7 +22,7 @@ export interface StoreProfileValue {
   hours: OpeningHours;
 }
 
-const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
 /** Logo, cover photo, tagline and weekly opening hours — shared by the
  * onboarding form and the merchant's own profile page. */
@@ -103,7 +103,7 @@ export default function StoreProfileFields({
           />
           Set opening hours
         </label>
-        <p className="mb-2 mt-0.5 text-xs text-neutral-400">
+        <p className="mb-2 mt-0.5 text-xs text-neutral-500">
           Customers can&apos;t order from your shop outside these hours ({clockName}). Leave unchecked to be open all day, every day.
         </p>
 
@@ -128,7 +128,7 @@ export default function StoreProfileFields({
                             onChange={(e) => setShift(key, n, { open: e.target.value })}
                             className="rounded-lg border border-neutral-300 px-2 py-1 text-sm"
                           />
-                          <span className="text-xs text-neutral-400">to</span>
+                          <span className="text-xs text-neutral-500">to</span>
                           <input
                             type="time"
                             value={shift.close}
@@ -136,14 +136,14 @@ export default function StoreProfileFields({
                             className="rounded-lg border border-neutral-300 px-2 py-1 text-sm"
                           />
                           {all.length > 1 && (
-                            <button type="button" onClick={() => removeShift(key, n)} className="text-xs text-neutral-400 hover:text-red-600" aria-label="Remove this period">
+                            <button type="button" onClick={() => removeShift(key, n)} className="text-xs text-neutral-500 hover:text-red-600" aria-label="Remove this period">
                               ✕
                             </button>
                           )}
                         </span>
                       ))}
                       {shiftsOf(day).length < MAX_SHIFTS_PER_DAY && (
-                        <button type="button" onClick={() => addShift(key)} className="self-start text-xs font-medium text-blue-600 hover:underline">
+                        <button type="button" onClick={() => addShift(key)} className="self-start text-xs font-medium text-brand-600 hover:underline">
                           + Add another period (closed in between)
                         </button>
                       )}

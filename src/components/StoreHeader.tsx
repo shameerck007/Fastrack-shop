@@ -7,7 +7,7 @@ import DeliverToChip from "@/components/DeliverToChip";
 import { StoreLogo } from "@/components/StoreBadge";
 import { useLocale } from "@/components/LocaleProvider";
 
-const roundBtn = "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition hover:bg-blue-50 hover:text-blue-700 active:scale-95";
+const roundBtn = "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition hover:bg-brand-50 hover:text-brand-700 active:scale-95";
 
 /** The shop page's top bar. Phones get the floating back/cart buttons over the cover; wider screens get this bar:
  * back, the shop's logo and name, the delivery place and time in the middle, search and cart on the right. */
@@ -30,7 +30,7 @@ export default function StoreHeader({ store }: { store: { name: string; logo_url
             <StoreLogo store={store} size={40} className="shadow-sm ring-1 ring-neutral-200" />
             <div className="min-w-0 leading-tight">
               <p className="truncate text-base font-extrabold tracking-tight text-neutral-900">{store.name}</p>
-              <p className="text-[11px] font-medium text-neutral-400">Powered by FasTrack Shop</p>
+              <p className="text-[11px] font-medium text-neutral-500">Powered by FasTrack Shop</p>
             </div>
           </div>
 
@@ -45,13 +45,13 @@ export default function StoreHeader({ store }: { store: { name: string; logo_url
             </svg>
           </Link>
 
-          <Link href="/cart" className="relative flex h-10 shrink-0 items-center gap-2 rounded-full bg-blue-700 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-blue-800 active:scale-95">
+          <Link href="/cart" className="relative flex h-10 shrink-0 items-center gap-2 rounded-full bg-brand-700 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-brand-800 active:scale-95">
             <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-[18px] w-[18px]">
               <path d="M6 7h12l-1 12H7L6 7Z" strokeLinejoin="round" />
               <path d="M9 7a3 3 0 0 1 6 0" strokeLinecap="round" />
             </svg>
             {t("header.cart")}
-            {cartCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[11px] font-extrabold text-blue-700">{cartCount}</span>}
+            {cartCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[11px] font-extrabold text-brand-700">{cartCount}</span>}
           </Link>
         </div>
       </header>

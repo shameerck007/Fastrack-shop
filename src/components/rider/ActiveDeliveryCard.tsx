@@ -17,8 +17,8 @@ export default function ActiveDeliveryCard({
   t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
   return (
-    <div className="overflow-hidden rounded-3xl border border-blue-200 bg-white shadow-lg shadow-blue-600/10">
-      <div className="flex items-center justify-between bg-gradient-to-r from-blue-700 to-blue-500 px-4 py-3 text-white">
+    <div className="overflow-hidden rounded-3xl border border-brand-200 bg-white shadow-lg shadow-brand-600/10">
+      <div className="flex items-center justify-between bg-gradient-to-r from-brand-700 to-brand-500 px-4 py-3 text-white">
         <h2 className="flex items-center gap-2 text-sm font-bold"><span className="h-2 w-2 animate-pulse rounded-full bg-white" />{t("rider.active_delivery")}</h2>
         {!hideEarnings && <span className="rounded-full bg-white/20 px-3 py-0.5 text-sm font-extrabold">{money(delivery.delivery_fee)}</span>}
       </div>
@@ -41,7 +41,7 @@ export default function ActiveDeliveryCard({
 
       <Link
         href={`/rider/orders/${delivery.id}`}
-        className="mx-4 mb-4 flex h-11 items-center justify-center rounded-full bg-blue-700 text-sm font-extrabold text-white shadow-md shadow-blue-700/25 active:scale-95"
+        className="mx-4 mb-4 flex h-11 items-center justify-center rounded-full bg-brand-700 text-sm font-extrabold text-white shadow-md shadow-brand-700/25 active:scale-95"
       >
         {t("rider.view_delivery")}
       </Link>

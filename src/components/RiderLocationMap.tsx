@@ -95,7 +95,7 @@ export default function RiderLocationMap({
 
   if (!hasPosition) {
     return (
-      <div className="flex h-40 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 text-xs text-neutral-400">
+      <div className="flex h-40 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 text-xs text-neutral-500">
         Waiting for the rider&apos;s location...
       </div>
     );
@@ -105,7 +105,7 @@ export default function RiderLocationMap({
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium text-neutral-500">Rider location</p>
-        <span className={`flex items-center gap-1 text-xs ${live ? "text-emerald-600" : "text-neutral-400"}`}>
+        <span className={`flex items-center gap-1 text-xs ${live ? "text-emerald-600" : "text-neutral-500"}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-emerald-500" : "bg-neutral-300"}`} />
           {live ? "Live" : "Last known"}
         </span>

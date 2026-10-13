@@ -38,7 +38,7 @@ export default async function Footer() {
   ];
 
   return (
-    <footer className="mt-16 border-t border-blue-100 bg-blue-50/60">
+    <footer className="mt-16 border-t border-brand-100 bg-brand-50/60">
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
           {columns.map((col) => (
@@ -47,7 +47,7 @@ export default async function Footer() {
               <ul className="space-y-0.5">
                 {col.links.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="inline-block py-1.5 text-sm text-neutral-600 hover:text-blue-700 hover:underline">
+                    <Link href={l.href} className="inline-block py-1.5 text-sm text-neutral-600 hover:text-brand-700 hover:underline">
                       {l.label}
                     </Link>
                   </li>
@@ -57,7 +57,7 @@ export default async function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col items-center gap-3 border-t border-blue-100 pt-6 text-center">
+        <div className="mt-10 flex flex-col items-center gap-3 border-t border-brand-100 pt-6 text-center">
           <Wordmark height={22} />
           <p className="max-w-md text-xs text-neutral-500">
             {company.trading_name}
@@ -65,7 +65,7 @@ export default async function Footer() {
             {company.vat_number ? ` · ${isIndia ? "GSTIN" : "VAT"} ${company.vat_number}` : ""}
             {company.city ? ` · ${company.city}, ${countryName}` : ""}
           </p>
-          <p className="text-xs text-neutral-400">&copy; {year} {company.trading_name}. All rights reserved.</p>
+          <p className="text-xs text-neutral-500">&copy; {year} {company.trading_name}. All rights reserved.</p>
         </div>
       </div>
     </footer>

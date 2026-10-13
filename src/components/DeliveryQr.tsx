@@ -18,5 +18,5 @@ export default function DeliveryQr({ orderNumber, otp }: { orderNumber: string; 
   }, [orderNumber, otp]);
   if (!src) return null;
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="Delivery QR code" width={160} height={160} className="mx-auto mt-3 rounded-xl border border-blue-200 bg-white p-1.5" />;
+  return <img src={src} alt="Delivery QR code" width={160} height={160} className="mx-auto mt-3 rounded-xl border border-brand-200 bg-white p-1.5" />;
 }

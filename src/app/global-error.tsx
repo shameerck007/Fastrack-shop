@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { errorInfo } from "@/lib/errors";
+import { BRAND } from "@/lib/brand";
 
 /** The last safety net: shown when even the page frame fails to load, so it carries its own styling. */
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
@@ -19,7 +20,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
                 Reference <b style={{ fontFamily: "monospace", color: "#0f172a" }}>{info.ref}</b>
               </p>
             )}
-            <button onClick={reset} style={{ marginTop: 16, background: "#1d4ed8", color: "white", border: 0, borderRadius: 999, padding: "12px 24px", fontWeight: 700, cursor: "pointer" }}>
+            <button onClick={reset} style={{ marginTop: 16, background: BRAND[700], color: "white", border: 0, borderRadius: 999, padding: "12px 24px", fontWeight: 700, cursor: "pointer" }}>
               Try again
             </button>
           </div>

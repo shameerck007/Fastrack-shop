@@ -24,7 +24,7 @@ export default function MarketSwitcher({ tenants, currentId }: { tenants: Tenant
   return (
     <div className="mb-4 rounded-xl border border-neutral-200 bg-white p-4">
       <div className="mb-3 flex items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xl">🌍</span>
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xl">🌍</span>
         <span className="flex flex-col">
           <span className="font-medium text-neutral-900">{t("market.title")}</span>
           <span className="text-sm text-neutral-500">{t("market.desc")}</span>
@@ -40,7 +40,7 @@ export default function MarketSwitcher({ tenants, currentId }: { tenants: Tenant
               type="button"
               onClick={() => choose(tenant.id)}
               className={`flex items-center gap-3 rounded-xl border p-3 text-start transition ${
-                active ? "border-blue-600 bg-blue-50" : "border-neutral-300 hover:border-blue-300"
+                active ? "border-brand-600 bg-brand-50" : "border-neutral-300 hover:border-brand-300"
               }`}
             >
               <Flag code={tenant.country_code} className="h-6 w-8" />
@@ -50,7 +50,7 @@ export default function MarketSwitcher({ tenants, currentId }: { tenants: Tenant
               </span>
               <span
                 className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] ${
-                  active ? "border-blue-600 bg-blue-600 text-white" : "border-neutral-300"
+                  active ? "border-brand-600 bg-brand-600 text-white" : "border-neutral-300"
                 }`}
               >
                 {active ? "✓" : ""}

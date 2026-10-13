@@ -1,6 +1,7 @@
 
 import type { DailyRevenuePoint } from "@/lib/admin-analytics";
 import type { MoneyFormatter } from "@/lib/money";
+import { BRAND } from "@/lib/brand";
 
 const WIDTH = 700;
 const HEIGHT = 180;
@@ -54,13 +55,13 @@ export default function RevenueTrendChart({ data, money }: { data: DailyRevenueP
               width={barWidth}
               height={Math.max(barHeight, d.revenue > 0 ? 2 : 0)}
               rx={3}
-              fill="#2563eb"
+              fill={BRAND[600]}
               opacity={d.revenue > 0 ? 1 : 0.15}
             >
               <title>{`${label}: ${money(d.revenue)} · ${d.orders} order${d.orders === 1 ? "" : "s"}`}</title>
             </rect>
             {d.revenue === 0 && (
-              <rect x={x} y={HEIGHT - PAD_BOTTOM - 2} width={barWidth} height={2} rx={1} fill="#2563eb" opacity={0.15} />
+              <rect x={x} y={HEIGHT - PAD_BOTTOM - 2} width={barWidth} height={2} rx={1} fill={BRAND[600]} opacity={0.15} />
             )}
             {showLabel && (
               <text

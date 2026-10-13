@@ -87,12 +87,12 @@ export default function DeliveryGate({ children }: { children: React.ReactNode }
       <p className="mb-6 text-sm text-neutral-500">{t("common.dont_deliver_banner_hint")}</p>
 
       {addresses === null ? (
-        <p className="text-sm text-neutral-400">{t("common.loading")}</p>
+        <p className="text-sm text-neutral-500">{t("common.loading")}</p>
       ) : (
         <>
           {deliverableAddresses.length > 0 && (
             <div className="mb-4 flex flex-col gap-2 text-start">
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                 {t("common.deliverable_saved_addresses")}
               </p>
               {deliverableAddresses.map((a) => (
@@ -133,7 +133,7 @@ export default function DeliveryGate({ children }: { children: React.ReactNode }
 
           <div className="flex flex-col items-center gap-2">
             <AddressForm triggerLabel={t("common.add_and_verify_address")} />
-            <button onClick={openPicker} className="text-sm text-blue-600 hover:underline">
+            <button onClick={openPicker} className="text-sm text-brand-600 hover:underline">
               {t("common.change_location")}
             </button>
           </div>

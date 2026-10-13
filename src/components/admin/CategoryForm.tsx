@@ -21,11 +21,11 @@ export default function CategoryForm({
   return (
     <>
       {defaultParentId || compact ? (
-        <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1 rounded-full border border-dashed border-blue-300 px-3 py-1 text-xs font-bold text-blue-700 transition hover:bg-blue-50">
+        <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1 rounded-full border border-dashed border-brand-300 px-3 py-1 text-xs font-bold text-brand-700 transition hover:bg-brand-50">
           <span className="text-sm leading-none">+</span> {t("category_form.add_subcategory")}
         </button>
       ) : (
-        <button type="button" onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-full bg-blue-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-800 hover:shadow-md">
+        <button type="button" onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-full bg-brand-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-800 hover:shadow-md">
           <span className="text-base leading-none">+</span> {t("category_form.add_category")}
         </button>
       )}

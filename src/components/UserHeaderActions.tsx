@@ -18,15 +18,15 @@ export default function UserHeaderActions() {
       {loaded && signedIn && <NotificationBell />}
       {/* Already in the mobile bottom nav (Orders tab) — showing it here too
           just crowds the header on a phone screen with no extra value. */}
-      <Link href="/orders" className="hidden whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-semibold text-neutral-800 hover:bg-blue-50 hover:text-blue-700 md:block">
+      <Link href="/orders" className="hidden whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-semibold text-neutral-800 hover:bg-brand-50 hover:text-brand-700 md:block">
         {t("header.my_orders")}
       </Link>
       {/* Same reasoning again — Cart already has its own tab (with the same
           badge) in the mobile bottom nav. */}
-      <Link href="/cart" className="relative hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-neutral-200 px-4 py-2 text-[15px] font-semibold text-neutral-800 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 md:flex">
+      <Link href="/cart" className="relative hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-neutral-200 px-4 py-2 text-[15px] font-semibold text-neutral-800 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 md:flex">
         🛒 {t("header.cart")}
         {loaded && cartCount > 0 && (
-          <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-700 px-1 text-[10px] font-semibold text-white rtl:right-auto rtl:-left-2">
+          <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-700 px-1 text-[10px] font-semibold text-white rtl:right-auto rtl:-left-2">
             {cartCount}
           </span>
         )}
@@ -39,12 +39,12 @@ export default function UserHeaderActions() {
           push past the viewport edge on a narrow phone. */}
       {/* Phones: signed-out visitors get a compact Log in pill in the header (the bell above covers signed-in ones). */}
       {loaded && !signedIn && (
-        <button type="button" onClick={openLogin} className="rounded-full bg-blue-700 px-4 py-2 text-[13px] font-extrabold text-white shadow-sm active:scale-95 md:hidden">
+        <button type="button" onClick={openLogin} className="rounded-full bg-brand-700 px-4 py-2 text-[13px] font-extrabold text-white shadow-sm active:scale-95 md:hidden">
           {t("header.login")}
         </button>
       )}
       {signedIn ? (
-        <Link href="/account" className="hidden max-w-[150px] rounded-full px-3 py-1.5 leading-tight hover:bg-blue-50 hover:text-blue-700 md:block">
+        <Link href="/account" className="hidden max-w-[150px] rounded-full px-3 py-1.5 leading-tight hover:bg-brand-50 hover:text-brand-700 md:block">
           <span className="block truncate text-[11px] text-neutral-500">
             {t("header.hello")}, {firstName ?? "—"}
           </span>
@@ -54,7 +54,7 @@ export default function UserHeaderActions() {
         <button
           type="button"
           onClick={openLogin}
-          className="hidden whitespace-nowrap rounded-full bg-blue-700 px-6 py-2 text-[15px] font-semibold text-white shadow-sm hover:bg-blue-800 md:inline-block"
+          className="hidden whitespace-nowrap rounded-full bg-brand-700 px-6 py-2 text-[15px] font-semibold text-white shadow-sm hover:bg-brand-800 md:inline-block"
         >
           {t("header.login")}
         </button>

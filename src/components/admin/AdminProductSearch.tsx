@@ -36,7 +36,7 @@ export default function AdminProductSearch({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("admin.search_products_placeholder")}
-          className="w-full max-w-sm rounded-full border border-neutral-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full max-w-sm rounded-full border border-neutral-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
 

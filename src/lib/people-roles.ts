@@ -9,7 +9,7 @@ export interface RoleInfo {
 }
 
 export const ROLES: RoleInfo[] = [
-  { value: "customer", label: "Customers", single: "Customer", icon: "🛍️", tone: "bg-blue-50 text-blue-800" },
+  { value: "customer", label: "Customers", single: "Customer", icon: "🛍️", tone: "bg-brand-50 text-brand-800" },
   { value: "merchant", label: "Suppliers", single: "Supplier", icon: "🏪", tone: "bg-amber-50 text-amber-800" },
   { value: "rider", label: "Riders", single: "Rider", icon: "🛵", tone: "bg-emerald-50 text-emerald-800" },
   { value: "store_staff", label: "Store staff", single: "Store staff", icon: "📦", tone: "bg-violet-50 text-violet-800" },

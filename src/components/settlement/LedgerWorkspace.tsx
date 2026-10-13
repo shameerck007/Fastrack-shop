@@ -18,7 +18,7 @@ const day = (d: string | null) => (d ? d.slice(0, 10) : "");
 const methodLabel = (m: string) => (m === "bank_transfer" ? "Bank transfer" : m === "cheque" ? "Cheque" : m === "cash" ? "Cash" : m.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()));
 
 const KIND_STYLE: Record<string, string> = {
-  sale: "bg-blue-50 text-blue-700",
+  sale: "bg-brand-50 text-brand-700",
   refund: "bg-amber-50 text-amber-700",
   payout: "bg-emerald-50 text-emerald-700",
 };
@@ -34,7 +34,7 @@ function Tile({ label, value, tone, hint }: { label: string; value: string; tone
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
       <p className="text-xs font-medium text-neutral-500">{label}</p>
       <p className={`mt-1 break-words text-lg font-bold leading-tight sm:text-xl ${cls}`}>{value}</p>
-      {hint && <p className="mt-0.5 text-[11px] text-neutral-400">{hint}</p>}
+      {hint && <p className="mt-0.5 text-[11px] text-neutral-500">{hint}</p>}
     </div>
   );
 }
@@ -51,7 +51,7 @@ function Panel({ title, actions, children }: { title: string; actions?: React.Re
   );
 }
 
-const field = "h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const field = "h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 const exportBtn = "h-9 rounded-full border border-neutral-300 px-4 text-xs font-semibold text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-40";
 
 export default function LedgerWorkspace({
@@ -173,7 +173,7 @@ export default function LedgerWorkspace({
             <div>
               <dt className="text-xs text-neutral-500">Last payout</dt>
               <dd className="font-semibold text-neutral-900">{lastPayout ? money(lastPayout.amount) : "—"}</dd>
-              {lastPayout && <dd className="text-[11px] text-neutral-400">{dateFmt(lastPayout.createdAt)}</dd>}
+              {lastPayout && <dd className="text-[11px] text-neutral-500">{dateFmt(lastPayout.createdAt)}</dd>}
             </div>
           </dl>
         </div>
@@ -187,10 +187,10 @@ export default function LedgerWorkspace({
             role="tab"
             aria-selected={tab === t.id}
             onClick={() => pick(t.id)}
-            className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${tab === t.id ? "border-blue-700 text-blue-800" : "border-transparent text-neutral-500 hover:text-neutral-800"}`}
+            className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2.5 text-sm font-semibold transition ${tab === t.id ? "border-brand-700 text-brand-800" : "border-transparent text-neutral-500 hover:text-neutral-800"}`}
           >
             {t.label}
-            {t.count !== undefined && <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${tab === t.id ? "bg-blue-100 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>{t.count}</span>}
+            {t.count !== undefined && <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${tab === t.id ? "bg-brand-100 text-brand-800" : "bg-neutral-100 text-neutral-500"}`}>{t.count}</span>}
           </button>
         ))}
       </div>
@@ -208,7 +208,7 @@ export default function LedgerWorkspace({
           <div className="grid gap-5 lg:grid-cols-5">
             <div className="min-w-0 lg:col-span-3">
               <Panel title="Earned and paid out by month">
-                <div className="p-4">{entries ? <SettlementChart points={monthly} title="" /> : <p className="py-6 text-center text-sm text-neutral-400">The monthly chart needs the latest database update.</p>}</div>
+                <div className="p-4">{entries ? <SettlementChart points={monthly} title="" /> : <p className="py-6 text-center text-sm text-neutral-500">The monthly chart needs the latest database update.</p>}</div>
               </Panel>
             </div>
             <div className="min-w-0 lg:col-span-2">
@@ -246,14 +246,14 @@ export default function LedgerWorkspace({
             title="Recent activity"
             actions={
               entries && entries.length > 0 ? (
-                <button onClick={() => pick("ledger")} className="text-xs font-semibold text-blue-700 hover:underline">
+                <button onClick={() => pick("ledger")} className="text-xs font-semibold text-brand-700 hover:underline">
                   See the full ledger →
                 </button>
               ) : undefined
             }
           >
             {!entries || entries.length === 0 ? (
-              <p className="p-5 text-sm text-neutral-400">{entries ? "No activity yet. Delivered orders and payouts will appear here." : "The ledger needs the latest database update."}</p>
+              <p className="p-5 text-sm text-neutral-500">{entries ? "No activity yet. Delivered orders and payouts will appear here." : "The ledger needs the latest database update."}</p>
             ) : (
               <ul className="divide-y divide-neutral-100">
                 {[...entries].reverse().slice(0, 6).map((e, i) => (
@@ -297,7 +297,7 @@ export default function LedgerWorkspace({
               <div className="flex flex-col gap-3 border-b border-neutral-100 p-4">
                 <div className="flex flex-wrap gap-1.5">
                   {(["all", "sale", "refund", "payout"] as Kind[]).map((k) => (
-                    <button key={k} onClick={() => setKind(k)} className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${kind === k ? "border-blue-600 bg-blue-50 text-blue-800" : "border-neutral-200 text-neutral-600 hover:border-neutral-300"}`}>
+                    <button key={k} onClick={() => setKind(k)} className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${kind === k ? "border-brand-600 bg-brand-50 text-brand-800" : "border-neutral-200 text-neutral-600 hover:border-neutral-300"}`}>
                       {k === "all" ? "All" : KIND_LABEL[k] + "s"}
                     </button>
                   ))}
@@ -308,17 +308,17 @@ export default function LedgerWorkspace({
                   <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search order or reference" className={`${field} col-span-2 sm:w-56`} />
                   <button onClick={() => setNewestFirst((v) => !v)} className={`${exportBtn} col-span-2 sm:col-span-1`}>{newestFirst ? "Newest first ↓" : "Oldest first ↑"}</button>
                   {(from || to || q || kind !== "all") && (
-                    <button onClick={() => { setFrom(""); setTo(""); setQ(""); setKind("all"); }} className="col-span-2 text-xs font-semibold text-blue-700 hover:underline sm:col-span-1">Clear filters</button>
+                    <button onClick={() => { setFrom(""); setTo(""); setQ(""); setKind("all"); }} className="col-span-2 text-xs font-semibold text-brand-700 hover:underline sm:col-span-1">Clear filters</button>
                   )}
                 </div>
               </div>
               {filteredEntries.length === 0 ? (
-                <p className="p-6 text-center text-sm text-neutral-400">{entries.length === 0 ? "No activity yet." : "Nothing matches these filters."}</p>
+                <p className="p-6 text-center text-sm text-neutral-500">{entries.length === 0 ? "No activity yet." : "Nothing matches these filters."}</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[760px] text-sm">
                     <thead>
-                      <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                      <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                         <th className="px-4 py-2.5">Date</th>
                         <th className="px-3 py-2.5">Type</th>
                         <th className="px-3 py-2.5">Reference</th>
@@ -335,7 +335,7 @@ export default function LedgerWorkspace({
                           <td className="whitespace-nowrap px-4 py-2.5 text-neutral-500">{dateFmt(e.at)}</td>
                           <td className="px-3 py-2.5"><span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${KIND_STYLE[e.kind]}`}>{KIND_LABEL[e.kind]}</span></td>
                           <td className="whitespace-nowrap px-3 py-2.5 font-medium text-neutral-800">
-                            {role === "admin" && e.orderId ? <Link href={`/admin/orders/${e.orderId}`} className="text-blue-700 hover:underline">{e.ref}</Link> : e.ref || "—"}
+                            {role === "admin" && e.orderId ? <Link href={`/admin/orders/${e.orderId}`} className="text-brand-700 hover:underline">{e.ref}</Link> : e.ref || "—"}
                           </td>
                           <td className="px-3 py-2.5 text-neutral-500">{e.description}</td>
                           <td className="whitespace-nowrap px-3 py-2.5 text-right text-neutral-600">{e.kind === "payout" ? "—" : money(e.gross)}</td>
@@ -377,12 +377,12 @@ export default function LedgerWorkspace({
             <label className="flex flex-col gap-0.5 text-[11px] text-neutral-500 sm:flex-row sm:items-center sm:gap-2">To<input type="date" value={oto} onChange={(e) => setOto(e.target.value)} className={field} /></label>
           </div>
           {filteredOrders.length === 0 ? (
-            <p className="p-6 text-center text-sm text-neutral-400">{orders.length === 0 ? "No delivered orders yet." : "Nothing matches these filters."}</p>
+            <p className="p-6 text-center text-sm text-neutral-500">{orders.length === 0 ? "No delivered orders yet." : "Nothing matches these filters."}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-sm">
                 <thead>
-                  <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                  <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                     <th className="px-4 py-2.5">Order</th>
                     <th className="px-3 py-2.5">Delivered</th>
                     <th className="px-3 py-2.5 text-right">Items</th>
@@ -395,7 +395,7 @@ export default function LedgerWorkspace({
                 <tbody className="divide-y divide-neutral-100">
                   {filteredOrders.map((o) => (
                     <tr key={o.orderId} className="hover:bg-neutral-50">
-                      <td className="px-4 py-2.5 font-medium text-neutral-800">{role === "admin" ? <Link href={`/admin/orders/${o.orderId}`} className="text-blue-700 hover:underline">{o.orderNumber}</Link> : o.orderNumber}</td>
+                      <td className="px-4 py-2.5 font-medium text-neutral-800">{role === "admin" ? <Link href={`/admin/orders/${o.orderId}`} className="text-brand-700 hover:underline">{o.orderNumber}</Link> : o.orderNumber}</td>
                       <td className="whitespace-nowrap px-3 py-2.5 text-neutral-500">{dateFmt(o.deliveredAt)}</td>
                       <td className="px-3 py-2.5 text-right text-neutral-500">{o.itemCount}</td>
                       <td className="whitespace-nowrap px-3 py-2.5 text-right text-neutral-700">{money(o.lineTotal)}</td>
@@ -431,12 +431,12 @@ export default function LedgerWorkspace({
           }
         >
           {payouts.length === 0 ? (
-            <p className="p-6 text-center text-sm text-neutral-400">No payouts yet. {role === "admin" ? "Use Record payout above when you pay this supplier." : "When FasTrack pays you, it appears here."}</p>
+            <p className="p-6 text-center text-sm text-neutral-500">No payouts yet. {role === "admin" ? "Use Record payout above when you pay this supplier." : "When FasTrack pays you, it appears here."}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] text-sm">
                 <thead>
-                  <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                  <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                     <th className="px-4 py-2.5">Date</th>
                     <th className="px-3 py-2.5">Method</th>
                     <th className="px-3 py-2.5">Reference</th>

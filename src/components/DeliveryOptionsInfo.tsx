@@ -14,7 +14,7 @@ import { useAllStores } from "@/components/StoreDirectoryProvider";
 function Row({ icon, title, detail, fee, ok }: { icon: string; title: string; detail?: string; fee?: string; ok: boolean }) {
   return (
     <div className={`flex items-center gap-3 rounded-2xl border p-3 ${ok ? "border-neutral-200 bg-white" : "border-neutral-200 bg-neutral-50 opacity-70"}`}>
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${ok ? "bg-blue-50" : "bg-neutral-100 grayscale"}`}>{icon}</span>
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${ok ? "bg-brand-50" : "bg-neutral-100 grayscale"}`}>{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-bold text-neutral-900">{title}</span>
         {detail && <span className={`block text-xs ${ok ? "text-neutral-600" : "text-neutral-500"}`}>{detail}</span>}
@@ -71,7 +71,7 @@ export default function DeliveryOptionsInfo({ storeId }: { storeId: string | nul
 
   if (status.state === "loading") return null;
   if (status.state === "no_location" || !location) {
-    return <p className="rounded-2xl bg-blue-50 px-3 py-2.5 text-xs font-medium text-blue-800">📍 {t("delivery_info.set_location")}</p>;
+    return <p className="rounded-2xl bg-brand-50 px-3 py-2.5 text-xs font-medium text-brand-800">📍 {t("delivery_info.set_location")}</p>;
   }
   if (status.state === "outside") return null;
   const range = marketUi(market.countryCode).deliveryBadges ? etaForStore(storeId) : null;
@@ -95,7 +95,7 @@ export function CartDeliveryOptions({ storeIds }: { storeIds: (string | null)[] 
 
   if (statuses.some((st) => st.state === "loading")) return null;
   if (!location || statuses.some((st) => st.state === "no_location")) {
-    return <p className="rounded-2xl bg-blue-50 px-3 py-2.5 text-xs font-medium text-blue-800">📍 {t("delivery_info.set_location")}</p>;
+    return <p className="rounded-2xl bg-brand-50 px-3 py-2.5 text-xs font-medium text-brand-800">📍 {t("delivery_info.set_location")}</p>;
   }
   const ok = statuses.filter((st): st is Extract<typeof st, { state: "ok" }> => st.state === "ok");
   if (ok.length === 0) return null;

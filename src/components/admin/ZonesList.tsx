@@ -51,9 +51,9 @@ export default function ZonesList({ cards }: { cards: ZoneCard[] }) {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="🔍 Search stores…"
-              className="w-40 rounded-full border border-neutral-300 px-3.5 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-60"
+              className="w-40 rounded-full border border-neutral-300 px-3.5 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:w-60"
             />
-            <span className="hidden text-xs text-neutral-400 sm:inline">{t("zones_list.total_count", { count: shownCards.length })}</span>
+            <span className="hidden text-xs text-neutral-500 sm:inline">{t("zones_list.total_count", { count: shownCards.length })}</span>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export default function ZonesList({ cards }: { cards: ZoneCard[] }) {
                     {c.zoned ? t("zones_list.within_km", { radius: c.radius ?? 0 }) : t("zones_list.everywhere")}
                   </span>
                   {c.inside != null && (
-                    <span className="text-xs text-neutral-400">{t("zones_list.addresses_inside", { count: c.inside })}</span>
+                    <span className="text-xs text-neutral-500">{t("zones_list.addresses_inside", { count: c.inside })}</span>
                   )}
                 </div>
 
@@ -108,7 +108,7 @@ export default function ZonesList({ cards }: { cards: ZoneCard[] }) {
                   className={`ms-auto shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition ${
                     c.zoned
                       ? "border border-neutral-300 text-neutral-700 hover:bg-neutral-100"
-                      : "bg-blue-600 text-white shadow-sm hover:bg-blue-700"
+                      : "bg-brand-600 text-white shadow-sm hover:bg-brand-700"
                   }`}
                 >
                   {c.zoned ? t("zones_list.edit_boundary") : t("zones_list.set_boundary")}

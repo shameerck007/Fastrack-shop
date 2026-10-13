@@ -55,7 +55,7 @@ export default function BuyItAgainButton({
         type="button"
         onClick={handleClick}
         disabled={pending}
-        className={`rounded-full border border-blue-600 px-4 py-1.5 text-center text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-50 ${
+        className={`rounded-full border border-brand-600 px-4 py-1.5 text-center text-sm font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50 ${
           fullWidth ? "w-full" : ""
         }`}
       >

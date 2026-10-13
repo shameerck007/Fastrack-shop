@@ -10,6 +10,7 @@ import { TILE_URL, TILE_OPTIONS, marketGeo } from "@/lib/map-config";
 import { useMarket } from "@/components/MoneyProvider";
 import { PinModal, RuleModal, shopStatus, type AreaShopRow } from "@/components/admin/AreaShops";
 import type { LatLng } from "@/lib/geo-polygon";
+import { BRAND as BLUES } from "@/lib/brand";
 
 export interface CoverageZone {
   id: string;
@@ -33,7 +34,7 @@ export interface CoverageShop extends AreaShopRow {
   products: number;
 }
 
-const BRAND = "#1d4ed8";
+const BRAND = BLUES[700];
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 
 function shopIcon(shop: CoverageShop, color: string, selected: boolean): { html: string; size: number } {
@@ -211,7 +212,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
     <button
       type="button"
       onClick={() => setShow((s) => ({ ...s, [key]: !s[key] }))}
-      className={`h-8 rounded-full px-3 text-xs font-bold transition ${show[key] ? "bg-blue-700 text-white" : "bg-white text-neutral-500 ring-1 ring-neutral-200 hover:bg-neutral-50"}`}
+      className={`h-8 rounded-full px-3 text-xs font-bold transition ${show[key] ? "bg-brand-700 text-white" : "bg-white text-neutral-500 ring-1 ring-neutral-200 hover:bg-neutral-50"}`}
     >
       {label}
     </button>
@@ -256,7 +257,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
                     setTab(k);
                     if (k === "zones") setSelectedShop(null);
                   }}
-                  className={`h-8 flex-1 rounded-full ${tab === k ? "bg-blue-700 text-white shadow" : "text-neutral-500"}`}
+                  className={`h-8 flex-1 rounded-full ${tab === k ? "bg-brand-700 text-white shadow" : "text-neutral-500"}`}
                 >
                   {k === "zones" ? `Zones (${zones.length})` : `Shops (${shops.length})`}
                 </button>
@@ -267,14 +268,14 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder={tab === "zones" ? "Search zones…" : "Search shops…"}
-              className="h-9 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm focus:border-blue-500 focus:bg-white focus:outline-none"
+              className="h-9 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm focus:border-brand-500 focus:bg-white focus:outline-none"
             />
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
             {tab === "zones" && !sel && (
               <ul className="divide-y divide-neutral-100">
-                {visibleZones.length === 0 && <li className="p-6 text-center text-sm text-neutral-400">No zones match.</li>}
+                {visibleZones.length === 0 && <li className="p-6 text-center text-sm text-neutral-500">No zones match.</li>}
                 {visibleZones.map((z) => (
                   <li key={z.id}>
                     <button type="button" onClick={() => pickZone(z.id)} className="flex w-full items-center gap-3 px-3 py-2.5 text-start transition hover:bg-neutral-50">
@@ -282,8 +283,8 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-bold text-neutral-900">{z.name}</span>
                         <span className="mt-0.5 flex flex-wrap items-center gap-1">
-                          <span className={`${chip} ${z.expressEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>{z.expressEnabled ? "Express" : "Express off"}</span>
-                          <span className={`${chip} ${z.standardEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>{z.standardEnabled ? `Standard ${z.standardDays}d` : "Standard off"}</span>
+                          <span className={`${chip} ${z.expressEnabled ? "bg-brand-50 text-brand-800" : "bg-neutral-100 text-neutral-500"}`}>{z.expressEnabled ? "Express" : "Express off"}</span>
+                          <span className={`${chip} ${z.standardEnabled ? "bg-brand-50 text-brand-800" : "bg-neutral-100 text-neutral-500"}`}>{z.standardEnabled ? `Standard ${z.standardDays}d` : "Standard off"}</span>
                         </span>
                       </span>
                       <span className="shrink-0 text-end text-[11px] leading-tight text-neutral-500">
@@ -298,7 +299,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
 
             {tab === "zones" && sel && (
               <div className="flex flex-col">
-                <button type="button" onClick={() => pickZone(null)} className="px-3 py-2 text-start text-xs font-bold text-blue-700 hover:underline">
+                <button type="button" onClick={() => pickZone(null)} className="px-3 py-2 text-start text-xs font-bold text-brand-700 hover:underline">
                   ← All zones
                 </button>
                 <div className="mx-3 rounded-xl px-3 py-2.5 text-white" style={{ background: sel.color }}>
@@ -310,7 +311,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
                 </div>
                 <div className="flex flex-wrap gap-1.5 px-3 pt-2.5">
                   <span className={`${chip} ${sel.expressEnabled ? "bg-emerald-50 text-emerald-800" : "bg-neutral-100 text-neutral-500"}`}>{sel.expressEnabled ? "⚡ Express in this zone" : "Express off"}</span>
-                  <span className={`${chip} ${sel.standardEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>{sel.standardEnabled ? `📦 Standard ${sel.standardDays} ${sel.standardDays === 1 ? "day" : "days"}` : "Standard off"}</span>
+                  <span className={`${chip} ${sel.standardEnabled ? "bg-brand-50 text-brand-800" : "bg-neutral-100 text-neutral-500"}`}>{sel.standardEnabled ? `📦 Standard ${sel.standardDays} ${sel.standardDays === 1 ? "day" : "days"}` : "Standard off"}</span>
                 </div>
                 <div className="mx-3 mt-2.5 grid grid-cols-2 divide-x divide-neutral-100 rounded-xl border border-neutral-100 text-center">
                   <div className="py-2">
@@ -322,9 +323,9 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
                     <p className="text-[11px] text-neutral-500">orders</p>
                   </div>
                 </div>
-                <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-wider text-neutral-400">Shops in this zone</p>
+                <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-wider text-neutral-500">Shops in this zone</p>
                 {visibleShops.length === 0 ? (
-                  <p className="px-3 pb-4 text-sm text-neutral-400">No shop pinned inside this zone yet.</p>
+                  <p className="px-3 pb-4 text-sm text-neutral-500">No shop pinned inside this zone yet.</p>
                 ) : (
                   <ShopList shops={visibleShops} selectedShop={selectedShop} onPick={pickShop} onPin={setPin} onRule={setRule} colorOf={colorOf} />
                 )}
@@ -339,7 +340,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
                   </button>
                 )}
                 {visibleShops.length === 0 ? (
-                  <p className="p-6 text-center text-sm text-neutral-400">No shops match.</p>
+                  <p className="p-6 text-center text-sm text-neutral-500">No shops match.</p>
                 ) : (
                   <ShopList shops={visibleShops} selectedShop={selectedShop} onPick={pickShop} onPin={setPin} onRule={setRule} colorOf={colorOf} />
                 )}
@@ -348,7 +349,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
           </div>
 
           <div className="shrink-0 border-t border-neutral-100 p-2.5">
-            <Link href="/admin/zones" className="flex h-9 items-center justify-center rounded-full bg-blue-700 text-xs font-bold text-white hover:bg-blue-800">
+            <Link href="/admin/zones" className="flex h-9 items-center justify-center rounded-full bg-brand-700 text-xs font-bold text-white hover:bg-brand-800">
               Manage zones
             </Link>
           </div>
@@ -360,7 +361,7 @@ export default function CoverageExplorer({ zones, shops }: { zones: CoverageZone
           <div ref={containerRef} className="h-full w-full" />
           <div className="pointer-events-none absolute bottom-2 start-2 z-[1000] hidden rounded-xl bg-white/90 px-2.5 py-1.5 text-[10px] text-neutral-600 shadow backdrop-blur sm:block">
             <span className="me-3 inline-flex items-center gap-1">
-              <span className="h-2.5 w-4 rounded-sm border-2 border-blue-600 bg-blue-100" /> Zone
+              <span className="h-2.5 w-4 rounded-sm border-2 border-brand-600 bg-brand-100" /> Zone
             </span>
           </div>
         </div>
@@ -412,7 +413,7 @@ function ShopList({
         const color = (s.areaId && colorOf.get(s.areaId)) || "#94a3b8";
         const active = selectedShop === s.id;
         return (
-          <li key={s.id} className={active ? "bg-blue-50/60" : ""}>
+          <li key={s.id} className={active ? "bg-brand-50/60" : ""}>
             <button type="button" onClick={() => onPick(s)} className="flex w-full items-center gap-2.5 px-3 py-2 text-start hover:bg-neutral-50">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 bg-white text-sm" style={{ borderColor: s.kind === "fastrack" ? BRAND : color }}>
                 {s.kind === "fastrack" ? <img src="/icon-192.png" alt="" className="h-full w-full object-cover" /> : "🏪"}
@@ -429,10 +430,10 @@ function ShopList({
                   {st.label} · 🧾 {s.orders} · 📦 {s.products}
                 </span>
                 <span className="flex gap-1.5">
-                  <button type="button" onClick={() => onPin(s)} className="rounded-full border border-neutral-300 bg-white px-2.5 py-1 font-bold text-neutral-700 hover:bg-blue-50">
+                  <button type="button" onClick={() => onPin(s)} className="rounded-full border border-neutral-300 bg-white px-2.5 py-1 font-bold text-neutral-700 hover:bg-brand-50">
                     {s.lat != null ? "Move pin" : "Set pin"}
                   </button>
-                  <button type="button" onClick={() => onRule(s)} className="rounded-full border border-neutral-300 bg-white px-2.5 py-1 font-bold text-neutral-700 hover:bg-blue-50">
+                  <button type="button" onClick={() => onRule(s)} className="rounded-full border border-neutral-300 bg-white px-2.5 py-1 font-bold text-neutral-700 hover:bg-brand-50">
                     Express rule
                   </button>
                 </span>

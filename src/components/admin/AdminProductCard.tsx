@@ -46,7 +46,7 @@ export default function AdminProductCard({
         <div className="flex items-start justify-between gap-2">
           <div>
             <p className="text-sm font-medium leading-tight">{product.name}</p>
-            {product.brand && <p className="text-xs text-neutral-400">{product.brand}</p>}
+            {product.brand && <p className="text-xs text-neutral-500">{product.brand}</p>}
           </div>
           <button
             disabled={pending}
@@ -57,7 +57,7 @@ export default function AdminProductCard({
               })
             }
             className={`shrink-0 rounded-full px-2 py-0.5 text-xs disabled:opacity-50 ${
-              product.is_active ? "bg-blue-50 text-blue-700" : "bg-neutral-100 text-neutral-500"
+              product.is_active ? "bg-brand-50 text-brand-700" : "bg-neutral-100 text-neutral-500"
             }`}
           >
             {product.is_active ? t("product_card_admin.active") : t("product_card_admin.inactive")}
@@ -72,7 +72,7 @@ export default function AdminProductCard({
         <div className="flex items-baseline gap-2">
           <span className="text-sm font-semibold text-neutral-900">{variant ? money(variant.price) : "—"}</span>
           {variant?.compare_at_price != null && (
-            <span className="text-xs text-neutral-400 line-through">{money(variant.compare_at_price)}</span>
+            <span className="text-xs text-neutral-500 line-through">{money(variant.compare_at_price)}</span>
           )}
         </div>
 
@@ -85,7 +85,7 @@ export default function AdminProductCard({
               updateAction={unwrapAction(updateProductStock)}
             />
           ) : (
-            <span className="text-xs text-neutral-400">{t("product_card_admin.no_stock_row")}</span>
+            <span className="text-xs text-neutral-500">{t("product_card_admin.no_stock_row")}</span>
           )}
           <button
             onClick={() => setEditing(true)}

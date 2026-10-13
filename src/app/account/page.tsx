@@ -29,9 +29,9 @@ function AccountTile({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:border-blue-300 hover:shadow-md"
+      className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md"
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xl">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xl">
         {icon}
       </span>
       <span className="flex flex-col">
@@ -92,7 +92,7 @@ export default async function AccountPage() {
           .map((w: string) => w[0]?.toUpperCase())
           .join("");
         return (
-          <div className="relative mb-5 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-sky-500 p-5 text-white shadow-lg shadow-blue-700/20">
+          <div className="relative mb-5 overflow-hidden rounded-3xl bg-gradient-to-br from-brand-700 via-brand-600 to-sky-500 p-5 text-white shadow-lg shadow-brand-700/20">
             <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
             <span aria-hidden className="pointer-events-none absolute -bottom-12 right-16 h-32 w-32 rounded-full bg-white/10" />
             <div className="relative flex items-center gap-4">
@@ -110,7 +110,7 @@ export default async function AccountPage() {
 
       <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-white p-4">
         <span className="flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xl">🌐</span>
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xl">🌐</span>
           <span className="flex flex-col">
             <span className="font-medium text-neutral-900">{t("account.language_title")}</span>
             <span className="text-sm text-neutral-500">{t("account.language_desc")}</span>

@@ -78,7 +78,7 @@ export default function OrderChat({
 
       <div className="flex max-h-64 min-h-[8rem] flex-col gap-2 overflow-y-auto p-4">
         {messages.length === 0 ? (
-          <p className="text-center text-xs text-neutral-400">No messages yet — say hello 👋</p>
+          <p className="text-center text-xs text-neutral-500">No messages yet — say hello 👋</p>
         ) : (
           messages.map((m) => {
             const mine = m.sender_id === currentUserId;
@@ -86,7 +86,7 @@ export default function OrderChat({
               <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-[75%] rounded-2xl px-3 py-1.5 text-sm ${
-                    mine ? "bg-blue-700 text-white" : "bg-neutral-100 text-neutral-800"
+                    mine ? "bg-brand-700 text-white" : "bg-neutral-100 text-neutral-800"
                   }`}
                 >
                   {m.body}
@@ -109,7 +109,7 @@ export default function OrderChat({
         <button
           type="submit"
           disabled={pending || !draft.trim()}
-          className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+          className="rounded-full bg-brand-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-50"
         >
           Send
         </button>

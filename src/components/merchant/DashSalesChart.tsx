@@ -48,7 +48,7 @@ export default function DashSalesChart({ days }: { days: DayPoint[] }) {
               role="tab"
               aria-selected={range === r.n}
               onClick={() => setRange(r.n)}
-              className={`h-8 rounded-full px-3.5 text-xs font-semibold transition ${range === r.n ? "bg-white text-blue-800 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}
+              className={`h-8 rounded-full px-3.5 text-xs font-semibold transition ${range === r.n ? "bg-white text-brand-800 shadow-sm" : "text-neutral-500 hover:text-neutral-800"}`}
             >
               {r.label}
             </button>
@@ -68,8 +68,8 @@ export default function DashSalesChart({ days }: { days: DayPoint[] }) {
             return (
               <g key={d.day} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onClick={() => setHover(i === hover ? null : i)}>
                 <rect x={cx - slot / 2} y={0} width={slot} height={H} fill="transparent" />
-                {hover === i && <rect x={cx - slot / 2 + 1} y={padT} width={slot - 2} height={base - padT} rx="6" className="fill-blue-50" />}
-                <rect x={cx - bar / 2} y={top} width={bar} height={Math.max(2, base - top)} rx="4" className={d.sales > 0 ? "fill-blue-600" : "fill-neutral-200"} />
+                {hover === i && <rect x={cx - slot / 2 + 1} y={padT} width={slot - 2} height={base - padT} rx="6" className="fill-brand-50" />}
+                <rect x={cx - bar / 2} y={top} width={bar} height={Math.max(2, base - top)} rx="4" className={d.sales > 0 ? "fill-brand-600" : "fill-neutral-200"} />
                 {i % labelEvery === 0 && (
                   <text x={cx} y={H - 7} textAnchor="middle" className="fill-neutral-500" fontSize="11">
                     {fmtDay(d.day)}
@@ -82,7 +82,7 @@ export default function DashSalesChart({ days }: { days: DayPoint[] }) {
         {h && (
           <div className="pointer-events-none absolute right-1 top-0 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs shadow-lg">
             <p className="font-semibold text-neutral-900">{fmtDay(h.day)}</p>
-            <p className="text-blue-700">{money(h.sales)}</p>
+            <p className="text-brand-700">{money(h.sales)}</p>
             <p className="text-neutral-500">
               {h.orders} order{h.orders === 1 ? "" : "s"}
             </p>

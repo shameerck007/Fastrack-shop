@@ -71,7 +71,7 @@ export default async function PlatformRidersPage({ params }: { params: Promise<{
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[720px] text-sm">
                   <thead>
-                    <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                    <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                       <th className="px-5 py-2.5">Rider</th>
                       <th className="px-3 py-2.5">Status</th>
                       <th className="px-3 py-2.5">Vehicle</th>
@@ -87,17 +87,17 @@ export default async function PlatformRidersPage({ params }: { params: Promise<{
                       return (
                         <tr key={r.id} className="hover:bg-neutral-50">
                           <td className="px-5 py-3">
-                            <Link href={`/admin/riders/${r.id}`} className="font-semibold text-neutral-900 hover:text-blue-600">
+                            <Link href={`/admin/riders/${r.id}`} className="font-semibold text-neutral-900 hover:text-brand-600">
                               {r.profiles?.full_name ?? "—"}
                             </Link>
-                            <p className="text-[11px] text-neutral-400">
+                            <p className="text-[11px] text-neutral-500">
                               {r.city ?? ""} {r.payout_method === "bank" ? "· bank payout" : "· cash payout"}
                             </p>
                           </td>
                           <td className="px-3 py-3">
                             <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${STATUS_BADGE[r.status] ?? "bg-neutral-100"}`}>{r.status}</span>
                             {r.status === "approved" && (
-                              <span className={`ms-1.5 inline-flex items-center gap-1 text-[11px] ${r.is_available ? "text-emerald-600" : "text-neutral-400"}`}>
+                              <span className={`ms-1.5 inline-flex items-center gap-1 text-[11px] ${r.is_available ? "text-emerald-600" : "text-neutral-500"}`}>
                                 <span className={`h-1.5 w-1.5 rounded-full ${r.is_available ? "bg-emerald-500" : "bg-neutral-300"}`} />
                                 {r.is_available ? "online" : "offline"}
                               </span>
@@ -111,7 +111,7 @@ export default async function PlatformRidersPage({ params }: { params: Promise<{
                             {b && Math.abs(b.balance) > 0.005 && <span className="block text-[10px] font-normal">{b.balance < 0 ? "rider owes us" : "we owe rider"}</span>}
                           </td>
                           <td className="px-5 py-3 text-right">
-                            <Link href={`/admin/rider-settlements/${r.id}`} className="text-xs font-medium text-blue-600 hover:underline">
+                            <Link href={`/admin/rider-settlements/${r.id}`} className="text-xs font-medium text-brand-600 hover:underline">
                               Ledger
                             </Link>
                           </td>

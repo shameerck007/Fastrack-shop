@@ -1,6 +1,7 @@
 
 import type { DayEarnings } from "@/lib/rider";
 import type { MoneyFormatter } from "@/lib/money";
+import { BRAND } from "@/lib/brand";
 
 export default function RiderEarningsChart({
   days,
@@ -31,13 +32,13 @@ export default function RiderEarningsChart({
           const isPeak = i === peakIndex && d.earnings > 0;
           return (
             <div key={d.date} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
-              {isPeak && <span className="text-[10px] font-semibold text-blue-700">{money(d.earnings)}</span>}
+              {isPeak && <span className="text-[10px] font-semibold text-brand-700">{money(d.earnings)}</span>}
               <div
                 title={`${d.label}: ${money(d.earnings)} · ${d.deliveries}`}
                 className="w-full rounded-t-md"
                 style={{
                   height: `${heightPct}%`,
-                  backgroundColor: d.earnings > 0 ? "#2563eb" : "#e5e5e5",
+                  backgroundColor: d.earnings > 0 ? BRAND[600] : "#e5e5e5",
                 }}
               />
             </div>
@@ -46,7 +47,7 @@ export default function RiderEarningsChart({
       </div>
       <div className="mt-1.5 flex gap-2">
         {days.map((d) => (
-          <span key={d.date} className="flex-1 text-center text-[10px] font-medium text-neutral-400">
+          <span key={d.date} className="flex-1 text-center text-[10px] font-medium text-neutral-500">
             {d.label}
           </span>
         ))}

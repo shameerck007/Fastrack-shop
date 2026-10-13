@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useMoney } from "@/components/MoneyProvider";
+import { BRAND } from "@/lib/brand";
 /** Bubble fills stay dark enough for white labels. */
-const BUBBLE_COLORS = ["#1e40af", "#2563eb", "#0ea5e9", "#0d9488", "#475569", "#64748b"];
+const BUBBLE_COLORS = [BRAND[800], BRAND[600], "#0ea5e9", "#0d9488", "#475569", "#64748b"];
 
 function useMounted(delay = 80) {
   const [on, setOn] = useState(false);
@@ -23,7 +24,7 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const PARTS = [
   { key: "morning", name: "Morning", icon: "🌅", range: "6 AM – 12 PM", from: 6, to: 12, color: "#f59e0b" },
   { key: "afternoon", name: "Afternoon", icon: "☀️", range: "12 – 5 PM", from: 12, to: 17, color: "#0ea5e9" },
-  { key: "evening", name: "Evening", icon: "🌆", range: "5 – 10 PM", from: 17, to: 22, color: "#1d4ed8" },
+  { key: "evening", name: "Evening", icon: "🌆", range: "5 – 10 PM", from: 17, to: 22, color: BRAND[700] },
   { key: "night", name: "Night", icon: "🌙", range: "10 PM – 6 AM", from: 22, to: 30, color: "#475569" },
 ];
 const partOf = (h: number) => PARTS.find((p) => (h >= p.from && h < p.to) || (p.key === "night" && (h >= 22 || h < 6))) ?? PARTS[0];
@@ -129,7 +130,7 @@ export function OrderClock({ cells }: { cells: [number, number, number][] }) {
 
         <div className="rounded-2xl border border-white/70 bg-white/55 p-3 backdrop-blur">
           <p className="mb-2 text-xs font-bold text-neutral-700">
-            Busiest day: <span className="text-blue-700">{["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][peakDay]}</span>
+            Busiest day: <span className="text-brand-700">{["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][peakDay]}</span>
           </p>
           <div className="flex h-20 items-end gap-2">
             {byDay.map((n, i) => (
@@ -137,7 +138,7 @@ export function OrderClock({ cells }: { cells: [number, number, number][] }) {
                 <div className="relative w-full flex-1">
                   <div className="absolute inset-x-0 bottom-0 rounded-t-lg" style={{ height: on ? `${Math.max(6, (n / maxD) * 100)}%` : "0%", background: i === peakDay ? "linear-gradient(to top, #1e40af, #2563eb)" : "linear-gradient(to top, #93c5fd55, #93c5fd)", transition: `height 1s cubic-bezier(.2,.8,.2,1) ${i * 70}ms` }} />
                 </div>
-                <span className={`text-[10px] font-semibold ${i === peakDay ? "text-blue-700" : "text-neutral-500"}`}>{DAYS[i]}</span>
+                <span className={`text-[10px] font-semibold ${i === peakDay ? "text-brand-700" : "text-neutral-500"}`}>{DAYS[i]}</span>
               </div>
             ))}
           </div>
@@ -236,7 +237,7 @@ export function SupplierBubbles({ items }: { items: Bubble[] }) {
       </svg>
       <div className="rounded-2xl border border-white/70 bg-white/55 p-4 backdrop-blur">
         <p className="truncate text-sm font-extrabold text-neutral-900">{cur.label}</p>
-        <p className="mt-0.5 text-2xl font-extrabold tracking-tight text-blue-700">{money(cur.total)}</p>
+        <p className="mt-0.5 text-2xl font-extrabold tracking-tight text-brand-700">{money(cur.total)}</p>
         <dl className="mt-3 grid gap-2 text-xs">
           <div className="flex justify-between">
             <dt className="text-neutral-500">Share of sales</dt>

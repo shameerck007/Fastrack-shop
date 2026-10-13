@@ -15,8 +15,8 @@ function Stat({ icon, label, value, hint, tone }: { icon: string; label: string;
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-lg">{icon}</span>
-        <p className="text-xs font-bold uppercase tracking-wider text-neutral-400">{label}</p>
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-lg">{icon}</span>
+        <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">{label}</p>
       </div>
       <p className={`mt-3 text-2xl font-extrabold tracking-tight ${tone}`}>{value}</p>
       <p className="mt-0.5 text-xs text-neutral-500">{hint}</p>
@@ -65,14 +65,14 @@ export default function DeliveryFeesForm({ initial, defaults }: { initial: Deliv
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
-        <button type="button" onClick={edit} className="inline-flex h-10 items-center gap-2 rounded-full bg-blue-700 px-5 text-sm font-bold text-white transition hover:bg-blue-800">
+        <button type="button" onClick={edit} className="inline-flex h-10 items-center gap-2 rounded-full bg-brand-700 px-5 text-sm font-bold text-white transition hover:bg-brand-800">
           <span aria-hidden>✎</span> Edit delivery fees
         </button>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Stat icon="⚡" label="Express delivery" value={money(e)} hint="Fastest delivery, from nearby shops" tone="text-blue-700" />
-        <Stat icon="🚚" label="Standard delivery" value={money(s)} hint="Shop delivery days and scheduled orders" tone="text-blue-700" />
-        <Stat icon="🎁" label="Free delivery" value={saved.freeEnabled ? `Over ${money(f)}` : "Off"} hint={saved.freeEnabled ? "Counted on the items, before any coupon" : "The fee is always charged"} tone={saved.freeEnabled ? "text-emerald-600" : "text-neutral-400"} />
+        <Stat icon="⚡" label="Express delivery" value={money(e)} hint="Fastest delivery, from nearby shops" tone="text-brand-700" />
+        <Stat icon="🚚" label="Standard delivery" value={money(s)} hint="Shop delivery days and scheduled orders" tone="text-brand-700" />
+        <Stat icon="🎁" label="Free delivery" value={saved.freeEnabled ? `Over ${money(f)}` : "Off"} hint={saved.freeEnabled ? "Counted on the items, before any coupon" : "The fee is always charged"} tone={saved.freeEnabled ? "text-emerald-600" : "text-neutral-500"} />
       </div>
       <p className="text-xs text-neutral-500">
         One delivery charge is taken for the whole cart, even when it is split between several shops. For a coupon or a free-delivery weekend, use <b>Offers &amp; coupons</b>.
@@ -90,7 +90,7 @@ export default function DeliveryFeesForm({ initial, defaults }: { initial: Deliv
           </DialogSection>
           <DialogSection title="Free delivery" cols={1}>
             <label className="flex cursor-pointer items-start gap-3">
-              <input type="checkbox" checked={freeEnabled} onChange={(ev) => setFreeEnabled(ev.target.checked)} className="mt-1 h-4 w-4 accent-blue-700" />
+              <input type="checkbox" checked={freeEnabled} onChange={(ev) => setFreeEnabled(ev.target.checked)} className="mt-1 h-4 w-4 accent-brand-700" />
               <span>
                 <span className="block text-sm font-bold text-neutral-800">Free delivery on bigger orders</span>
                 <span className="block text-xs text-neutral-500">Delivery costs nothing once the items add up to the amount below. Switch off to always charge the fee.</span>

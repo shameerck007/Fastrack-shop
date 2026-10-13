@@ -10,7 +10,7 @@ function Row({ label, on }: { label: string; on: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3 py-1.5 text-sm">
       <span className="text-neutral-600">{label}</span>
-      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${on ? "bg-blue-100 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>{on ? "Required" : "Optional"}</span>
+      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${on ? "bg-brand-100 text-brand-800" : "bg-neutral-100 text-neutral-500"}`}>{on ? "Required" : "Optional"}</span>
     </div>
   
   );
@@ -34,7 +34,7 @@ export default function ScanSettingsCard({ requirePickupScan, requirePackScan }:
     <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
       <div className="mb-2 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-800">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-sm">📷</span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-sm">📷</span>
           Scanning
         </h2>
         <button
@@ -44,7 +44,7 @@ export default function ScanSettingsCard({ requirePickupScan, requirePackScan }:
             setPack(saved.pack);
             setOpen(true);
           }}
-          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 text-xs font-bold text-neutral-700 transition hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700"
         >
           <span aria-hidden>✎</span> Edit
         </button>
@@ -55,14 +55,14 @@ export default function ScanSettingsCard({ requirePickupScan, requirePackScan }:
         <FormDialog icon="📷" title="Scanning" subtitle="Scanning is always available. Choose where it must be used." onClose={() => setOpen(false)} onSave={save}>
           <DialogSection cols={1}>
             <label className="flex items-start gap-3 text-sm">
-              <input type="checkbox" checked={pickup} onChange={(e) => setPickup(e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+              <input type="checkbox" checked={pickup} onChange={(e) => setPickup(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-700" />
               <span>
                 <span className="font-bold text-neutral-900">Rider must scan the label or enter the pickup code</span>
                 <span className="block text-xs text-neutral-500">Stops the wrong parcel being collected. The store shows a 4-digit pickup code for each order; the rider enters it, or scans the parcel label. When this is off, riders can still do either, or just tap pick up.</span>
               </span>
             </label>
             <label className="flex items-start gap-3 text-sm">
-              <input type="checkbox" checked={pack} onChange={(e) => setPack(e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+              <input type="checkbox" checked={pack} onChange={(e) => setPack(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-700" />
               <span>
                 <span className="font-bold text-neutral-900">Warehouse must scan or tick every item before an order is ready</span>
                 <span className="block text-xs text-neutral-500">Catches missing, wrong and extra items. Items with no barcode are ticked by hand.</span>

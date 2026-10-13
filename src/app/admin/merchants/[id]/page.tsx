@@ -92,13 +92,13 @@ export default async function AdminMerchantDetailPage({
 
   return (
     <div>
-      <Link href="/admin/merchants" className="text-sm text-blue-600 hover:underline">
+      <Link href="/admin/merchants" className="text-sm text-brand-600 hover:underline">
         {t("merchant_detail.all_merchants")}
       </Link>
 
       <div className="mb-4 mt-2 flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-50 text-xl font-bold text-blue-700 ring-1 ring-neutral-200">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-50 text-xl font-bold text-brand-700 ring-1 ring-neutral-200">
             {store.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={store.logo_url} alt={store.name} className="h-full w-full object-cover" />
@@ -168,7 +168,7 @@ export default async function AdminMerchantDetailPage({
             <Row label={t("merchant_detail.email")}>{typeof ownerEmail === "string" ? ownerEmail : "—"}</Row>
             {owner?.phone && (
               <Row label={t("merchant_detail.phone")}>
-                <a href={`tel:${owner.phone}`} className="text-blue-600 hover:underline">
+                <a href={`tel:${owner.phone}`} className="text-brand-600 hover:underline">
                   {owner.phone}
                 </a>
               </Row>
@@ -216,18 +216,18 @@ export default async function AdminMerchantDetailPage({
           <Card title={t("merchant_detail.documents")}>
             <div className="flex flex-col gap-2 text-sm">
               {crUrl ? (
-                <a href={crUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                <a href={crUrl} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline">
                   {t("merchant_detail.cr_document")}
                 </a>
               ) : (
-                <span className="text-neutral-400">{t("merchant_detail.no_cr_document")}</span>
+                <span className="text-neutral-500">{t("merchant_detail.no_cr_document")}</span>
               )}
               {vatUrl ? (
-                <a href={vatUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                <a href={vatUrl} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline">
                   {t("merchant_detail.vat_document")}
                 </a>
               ) : (
-                <span className="text-neutral-400">{t("merchant_detail.no_vat_document")}</span>
+                <span className="text-neutral-500">{t("merchant_detail.no_vat_document")}</span>
               )}
             </div>
           </Card>
@@ -248,7 +248,7 @@ export default async function AdminMerchantDetailPage({
           </Card>
           <Card title={t("merchant_detail.products_count", { count: products.length })}>
             {products.length === 0 ? (
-              <p className="text-sm text-neutral-400">{t("merchant_detail.no_products_listed")}</p>
+              <p className="text-sm text-neutral-500">{t("merchant_detail.no_products_listed")}</p>
             ) : (
               <div className="divide-y divide-neutral-100">
                 {products.map((product) => {
@@ -266,7 +266,7 @@ export default async function AdminMerchantDetailPage({
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{product.name}</p>
-                        <p className="text-xs text-neutral-400">{variant?.label}</p>
+                        <p className="text-xs text-neutral-500">{variant?.label}</p>
                       </div>
                       <span className="shrink-0 text-sm font-medium">{variant ? money(variant.price) : "—"}</span>
                       <span className="w-16 shrink-0 text-right text-xs text-neutral-500">

@@ -11,14 +11,15 @@ import { localizedName } from "@/lib/i18n/localized";
 import { getCurrentTenant, getMoney } from "@/lib/tenant-server";
 import { timeZoneFor } from "@/lib/admin-dashboard";
 import { dayPart, hello, localClock, PART_ICON, quoteFor } from "@/lib/greeting";
+import { BRAND } from "@/lib/brand";
 
 const STATUS_BADGE: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
-  confirmed: "bg-blue-50 text-blue-700",
-  preparing: "bg-blue-50 text-blue-700",
-  ready_for_pickup: "bg-blue-50 text-blue-700",
-  rider_assigned: "bg-blue-50 text-blue-700",
-  out_for_delivery: "bg-blue-50 text-blue-700",
+  confirmed: "bg-brand-50 text-brand-700",
+  preparing: "bg-brand-50 text-brand-700",
+  ready_for_pickup: "bg-brand-50 text-brand-700",
+  rider_assigned: "bg-brand-50 text-brand-700",
+  out_for_delivery: "bg-brand-50 text-brand-700",
   delivered: "bg-emerald-50 text-emerald-700",
   cancelled: "bg-red-50 text-red-600",
 };
@@ -38,10 +39,10 @@ function Sparkline({ days }: { days: DayPoint[] }) {
 
 function Delta({ now, before }: { now: number; before: number }) {
   const d = deltaPercent(now, before);
-  if (d === null) return <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">New</span>;
+  if (d === null) return <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700">New</span>;
   if (d === 0) return <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold text-neutral-500">No change</span>;
   return (
-    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${d > 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${d > 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
       {d > 0 ? "▲" : "▼"} {Math.abs(d)}%
     </span>
   );
@@ -74,7 +75,7 @@ function Section({ title, action, children, className = "" }: { title: string; a
   );
 }
 
-const linkSm = "inline-flex h-9 items-center text-xs font-semibold text-blue-700 hover:underline";
+const linkSm = "inline-flex h-9 items-center text-xs font-semibold text-brand-700 hover:underline";
 
 export default async function MerchantDashboardPage() {
   const locale = await getServerLocale();
@@ -103,7 +104,7 @@ export default async function MerchantDashboardPage() {
   if (stats.newOrders > 0) attention.push({ href: "/merchant/orders", tone: "amber", icon: "🔔", text: `${stats.newOrders} new order${stats.newOrders === 1 ? "" : "s"} to confirm` });
   if (returnsWaiting > 0) attention.push({ href: "/merchant/returns", tone: "blue", icon: "↩️", text: `${returnsWaiting} return${returnsWaiting === 1 ? "" : "s"} waiting to be checked in` });
   if (low.total > 0) attention.push({ href: "/merchant/products", tone: "amber", icon: "⚠️", text: `${low.total} item${low.total === 1 ? "" : "s"} running low on stock` });
-  const tone = { amber: "border-amber-200 bg-amber-50 text-amber-900", red: "border-red-200 bg-red-50 text-red-900", blue: "border-blue-200 bg-blue-50 text-blue-900" };
+  const tone = { amber: "border-amber-200 bg-amber-50 text-amber-900", red: "border-red-200 bg-red-50 text-red-900", blue: "border-brand-200 bg-brand-50 text-brand-900" };
 
   const topMax = Math.max(1, ...(sales?.top.map((p) => p.revenue) ?? [1]));
 
@@ -134,7 +135,7 @@ export default async function MerchantDashboardPage() {
             <span className={`rounded-full px-3 py-1.5 ${accepting ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{accepting ? "● Accepting orders" : "● Paused"}</span>
           </div>
         </div>
-        <blockquote className="border-s-4 border-blue-200 ps-4 text-sm italic leading-relaxed text-neutral-600">“{quoteFor(part, clock.dayOfYear, locale)}”</blockquote>
+        <blockquote className="border-s-4 border-brand-200 ps-4 text-sm italic leading-relaxed text-neutral-600">“{quoteFor(part, clock.dayOfYear, locale)}”</blockquote>
       </section>
 
       {/* needs attention: only shown when something needs action */}
@@ -155,7 +156,7 @@ export default async function MerchantDashboardPage() {
         <Kpi
           label="Sales · 30 days"
           value={sales ? money(sales.sales30) : "—"}
-          accent="#2563eb"
+          accent={BRAND[600]}
           hint={sales ? <><Delta now={sales.sales30} before={sales.salesPrev30} /> <span>vs the 30 days before</span></> : undefined}
           extra={sales ? <Sparkline days={sales.days} /> : undefined}
         />
@@ -185,22 +186,22 @@ export default async function MerchantDashboardPage() {
       {/* sales + top products */}
       <div className="grid gap-5 lg:grid-cols-3">
         <Section title="Sales" className="lg:col-span-2">
-          <div className="p-4">{sales ? <DashSalesChart days={sales.days} /> : <p className="py-8 text-center text-sm text-neutral-400">Sales will appear here once customers order.</p>}</div>
+          <div className="p-4">{sales ? <DashSalesChart days={sales.days} /> : <p className="py-8 text-center text-sm text-neutral-500">Sales will appear here once customers order.</p>}</div>
         </Section>
         <Section title="Top products · 30 days">
           {!sales || sales.top.length === 0 ? (
-            <p className="p-6 text-center text-sm text-neutral-400">No sales in the last 30 days yet.</p>
+            <p className="p-6 text-center text-sm text-neutral-500">No sales in the last 30 days yet.</p>
           ) : (
             <ul className="divide-y divide-neutral-100">
               {sales.top.map((p, i) => (
                 <li key={p.id} className="flex items-center gap-3 px-4 py-3">
-                  <span className="w-4 shrink-0 text-center text-xs font-bold text-neutral-400">{i + 1}</span>
+                  <span className="w-4 shrink-0 text-center text-xs font-bold text-neutral-500">{i + 1}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {p.imageUrl ? <img src={p.imageUrl} alt="" className="h-10 w-10 shrink-0 rounded-lg bg-neutral-50 object-contain" /> : <span className="h-10 w-10 shrink-0 rounded-lg bg-neutral-100" />}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-neutral-900">{p.name}</p>
                     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-neutral-100">
-                      <div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.max(6, (p.revenue / topMax) * 100)}%` }} />
+                      <div className="h-full rounded-full bg-brand-600" style={{ width: `${Math.max(6, (p.revenue / topMax) * 100)}%` }} />
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
@@ -233,7 +234,7 @@ export default async function MerchantDashboardPage() {
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-neutral-900">
                           {t("orders.order_hash", { number: o.order_number })}
-                          <span className="ms-2 whitespace-nowrap text-xs font-normal text-neutral-400">{new Date(o.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                          <span className="ms-2 whitespace-nowrap text-xs font-normal text-neutral-500">{new Date(o.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
                         </p>
                         <p className="truncate text-xs text-neutral-500">{names.join(locale === "ar" ? "، " : ", ")}</p>
                       </div>
@@ -306,7 +307,7 @@ export default async function MerchantDashboardPage() {
                     <Link href={`/store/${store.id}`} className={btnGhost}>
                       {t("merchant.view_public_storefront")}
                     </Link>
-                    <a href={`/api/stores/${store.id}/qr`} download={`${store.name}-qr-code.png`} className="inline-flex h-10 items-center rounded-full px-1 text-sm font-semibold text-blue-700 hover:underline">
+                    <a href={`/api/stores/${store.id}/qr`} download={`${store.name}-qr-code.png`} className="inline-flex h-10 items-center rounded-full px-1 text-sm font-semibold text-brand-700 hover:underline">
                       ⬇ {t("merchant.download_qr")}
                     </a>
                   </div>
@@ -317,24 +318,24 @@ export default async function MerchantDashboardPage() {
               <p className="mb-3 font-semibold text-neutral-800">{t("merchant.store_details")}</p>
               <dl className="grid grid-cols-1 gap-x-6 gap-y-3">
                 <div>
-                  <dt className="text-xs text-neutral-400">{t("merchant.cr_number")}</dt>
+                  <dt className="text-xs text-neutral-500">{t("merchant.cr_number")}</dt>
                   <dd className="text-neutral-700">{store.cr_number}</dd>
                 </div>
                 {store.vat_number && (
                   <div>
-                    <dt className="text-xs text-neutral-400">{t("merchant.vat_number")}</dt>
+                    <dt className="text-xs text-neutral-500">{t("merchant.vat_number")}</dt>
                     <dd className="text-neutral-700">{store.vat_number}</dd>
                   </div>
                 )}
                 {store.contact_phone && (
                   <div>
-                    <dt className="text-xs text-neutral-400">{t("merchant.contact_phone")}</dt>
+                    <dt className="text-xs text-neutral-500">{t("merchant.contact_phone")}</dt>
                     <dd className="text-neutral-700">{store.contact_phone}</dd>
                   </div>
                 )}
                 {store.address_line && (
                   <div>
-                    <dt className="text-xs text-neutral-400">{t("merchant.pickup_address")}</dt>
+                    <dt className="text-xs text-neutral-500">{t("merchant.pickup_address")}</dt>
                     <dd className="text-neutral-700">
                       {store.address_line}
                       {store.city ? `, ${store.city}` : ""}

@@ -34,7 +34,7 @@ export default async function MerchantProductsPage({ searchParams }: { searchPar
         title={t("merchant.products")}
         subtitle={t("merchant.products_count_own", { count: total, plural: total === 1 ? "" : "s" })}
         actions={
-          <Link href="/merchant/catalog" className="inline-flex h-10 items-center rounded-full bg-blue-700 px-4 text-sm font-bold text-white hover:bg-blue-800">
+          <Link href="/merchant/catalog" className="inline-flex h-10 items-center rounded-full bg-brand-700 px-4 text-sm font-bold text-white hover:bg-brand-800">
             + Add from catalog
           </Link>
         }
@@ -44,7 +44,7 @@ export default async function MerchantProductsPage({ searchParams }: { searchPar
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center">
           <span className="text-4xl">📦</span>
           <p className="text-sm text-neutral-500">{t("merchant.no_products_added")}</p>
-          <Link href="/merchant/catalog" className="rounded-full bg-blue-700 px-5 py-2 text-sm font-bold text-white hover:bg-blue-800">
+          <Link href="/merchant/catalog" className="rounded-full bg-brand-700 px-5 py-2 text-sm font-bold text-white hover:bg-brand-800">
             Browse the product catalog
           </Link>
         </div>

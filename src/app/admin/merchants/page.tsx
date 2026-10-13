@@ -6,6 +6,7 @@ import { translate } from "@/lib/i18n/t";
 import { describeStatus, getOpenStatus } from "@/lib/store-hours";
 import { getCurrentTenant } from "@/lib/tenant-server";
 import { marketOffsetMinutes } from "@/lib/timezone";
+import { BRAND } from "@/lib/brand";
 
 function Stat({ icon, label, value, accent }: { icon: string; label: string; value: string | number; accent: string }) {
   return (
@@ -66,9 +67,9 @@ export default async function AdminMerchantsPage() {
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-5">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 via-white to-white p-5">
         <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-sm">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-xl text-white shadow-sm">
             🏪
           </span>
           <div>
@@ -80,7 +81,7 @@ export default async function AdminMerchantsPage() {
       </div>
 
       <div className="mb-5 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
-        <Stat icon="🏪" label={t("admin.total_merchants")} value={merchants.length} accent="#2563eb" />
+        <Stat icon="🏪" label={t("admin.total_merchants")} value={merchants.length} accent={BRAND[600]} />
         <Stat icon="⏳" label={t("admin.pending_review")} value={pending} accent="#d97706" />
         <Stat icon="✅" label={t("admin.approved")} value={approved} accent="#059669" />
         <Stat icon="🌍" label={t("admin.countries")} value={countryCount} accent="#7c3aed" />

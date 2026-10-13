@@ -444,9 +444,9 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
       {children}
       <DeliveryLocationModal open={pickerOpen} onClose={closePicker} />
       {nearby && (
-        <div className="fixed inset-x-3 bottom-24 z-[45] mx-auto max-w-md rounded-2xl border border-blue-100 bg-white p-3.5 shadow-2xl shadow-blue-900/15 md:bottom-5 md:start-5 md:inset-x-auto">
+        <div className="fixed inset-x-3 bottom-24 z-[45] mx-auto max-w-md rounded-2xl border border-brand-100 bg-white p-3.5 shadow-2xl shadow-brand-900/15 md:bottom-5 md:start-5 md:inset-x-auto">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-lg">📍</span>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-lg">📍</span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-extrabold text-neutral-900">
                 {nearby.mode === "differs" ? "Deliver to your current location?" : "Use your current location?"}
@@ -461,7 +461,7 @@ export default function DeliveryLocationProvider({ children, eta = DEFAULT_ETA_S
                   type="button"
                   onClick={applyDevicePosition}
                   disabled={locating}
-                  className="h-9 rounded-full bg-blue-700 px-4 text-xs font-extrabold text-white shadow active:scale-95 disabled:opacity-60"
+                  className="h-9 rounded-full bg-brand-700 px-4 text-xs font-extrabold text-white shadow active:scale-95 disabled:opacity-60"
                 >
                   {locating ? "Finding you…" : nearby.mode === "differs" ? "Yes, deliver here" : "Use my location"}
                 </button>

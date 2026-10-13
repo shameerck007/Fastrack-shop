@@ -51,8 +51,8 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white p-5">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-xl text-white shadow-sm">💵</span>
+      <div className="flex items-start gap-3 rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 via-white to-white p-5">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-xl text-white shadow-sm">💵</span>
         <div>
           <h1 className="text-xl font-semibold text-neutral-900">Collections</h1>
           <p className="mt-0.5 max-w-2xl text-sm text-neutral-600">
@@ -67,7 +67,7 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
         </p>
       ) : (
         <>
-          <div className="flex items-center justify-between gap-3 rounded-2xl bg-blue-950 p-4 text-white">
+          <div className="flex items-center justify-between gap-3 rounded-2xl bg-brand-950 p-4 text-white">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-white/70">Cash still with riders (all time)</p>
               <p className="text-2xl font-extrabold">{money(cashOutstanding)}</p>
@@ -88,7 +88,7 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[680px] text-sm">
                   <thead>
-                    <tr className="border-b border-neutral-100 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+                    <tr className="border-b border-neutral-100 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
                       <th className="px-4 py-2.5 text-start">Rider</th>
                       <th className="px-3 py-2.5 text-end">Deliveries</th>
                       <th className="px-3 py-2.5 text-end">Collected</th>
@@ -107,7 +107,7 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
                         <td className="px-3 py-2.5 text-end">{money(x.handedIn)}</td>
                         <td className="px-3 py-2.5 text-end">{money(x.deliveryCharges)}</td>
                         <td className="px-3 py-2.5 text-end">{money(x.earned)}</td>
-                        <td className="px-4 py-2.5 text-end font-bold text-blue-800">{money(Math.max(x.r.cashCollected - x.r.cashDeposited, 0))}</td>
+                        <td className="px-4 py-2.5 text-end font-bold text-brand-800">{money(Math.max(x.r.cashCollected - x.r.cashDeposited, 0))}</td>
                       </tr>
                     ))}
                   </tbody>

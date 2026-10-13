@@ -30,7 +30,7 @@ import { checkIndianBankDetails } from "@/lib/india-business";
 import Select from "@/components/ui/Select";
 
 const STEPS = ["Personal", "ID", "Vehicle", "Payout", "Review"] as const;
-const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const inputClass = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 const CITIES_SA = ["Riyadh", "Jeddah", "Makkah", "Madinah", "Dammam", "Khobar", "Dhahran", "Taif", "Tabuk", "Abha", "Buraidah", "Other"];
 // India launches in Kerala: riders pick their Kerala city.
 const CITIES_IN = ["Kochi", "Thiruvananthapuram", "Kozhikode", "Thrissur", "Kannur", "Kollam", "Kottayam", "Alappuzha", "Palakkad", "Malappuram", "Other"];
@@ -40,7 +40,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
     <div>
       <label className="mb-1 block text-sm font-medium">{label}</label>
       {children}
-      {hint && <p className="mt-1 text-[11px] text-neutral-400">{hint}</p>}
+      {hint && <p className="mt-1 text-[11px] text-neutral-500">{hint}</p>}
     </div>
   );
 }
@@ -212,13 +212,13 @@ export default function RiderApplicationForm() {
       {/* progress */}
       <div className="mb-5">
         <div className="mb-2 flex items-center justify-between text-xs">
-          <span className="font-semibold text-blue-700">
+          <span className="font-semibold text-brand-700">
             Step {step + 1} of {STEPS.length} · {STEPS[step]}
           </span>
         </div>
         <div className="flex gap-1.5">
           {STEPS.map((label, i) => (
-            <div key={label} className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-blue-600" : "bg-neutral-200"}`} />
+            <div key={label} className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-brand-600" : "bg-neutral-200"}`} />
           ))}
         </div>
       </div>
@@ -290,7 +290,7 @@ export default function RiderApplicationForm() {
                       setIdNumber("");
                     }}
                     className={`rounded-lg border px-3 py-2 text-sm font-medium ${
-                      idType === value ? "border-blue-600 bg-blue-50 text-blue-700" : "border-neutral-300 text-neutral-600"
+                      idType === value ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-300 text-neutral-600"
                     }`}
                   >
                     {label}
@@ -402,7 +402,7 @@ export default function RiderApplicationForm() {
                   type="button"
                   onClick={() => setPayoutMethod(value)}
                   className={`rounded-xl border px-4 py-3 text-left ${
-                    payoutMethod === value ? "border-blue-600 bg-blue-50" : "border-neutral-300"
+                    payoutMethod === value ? "border-brand-600 bg-brand-50" : "border-neutral-300"
                   }`}
                 >
                   <p className="text-sm font-semibold">{title}</p>
@@ -410,7 +410,7 @@ export default function RiderApplicationForm() {
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-neutral-400">You can change this later by contacting support.</p>
+            <p className="text-[11px] text-neutral-500">You can change this later by contacting support.</p>
             {payoutMethod === "bank" && isIndia && (
               <div className="border-t border-neutral-100 pt-3">
                 <IndianBankFields value={inBank} onChange={setInBank} />
@@ -449,7 +449,7 @@ export default function RiderApplicationForm() {
               <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} className="mt-1" />
               <span>
                 I confirm the information and documents are mine and correct, and I agree to FasTrack&apos;s{" "}
-                <a href="/terms" target="_blank" className="text-blue-600 underline">
+                <a href="/terms" target="_blank" className="text-brand-600 underline">
                   terms
                 </a>
                 .
@@ -470,7 +470,7 @@ export default function RiderApplicationForm() {
           <span />
         )}
         {step < STEPS.length - 1 ? (
-          <button type="button" onClick={next} className="rounded-full bg-blue-700 px-6 py-2 text-sm font-medium text-white hover:bg-blue-800">
+          <button type="button" onClick={next} className="rounded-full bg-brand-700 px-6 py-2 text-sm font-medium text-white hover:bg-brand-800">
             Continue
           </button>
         ) : (
@@ -478,7 +478,7 @@ export default function RiderApplicationForm() {
             type="button"
             onClick={submit}
             disabled={pending}
-            className="rounded-full bg-blue-700 px-6 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+            className="rounded-full bg-brand-700 px-6 py-2 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-50"
           >
             {pending ? t("become_rider.submitting") : t("become_rider.submit_application")}
           </button>

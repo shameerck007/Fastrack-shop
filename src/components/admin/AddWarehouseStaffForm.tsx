@@ -83,7 +83,7 @@ export default function AddWarehouseStaffForm({ warehouseId }: { warehouseId: st
               }}
               placeholder={t("warehouse_staff.email_placeholder")}
               type="email"
-              className="flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="flex-1 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
             <button
               onClick={search}
@@ -104,7 +104,7 @@ export default function AddWarehouseStaffForm({ warehouseId }: { warehouseId: st
               <button
                 onClick={submit}
                 disabled={saving}
-                className="mt-1 rounded-full bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+                className="mt-1 rounded-full bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-800 disabled:opacity-50"
               >
                 {saving ? t("warehouse_staff.assigning") : t("warehouse_staff.assign_staff")}
               </button>

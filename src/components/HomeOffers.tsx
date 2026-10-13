@@ -34,7 +34,7 @@ export default async function HomeOffers() {
                 ) : (
                   <span className="font-semibold text-emerald-700">Applied automatically</span>
                 )}
-                {ends && <span className="text-neutral-400">Ends {ends}</span>}
+                {ends && <span className="text-neutral-500">Ends {ends}</span>}
               </span>
             </Link>
           );

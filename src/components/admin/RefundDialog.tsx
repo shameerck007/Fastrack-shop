@@ -75,7 +75,7 @@ export default function RefundDialog({ orderId, items, deliveryFee, deliveryRefu
               ))}
             </div>
             <div className="sm:col-span-2">
-              <button type="button" onClick={() => setQty(Object.fromEntries(items.map((i) => [i.id, left(i)])))} className="text-xs font-bold text-blue-700 hover:underline">
+              <button type="button" onClick={() => setQty(Object.fromEntries(items.map((i) => [i.id, left(i)])))} className="text-xs font-bold text-brand-700 hover:underline">
                 Select everything that is left
               </button>
             </div>
@@ -84,7 +84,7 @@ export default function RefundDialog({ orderId, items, deliveryFee, deliveryRefu
           {canDelivery && (
             <DialogSection cols={1}>
               <label className="flex items-start gap-3 text-sm">
-                <input type="checkbox" checked={delivery} onChange={(e) => setDelivery(e.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-700" />
+                <input type="checkbox" checked={delivery} onChange={(e) => setDelivery(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-700" />
                 <span>
                   <span className="font-bold text-neutral-900">Also refund the delivery fee ({money(deliveryFee)})</span>
                   <span className="block text-xs text-neutral-500">The delivery fee is FasTrack&apos;s, so no supplier is charged for it.</span>

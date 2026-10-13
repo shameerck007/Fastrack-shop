@@ -28,7 +28,7 @@ const STORE_STATUS: Record<string, string> = {
 export default function PeopleTable({ items }: { items: PersonRow[] }) {
   return (
             <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-              <div className="hidden grid-cols-[minmax(0,2.2fr)_9rem_minmax(0,1.6fr)_7.5rem_7rem_8.5rem] items-center gap-4 border-b border-neutral-100 bg-neutral-50 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-neutral-400 lg:grid">
+              <div className="hidden grid-cols-[minmax(0,2.2fr)_9rem_minmax(0,1.6fr)_7.5rem_7rem_8.5rem] items-center gap-4 border-b border-neutral-100 bg-neutral-50 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-neutral-500 lg:grid">
                 <span>User</span>
                 <span>Type</span>
                 <span>Contact (masked)</span>
@@ -62,7 +62,7 @@ export default function PeopleTable({ items }: { items: PersonRow[] }) {
                       {/* action (top right on phones) */}
                       <div className="row-start-1 flex justify-end lg:order-last lg:row-auto">
                         {manage ? (
-                          <Link href={manage.href} className="inline-flex h-9 items-center rounded-full border border-neutral-300 bg-white px-4 text-xs font-bold text-neutral-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">
+                          <Link href={manage.href} className="inline-flex h-9 items-center rounded-full border border-neutral-300 bg-white px-4 text-xs font-bold text-neutral-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700">
                             {manage.label}
                           </Link>
                         ) : (
@@ -87,7 +87,7 @@ export default function PeopleTable({ items }: { items: PersonRow[] }) {
                       {/* status + joined */}
                       <div className="col-span-3 flex items-center justify-between gap-3 lg:col-span-1 lg:justify-start">
                         <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold capitalize ${status.tone}`}>{status.label}</span>
-                        <span className="text-xs text-neutral-400 lg:hidden">Joined {new Date(p.joined_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                        <span className="text-xs text-neutral-500 lg:hidden">Joined {new Date(p.joined_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                       </div>
                       <span className="hidden text-xs text-neutral-500 lg:block">{new Date(p.joined_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                     </li>

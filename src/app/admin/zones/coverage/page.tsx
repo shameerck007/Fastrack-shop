@@ -2,10 +2,11 @@ import Link from "@/components/Link";
 import { createClient } from "@/lib/supabase/server";
 import CoverageExplorer, { type CoverageShop, type CoverageZone } from "@/components/admin/CoverageExplorer";
 import { areaAt, parseAreas } from "@/lib/delivery-areas";
+import { BRAND } from "@/lib/brand";
 
 export const metadata = { title: "Delivery coverage" };
 
-const COLORS = ["#1d4ed8", "#059669", "#d97706", "#7c3aed", "#db2777", "#0891b2", "#65a30d", "#dc2626"];
+const COLORS = [BRAND[700], "#059669", "#d97706", "#7c3aed", "#db2777", "#0891b2", "#65a30d", "#dc2626"];
 
 export default async function CoveragePage() {
   const supabase = await createClient();
@@ -28,7 +29,7 @@ export default async function CoveragePage() {
         <span className="text-5xl">🗺️</span>
         <h1 className="text-xl font-extrabold text-neutral-900">No delivery zones yet</h1>
         <p className="max-w-md text-sm text-neutral-500">The coverage map shows your zones and the shops in them. Add your first zone to see it.</p>
-        <Link href="/admin/zones" className="rounded-full bg-blue-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-800">
+        <Link href="/admin/zones" className="rounded-full bg-brand-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-800">
           Add a delivery zone
         </Link>
       </div>
@@ -95,7 +96,7 @@ export default async function CoveragePage() {
   return (
     <div>
       <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-neutral-500">
-        <Link href="/admin/zones" className="text-blue-700 hover:underline">
+        <Link href="/admin/zones" className="text-brand-700 hover:underline">
           Delivery zones
         </Link>
         <span aria-hidden>/</span>

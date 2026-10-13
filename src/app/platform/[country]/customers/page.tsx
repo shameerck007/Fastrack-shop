@@ -65,7 +65,7 @@ export default async function PlatformCustomersPage({ params }: { params: Promis
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[620px] text-sm">
                   <thead>
-                    <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                    <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                       <th className="px-5 py-2.5">Customer</th>
                       <th className="px-3 py-2.5">Phone</th>
                       <th className="px-3 py-2.5">Joined</th>
@@ -80,7 +80,7 @@ export default async function PlatformCustomersPage({ params }: { params: Promis
                         <tr key={c.id} className="hover:bg-neutral-50">
                           <td className="px-5 py-2.5">
                             <span className="flex items-center gap-2.5 font-medium text-neutral-900">
-                              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-700">
+                              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-sm font-bold text-brand-700">
                                 {(c.full_name ?? "?").charAt(0).toUpperCase()}
                               </span>
                               {c.full_name ?? "—"}

@@ -92,7 +92,7 @@ export default function AreasManager({ areas }: { areas: AreaCard[] }) {
         </button>
       </div>
 
-      {message && <p className="border-b border-neutral-100 bg-blue-50 px-4 py-2 text-sm text-blue-900">{message}</p>}
+      {message && <p className="border-b border-neutral-100 bg-brand-50 px-4 py-2 text-sm text-brand-900">{message}</p>}
 
       {areas.length === 0 ? (
         <div className="flex flex-col items-center gap-2 p-8 text-center">
@@ -115,10 +115,10 @@ export default function AreasManager({ areas }: { areas: AreaCard[] }) {
                 </p>
               </div>
               <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold">
-                <span className={`rounded-full px-2.5 py-1 ${a.expressEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>
+                <span className={`rounded-full px-2.5 py-1 ${a.expressEnabled ? "bg-brand-50 text-brand-800" : "bg-neutral-100 text-neutral-500"}`}>
                   {a.expressEnabled ? "Express in this zone" : "Express off"}
                 </span>
-                <span className={`rounded-full px-2.5 py-1 ${a.standardEnabled ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500"}`}>
+                <span className={`rounded-full px-2.5 py-1 ${a.standardEnabled ? "bg-brand-50 text-brand-800" : "bg-neutral-100 text-neutral-500"}`}>
                   {a.standardEnabled ? `Standard ${a.standardDays} ${a.standardDays === 1 ? "day" : "days"}` : "Standard off"}
                 </span>
               </div>

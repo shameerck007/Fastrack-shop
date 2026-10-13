@@ -62,7 +62,7 @@ export default function PlaceSearch({
 
   return (
     <div ref={boxRef} className="relative">
-      <div className="flex items-center gap-2 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus-within:border-blue-500">
+      <div className="flex items-center gap-2 min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus-within:border-brand-500">
         <span aria-hidden>🔍</span>
         <input
           value={query}
@@ -74,7 +74,7 @@ export default function PlaceSearch({
           placeholder={placeholder ?? t("common.search_area_placeholder")}
           className="w-full bg-transparent text-sm outline-none"
         />
-        {loading && <span className="text-xs text-neutral-400">{t("common.searching")}</span>}
+        {loading && <span className="text-xs text-neutral-500">{t("common.searching")}</span>}
         {query && !loading && (
           <button
             type="button"
@@ -82,7 +82,7 @@ export default function PlaceSearch({
               setQuery("");
               setResults([]);
             }}
-            className="text-neutral-400 hover:text-neutral-700"
+            className="text-neutral-500 hover:text-neutral-700"
             aria-label={t("common.clear_search")}
           >
             ✕
@@ -102,7 +102,7 @@ export default function PlaceSearch({
                 setQuery(r.label);
                 setOpen(false);
               }}
-              className="flex w-full flex-col items-start border-b border-neutral-100 px-3 py-2 text-start last:border-none hover:bg-blue-50"
+              className="flex w-full flex-col items-start border-b border-neutral-100 px-3 py-2 text-start last:border-none hover:bg-brand-50"
             >
               <span className="text-sm font-medium text-neutral-900">📍 {r.label}</span>
               <span className="text-xs text-neutral-500">{r.detail}</span>

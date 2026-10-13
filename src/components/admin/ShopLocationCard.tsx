@@ -61,7 +61,7 @@ export default function ShopLocationCard({
           <div ref={containerRef} className="h-full w-full" />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-1 text-center text-sm text-neutral-500">
-            <span className="text-blue-600"><Glyph icon="gps" className="h-9 w-9" /></span>
+            <span className="text-brand-600"><Glyph icon="gps" className="h-9 w-9" /></span>
             No GPS pin yet
           </div>
         )}
@@ -69,12 +69,12 @@ export default function ShopLocationCard({
 
       <div className="flex min-w-0 flex-col justify-between gap-3 text-sm">
         <div className="flex flex-col gap-1.5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">GPS location</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500">GPS location</p>
           <p className="font-mono text-sm font-semibold text-neutral-900">{has ? `${(lat as number).toFixed(6)}, ${(lng as number).toFixed(6)}` : "Not set"}</p>
           {address && <p className="truncate text-xs text-neutral-500">{address}</p>}
           <div className="mt-1 flex flex-wrap gap-1.5">
             {has && zoning === "zones" && (
-              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${areaName ? "bg-blue-50 text-blue-800" : "bg-amber-50 text-amber-800"}`}>
+              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${areaName ? "bg-brand-50 text-brand-800" : "bg-amber-50 text-amber-800"}`}>
                 {areaName ? `Zone: ${areaName}` : "Outside every delivery zone"}
               </span>
             )}
@@ -83,11 +83,11 @@ export default function ShopLocationCard({
         </div>
         <div className="flex flex-wrap gap-2">
           {warehouseId ? (
-            <button type="button" onClick={() => setMoving(true)} className="h-9 rounded-full bg-blue-700 px-4 text-xs font-bold text-white hover:bg-blue-800">
+            <button type="button" onClick={() => setMoving(true)} className="h-9 rounded-full bg-brand-700 px-4 text-xs font-bold text-white hover:bg-brand-800">
               {has ? "Adjust pin" : "Set pin"}
             </button>
           ) : (
-            <span className="text-xs text-neutral-400">The pickup point is created when the shop is approved.</span>
+            <span className="text-xs text-neutral-500">The pickup point is created when the shop is approved.</span>
           )}
           {has && (
             <a href={`https://www.google.com/maps?q=${lat},${lng}`} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center rounded-full border border-neutral-300 px-4 text-xs font-bold text-neutral-700 hover:bg-neutral-50">

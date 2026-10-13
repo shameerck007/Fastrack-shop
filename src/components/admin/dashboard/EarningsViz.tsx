@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import { useMoney } from "@/components/MoneyProvider";
 import { BRAND, TEAL } from "./palette";
+import { BRAND as BLUES } from "@/lib/brand";
 
 const uid = (raw: string) => raw.replace(/[^a-zA-Z0-9]/g, "");
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -48,7 +49,7 @@ export function MoneyFlow({ commission, deliveryFees, discounts, riderPay }: Flo
   const kept = earned - spent;
   // When costs are higher than income the gap is a top-up from FasTrack's own pocket, drawn as a third source.
   const sources: Node[] = [
-    { key: "commission", label: "Commission", value: Math.max(0, commission), color: "#2563eb" },
+    { key: "commission", label: "Commission", value: Math.max(0, commission), color: BLUES[600] },
     { key: "delivery", label: "Delivery fees", value: Math.max(0, deliveryFees), color: "#0d9488" },
     ...(kept < 0 ? [{ key: "topup", label: "Paid from own pocket", value: -kept, color: "#94a3b8" }] : []),
   ].filter((n) => n.value > 0);
@@ -252,7 +253,7 @@ export function CumulativeMargin({ days }: { days: DayPoint[] }) {
             That day <b className={hover.margin >= 0 ? "text-emerald-700" : "text-rose-700"}>{money(hover.margin)}</b>
           </p>
           <p className="text-neutral-600">
-            Running total <b className="text-blue-800">{money(cum[hot])}</b>
+            Running total <b className="text-brand-800">{money(cum[hot])}</b>
           </p>
         </div>
       )}
@@ -292,7 +293,7 @@ export function OrderBullets({ rows, result, resultPrev }: { rows: BulletRow[]; 
                 <span className="text-sm font-bold text-neutral-900">{r.label}</span>
                 <span className="ml-2 text-[11px] text-neutral-500">{r.hint}</span>
               </span>
-              <span className={`shrink-0 text-sm font-extrabold tabular-nums ${earn ? "text-blue-800" : "text-rose-700"}`}>{money(r.value)}</span>
+              <span className={`shrink-0 text-sm font-extrabold tabular-nums ${earn ? "text-brand-800" : "text-rose-700"}`}>{money(r.value)}</span>
             </div>
             <div className="relative h-3.5 rounded-full bg-white/60 ring-1 ring-white/80">
               <div className="absolute inset-y-0 left-1/2 w-px bg-neutral-300" />
@@ -312,12 +313,12 @@ export function OrderBullets({ rows, result, resultPrev }: { rows: BulletRow[]; 
           </div>
         );
       })}
-      <div className="mt-1 rounded-2xl bg-gradient-to-r from-blue-700 to-indigo-600 px-4 py-3 text-white shadow-lg shadow-blue-700/20">
+      <div className="mt-1 rounded-2xl bg-gradient-to-r from-brand-700 to-indigo-600 px-4 py-3 text-white shadow-lg shadow-brand-700/20">
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-sm font-bold">What one order leaves</span>
           <span className="text-xl font-extrabold tabular-nums">{money(result)}</span>
         </div>
-        {resultPrev !== undefined && <p className="mt-0.5 text-[11px] text-blue-100">Previous period {money(resultPrev)}</p>}
+        {resultPrev !== undefined && <p className="mt-0.5 text-[11px] text-brand-100">Previous period {money(resultPrev)}</p>}
       </div>
       <p className="-mt-2 text-[11px] text-neutral-500">The white marker is the previous period.</p>
     </div>
@@ -361,8 +362,8 @@ export function SupplierPareto({ items }: { items: SupplierBar[] }) {
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label="Commission by supplier with running share" onMouseLeave={() => setHot(null)}>
         <defs>
           <linearGradient id={`b${id}`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#60a5fa" />
-            <stop offset="100%" stopColor="#1d4ed8" />
+            <stop offset="0%" stopColor={BLUES[400]} />
+            <stop offset="100%" stopColor={BLUES[700]} />
           </linearGradient>
         </defs>
         <line x1={pad.l} x2={W - pad.r} y1={H - pad.b} y2={H - pad.b} stroke="rgba(15,23,42,0.18)" />
@@ -402,7 +403,7 @@ export function SupplierPareto({ items }: { items: SupplierBar[] }) {
       </svg>
       <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-neutral-500">
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "#1d4ed8" }} /> Commission earned
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: BLUES[700] }} /> Commission earned
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-0.5 w-4 rounded" style={{ background: "#f59e0b" }} /> Share of all commission, adding up from the left

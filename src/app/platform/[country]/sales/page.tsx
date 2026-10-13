@@ -30,7 +30,7 @@ export default async function PlatformSalesPage({ params, searchParams }: { para
             <Link
               key={r}
               href={`/platform/${current}/sales?days=${r}`}
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold ${days === r ? "bg-blue-600 text-white shadow-md shadow-blue-600/25" : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-blue-50"}`}
+              className={`rounded-full px-4 py-1.5 text-sm font-semibold ${days === r ? "bg-brand-600 text-white shadow-md shadow-brand-600/25" : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-brand-50"}`}
             >
               {r} days
             </Link>
@@ -55,7 +55,7 @@ export default async function PlatformSalesPage({ params, searchParams }: { para
                 <Flag code={m.country_code} className="h-6 w-8" />
                 {m.name}
               </h2>
-              <span className="text-xs text-neutral-400">{m.currency}</span>
+              <span className="text-xs text-neutral-500">{m.currency}</span>
             </div>
             {rows.length === 0 ? (
               <p className="p-5 text-sm text-neutral-500">No sales in the last {days} days.</p>
@@ -63,7 +63,7 @@ export default async function PlatformSalesPage({ params, searchParams }: { para
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px] text-sm">
                   <thead>
-                    <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-400">
+                    <tr className="border-b border-neutral-100 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                       <th className="px-5 py-2.5">Date</th>
                       <th className="px-3 py-2.5 text-right">Orders</th>
                       <th className="px-3 py-2.5 text-right">Sales</th>
@@ -85,7 +85,7 @@ export default async function PlatformSalesPage({ params, searchParams }: { para
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr className="border-t-2 border-neutral-200 bg-blue-50/60 font-bold">
+                    <tr className="border-t-2 border-neutral-200 bg-brand-50/60 font-bold">
                       <td className="px-5 py-3">Total</td>
                       <td className="px-3 py-3 text-right">{totals.orders}</td>
                       <td className="px-3 py-3 text-right">{money(totals.gmv)}</td>

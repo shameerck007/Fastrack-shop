@@ -163,13 +163,13 @@ export default async function OrderDetailPage({
               )}
               <p>{[order.addresses.district, order.addresses.city, order.addresses.state, order.addresses.state ? order.addresses.postal_code : null].filter(Boolean).join(", ")}</p>
               {order.addresses.receiver_phone && (
-                <a href={`tel:${order.addresses.receiver_phone}`} className="text-blue-600 hover:underline">
+                <a href={`tel:${order.addresses.receiver_phone}`} className="text-brand-600 hover:underline">
                   📞 {order.addresses.receiver_phone}
                 </a>
               )}
             </div>
           ) : (
-            <p className="text-sm text-neutral-400">—</p>
+            <p className="text-sm text-neutral-500">—</p>
           )}
         </div>
 
@@ -190,7 +190,7 @@ export default async function OrderDetailPage({
               <span>{order.delivery_fee === 0 ? t("checkout.free") : orderMoney(order.delivery_fee)}</span>
             </div>
             {order.discount > 0 && (
-              <div className="flex justify-between text-blue-600">
+              <div className="flex justify-between text-brand-600">
                 <span>{t("orders.discount")}</span>
                 <span>-{orderMoney(order.discount)}</span>
               </div>
@@ -228,7 +228,7 @@ export default async function OrderDetailPage({
           <p className="text-sm text-neutral-500">{t("orders.rider")}</p>
           <p className="font-medium">{rider.profiles.full_name}</p>
           {rider.profiles.phone && showTrackingExtras && (
-            <a href={`tel:${rider.profiles.phone}`} className="text-sm text-blue-600 hover:underline">
+            <a href={`tel:${rider.profiles.phone}`} className="text-sm text-brand-600 hover:underline">
               📞 {rider.profiles.phone}
             </a>
           )}
@@ -286,8 +286,8 @@ export default async function OrderDetailPage({
                 {(() => {
                   const e = eligibility.get(item.id);
                   if (!e) return null;
-                  if (e.windowDays <= 0) return <p className="mt-1 text-xs text-neutral-400">Not returnable</p>;
-                  if (e.closesAt && new Date(e.closesAt).getTime() < returnCutoff) return <p className="mt-1 text-xs text-neutral-400">Return period ended</p>;
+                  if (e.windowDays <= 0) return <p className="mt-1 text-xs text-neutral-500">Not returnable</p>;
+                  if (e.closesAt && new Date(e.closesAt).getTime() < returnCutoff) return <p className="mt-1 text-xs text-neutral-500">Return period ended</p>;
                   if (e.left <= 0) return null;
                   return (
                     <div className="mt-1.5">

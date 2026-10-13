@@ -5,7 +5,7 @@ import Modal from "@/components/Modal";
 import { useDefaultMaxQty } from "@/components/MoneyProvider";
 import type { MasterProduct } from "@/lib/master-catalog";
 
-const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-400 hover:border-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+const field = "w-full min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 transition placeholder:text-neutral-500 hover:border-neutral-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20";
 
 export interface OfferRow {
   masterVariantId: string;
@@ -89,16 +89,16 @@ export default function OfferModal({
           ))}
         </div>
         <label className="text-xs font-medium text-neutral-500">
-          Maximum order quantity <span className="text-blue-700">*</span>
+          Maximum order quantity <span className="text-brand-700">*</span>
           <input type="number" min={1} step={1} required value={maxQty} onChange={(e) => setMaxQty(e.target.value.replace(/[^0-9]/g, ""))} className={`${field} mt-1`} />
-          <span className="mt-1 block text-[11px] text-neutral-400">The most a customer can buy of this product in one order. You can change it later.</span>
+          <span className="mt-1 block text-[11px] text-neutral-500">The most a customer can buy of this product in one order. You can change it later.</span>
         </label>
-        {error && <p className="text-sm text-blue-900">{error}</p>}
+        {error && <p className="text-sm text-brand-900">{error}</p>}
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-semibold text-neutral-700">
             Cancel
           </button>
-          <button type="submit" disabled={saving} className="rounded-full bg-blue-700 px-6 py-2 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50">
+          <button type="submit" disabled={saving} className="rounded-full bg-brand-700 px-6 py-2 text-sm font-bold text-white hover:bg-brand-800 disabled:opacity-50">
             {saving ? "Saving…" : submitLabel}
           </button>
         </div>

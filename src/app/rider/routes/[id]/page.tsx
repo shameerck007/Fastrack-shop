@@ -37,42 +37,42 @@ export default async function RiderRoutePage({ params }: { params: Promise<{ id:
     <div className="flex flex-col gap-4 pb-8">
       {!finished && <OffersPoller everySeconds={15} />}
       <div>
-        <Link href="/rider" className="text-sm font-semibold text-blue-700">
+        <Link href="/rider" className="text-sm font-semibold text-brand-700">
           ← Back
         </Link>
         <h1 className="mt-1 text-xl font-extrabold tracking-tight">Route · {route.areaLabel}</h1>
         <p className="text-sm text-neutral-500">
           {route.delivered} of {route.stops.length} delivered
         </p>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-blue-100">
-          <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${route.stops.length ? (route.delivered / route.stops.length) * 100 : 0}%` }} />
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-brand-100">
+          <div className="h-full rounded-full bg-brand-600 transition-all" style={{ width: `${route.stops.length ? (route.delivered / route.stops.length) * 100 : 0}%` }} />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         {!hideEarnings && (
           <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Route pay</p>
-            <p className="text-lg font-extrabold text-blue-700">{money(pay)}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Route pay</p>
+            <p className="text-lg font-extrabold text-brand-700">{money(pay)}</p>
           </div>
         )}
         <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Cash to collect</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Cash to collect</p>
           <p className="text-lg font-extrabold text-neutral-900">{money(cash)}</p>
         </div>
       </div>
 
       {/* step 1: pick up everything at the shop */}
       {toPickUp > 0 && (
-        <section className="rounded-3xl border border-blue-200 bg-blue-50 p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-blue-800/70">Step 1 · Pickup</p>
-          <p className="mt-1 font-extrabold text-blue-950">{route.shopName ?? "Shop"}</p>
-          {route.shopAddress && <p className="text-xs text-blue-900/70">{route.shopAddress}</p>}
+        <section className="rounded-3xl border border-brand-200 bg-brand-50 p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-brand-800/70">Step 1 · Pickup</p>
+          <p className="mt-1 font-extrabold text-brand-950">{route.shopName ?? "Shop"}</p>
+          {route.shopAddress && <p className="text-xs text-brand-900/70">{route.shopAddress}</p>}
           <a
             href={directions(route.shopLat, route.shopLng, route.shopAddress)}
             target="_blank"
             rel="noreferrer"
-            className="mt-2 inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-bold text-blue-800 shadow-sm"
+            className="mt-2 inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-bold text-brand-800 shadow-sm"
           >
             🧭 Directions to the shop
           </a>
@@ -84,7 +84,7 @@ export default async function RiderRoutePage({ params }: { params: Promise<{ id:
 
       {/* step 2: the stops, in driving order */}
       <section className="flex flex-col gap-3">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">{toPickUp > 0 ? "Step 2 · Stops" : "Stops"}</p>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{toPickUp > 0 ? "Step 2 · Stops" : "Stops"}</p>
         {route.stops.map((s, i) => {
           const done = s.status === "delivered" || s.status === "cancelled";
           const stopNo = done ? null : open.indexOf(s) + 1;
@@ -92,7 +92,7 @@ export default async function RiderRoutePage({ params }: { params: Promise<{ id:
             <div key={s.orderId} className={`rounded-3xl border bg-white p-4 shadow-sm ${done ? "border-neutral-100 opacity-70" : "border-neutral-200"}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-start gap-3">
-                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${done ? "bg-neutral-100 text-neutral-400" : "bg-blue-700 text-white"}`}>
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${done ? "bg-neutral-100 text-neutral-500" : "bg-brand-700 text-white"}`}>
                     {done ? "✓" : stopNo ?? i + 1}
                   </span>
                   <div className="min-w-0">
@@ -110,9 +110,9 @@ export default async function RiderRoutePage({ params }: { params: Promise<{ id:
                 {s.cashToCollect > 0 ? (
                   <span className="rounded-full bg-sky-100 px-2.5 py-1 text-sky-800">💵 Collect {money(s.cashToCollect)}</span>
                 ) : (
-                  !done && <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">✓ Paid online</span>
+                  !done && <span className="rounded-full bg-brand-50 px-2.5 py-1 text-brand-700">✓ Paid online</span>
                 )}
-                {!hideEarnings && <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">You earn {money(s.pay)}</span>}
+                {!hideEarnings && <span className="rounded-full bg-brand-50 px-2.5 py-1 text-brand-700">You earn {money(s.pay)}</span>}
               </div>
               {!done && (
                 <div className="mt-3 flex gap-2">
@@ -131,7 +131,7 @@ export default async function RiderRoutePage({ params }: { params: Promise<{ id:
                       📞 Call
                     </a>
                   )}
-                  <Link href={`/rider/orders/${s.orderId}`} className="flex h-11 flex-[1.4] items-center justify-center rounded-full bg-blue-700 text-sm font-extrabold text-white">
+                  <Link href={`/rider/orders/${s.orderId}`} className="flex h-11 flex-[1.4] items-center justify-center rounded-full bg-brand-700 text-sm font-extrabold text-white">
                     {s.status === "out_for_delivery" ? "Deliver" : "Open"}
                   </Link>
                 </div>
@@ -142,11 +142,11 @@ export default async function RiderRoutePage({ params }: { params: Promise<{ id:
       </section>
 
       {finished && (
-        <div className="rounded-3xl bg-blue-50 p-5 text-center">
+        <div className="rounded-3xl bg-brand-50 p-5 text-center">
           <p className="text-3xl">🎉</p>
-          <p className="mt-1 font-extrabold text-blue-950">Route complete</p>
-          <p className="text-sm text-blue-900/70">All stops are done. Hand in any cash you collected.</p>
-          <Link href="/rider/earnings" className="mt-3 inline-block rounded-full bg-blue-700 px-5 py-2 text-sm font-bold text-white">
+          <p className="mt-1 font-extrabold text-brand-950">Route complete</p>
+          <p className="text-sm text-brand-900/70">All stops are done. Hand in any cash you collected.</p>
+          <Link href="/rider/earnings" className="mt-3 inline-block rounded-full bg-brand-700 px-5 py-2 text-sm font-bold text-white">
             See earnings
           </Link>
         </div>

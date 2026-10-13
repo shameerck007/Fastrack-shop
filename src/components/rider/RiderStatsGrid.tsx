@@ -1,4 +1,5 @@
 import type { MoneyFormatter } from "@/lib/money";
+import { BRAND } from "@/lib/brand";
 
 
 
@@ -44,7 +45,7 @@ export default function RiderStatsGrid({
     // ~65px for the value text and silently ellipsis-truncated it.
     <div className="grid grid-cols-2 gap-3">
       {!hideEarnings && <Tile icon="💰" label={t("rider.today_earnings")} value={money(todayEarnings)} accent="#059669" />}
-      <Tile icon="📦" label={t("rider.today_deliveries")} value={todayDeliveries} accent="#2563eb" />
+      <Tile icon="📦" label={t("rider.today_deliveries")} value={todayDeliveries} accent={BRAND[600]} />
       <Tile icon="🏆" label={t("rider.total_deliveries")} value={totalDeliveries} accent="#7c3aed" />
       <Tile icon="⭐" label={t("rider.rating_label")} value={rating != null ? rating.toFixed(1) : "—"} accent="#d97706" />
     </div>

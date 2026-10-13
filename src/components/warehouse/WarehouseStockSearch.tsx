@@ -61,7 +61,7 @@ export default function WarehouseStockSearch({ stock, locale }: { stock: Warehou
         <button
           type="button"
           onClick={() => setStatusFilter("all")}
-          className={`rounded-xl border p-4 text-start transition ${statusFilter === "all" ? "border-blue-300 bg-blue-50" : "border-neutral-200 bg-white hover:bg-neutral-50"}`}
+          className={`rounded-xl border p-4 text-start transition ${statusFilter === "all" ? "border-brand-300 bg-brand-50" : "border-neutral-200 bg-white hover:bg-neutral-50"}`}
         >
           <p className="text-sm text-neutral-500">{t("warehouse.total_products")}</p>
           <p className="text-2xl font-semibold text-neutral-900">{counts.total}</p>
@@ -97,7 +97,7 @@ export default function WarehouseStockSearch({ stock, locale }: { stock: Warehou
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={t("warehouse.search_stock_placeholder")}
-        className="mb-4 w-full max-w-sm rounded-full border border-neutral-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="mb-4 w-full max-w-sm rounded-full border border-neutral-300 px-4 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
       />
 
       {filtered.length === 0 ? (
@@ -121,7 +121,7 @@ export default function WarehouseStockSearch({ stock, locale }: { stock: Warehou
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-neutral-900">{row.displayName}</p>
-                    <p className="text-xs text-neutral-400">{row.displayVariant}</p>
+                    <p className="text-xs text-neutral-500">{row.displayVariant}</p>
                   </div>
                 </div>
                 <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[row.status]}`}>

@@ -26,7 +26,7 @@ export function ContactCard({ id, phoneMasked, emailMasked, canReveal }: { id: s
       </div>
       {canReveal ? (
         full ? (
-          <button type="button" onClick={() => setFull(null)} className="self-start text-xs font-bold text-blue-700 hover:underline">
+          <button type="button" onClick={() => setFull(null)} className="self-start text-xs font-bold text-brand-700 hover:underline">
             Hide again
           </button>
         ) : (
@@ -40,16 +40,16 @@ export function ContactCard({ id, phoneMasked, emailMasked, canReveal }: { id: s
                 else setError(res.error);
               })
             }
-            className="self-start rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-bold text-neutral-700 hover:bg-blue-50 disabled:opacity-50"
+            className="self-start rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-bold text-neutral-700 hover:bg-brand-50 disabled:opacity-50"
           >
             {pending ? "Revealing…" : "👁 Reveal contact details"}
           </button>
         )
       ) : (
-        <p className="text-xs text-neutral-400">Full contact details can be revealed by the platform super admin only.</p>
+        <p className="text-xs text-neutral-500">Full contact details can be revealed by the platform super admin only.</p>
       )}
-      {full && <p className="text-[11px] text-neutral-400">This reveal has been recorded in the access log.</p>}
-      {error && <p className="text-xs font-medium text-blue-900">{error}</p>}
+      {full && <p className="text-[11px] text-neutral-500">This reveal has been recorded in the access log.</p>}
+      {error && <p className="text-xs font-medium text-brand-900">{error}</p>}
     </div>
   );
 }
@@ -94,7 +94,7 @@ export function BlockButton({ id, blocked, name }: { id: string; blocked: boolea
             <Field label="Reason (kept in the log)" required>
               <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} className={textareaClass} placeholder="e.g. Repeated refused deliveries" />
             </Field>
-            {error && <p className="text-sm font-medium text-blue-900">{error}</p>}
+            {error && <p className="text-sm font-medium text-brand-900">{error}</p>}
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setOpen(false)} className={secondaryButton}>
                 Cancel
@@ -134,8 +134,8 @@ export function NoteForm({ id }: { id: string }) {
       className="flex flex-col gap-2"
     >
       <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={2} placeholder="Add an internal note for the support team…" className={textareaClass} />
-      {error && <p className="text-xs font-medium text-blue-900">{error}</p>}
-      <button type="submit" disabled={pending || !body.trim()} className="self-end rounded-full bg-blue-700 px-5 py-2 text-xs font-bold text-white hover:bg-blue-800 disabled:opacity-50">
+      {error && <p className="text-xs font-medium text-brand-900">{error}</p>}
+      <button type="submit" disabled={pending || !body.trim()} className="self-end rounded-full bg-brand-700 px-5 py-2 text-xs font-bold text-white hover:bg-brand-800 disabled:opacity-50">
         {pending ? "Saving…" : "Add note"}
       </button>
     </form>

@@ -94,10 +94,10 @@ export default function ArabicInput({
     <div className="flex flex-col gap-1">
       {multiline ? <textarea rows={rows} {...shared} /> : <input {...shared} />}
       {!compact && (
-      <div className="flex min-h-[1.1rem] items-center justify-between gap-2 text-[11px] text-neutral-400">
+      <div className="flex min-h-[1.1rem] items-center justify-between gap-2 text-[11px] text-neutral-500">
         <span>{busy ? "Translating…" : note}</span>
         {english.trim().length >= 2 && (
-          <button type="button" disabled={busy} onClick={() => void translate(english.trim(), true)} className="shrink-0 font-semibold text-blue-700 hover:underline disabled:opacity-50">
+          <button type="button" disabled={busy} onClick={() => void translate(english.trim(), true)} className="shrink-0 font-semibold text-brand-700 hover:underline disabled:opacity-50">
             ↻ Translate again
           </button>
         )}

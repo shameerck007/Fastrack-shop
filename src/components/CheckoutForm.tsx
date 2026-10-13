@@ -223,7 +223,7 @@ export default function CheckoutForm({
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-base font-extrabold tracking-tight">{t("checkout_ui.deliver_to")}</h2>
               {addresses.length > 1 && (
-                <button type="button" onClick={() => setShowAddresses((v) => !v)} className="text-sm font-bold text-blue-700">
+                <button type="button" onClick={() => setShowAddresses((v) => !v)} className="text-sm font-bold text-brand-700">
                   {showAddresses ? t("common.cancel") : t("checkout_ui.change")}
                 </button>
               )}
@@ -231,7 +231,7 @@ export default function CheckoutForm({
 
             {selectedAddress && !showAddresses && (
               <div className="flex items-start gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-xl">📍</span>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-xl">📍</span>
                 <div className="min-w-0 flex-1 text-sm">
                   <p className="flex items-center gap-2 font-bold text-neutral-900">
                     {labelText(selectedAddress.label)}
@@ -268,7 +268,7 @@ export default function CheckoutForm({
                   <label
                     key={addr.id}
                     className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3 text-sm ${
-                      addressId === addr.id ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200"
+                      addressId === addr.id ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200"
                     }`}
                   >
                     <input
@@ -312,21 +312,21 @@ export default function CheckoutForm({
             <h2 className="mb-1 text-base font-extrabold tracking-tight">{t("checkout.delivery_time")}</h2>
             <p className="mb-3 text-xs text-neutral-500">{t("checkout.auto_delivery_hint")}</p>
             {!allDeliverable ? (
-              <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-semibold text-blue-900">{t("delivery_info.not_available_here")}</div>
+              <div className="rounded-2xl border border-brand-100 bg-brand-50 p-4 text-sm font-semibold text-brand-900">{t("delivery_info.not_available_here")}</div>
             ) : (
               <div className="flex flex-col gap-2">
                 {parcels.map((p, idx) => (
-                  <div key={p.key} className="flex items-center gap-3 rounded-2xl border border-blue-600 bg-blue-50 p-3.5 ring-1 ring-blue-600">
+                  <div key={p.key} className="flex items-center gap-3 rounded-2xl border border-brand-600 bg-brand-50 p-3.5 ring-1 ring-brand-600">
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl shadow-sm">
                       {p.type === "scheduled" ? "🗓️" : "🕒"}
                     </span>
                     <div className="min-w-0 flex-1">
                       {split && (
-                        <p className="truncate text-[11px] font-bold uppercase tracking-wide text-blue-800/70">
+                        <p className="truncate text-[11px] font-bold uppercase tracking-wide text-brand-800/70">
                           {p.name ? p.name : "Delivery " + (idx + 1)}
                         </p>
                       )}
-                      <p className="text-sm font-extrabold text-blue-900">
+                      <p className="text-sm font-extrabold text-brand-900">
                         {p.type === "express"
                           ? t("checkout.arrives_in", { eta: p.etaText ?? t("delivery_info.express_eta") })
                           : p.type === "standard"
@@ -352,7 +352,7 @@ export default function CheckoutForm({
               </div>
             )}
             {anyStandardAvailable && (
-              <button type="button" onClick={() => setScheduleLater((v) => !v)} className="mt-3 text-sm font-bold text-blue-700 hover:underline">
+              <button type="button" onClick={() => setScheduleLater((v) => !v)} className="mt-3 text-sm font-bold text-brand-700 hover:underline">
                 {scheduleLater ? t("checkout.deliver_now") : t("checkout.schedule_later")}
               </button>
             )}
@@ -385,7 +385,7 @@ export default function CheckoutForm({
                           <span className="text-2xl">📦</span>
                         )}
                       </div>
-                      <span className="absolute -end-1.5 -top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-blue-700 px-1.5 text-xs font-extrabold text-white ring-2 ring-white">
+                      <span className="absolute -end-1.5 -top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-700 px-1.5 text-xs font-extrabold text-white ring-2 ring-white">
                         {item.quantity}
                       </span>
                     </div>
@@ -409,7 +409,7 @@ export default function CheckoutForm({
                 type="button"
                 onClick={() => setPaymentMethod(opt.value)}
                 className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-start ${
-                  paymentMethod === opt.value ? "border-blue-600 bg-blue-50 ring-1 ring-blue-600" : "border-neutral-200"
+                  paymentMethod === opt.value ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200"
                 }`}
               >
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm ring-1 ring-neutral-100">
@@ -419,7 +419,7 @@ export default function CheckoutForm({
                   <span className="block text-sm font-bold text-neutral-900">{t("checkout_ui.cod_title")}</span>
                   <span className="block text-xs text-neutral-500">{t("checkout_ui.cod_hint")}</span>
                 </span>
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-700 text-xs text-white">✓</span>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-700 text-xs text-white">✓</span>
               </button>
             ))}
           </section>
@@ -432,7 +432,7 @@ export default function CheckoutForm({
               onChange={(e) => setNotes(e.target.value.slice(0, 200))}
               rows={2}
               placeholder={t("checkout_ui.note_placeholder")}
-              className="w-full resize-none rounded-2xl border border-neutral-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className="w-full resize-none rounded-2xl border border-neutral-300 px-3 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
             />
           </section>
         </div>
@@ -443,15 +443,15 @@ export default function CheckoutForm({
             <h2 className="mb-3 text-base font-extrabold tracking-tight">{t("checkout.order_summary")}</h2>
 
             {split && (
-              <div className="mb-3 rounded-2xl bg-blue-50 px-3 py-2.5 text-xs text-blue-900">
+              <div className="mb-3 rounded-2xl bg-brand-50 px-3 py-2.5 text-xs text-brand-900">
                 <p className="font-bold">{t("checkout_ui.split_title", { count: String(parcels.length) })}</p>
-                <p className="mt-0.5 text-blue-800/80">{t("checkout_ui.split_hint")}</p>
+                <p className="mt-0.5 text-brand-800/80">{t("checkout_ui.split_hint")}</p>
               </div>
             )}
             {pricing.freeEnabled && (
             <div
               className={`mb-3 rounded-2xl px-3 py-2.5 text-xs font-bold ${
-                freeLeft === 0 ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-800"
+                freeLeft === 0 ? "bg-emerald-50 text-emerald-700" : "bg-brand-50 text-brand-800"
               }`}
             >
               {freeLeft === 0 ? (
@@ -459,9 +459,9 @@ export default function CheckoutForm({
               ) : (
                 <>
                   {t("checkout_ui.add_for_free", { amount: money(freeLeft) })}
-                  <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-blue-100">
+                  <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-brand-100">
                     <span
-                      className="block h-full rounded-full bg-blue-600"
+                      className="block h-full rounded-full bg-brand-600"
                       style={{ width: `${Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100)}%` }}
                     />
                   </span>
@@ -500,9 +500,9 @@ export default function CheckoutForm({
                       onKeyDown={(e) => e.key === "Enter" && applyCoupon()}
                       placeholder={t("offers_ui.placeholder")}
                       aria-label={t("offers_ui.title")}
-                      className="h-10 min-w-0 flex-1 rounded-full border border-neutral-300 px-4 text-sm uppercase placeholder:normal-case focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                      className="h-10 min-w-0 flex-1 rounded-full border border-neutral-300 px-4 text-sm uppercase placeholder:normal-case focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
                     />
-                    <button type="button" onClick={applyCoupon} disabled={checkingCoupon || !couponInput.trim()} className="h-10 shrink-0 rounded-full border border-blue-700 px-4 text-sm font-bold text-blue-700 hover:bg-blue-50 disabled:opacity-50">
+                    <button type="button" onClick={applyCoupon} disabled={checkingCoupon || !couponInput.trim()} className="h-10 shrink-0 rounded-full border border-brand-700 px-4 text-sm font-bold text-brand-700 hover:bg-brand-50 disabled:opacity-50">
                       {t("offers_ui.apply")}
                     </button>
                   </div>
@@ -532,7 +532,7 @@ export default function CheckoutForm({
                 <span>{t("checkout.total")}</span>
                 <span>{money(total)}</span>
               </div>
-              <p className="text-end text-[11px] text-neutral-400">{t("checkout_ui.vat_included", { label: taxLabel, amount: money(Math.round(((subtotal > 0 ? taxTotal * (1 - discount / subtotal) : taxTotal) + parcels.reduce((n, g) => n + extractTax(g.fee, deliveryTaxPercent), 0)) * 100) / 100) })}</p>
+              <p className="text-end text-[11px] text-neutral-500">{t("checkout_ui.vat_included", { label: taxLabel, amount: money(Math.round(((subtotal > 0 ? taxTotal * (1 - discount / subtotal) : taxTotal) + parcels.reduce((n, g) => n + extractTax(g.fee, deliveryTaxPercent), 0)) * 100) / 100) })}</p>
             </div>
 
             {error && <p className="mt-3 hidden text-sm text-red-600 lg:block">{error}</p>}
@@ -540,7 +540,7 @@ export default function CheckoutForm({
             <button
               onClick={handlePlaceOrder}
               disabled={pending || blockedItems.length > 0}
-              className="mt-4 hidden h-12 w-full rounded-full bg-blue-700 font-extrabold text-white shadow-lg shadow-blue-700/25 hover:bg-blue-800 disabled:opacity-50 lg:block"
+              className="mt-4 hidden h-12 w-full rounded-full bg-brand-700 font-extrabold text-white shadow-lg shadow-brand-700/25 hover:bg-brand-800 disabled:opacity-50 lg:block"
             >
               {pending ? t("checkout.placing_order") : t("checkout.place_order_with_total", { total: money(total) })}
             </button>
@@ -572,7 +572,7 @@ export default function CheckoutForm({
           <button
             onClick={handlePlaceOrder}
             disabled={pending || blockedItems.length > 0}
-            className="h-12 shrink-0 rounded-full bg-blue-700 px-8 text-sm font-extrabold text-white shadow-lg shadow-blue-700/25 transition hover:bg-blue-800 active:scale-95 disabled:opacity-50"
+            className="h-12 shrink-0 rounded-full bg-brand-700 px-8 text-sm font-extrabold text-white shadow-lg shadow-brand-700/25 transition hover:bg-brand-800 active:scale-95 disabled:opacity-50"
           >
             {pending ? t("checkout.placing_order") : t("checkout.place_order")}
           </button>

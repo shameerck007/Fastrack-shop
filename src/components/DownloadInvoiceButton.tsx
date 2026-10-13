@@ -53,7 +53,7 @@ export default function DownloadInvoiceButton({
           type="button"
           onClick={download}
           disabled={busy}
-          className="text-sm font-medium text-blue-700 hover:underline disabled:opacity-60"
+          className="text-sm font-medium text-brand-700 hover:underline disabled:opacity-60"
         >
           {busy ? t("orders.preparing_invoice") : t("orders.invoice")}
         </button>
@@ -68,7 +68,7 @@ export default function DownloadInvoiceButton({
         type="button"
         onClick={download}
         disabled={busy}
-        className="inline-flex h-9 items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 text-sm font-medium text-blue-700 shadow-sm transition hover:bg-blue-100 disabled:opacity-60"
+        className="inline-flex h-9 items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-4 text-sm font-medium text-brand-700 shadow-sm transition hover:bg-brand-100 disabled:opacity-60"
       >
         {busy ? t("orders.preparing_invoice") : `📄 ${t("orders.download_invoice")}`}
       </button>

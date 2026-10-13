@@ -103,7 +103,7 @@ export default function ExcelStarters({ categories }: { categories: CategoryOpti
         <span className="text-2xl" aria-hidden>📚</span>
         <h3 className="mt-2 text-sm font-semibold text-neutral-900">Add products from the FasTrack catalog</h3>
         <p className="mt-1 flex-1 text-sm text-neutral-500">Search the catalog, tick the products you sell, and get a sheet already filled with their barcodes. You only add price and stock.</p>
-        <button onClick={() => setOpen((v) => !v)} className="mt-4 h-11 self-start rounded-full bg-blue-700 px-5 text-sm font-bold text-white transition hover:bg-blue-800">
+        <button onClick={() => setOpen((v) => !v)} className="mt-4 h-11 self-start rounded-full bg-brand-700 px-5 text-sm font-bold text-white transition hover:bg-brand-800">
           {open ? "Close the catalog" : "Find catalog products"}
         </button>
       </div>
@@ -121,7 +121,7 @@ export default function ExcelStarters({ categories }: { categories: CategoryOpti
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Name, brand or barcode"
-              className="min-h-[2.75rem] flex-1 rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="min-h-[2.75rem] flex-1 rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
             <select value={cat} onChange={(e) => setCat(e.target.value)} className="min-h-[2.75rem] rounded-xl border border-neutral-300 bg-white px-3 text-sm">
               <option value="">All categories</option>
@@ -131,7 +131,7 @@ export default function ExcelStarters({ categories }: { categories: CategoryOpti
                 </option>
               ))}
             </select>
-            <button type="submit" disabled={loading} className="h-11 rounded-full bg-blue-700 px-6 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50">
+            <button type="submit" disabled={loading} className="h-11 rounded-full bg-brand-700 px-6 text-sm font-bold text-white hover:bg-brand-800 disabled:opacity-50">
               {loading ? "Searching…" : "Search"}
             </button>
           </form>
@@ -149,7 +149,7 @@ export default function ExcelStarters({ categories }: { categories: CategoryOpti
                   return (
                     <li key={it.id}>
                       <label className={`flex items-center gap-3 py-2.5 ${ok ? "cursor-pointer" : "opacity-50"}`}>
-                        <input type="checkbox" disabled={!ok || (!on && picked.size >= MAX_PICK)} checked={on} onChange={() => toggle(it)} className="h-4 w-4 shrink-0 accent-blue-700" />
+                        <input type="checkbox" disabled={!ok || (!on && picked.size >= MAX_PICK)} checked={on} onChange={() => toggle(it)} className="h-4 w-4 shrink-0 accent-brand-700" />
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         {it.imageUrl ? <img src={it.imageUrl} alt="" className="h-10 w-10 shrink-0 rounded-lg bg-neutral-50 object-contain" /> : <span className="h-10 w-10 shrink-0 rounded-lg bg-neutral-100" />}
                         <span className="min-w-0 flex-1">
@@ -164,7 +164,7 @@ export default function ExcelStarters({ categories }: { categories: CategoryOpti
                     </li>
                   );
                 })}
-                {items.length === 0 && <li className="py-6 text-center text-sm text-neutral-400">Nothing found. Try another word or a barcode.</li>}
+                {items.length === 0 && <li className="py-6 text-center text-sm text-neutral-500">Nothing found. Try another word or a barcode.</li>}
               </ul>
               {pages > 1 && (
                 <div className="mt-2 flex items-center justify-between">
@@ -184,7 +184,7 @@ export default function ExcelStarters({ categories }: { categories: CategoryOpti
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-neutral-50 px-4 py-3">
             <p className="text-sm text-neutral-700">
-              <b>{picked.size}</b> selected <span className="text-neutral-400">(up to {MAX_PICK})</span>
+              <b>{picked.size}</b> selected <span className="text-neutral-500">(up to {MAX_PICK})</span>
             </p>
             <div className="flex gap-2">
               {picked.size > 0 && (
@@ -192,7 +192,7 @@ export default function ExcelStarters({ categories }: { categories: CategoryOpti
                   Clear
                 </button>
               )}
-              <button onClick={downloadPicked} disabled={picked.size === 0} className="h-10 rounded-full bg-blue-700 px-5 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-40">
+              <button onClick={downloadPicked} disabled={picked.size === 0} className="h-10 rounded-full bg-brand-700 px-5 text-sm font-bold text-white hover:bg-brand-800 disabled:opacity-40">
                 Download sheet for {picked.size || "…"} product{picked.size === 1 ? "" : "s"}
               </button>
             </div>

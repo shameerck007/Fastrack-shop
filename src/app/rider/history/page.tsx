@@ -49,11 +49,11 @@ export default async function RiderHistoryPage() {
                 <div className="text-end">
                   {earns ? (
                     <>
-                      <p className="text-lg font-extrabold text-blue-700">+{money(o.deliveryFee)}</p>
-                      <p className="text-[11px] text-neutral-400">your earning</p>
+                      <p className="text-lg font-extrabold text-brand-700">+{money(o.deliveryFee)}</p>
+                      <p className="text-[11px] text-neutral-500">your earning</p>
                     </>
                   ) : (
-                    <p className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-800">Delivered</p>
+                    <p className="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-bold text-brand-800">Delivered</p>
                   )}
                 </div>
               </div>
@@ -62,7 +62,7 @@ export default async function RiderHistoryPage() {
                 {o.cashCollected > 0 ? (
                   <span className="rounded-full bg-sky-100 px-2.5 py-1 text-sky-700">💵 Cash collected {money(o.cashCollected)}</span>
                 ) : (
-                  <span className="rounded-full bg-blue-100 px-2.5 py-1 text-blue-700">✓ Paid online</span>
+                  <span className="rounded-full bg-brand-100 px-2.5 py-1 text-brand-700">✓ Paid online</span>
                 )}
               </div>
             </li>

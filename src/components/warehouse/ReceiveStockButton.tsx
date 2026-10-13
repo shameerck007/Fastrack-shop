@@ -28,7 +28,7 @@ export default function ReceiveStockButton({ inventoryId }: { inventoryId: strin
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="shrink-0 rounded-full border border-blue-600 px-3 py-1 text-xs font-bold text-blue-700 hover:bg-blue-50">
+      <button type="button" onClick={() => setOpen(true)} className="shrink-0 rounded-full border border-brand-600 px-3 py-1 text-xs font-bold text-brand-700 hover:bg-brand-50">
         + Receive
       </button>
       {open && (

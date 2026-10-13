@@ -83,7 +83,7 @@ export default function AddToCartForm({
                 disabled={!variantInStock}
                 className={`rounded-full border px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-40 ${
                   variantId === v.id
-                    ? "border-blue-600 bg-blue-50 text-blue-700"
+                    ? "border-brand-600 bg-brand-50 text-brand-700"
                     : "border-neutral-300 text-neutral-600"
                 }`}
               >
@@ -98,7 +98,7 @@ export default function AddToCartForm({
         <button
           type="button"
           onClick={openPicker}
-          className="flex w-full items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2.5 text-start text-sm font-medium text-blue-800 transition hover:bg-blue-100"
+          className="flex w-full items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2.5 text-start text-sm font-medium text-brand-800 transition hover:bg-brand-100"
         >
           <span aria-hidden>📍</span>
           <span className="flex-1">{t("product.choose_delivery_location")}</span>
@@ -129,7 +129,7 @@ export default function AddToCartForm({
             <button
               onClick={handleAdd}
               disabled={pending || needsLocation}
-              className="w-full flex-1 whitespace-nowrap rounded-full bg-blue-700 px-6 py-3 font-bold text-white hover:bg-blue-800 disabled:opacity-50 md:py-2 md:font-medium"
+              className="w-full flex-1 whitespace-nowrap rounded-full bg-brand-700 px-6 py-3 font-bold text-white hover:bg-brand-800 disabled:opacity-50 md:py-2 md:font-medium"
             >
               {pending ? t("product.adding") : t("product.add_to_cart")}
             </button>

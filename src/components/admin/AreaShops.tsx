@@ -9,6 +9,7 @@ import LocationPicker from "@/components/LocationPicker";
 import Select from "@/components/ui/Select";
 import { Field, inputClass, primaryButton, secondaryButton } from "@/components/ui/Form";
 import { setWarehouseExpressOverride, setWarehouseLocation } from "@/lib/actions/admin-areas";
+import { BRAND } from "@/lib/brand";
 
 export interface AreaShopRow {
   id: string;
@@ -31,7 +32,7 @@ export function shopStatus(r: AreaShopRow): { label: string; tone: string } {
   if (r.lat == null || r.lng == null) return { label: "Not live: set the GPS pin", tone: "bg-amber-50 text-amber-800" };
   if (r.expressOn && r.standardOn) return { label: "Express in zone + Standard", tone: "bg-emerald-50 text-emerald-800" };
   if (r.expressOn) return { label: "Express in zone", tone: "bg-emerald-50 text-emerald-800" };
-  if (r.standardOn) return { label: r.areaName ? "Standard only" : "Standard only (outside every area)", tone: "bg-blue-50 text-blue-800" };
+  if (r.standardOn) return { label: r.areaName ? "Standard only" : "Standard only (outside every area)", tone: "bg-brand-50 text-brand-800" };
   return { label: "Not delivering", tone: "bg-neutral-100 text-neutral-500" };
 }
 
@@ -55,12 +56,12 @@ export default function AreaShops({ rows }: { rows: AreaShopRow[] }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="🔍 Search shops…"
-          className="h-10 w-full max-w-xs rounded-full border border-neutral-300 px-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 sm:w-64"
+          className="h-10 w-full max-w-xs rounded-full border border-neutral-300 px-4 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 sm:w-64"
         />
       </div>
 
       {shown.length === 0 ? (
-        <p className="p-8 text-center text-sm text-neutral-400">Nothing matches.</p>
+        <p className="p-8 text-center text-sm text-neutral-500">Nothing matches.</p>
       ) : (
         <ul className="divide-y divide-neutral-100">
           {shown.map((r) => {
@@ -79,7 +80,7 @@ export default function AreaShops({ rows }: { rows: AreaShopRow[] }) {
                 <div className="flex items-center gap-1.5 text-xs">
                   {r.areaName ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-1 font-semibold text-neutral-700">
-                      <span className="h-2 w-2 rounded-full" style={{ background: r.areaColor ?? "#2563eb" }} />
+                      <span className="h-2 w-2 rounded-full" style={{ background: r.areaColor ?? BRAND[600] }} />
                       {r.areaName}
                     </span>
                   ) : r.lat != null ? (
@@ -136,7 +137,7 @@ export function PinModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose:
       <div className="flex flex-col gap-4">
         <p className="text-sm text-neutral-600">Search for the shop, use your current location, or tap the map. The delivery area and times are worked out from this pin.</p>
         <LocationPicker lat={pos?.lat ?? null} lng={pos?.lng ?? null} onChange={(lat, lng) => setPos({ lat, lng })} />
-        {error && <p className="text-sm font-medium text-blue-900">{error}</p>}
+        {error && <p className="text-sm font-medium text-brand-900">{error}</p>}
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className={secondaryButton}>
             Cancel
@@ -177,7 +178,7 @@ export function RuleModal({ row, onClose, onSaved }: { row: AreaShopRow; onClose
             <option value="off">Off for this shop (Standard only)</option>
           </Select>
         </Field>
-        {error && <p className="text-sm font-medium text-blue-900">{error}</p>}
+        {error && <p className="text-sm font-medium text-brand-900">{error}</p>}
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className={secondaryButton}>
             Cancel

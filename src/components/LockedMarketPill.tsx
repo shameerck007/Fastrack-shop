@@ -11,7 +11,7 @@ export default function LockedMarketPill({ tenant }: { tenant: Tenant }) {
     <details className="group relative shrink-0">
       <summary
         aria-label="Country locked"
-        className="flex cursor-pointer list-none items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1.5 text-sm font-semibold text-blue-800 hover:bg-blue-100 [&::-webkit-details-marker]:hidden"
+        className="flex cursor-pointer list-none items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1.5 text-sm font-semibold text-brand-800 hover:bg-brand-100 [&::-webkit-details-marker]:hidden"
       >
         <Flag code={tenant.country_code} className="h-4 w-[22px]" />
         <span className="hidden lg:inline">{country.name}</span>

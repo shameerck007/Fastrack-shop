@@ -84,7 +84,7 @@ export function SoldBy({ storeId, linked = false, className = "" }: { storeId: s
     </>
   );
   return linked ? (
-    <Link href={`/store/${store.id}`} className={`inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-neutral-600 hover:text-blue-700 ${className}`} aria-label={`${t("store.sold_by")} ${store.name}`}>
+    <Link href={`/store/${store.id}`} className={`inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-neutral-600 hover:text-brand-700 ${className}`} aria-label={`${t("store.sold_by")} ${store.name}`}>
       {content}
     </Link>
   ) : (
