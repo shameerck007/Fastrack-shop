@@ -2,8 +2,9 @@ import { buildXlsx, excelSerialToDate, readXlsx } from "@/lib/xlsx-lite";
 
 /** The columns of the product sheet. The header row of the template uses the key names, so a file can be matched column by column. */
 export const PRODUCT_COLUMNS: { key: string; required: string; what: string; example: string; width: number }[] = [
-  { key: "sku", required: "Always", what: "Your own product code. Rows with the same sku are the packs of one product.", example: "EXAMPLE-RICE", width: 16 },
-  { key: "name", required: "New products", what: "Product name.", example: "Basmati Rice", width: 28 },
+  { key: "sku", required: "sku or barcode", what: "Your own product code. Rows with the same sku are the packs of one product.", example: "EXAMPLE-RICE", width: 16 },
+  { key: "barcode", required: "sku or barcode", what: "The EAN or UPC barcode (8 to 14 digits). If FasTrack's catalog has it, you sell that catalog product and only price and stock are yours to set. Format the column as Text.", example: "", width: 16 },
+  { key: "name", required: "New products not in the catalog", what: "Product name.", example: "Basmati Rice", width: 28 },
   { key: "name_ar", required: "No", what: "Arabic name.", example: "", width: 22 },
   { key: "brand", required: "No", what: "Brand.", example: "Royal", width: 16 },
   { key: "category", required: "New products", what: "A category name or slug from the shop, for example Grocery or grocery.", example: "grocery", width: 16 },

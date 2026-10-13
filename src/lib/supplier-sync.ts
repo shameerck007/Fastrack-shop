@@ -15,6 +15,7 @@ export interface SyncStore {
 /** One pack of one product. Rows are matched to a product by sku and to a pack by variant_label. */
 export interface SyncRow {
   sku?: unknown;
+  barcode?: unknown;
   name?: unknown;
   name_ar?: unknown;
   brand?: unknown;
@@ -37,9 +38,13 @@ export interface SyncResult {
   sku: string;
   status: "created" | "updated" | "unchanged" | "error";
   error?: string;
+  /** For example which catalog product a barcode matched. */
+  note?: string;
 }
 
 export const MAX_ROWS_PER_CALL = 100;
+
+const PRODUCT_SELECT = "id, sku, master_id, product_variants(id, label, is_default, master_variant_id, price, compare_at_price, compare_at_until, inventory(id, stock, warehouse_id))";
 
 // products.sku is unique across the whole marketplace, so a supplier's own sku is stored with a short store prefix.
 // Products added by hand in the portal keep their plain sku, so lookups try both.
@@ -72,7 +77,8 @@ const bool = (v: unknown): boolean | null => {
 };
 
 interface Clean {
-  sku: string;
+  sku: string | null;
+  barcode: string | null;
   name: string | null;
   nameAr: string | null;
   brand: string | null;
@@ -92,7 +98,13 @@ interface Clean {
 
 function clean(r: SyncRow): Clean | string {
   const sku = text(r.sku, 64);
-  if (!sku) return "sku is required";
+  let barcode = text(r.barcode, 40);
+  if (barcode) {
+    if (/^\d(\.\d+)?e\+?\d+$/i.test(barcode)) return "barcode was shortened by Excel (like 6.28E+12). Format the barcode column as Text and enter it again.";
+    barcode = barcode.replace(/[\s-]/g, "");
+    if (!/^\d{8,14}$/.test(barcode)) return "barcode must be 8 to 14 digits (EAN or UPC)";
+  }
+  if (!sku && !barcode) return "sku or barcode is required";
   const price = num(r.price);
   const compareAt = num(r.compare_at_price);
   const stock = num(r.stock);
@@ -115,6 +127,7 @@ function clean(r: SyncRow): Clean | string {
   }
   return {
     sku,
+    barcode,
     name: text(r.name, 200),
     nameAr: text(r.name_ar, 200),
     brand: text(r.brand, 100),
@@ -147,32 +160,105 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
   }
 
   const cleaned = rows.map((r) => clean(r));
-  const skus = [...new Set(cleaned.filter((c): c is Clean => typeof c !== "string").map((c) => c.sku))];
+  const okRows = cleaned.filter((c): c is Clean => typeof c !== "string");
+  const skus = [...new Set(okRows.map((c) => c.sku).filter((x): x is string => !!x))];
   const lookup = skus.flatMap((s) => [s, storedSku(store.id, s)]);
   const { data: existing } = lookup.length
     ? await db
         .from("products")
-        .select("id, sku, master_id, product_variants(id, label, is_default, price, compare_at_price, compare_at_until, inventory(id, stock, warehouse_id))")
+        .select(PRODUCT_SELECT)
         .eq("store_id", store.id)
         .in("sku", lookup)
     : { data: [] };
   const bySku = new Map<string, any>();
   for (const p of (existing ?? []) as any[]) bySku.set(publicSku(store.id, p.sku) as string, p);
 
+  // Barcodes: match to the shared catalog (a pack barcode or a product barcode), and to products this store already sells from it.
+  const codes = [...new Set(okRows.map((c) => c.barcode).filter((x): x is string => !!x))];
+  const masterByCode = new Map<string, { master: any; variantId: string | null }>();
+  const byMaster = new Map<string, any>();
+  if (codes.length) {
+    const { data: mvs } = await db.from("master_variants").select("id, master_id, barcode").eq("tenant_id", store.tenant_id).in("barcode", codes);
+    const { data: mps } = await db.from("master_products").select("id, barcode").eq("tenant_id", store.tenant_id).eq("status", "approved").in("barcode", codes);
+    const ids = [...new Set([...(mvs ?? []).map((m: any) => m.master_id), ...(mps ?? []).map((m: any) => m.id)])];
+    if (ids.length) {
+      const { data: ms } = await db
+        .from("master_products")
+        .select("id, name, name_ar, brand, brand_ar, description, description_ar, category_id, image_url, barcode, hsn_code, tax_rate, master_variants(id, label, label_ar, unit, quantity, is_default)")
+        .in("id", ids)
+        .eq("status", "approved");
+      const masters = new Map<string, any>((ms ?? []).map((m: any) => [m.id, m]));
+      for (const m of (mps ?? []) as any[]) if (masters.has(m.id)) masterByCode.set(m.barcode, { master: masters.get(m.id), variantId: null });
+      for (const m of (mvs ?? []) as any[]) if (masters.has(m.master_id) && !masterByCode.has(m.barcode)) masterByCode.set(m.barcode, { master: masters.get(m.master_id), variantId: m.id });
+      const { data: mine } = await db.from("products").select(PRODUCT_SELECT).eq("store_id", store.id).in("master_id", [...masters.keys()]);
+      for (const p of (mine ?? []) as any[]) byMaster.set(p.master_id, p);
+    }
+  }
+
   for (let i = 0; i < rows.length; i++) {
     const c = cleaned[i];
-    const rawSku = text(rows[i].sku, 64) ?? "";
+    const rawSku = text(rows[i].sku, 64) ?? text(rows[i].barcode, 40) ?? "";
     if (typeof c === "string") {
       results.push({ index: i, sku: rawSku, status: "error", error: c });
       continue;
     }
     try {
-      let product = bySku.get(c.sku);
+      const match = c.barcode ? masterByCode.get(c.barcode) : undefined;
+      const master = match?.master;
+      const shown = c.sku ?? c.barcode ?? "";
+      const note = master ? `Matched catalog: ${master.name}` : undefined;
+      const wanted = c.label?.toLowerCase();
+      // Decided before anything is saved, so a wrong pack name never leaves a half-made product.
+      // With a catalog barcode the pack is a catalog pack: the barcode of a pack, else the pack named by variant_label, else the default.
+      let masterPack: any = null;
+      if (master) {
+        const packs: any[] = master.master_variants ?? [];
+        masterPack = match?.variantId
+          ? packs.find((x) => x.id === match.variantId)
+          : wanted
+            ? packs.find((x) => String(x.label).toLowerCase() === wanted)
+            : packs.find((x) => x.is_default) ?? packs[0];
+        if (!masterPack) throw new Error(`The catalog product has the packs: ${packs.map((x) => x.label).join(", ")}. Use one of them as variant_label.`);
+      }
+      let product = (c.sku ? bySku.get(c.sku) : undefined) ?? (master ? byMaster.get(master.id) : undefined);
       let touched = false;
       let created = false;
 
-      if (!product) {
-        if (!opts.createMissing) throw new Error("No product with this sku. Create it first, or use the products endpoint.");
+      if (!product && master) {
+        // The barcode is in the shared catalog: sell that product (shared name, photo, category and tax); the supplier sets price and stock.
+        if (!opts.createMissing) throw new Error(`This barcode is the catalog product "${master.name}", which is not in your store yet.`);
+        if (c.price === null) throw new Error("price is required to start selling a catalog product");
+        if (c.stock === null) throw new Error("stock is required to start selling a catalog product");
+        const { data: p, error: pe } = await db
+          .from("products")
+          .insert({
+            tenant_id: store.tenant_id,
+            store_id: store.id,
+            master_id: master.id,
+            category_id: master.category_id,
+            sku: c.sku ? storedSku(store.id, c.sku) : null,
+            name: master.name,
+            name_ar: master.name_ar,
+            brand: master.brand,
+            brand_ar: master.brand_ar,
+            description: master.description,
+            description_ar: master.description_ar,
+            image_url: master.image_url,
+            barcode: master.barcode,
+            tax_rate: master.tax_rate,
+            hsn_code: master.hsn_code,
+            is_active: c.active ?? true,
+          })
+          .select("id, sku, master_id")
+          .single();
+        if (pe) throw pe;
+        product = { ...p, product_variants: [] };
+        byMaster.set(master.id, product);
+        if (c.sku) bySku.set(c.sku, product);
+        created = true;
+      } else if (!product) {
+        if (!opts.createMissing) throw new Error("No product with this sku or barcode. Create it first, or use the products endpoint.");
+        if (!c.sku) throw new Error("No catalog product has this barcode. To add it as a new product, also send a sku and the product details.");
         if (!c.name) throw new Error("name is required for a new product");
         if (!c.category) throw new Error("category is required for a new product");
         const categoryId = catByKey.get(c.category.toLowerCase());
@@ -186,6 +272,7 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
             store_id: store.id,
             category_id: categoryId,
             sku: storedSku(store.id, c.sku),
+            barcode: c.barcode,
             name: c.name,
             name_ar: c.nameAr,
             brand: c.brand,
@@ -227,12 +314,13 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
       }
 
       const variants: any[] = product.product_variants ?? [];
-      const wanted = c.label?.toLowerCase();
-      const variant = wanted
-        ? variants.find((v) => String(v.label).toLowerCase() === wanted)
-        : variants.length === 1
-          ? variants[0]
-          : variants.find((v) => v.is_default);
+      const variant = masterPack
+        ? variants.find((v) => v.master_variant_id === masterPack.id)
+        : wanted
+          ? variants.find((v) => String(v.label).toLowerCase() === wanted)
+          : variants.length === 1
+            ? variants[0]
+            : variants.find((v) => v.is_default);
 
       if (!variant) {
         if (!created && !opts.createMissing) throw new Error(`No pack "${c.label ?? ""}" on this product.`);
@@ -243,9 +331,11 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
           .insert({
             tenant_id: store.tenant_id,
             product_id: product.id,
-            label: c.label ?? "1 unit",
-            unit: c.unit ?? "unit",
-            quantity: c.quantity ?? 1,
+            master_variant_id: masterPack?.id ?? null,
+            label: masterPack ? masterPack.label : c.label ?? "1 unit",
+            label_ar: masterPack ? masterPack.label_ar : null,
+            unit: masterPack ? masterPack.unit : c.unit ?? "unit",
+            quantity: masterPack ? masterPack.quantity : c.quantity ?? 1,
             price: c.price,
             compare_at_price: c.compareAt,
             compare_at_until: c.compareAt !== null ? c.compareAtUntil : null,
@@ -256,7 +346,7 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
         if (ve) throw ve;
         const { error: ie } = await db.from("inventory").insert({ tenant_id: store.tenant_id, variant_id: v.id, warehouse_id: store.warehouse_id, stock: c.stock });
         if (ie) throw ie;
-        results.push({ index: i, sku: c.sku, status: created ? "created" : "updated" });
+        results.push({ index: i, sku: shown, status: created ? "created" : "updated", note });
         continue;
       }
 
@@ -269,8 +359,9 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
         vPatch.compare_at_price = c.compareAt;
         vPatch.compare_at_until = c.compareAtUntil;
       }
-      if (c.unit) vPatch.unit = c.unit;
-      if (c.quantity !== null) vPatch.quantity = c.quantity;
+      // A catalog product's pack size belongs to the catalog.
+      if (!product.master_id && c.unit) vPatch.unit = c.unit;
+      if (!product.master_id && c.quantity !== null) vPatch.quantity = c.quantity;
       if (Object.keys(vPatch).length) {
         const { error } = await db.from("product_variants").update(vPatch).eq("id", variant.id);
         if (error) throw error;
@@ -292,10 +383,10 @@ export async function syncProducts(store: SyncStore, rows: SyncRow[], opts: { cr
           touched = true;
         }
       }
-      results.push({ index: i, sku: c.sku, status: touched ? "updated" : "unchanged" });
+      results.push({ index: i, sku: shown, status: touched ? "updated" : "unchanged", note });
     } catch (e: any) {
       const msg = e?.message ?? "Could not save this row.";
-      results.push({ index: i, sku: c.sku, status: "error", error: /duplicate key|unique/i.test(msg) ? "This sku or pack already exists." : msg });
+      results.push({ index: i, sku: c.sku ?? c.barcode ?? "", status: "error", error: /duplicate key|unique/i.test(msg) ? "This sku or pack already exists." : msg });
     }
   }
   return results;
@@ -306,7 +397,7 @@ export async function listStoreProducts(store: SyncStore, page: number, size: nu
   const from = (page - 1) * size;
   const { data, count, error } = await db
     .from("products")
-    .select("id, sku, name, name_ar, brand, is_active, category:categories(name, slug), product_variants(id, label, unit, quantity, price, compare_at_price, compare_at_until, inventory(stock, warehouse_id))", { count: "exact" })
+    .select("id, sku, barcode, master_id, name, name_ar, brand, is_active, category:categories(name, slug), product_variants(id, label, unit, quantity, price, compare_at_price, compare_at_until, inventory(stock, warehouse_id))", { count: "exact" })
     .eq("store_id", store.id)
     .order("created_at", { ascending: false })
     .range(from, from + size - 1);
@@ -317,6 +408,8 @@ export async function listStoreProducts(store: SyncStore, page: number, size: nu
     size,
     products: (data ?? []).map((p: any) => ({
       sku: publicSku(store.id, p.sku),
+      barcode: p.barcode ?? null,
+      from_catalog: !!p.master_id,
       name: p.name,
       name_ar: p.name_ar,
       brand: p.brand,
@@ -369,4 +462,32 @@ export async function listStoreOrders(store: SyncStore, opts: { since?: string; 
     byOrder.set(r.order_id, o);
   }
   return [...byOrder.values()].slice(0, opts.limit);
+}
+
+/** Is this barcode in the shared catalog, and does the store already sell it? */
+export async function lookupCatalogBarcode(store: SyncStore, barcode: string) {
+  const db: any = createServiceClient();
+  const code = barcode.replace(/[\s-]/g, "");
+  if (!/^\d{8,14}$/.test(code)) return { error: "barcode must be 8 to 14 digits (EAN or UPC)" } as const;
+  const { data: mv } = await db.from("master_variants").select("master_id").eq("tenant_id", store.tenant_id).eq("barcode", code).limit(1);
+  const { data: mp } = await db.from("master_products").select("id").eq("tenant_id", store.tenant_id).eq("status", "approved").eq("barcode", code).limit(1);
+  const id = mp?.[0]?.id ?? mv?.[0]?.master_id;
+  if (!id) return { found: false } as const;
+  const { data: m } = await db
+    .from("master_products")
+    .select("id, name, name_ar, brand, image_url, master_variants(label, unit, quantity, barcode, is_default)")
+    .eq("id", id)
+    .eq("status", "approved")
+    .maybeSingle();
+  if (!m) return { found: false } as const;
+  const { data: mine } = await db.from("products").select("id").eq("store_id", store.id).eq("master_id", id).limit(1);
+  return {
+    found: true,
+    name: m.name,
+    name_ar: m.name_ar,
+    brand: m.brand,
+    image_url: m.image_url,
+    packs: (m.master_variants ?? []).map((v: any) => ({ variant_label: v.label, unit: v.unit, quantity: Number(v.quantity), barcode: v.barcode, default: v.is_default })),
+    you_sell: (mine ?? []).length > 0,
+  } as const;
 }

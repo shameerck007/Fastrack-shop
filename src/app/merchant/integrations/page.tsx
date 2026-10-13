@@ -12,6 +12,7 @@ const ENDPOINTS: [string, string, string][] = [
   ["GET", "/api/v1/products", "List your products with packs, prices and stock (page, size up to 100)."],
   ["POST", "/api/v1/products", "Create or update products. Up to 100 items per call."],
   ["PATCH", "/api/v1/inventory", "Update price and stock of products that already exist. Never creates."],
+  ["GET", "/api/v1/catalog", "Check if a barcode is in the FasTrack catalog (?barcode=…). If it is, you only send price and stock for it."],
   ["GET", "/api/v1/orders", "Orders that contain your items (since, status, limit)."],
 ];
 
@@ -35,6 +36,14 @@ curl -X POST -H "Authorization: Bearer ftk_YOUR_KEY" -H "Content-Type: applicati
 curl -X PATCH -H "Authorization: Bearer ftk_YOUR_KEY" -H "Content-Type: application/json" \\
   -d '{"items":[{"sku":"RICE-5KG","variant_label":"5 kg","stock":97,"price":46}]}' \\
   ${base}/api/v1/inventory
+
+# Is this barcode in the catalog?
+curl -H "Authorization: Bearer ftk_YOUR_KEY" "${base}/api/v1/catalog?barcode=3057640379048"
+
+# Sell a catalog product: just the barcode, your price and stock
+curl -X POST -H "Authorization: Bearer ftk_YOUR_KEY" -H "Content-Type: application/json" \
+  -d '{"items":[{"barcode":"3057640379048","price":6,"stock":20}]}' \
+  ${base}/api/v1/products
 
 # Orders that contain your items
 curl -H "Authorization: Bearer ftk_YOUR_KEY" "${base}/api/v1/orders?since=2026-01-01&status=confirmed"`;

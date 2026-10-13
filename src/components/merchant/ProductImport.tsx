@@ -60,6 +60,7 @@ export default function ProductImport() {
 
   const count = (s: SyncResult["status"]) => results?.filter((r) => r.result.status === s).length ?? 0;
   const problems = results?.filter((r) => r.result.status === "error") ?? [];
+  const matched = results?.filter((r) => r.result.note).length ?? 0;
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
@@ -76,7 +77,7 @@ export default function ProductImport() {
 
         <Step n={2} title="Fill it in and save it as .xlsx">
           <p className="text-sm text-neutral-600">
-            Required for a new product: <b>sku</b>, <b>name</b>, <b>category</b>, <b>price</b> and <b>stock</b>. Delete the two EXAMPLE rows or leave them, they are skipped.
+            Know the <b>barcode</b>? Fill in barcode, price and stock: if FasTrack&apos;s catalog has it, the name, photo and category come from the catalog. Otherwise give a <b>sku</b>, <b>name</b>, <b>category</b>, <b>price</b> and <b>stock</b>. The two EXAMPLE rows are skipped.
           </p>
         </Step>
 
@@ -139,6 +140,7 @@ export default function ProductImport() {
               </div>
             ))}
           </div>
+          {matched > 0 && <p className="mt-2 text-xs text-emerald-700">{matched} row{matched === 1 ? "" : "s"} matched products in the FasTrack catalog by barcode, so their name, photo and category came from the catalog.</p>}
           {note && <p className="mt-2 text-xs text-neutral-500">{note}</p>}
           {problems.length > 0 && (
             <div className="mt-3 max-h-64 overflow-auto rounded-xl border border-red-100">
