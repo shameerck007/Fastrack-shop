@@ -273,7 +273,7 @@ export function StackedBars({ items }: { items: { label: string; total: number; 
     <div>
       <div className="mb-3 flex flex-wrap gap-4 text-[11px] font-semibold text-neutral-500">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#60a5fa,#1d4ed8)" }} /> Paid to the supplier
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#2e92e8,#005fb0)" }} /> Paid to the supplier
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "linear-gradient(90deg,#fbbf24,#f59e0b)" }} /> FasTrack commission
@@ -292,8 +292,8 @@ export function StackedBars({ items }: { items: { label: string; total: number; 
                 </span>
               </div>
               <div className="h-3.5 w-full overflow-hidden rounded-full bg-neutral-200/70">
-                <div className="flex h-full overflow-hidden rounded-full" style={{ width: on ? `${Math.max(3, w)}%` : "0%", transition: `width 1.2s cubic-bezier(.2,.8,.2,1) ${i * 100}ms`, boxShadow: "0 4px 12px rgba(29,78,216,.22)" }}>
-                  <span style={{ width: `${100 - cw}%`, background: "linear-gradient(90deg,#60a5fa,#1d4ed8)" }} />
+                <div className="flex h-full overflow-hidden rounded-full" style={{ width: on ? `${Math.max(3, w)}%` : "0%", transition: `width 1.2s cubic-bezier(.2,.8,.2,1) ${i * 100}ms`, boxShadow: "0 4px 12px rgba(0,95,176,.22)" }}>
+                  <span style={{ width: `${100 - cw}%`, background: "linear-gradient(90deg,#2e92e8,#005fb0)" }} />
                   <span style={{ width: `${cw}%`, background: "linear-gradient(90deg,#fbbf24,#f59e0b)" }} />
                 </div>
               </div>

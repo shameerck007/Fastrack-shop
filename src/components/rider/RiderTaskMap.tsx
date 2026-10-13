@@ -12,10 +12,10 @@ interface Point {
 }
 
 function pin(emoji: string, tone: "blue" | "white", pulse = false) {
-  const bg = tone === "blue" ? "background:#1d4ed8;color:#fff" : "background:#fff;color:#111";
+  const bg = tone === "blue" ? "background:#005fb0;color:#fff" : "background:#fff;color:#111";
   return (
     `<div style="position:relative;width:40px;height:40px">` +
-    (pulse ? `<span style="position:absolute;inset:-6px;border-radius:9999px;background:rgba(37,99,235,.25);animation:ping 1.6s cubic-bezier(0,0,.2,1) infinite"></span>` : "") +
+    (pulse ? `<span style="position:absolute;inset:-6px;border-radius:9999px;background:rgba(0,112,208,.25);animation:ping 1.6s cubic-bezier(0,0,.2,1) infinite"></span>` : "") +
     `<div style="position:relative;width:40px;height:40px;border-radius:9999px;${bg};display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.25);border:3px solid #fff">${emoji}</div>` +
     `</div>`
   );

@@ -126,7 +126,7 @@ export function renderEmailShell(input: {
             <td style="background-color:#ffffff;padding:18px 32px;border-bottom:1px solid #eeeeee;">
               <table role="presentation" cellpadding="0" cellspacing="0"><tr>
                 <td><img src="${LOGO_URL}" alt="FasTrack" height="26" style="display:block;height:26px;width:auto;" /></td>
-                <td style="padding-left:10px;"><span style="display:inline-block;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#ffffff;background-color:#1d4ed8;padding:3px 9px;border-radius:4px;">Shop</span></td>
+                <td style="padding-left:10px;"><span style="display:inline-block;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:#ffffff;background-color:#005fb0;padding:3px 9px;border-radius:4px;">Shop</span></td>
               </tr></table>
             </td>
           </tr>
@@ -140,7 +140,7 @@ export function renderEmailShell(input: {
                 ctaUrl && ctaLabel
                   ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:24px;">
                       <tr>
-                        <td style="border-radius:24px;background-color:#1d4ed8;">
+                        <td style="border-radius:24px;background-color:#005fb0;">
                           <a href="${esc(ctaUrl)}" style="display:inline-block;padding:11px 26px;font-family:Arial,sans-serif;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:24px;">${esc(ctaLabel)}</a>
                         </td>
                       </tr>
@@ -153,9 +153,9 @@ export function renderEmailShell(input: {
             <td style="background-color:#f7f7f7;padding:20px 32px;border-top:1px solid #eeeeee;">
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="padding-right:16px;"><a href="${SITE_URL}/orders" style="font-family:Arial,sans-serif;font-size:12px;color:#1d4ed8;text-decoration:none;">Your Orders</a></td>
-                  <td style="padding-right:16px;"><a href="${SITE_URL}/account" style="font-family:Arial,sans-serif;font-size:12px;color:#1d4ed8;text-decoration:none;">Your Account</a></td>
-                  <td><a href="${SITE_URL}" style="font-family:Arial,sans-serif;font-size:12px;color:#1d4ed8;text-decoration:none;">Contact Us</a></td>
+                  <td style="padding-right:16px;"><a href="${SITE_URL}/orders" style="font-family:Arial,sans-serif;font-size:12px;color:#005fb0;text-decoration:none;">Your Orders</a></td>
+                  <td style="padding-right:16px;"><a href="${SITE_URL}/account" style="font-family:Arial,sans-serif;font-size:12px;color:#005fb0;text-decoration:none;">Your Account</a></td>
+                  <td><a href="${SITE_URL}" style="font-family:Arial,sans-serif;font-size:12px;color:#005fb0;text-decoration:none;">Contact Us</a></td>
                 </tr>
               </table>
               <p style="margin:12px 0 0;font-family:Arial,sans-serif;font-size:11px;color:#999999;">This is an automated message from FasTrack Shop. &copy; ${new Date().getFullYear()} FasTrack. All rights reserved.</p>

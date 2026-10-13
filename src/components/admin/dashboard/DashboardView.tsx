@@ -41,7 +41,7 @@ function Glass({ title, hint, children, className = "" }: { title?: string; hint
 /** A see-through panel: the colour behind it shows through, like frosted glass. */
 function Glassy({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="min-w-0 rounded-3xl border border-white/70 bg-white/40 p-4 shadow-[0_8px_32px_rgba(30,64,175,0.10)] backdrop-blur-md sm:p-5">
+    <section className="min-w-0 rounded-3xl border border-white/70 bg-white/40 p-4 shadow-[0_8px_32px_rgba(0,74,140,0.10)] backdrop-blur-md sm:p-5">
       <div className="mb-4">
         <h2 className="text-sm font-extrabold tracking-tight text-neutral-900">{title}</h2>
         {hint && <p className="mt-0.5 text-xs text-neutral-600">{hint}</p>}
@@ -180,7 +180,7 @@ export default function DashboardView({ data, days, money, t }: { data: Dashboar
         <Glass title="Operations health" hint="Live meters for the period" className="lg:col-span-7">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Gauge value={delivered} label="Delivered" caption={`${cur.delivered} of ${cur.placed - cur.cancelled} orders`} />
-            <Gauge value={loyalty} label="Loyalty" caption="Customers who came back" colors={["#93c5fd", "#3b82f6", BLUES[700]]} />
+            <Gauge value={loyalty} label="Loyalty" caption="Customers who came back" colors={["#93c5fd", "#0a7fdd", BLUES[700]]} />
             <Gauge value={express} label="Express share" caption="Orders delivered fast" colors={["#5eead4", "#14b8a6", "#0f766e"]} />
           </div>
         </Glass>

@@ -41,7 +41,7 @@ export default function NavProgress() {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-[3500] h-[3px]" style={{ marginTop: "env(safe-area-inset-top)" }}>
       <div
-        className={`h-full bg-brand-600 shadow-[0_0_8px_rgba(37,99,235,0.7)] ${state === "loading" ? "animate-[navbar_12s_cubic-bezier(0.1,0.7,0.2,1)_forwards]" : "w-full opacity-0 transition-all duration-300"}`}
+        className={`h-full bg-brand-600 shadow-[0_0_8px_rgba(0,112,208,0.7)] ${state === "loading" ? "animate-[navbar_12s_cubic-bezier(0.1,0.7,0.2,1)_forwards]" : "w-full opacity-0 transition-all duration-300"}`}
         style={state === "loading" ? undefined : { width: "100%" }}
       />
     </div>

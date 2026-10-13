@@ -229,7 +229,7 @@ export default async function RiderEarningsPage({ searchParams }: { searchParams
           )}
           <Row sign="−" label="Cash you collected" hint="Cash-on-delivery money you took from customers" amount={money(s.cashCollected)} width={pct(s.cashCollected)} color="#38bdf8" />
           <Row sign="+" label="Cash you handed in" hint="Deposits recorded by FasTrack" amount={money(s.cashDeposited)} width={pct(s.cashDeposited)} color="#0369a1" />
-          <Row sign="−" label="Payouts and advances you received" hint="Bank or cash payments from FasTrack" amount={money(s.paidOut)} width={pct(s.paidOut)} color="#1e3a8a" />
+          <Row sign="−" label="Payouts and advances you received" hint="Bank or cash payments from FasTrack" amount={money(s.paidOut)} width={pct(s.paidOut)} color="#003769" />
           {s.deductions > 0 && (
             <Row sign="−" label="Deductions" hint="Fines or other deductions recorded by FasTrack" amount={money(s.deductions)} width={pct(s.deductions)} color="#0c4a6e" />
           )}

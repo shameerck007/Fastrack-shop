@@ -98,8 +98,8 @@ function markerHtml(z: OverviewZone): { html: string; size: [number, number]; an
   if (hub) {
     return {
       html: `<div style="position:relative;width:46px;height:46px">
-        <span style="position:absolute;inset:-10px;border-radius:20px;background:rgba(37,99,235,.28);animation:ftpulse 2s ease-out infinite"></span>
-        <div style="position:relative;width:46px;height:46px;border-radius:16px;background:#fff;border:3px solid #1d4ed8;box-shadow:0 6px 16px rgba(29,78,216,.55);display:flex;align-items:center;justify-content:center;overflow:hidden"><img src="/icon-192.png" alt="FasTrack" style="width:100%;height:100%;object-fit:cover"/></div>
+        <span style="position:absolute;inset:-10px;border-radius:20px;background:rgba(0,112,208,.28);animation:ftpulse 2s ease-out infinite"></span>
+        <div style="position:relative;width:46px;height:46px;border-radius:16px;background:#fff;border:3px solid #005fb0;box-shadow:0 6px 16px rgba(0,95,176,.55);display:flex;align-items:center;justify-content:center;overflow:hidden"><img src="/icon-192.png" alt="FasTrack" style="width:100%;height:100%;object-fit:cover"/></div>
       </div>`,
       size: [46, 46],
       anchor: [23, 23],

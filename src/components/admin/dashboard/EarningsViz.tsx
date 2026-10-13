@@ -224,7 +224,7 @@ export function CumulativeMargin({ days }: { days: DayPoint[] }) {
         </defs>
         <line x1={pad.l} x2={W - pad.r} y1={y(0)} y2={y(0)} stroke="rgba(15,23,42,0.15)" strokeDasharray="4 4" />
         {days.map((d, i) => (
-          <rect key={d.date} x={x(i) - bw / 2} y={d.margin >= 0 ? H - pad.b - barH(d.margin) : H - pad.b} width={bw} height={Math.max(1.5, barH(d.margin))} rx="3" fill={d.margin >= 0 ? "rgba(37,99,235,0.28)" : "rgba(225,29,72,0.4)"} />
+          <rect key={d.date} x={x(i) - bw / 2} y={d.margin >= 0 ? H - pad.b - barH(d.margin) : H - pad.b} width={bw} height={Math.max(1.5, barH(d.margin))} rx="3" fill={d.margin >= 0 ? "rgba(0,112,208,0.28)" : "rgba(225,29,72,0.4)"} />
         ))}
         <g clipPath={`url(#c${id})`}>
           <path d={area} fill={`url(#a${id})`} />
@@ -302,7 +302,7 @@ export function OrderBullets({ rows, result, resultPrev }: { rows: BulletRow[]; 
                 style={{
                   [earn ? "left" : "right"]: "50%",
                   width: `${w}%`,
-                  background: earn ? "linear-gradient(90deg,#60a5fa,#1d4ed8)" : "linear-gradient(270deg,#fda4af,#e11d48)",
+                  background: earn ? "linear-gradient(90deg,#2e92e8,#005fb0)" : "linear-gradient(270deg,#fda4af,#e11d48)",
                   transition: "width 1.1s cubic-bezier(.2,.8,.2,1)",
                 }}
               />

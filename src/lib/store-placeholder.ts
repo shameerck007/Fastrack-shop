@@ -2,12 +2,12 @@
 // (derived from its name) and kept inside FasTrack's cool blue family.
 
 const PALETTES: { from: string; to: string; ring: string }[] = [
-  { from: "#2563eb", to: "#1e3a8a", ring: "#93c5fd" },
-  { from: "#0ea5e9", to: "#1d4ed8", ring: "#bae6fd" },
-  { from: "#4f46e5", to: "#1e40af", ring: "#c7d2fe" },
-  { from: "#0891b2", to: "#1e3a8a", ring: "#a5f3fc" },
-  { from: "#3b82f6", to: "#312e81", ring: "#bfdbfe" },
-  { from: "#0d9488", to: "#1d4ed8", ring: "#99f6e4" },
+  { from: "#0070d0", to: "#003769", ring: "#93c5fd" },
+  { from: "#0ea5e9", to: "#005fb0", ring: "#bae6fd" },
+  { from: "#4f46e5", to: "#004a8c", ring: "#c7d2fe" },
+  { from: "#0891b2", to: "#003769", ring: "#a5f3fc" },
+  { from: "#0a7fdd", to: "#312e81", ring: "#bfdbfe" },
+  { from: "#0d9488", to: "#005fb0", ring: "#99f6e4" },
 ];
 
 const EMOJIS = ["🛒", "🥬", "🍞", "🥛", "🍎", "🧃", "🥫", "🍫"];

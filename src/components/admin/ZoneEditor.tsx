@@ -89,7 +89,7 @@ export default function ZoneEditor({
       const circle = L.circle(start, {
         radius: radiusRef.current * 1000,
         color: BRAND[700],
-        fillColor: "#3b82f6",
+        fillColor: "#0a7fdd",
         fillOpacity: 0.18,
         weight: 2,
       }).addTo(map);

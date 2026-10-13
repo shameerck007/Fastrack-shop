@@ -57,7 +57,7 @@ export default function CategoryTile({ category, subs, parentOptions, counts }: 
         type="button"
         onClick={() => setOpen(true)}
         data-filter={[category.name, category.name_ar ?? "", ...subs.map((s) => `${s.name} ${s.name_ar ?? ""}`)].join(" ")}
-        className="group flex flex-col items-center gap-2 rounded-3xl border border-white/70 bg-white/45 p-4 text-center shadow-[0_6px_24px_rgba(30,64,175,0.08)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/70 hover:shadow-[0_12px_32px_rgba(30,64,175,0.16)]"
+        className="group flex flex-col items-center gap-2 rounded-3xl border border-white/70 bg-white/45 p-4 text-center shadow-[0_6px_24px_rgba(0,74,140,0.08)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/70 hover:shadow-[0_12px_32px_rgba(0,74,140,0.16)]"
       >
         <Look category={category} className="h-16 w-16 rounded-2xl text-4xl transition group-hover:scale-105" />
         <span className="w-full min-w-0">

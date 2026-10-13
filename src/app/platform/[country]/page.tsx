@@ -28,7 +28,7 @@ const STATUS_COLORS: Record<string, string> = {
   pending: "#bfdbfe",
   confirmed: "#93c5fd",
   preparing: BRAND[400],
-  ready_for_pickup: "#3b82f6",
+  ready_for_pickup: "#0a7fdd",
   rider_assigned: BRAND[600],
   out_for_delivery: BRAND[700],
   delivered: "#059669",

@@ -7,22 +7,21 @@
 }
 
 /* The brand palette. Every blue in the app is `brand-*` (bg-brand-700, text-brand-600, ...), so changing the brand colour
-   means changing these lines and nothing else. Today the scale equals Tailwind's blue, so nothing looks different yet.
-   The FasTrack logo is navy (#002050) and azure-to-cyan (#0070D0 to #00B0F0): moving the scale there is the planned re-skin.
+   means changing these lines and nothing else. The scale follows the FasTrack logo: azure (#0070D0) for the brand, deep navy (#002050) for the darkest step.
    The same values as plain hex live in src/lib/brand.ts for places CSS classes cannot reach (SVG, charts). */
 @theme {
-  --color-brand-50: oklch(97% 0.014 254.604);
-  --color-brand-100: oklch(93.2% 0.032 255.585);
-  --color-brand-200: oklch(88.2% 0.059 254.128);
-  --color-brand-300: oklch(80.9% 0.105 251.813);
-  --color-brand-400: oklch(70.7% 0.165 254.624);
-  --color-brand-500: oklch(62.3% 0.214 259.815);
-  --color-brand-600: oklch(54.6% 0.245 262.881);
-  --color-brand-700: oklch(48.8% 0.243 264.376);
-  --color-brand-800: oklch(42.4% 0.199 265.638);
-  --color-brand-900: oklch(37.9% 0.146 265.522);
-  --color-brand-950: oklch(28.2% 0.091 267.935);
-  /* Ink: the deep navy of the logo, for headings and the footer in the re-skin. */
+  --color-brand-50: #eaf4fe;
+  --color-brand-100: #d3e8fc;
+  --color-brand-200: #a9d2f8;
+  --color-brand-300: #6fb4f2;
+  --color-brand-400: #2e92e8;
+  --color-brand-500: #0a7fdd;
+  --color-brand-600: #0070d0; /* the logo's azure */
+  --color-brand-700: #005fb0; /* buttons and links (white on it: 6.4:1) */
+  --color-brand-800: #004a8c;
+  --color-brand-900: #003769;
+  --color-brand-950: #002050; /* the logo's navy */
+  /* Ink: the deep navy of the logo, for headings and the footer. */
   --color-ink: #002050;
 }
 

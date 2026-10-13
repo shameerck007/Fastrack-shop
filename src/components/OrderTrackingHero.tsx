@@ -43,10 +43,10 @@ const STEPS = [
 ] as const;
 
 function pin(emoji: string, tone: "blue" | "white", pulse = false) {
-  const bg = tone === "blue" ? "background:#1d4ed8;color:#fff" : "background:#fff;color:#111";
+  const bg = tone === "blue" ? "background:#005fb0;color:#fff" : "background:#fff;color:#111";
   return (
     `<div style="position:relative;width:40px;height:40px">` +
-    (pulse ? `<span style="position:absolute;inset:-6px;border-radius:9999px;background:rgba(37,99,235,.25);animation:ping 1.6s cubic-bezier(0,0,.2,1) infinite"></span>` : "") +
+    (pulse ? `<span style="position:absolute;inset:-6px;border-radius:9999px;background:rgba(0,112,208,.25);animation:ping 1.6s cubic-bezier(0,0,.2,1) infinite"></span>` : "") +
     `<div style="position:relative;width:40px;height:40px;border-radius:9999px;${bg};display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.25);border:3px solid #fff">${emoji}</div>` +
     `</div>`
   );
@@ -56,8 +56,8 @@ function pin(emoji: string, tone: "blue" | "white", pulse = false) {
 function riderPin() {
   return (
     `<div style="position:relative;width:44px;height:44px">` +
-    `<span style="position:absolute;inset:-8px;border-radius:9999px;background:rgba(37,99,235,.28);animation:ping 1.8s cubic-bezier(0,0,.2,1) infinite"></span>` +
-    `<div style="position:relative;width:44px;height:44px;border-radius:9999px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(29,78,216,.45);border:3px solid #fff">` +
+    `<span style="position:absolute;inset:-8px;border-radius:9999px;background:rgba(0,112,208,.28);animation:ping 1.8s cubic-bezier(0,0,.2,1) infinite"></span>` +
+    `<div style="position:relative;width:44px;height:44px;border-radius:9999px;background:linear-gradient(135deg,#0070d0,#005fb0);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,95,176,.45);border:3px solid #fff">` +
     `<span class="ft-rider" style="display:inline-block;font-size:22px;line-height:1;transition:transform .35s ease">🛵</span></div>` +
     `</div>`
   );

@@ -136,7 +136,7 @@ export function OrderClock({ cells }: { cells: [number, number, number][] }) {
             {byDay.map((n, i) => (
               <div key={DAYS[i]} className="flex h-full flex-1 flex-col items-center justify-end gap-1" title={`${DAYS[i]}: ${n} orders`}>
                 <div className="relative w-full flex-1">
-                  <div className="absolute inset-x-0 bottom-0 rounded-t-lg" style={{ height: on ? `${Math.max(6, (n / maxD) * 100)}%` : "0%", background: i === peakDay ? "linear-gradient(to top, #1e40af, #2563eb)" : "linear-gradient(to top, #93c5fd55, #93c5fd)", transition: `height 1s cubic-bezier(.2,.8,.2,1) ${i * 70}ms` }} />
+                  <div className="absolute inset-x-0 bottom-0 rounded-t-lg" style={{ height: on ? `${Math.max(6, (n / maxD) * 100)}%` : "0%", background: i === peakDay ? "linear-gradient(to top, #004a8c, #0070d0)" : "linear-gradient(to top, #93c5fd55, #93c5fd)", transition: `height 1s cubic-bezier(.2,.8,.2,1) ${i * 70}ms` }} />
                 </div>
                 <span className={`text-[10px] font-semibold ${i === peakDay ? "text-brand-700" : "text-neutral-500"}`}>{DAYS[i]}</span>
               </div>
