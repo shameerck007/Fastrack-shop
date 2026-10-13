@@ -1,44 +1,181 @@
-export default function HomeHero({
-  eyebrow,
-  title,
-  subtitle,
-  chips,
-  cta,
-}: {
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+export interface HeroImage {
+  src: string;
+  alt: string;
+}
+
+export interface HeroSlide {
+  id: string;
+  theme: "blue" | "green" | "orange" | "teal";
   eyebrow: string;
   title: string;
   subtitle: string;
-  chips: string[];
+  chips?: string[];
   cta: string;
-}) {
+  href: string;
+  /** Product photos for the collage. */
+  images: HeroImage[];
+  /** A big emoji drawn behind the collage (for example the scooter). */
+  art?: string;
+}
+
+export interface HeroTile {
+  id: string;
+  title: string;
+  cta: string;
+  href: string;
+  theme: "orange" | "green";
+  images: HeroImage[];
+}
+
+const THEME: Record<HeroSlide["theme"], { bg: string; eyebrow: string; title: string; chip: string; cta: string; blob1: string; blob2: string }> = {
+  blue: { bg: "from-blue-50 via-blue-100 to-blue-200", eyebrow: "text-blue-700", title: "text-blue-950", chip: "text-blue-800", cta: "bg-blue-700 hover:bg-blue-800", blob1: "bg-blue-300/50", blob2: "bg-white/60" },
+  green: { bg: "from-emerald-50 via-emerald-100 to-lime-200", eyebrow: "text-emerald-700", title: "text-emerald-950", chip: "text-emerald-800", cta: "bg-emerald-700 hover:bg-emerald-800", blob1: "bg-emerald-300/50", blob2: "bg-white/60" },
+  orange: { bg: "from-amber-50 via-orange-100 to-rose-200", eyebrow: "text-orange-700", title: "text-rose-950", chip: "text-orange-800", cta: "bg-rose-600 hover:bg-rose-700", blob1: "bg-orange-300/50", blob2: "bg-white/60" },
+  teal: { bg: "from-cyan-50 via-teal-100 to-sky-200", eyebrow: "text-teal-700", title: "text-teal-950", chip: "text-teal-800", cta: "bg-teal-700 hover:bg-teal-800", blob1: "bg-teal-300/50", blob2: "bg-white/60" },
+};
+
+const TILT = ["-rotate-3", "rotate-3", "rotate-2", "-rotate-2"];
+
+/** Up to four tiles in a neat staggered 2 x 2: photos, with the slide's big emoji as one tile when it has one. */
+function Collage({ images, art }: { images: HeroImage[]; art?: string }) {
+  const tiles: ({ kind: "img"; img: HeroImage } | { kind: "art"; art: string })[] = images.slice(0, art ? 3 : 4).map((img) => ({ kind: "img" as const, img }));
+  if (art) tiles.splice(Math.min(1, tiles.length), 0, { kind: "art", art });
   return (
-    <section className="relative mb-5 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 px-4 py-4 text-neutral-900 shadow-sm ring-1 ring-blue-100 sm:px-8 sm:py-9">
-      <span aria-hidden className="absolute -end-10 -top-12 h-44 w-44 rounded-full bg-blue-300/50" />
-      <span aria-hidden className="absolute -bottom-16 end-16 h-40 w-40 rounded-full bg-white/60" />
-      <span aria-hidden className="absolute end-4 top-5 text-5xl drop-shadow-md sm:end-14 sm:text-7xl">
-        🛵
+    <div aria-hidden className="pointer-events-none absolute end-3 top-1/2 grid -translate-y-1/2 grid-cols-2 gap-2.5 sm:end-8 sm:gap-4 lg:end-12">
+      {tiles.map((t, i) => {
+        const size = "h-[4.4rem] w-[4.4rem] sm:h-28 sm:w-28 lg:h-36 lg:w-36";
+        const pos = `${i % 2 === 1 ? "translate-y-4 sm:translate-y-6" : "-translate-y-1 sm:-translate-y-2"} ${TILT[i]}`;
+        return t.kind === "art" ? (
+          <span key="art" className={`flex items-center justify-center rounded-2xl border-4 border-white bg-white/70 text-4xl shadow-xl backdrop-blur sm:text-6xl lg:text-7xl ${size} ${pos}`}>
+            {t.art}
+          </span>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={t.img.src + i} src={t.img.src} alt="" loading={i === 0 ? "eager" : "lazy"} className={`rounded-2xl border-4 border-white bg-white object-cover shadow-xl ${size} ${pos}`} />
+        );
+      })}
+    </div>
+  );
+}
+
+function Slide({ s, active }: { s: HeroSlide; active: boolean }) {
+  const th = THEME[s.theme];
+  return (
+    <div className={`relative min-h-[230px] w-full shrink-0 snap-center overflow-hidden bg-gradient-to-br ${th.bg} px-5 py-6 sm:min-h-[300px] sm:px-10 sm:py-10`} aria-hidden={!active}>
+      <span aria-hidden className={`absolute -end-10 -top-14 h-52 w-52 rounded-full ${th.blob1}`} />
+      <span aria-hidden className={`absolute -bottom-20 end-1/3 h-44 w-44 rounded-full ${th.blob2}`} />
+      <Collage images={s.images} art={s.art} />
+
+      <div className="relative max-w-[49%] sm:max-w-[44%]">
+        <p className={`mb-1 text-[11px] font-bold uppercase tracking-wider sm:text-xs ${th.eyebrow}`}>{s.eyebrow}</p>
+        <h2 className={`text-[1.3rem] font-extrabold leading-[1.1] tracking-tight sm:text-4xl lg:text-[2.6rem] ${th.title}`}>{s.title}</h2>
+        <p className="mt-2 hidden text-sm text-neutral-700 sm:block sm:text-base">{s.subtitle}</p>
+        {s.chips && s.chips.length > 0 && (
+          <div className="mt-3 hidden flex-wrap gap-2 sm:flex">
+            {s.chips.map((c) => (
+              <span key={c} className={`rounded-full bg-white/90 px-3 py-1 text-xs font-semibold shadow-sm ${th.chip}`}>
+                {c}
+              </span>
+            ))}
+          </div>
+        )}
+        <a href={s.href} tabIndex={active ? 0 : -1} className={`mt-3 inline-flex h-10 items-center rounded-full px-5 text-sm font-bold text-white shadow-md transition active:scale-95 sm:mt-5 sm:h-11 sm:px-7 ${th.cta}`}>
+          {s.cta} <span aria-hidden className="ms-1.5 rtl:-scale-x-100">→</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function PromoTile({ t }: { t: HeroTile }) {
+  const orange = t.theme === "orange";
+  return (
+    <a href={t.href} className={`group relative flex min-h-[140px] flex-1 flex-col justify-between overflow-hidden rounded-3xl p-4 shadow-sm ring-1 transition hover:shadow-md ${orange ? "bg-gradient-to-br from-amber-50 to-orange-100 ring-orange-100" : "bg-gradient-to-br from-emerald-50 to-lime-100 ring-emerald-100"}`}>
+      <p className={`relative z-10 max-w-[60%] text-base font-extrabold leading-tight ${orange ? "text-rose-950" : "text-emerald-950"}`}>{t.title}</p>
+      <span className={`relative z-10 mt-2 inline-flex w-fit items-center text-xs font-bold ${orange ? "text-rose-700" : "text-emerald-700"}`}>
+        {t.cta} <span aria-hidden className="ms-1 transition group-hover:translate-x-0.5 rtl:-scale-x-100">→</span>
       </span>
+      <div aria-hidden className="absolute -end-2 top-3 grid w-[46%] grid-cols-2 gap-1.5">
+        {t.images.slice(0, 4).map((img, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={img.src + i} src={img.src} alt="" loading="lazy" className="aspect-square w-full rounded-xl border-2 border-white bg-white object-cover shadow" />
+        ))}
+      </div>
+    </a>
+  );
+}
 
-      <div className="relative max-w-[70%] sm:max-w-md">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-blue-700">{eyebrow}</p>
-        <h1 className="text-xl font-extrabold leading-tight text-blue-950 sm:text-4xl">{title}</h1>
-        <p className="mt-2 hidden text-sm text-neutral-600 sm:block sm:text-base">{subtitle}</p>
+/** The top of the shop home page: a carousel of graphic banners (auto-advancing, swipeable) and two promo tiles beside it on large screens. */
+export default function HomeHero({ slides, tiles }: { slides: HeroSlide[]; tiles: HeroTile[] }) {
+  const scroller = useRef<HTMLDivElement>(null);
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
-        <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
-          {chips.map((chip) => (
-            <span key={chip} className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-medium sm:px-3 sm:py-1 sm:text-xs text-blue-800 shadow-sm">
-              {chip}
-            </span>
+  const go = useCallback((i: number) => {
+    const el = scroller.current;
+    if (!el) return;
+    const n = (i + slides.length) % slides.length;
+    el.scrollTo({ left: n * el.clientWidth * (document.dir === "rtl" ? -1 : 1), behavior: "smooth" });
+    setIndex(n);
+  }, [slides.length]);
+
+  // Keep the dots in step when the shopper swipes.
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    let t: ReturnType<typeof setTimeout>;
+    const onScroll = () => {
+      clearTimeout(t);
+      t = setTimeout(() => setIndex(Math.round(Math.abs(el.scrollLeft) / Math.max(1, el.clientWidth))), 80);
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      clearTimeout(t);
+    };
+  }, []);
+
+  // Auto-advance, unless the shopper is touching or hovering, or prefers less motion.
+  useEffect(() => {
+    if (paused || slides.length < 2) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => go(index + 1), 5500);
+    return () => clearInterval(id);
+  }, [paused, index, go, slides.length]);
+
+  return (
+    <section className="mb-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_17rem]" aria-roledescription="carousel" aria-label="Featured offers">
+      <div className="relative overflow-hidden rounded-3xl shadow-sm ring-1 ring-black/5" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onTouchStart={() => setPaused(true)} onTouchEnd={() => setPaused(false)}>
+        <div ref={scroller} className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {slides.map((s, i) => (
+            <Slide key={s.id} s={s} active={i === index} />
           ))}
         </div>
 
-        <a
-          href="#offers"
-          className="mt-3 inline-block rounded-full bg-blue-700 px-5 py-2 text-sm sm:mt-5 sm:px-6 sm:py-2.5 font-bold text-white shadow-md transition hover:bg-blue-800 active:scale-95"
-        >
-          {cta}
-        </a>
+        {slides.length > 1 && (
+          <>
+            <button onClick={() => go(index - 1)} aria-label="Previous banner" className="absolute start-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg text-neutral-800 shadow-md transition hover:bg-white sm:flex rtl:rotate-180">
+              ‹
+            </button>
+            <button onClick={() => go(index + 1)} aria-label="Next banner" className="absolute end-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg text-neutral-800 shadow-md transition hover:bg-white sm:flex rtl:rotate-180">
+              ›
+            </button>
+            <div className="absolute inset-x-0 bottom-2.5 flex justify-center gap-1" role="tablist" aria-label="Choose a banner">
+              {slides.map((s, i) => (
+                <button key={s.id} role="tab" aria-selected={i === index} aria-label={`Banner ${i + 1}`} onClick={() => go(i)} className="flex h-6 items-center px-1">
+                  <span className={`block h-2 rounded-full transition-all ${i === index ? "w-6 bg-neutral-900/70" : "w-2 bg-neutral-900/25"}`} />
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
+
+      {tiles.length > 0 && <div className="hidden flex-col gap-4 lg:flex">{tiles.map((t) => <PromoTile key={t.id} t={t} />)}</div>}
     </section>
   );
 }
