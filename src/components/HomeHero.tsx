@@ -20,6 +20,8 @@ export interface HeroSlide {
   images: HeroImage[];
   /** A big emoji drawn behind the collage (for example the scooter). */
   art?: string;
+  /** One picture across the whole slide (admin banners). Replaces the collage. */
+  cover?: string;
 }
 
 export interface HeroTile {
@@ -68,12 +70,20 @@ function Slide({ s, active }: { s: HeroSlide; active: boolean }) {
     <div className={`relative min-h-[236px] w-full shrink-0 snap-center overflow-hidden bg-gradient-to-br ${th.bg} px-4 pb-10 pt-5 sm:min-h-[300px] sm:px-10 sm:py-10`} aria-hidden={!active}>
       <span aria-hidden className={`absolute -end-10 -top-14 h-52 w-52 rounded-full ${th.blob1}`} />
       <span aria-hidden className={`absolute -bottom-20 end-1/3 h-44 w-44 rounded-full ${th.blob2}`} />
-      <Collage images={s.images} art={s.art} />
+      {s.cover ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={s.cover} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
+          <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/60 to-transparent rtl:bg-gradient-to-l" />
+        </>
+      ) : (
+        (s.images.length > 0 || s.art) && <Collage images={s.images} art={s.art} />
+      )}
 
-      <div className="relative max-w-[60%] sm:max-w-[44%]">
-        <p className={`mb-1 truncate text-[11px] font-bold uppercase tracking-wider sm:text-xs ${th.eyebrow}`}>{s.eyebrow}</p>
+      <div className={`relative ${s.cover || (s.images.length === 0 && !s.art) ? "max-w-[85%] sm:max-w-[60%]" : "max-w-[60%] sm:max-w-[44%]"}`}>
+        {s.eyebrow && <p className={`mb-1 truncate text-[11px] font-bold uppercase tracking-wider sm:text-xs ${th.eyebrow}`}>{s.eyebrow}</p>}
         <h2 className={`text-[1.2rem] font-extrabold leading-[1.15] tracking-tight sm:text-4xl lg:text-[2.6rem] ${th.title}`}>{s.title}</h2>
-        <p className="mt-2 hidden text-sm text-neutral-700 sm:block sm:text-base">{s.subtitle}</p>
+        {s.subtitle && <p className="mt-2 hidden text-sm text-neutral-700 sm:block sm:text-base">{s.subtitle}</p>}
         {s.chips && s.chips.length > 0 && (
           <div className="mt-3 hidden flex-wrap gap-2 sm:flex">
             {s.chips.map((c) => (
@@ -83,9 +93,11 @@ function Slide({ s, active }: { s: HeroSlide; active: boolean }) {
             ))}
           </div>
         )}
-        <a href={s.href} tabIndex={active ? 0 : -1} className={`mt-3 inline-flex h-9 items-center whitespace-nowrap rounded-full px-4 text-[13px] font-bold text-white shadow-md transition active:scale-95 sm:mt-5 sm:h-11 sm:px-7 sm:text-sm ${th.cta}`}>
-          {s.cta} <span aria-hidden className="ms-1.5 rtl:-scale-x-100">→</span>
-        </a>
+        {s.cta && s.href && (
+          <a href={s.href} tabIndex={active ? 0 : -1} className={`mt-3 inline-flex h-9 items-center whitespace-nowrap rounded-full px-4 text-[13px] font-bold text-white shadow-md transition active:scale-95 sm:mt-5 sm:h-11 sm:px-7 sm:text-sm ${th.cta}`}>
+            {s.cta} <span aria-hidden className="ms-1.5 rtl:-scale-x-100">→</span>
+          </a>
+        )}
       </div>
     </div>
   );

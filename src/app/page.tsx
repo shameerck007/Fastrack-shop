@@ -23,6 +23,7 @@ import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getLiveHomeBanners } from "@/lib/home-banners";
 import HomeOffers from "@/components/HomeOffers";
 
 /** Riders, suppliers, admins and warehouse staff land on their own portal by
@@ -82,7 +83,9 @@ export default async function HomePage() {
   // The welcome and free-delivery banners use the category photos (variety), the others use the products themselves.
   const catPhotos = (from: number, n: number): HeroImage[] =>
     categories.filter((c) => c.image_url).slice(from, from + n).map((c) => ({ src: c.image_url as string, alt: c.name }));
-  const heroSlides: HeroSlide[] = [
+  // Banners the admin has set up replace the built-in slides; with none live, the built-in ones show.
+  const adminBanners = await getLiveHomeBanners(locale);
+  const builtInSlides: HeroSlide[] = [
     {
       id: "welcome",
       theme: "blue",
@@ -105,6 +108,7 @@ export default async function HomePage() {
       ? [{ id: "free", theme: "teal" as const, eyebrow: t("home.hero_free_eyebrow"), title: t("home.hero_free_title", { amount: money(freePricing.freeOver) }), subtitle: t("home.hero_free_sub"), cta: t("home.hero_free_cta"), href: "#offers", images: catPhotos(3, 3), art: "🚚" }]
       : []),
   ];
+  const heroSlides = adminBanners.length > 0 ? adminBanners : builtInSlides;
   const heroTiles: HeroTile[] = [
     ...(offers.some((p) => p.image_url) ? [{ id: "tile-deals", theme: "orange" as const, title: t("home.hero_tile_deals"), cta: t("home.hero_tile_cta"), href: "#offers", images: photos(offers) }] : []),
     ...(freshToday.some((p) => p.image_url) ? [{ id: "tile-fresh", theme: "green" as const, title: t("home.hero_tile_fresh"), cta: t("home.hero_tile_cta"), href: "#fresh", images: photos(freshToday) }] : []),
