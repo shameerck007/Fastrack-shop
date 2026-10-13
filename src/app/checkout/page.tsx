@@ -12,10 +12,13 @@ import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getStoreDirectory } from "@/lib/stores";
 import { localizedName } from "@/lib/i18n/localized";
+import { onlinePaymentsEnabled } from "@/lib/moyasar";
+import { listSavedCards } from "@/lib/actions/payments";
 
 export const metadata = { title: "Checkout" };
 
-export default async function CheckoutPage() {
+export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ pay?: string; pay_error?: string }> }) {
+  const sp = await searchParams;
   const locale = await getServerLocale();
   const t = (key: string) => translate(locale, key);
   const [items, addresses] = await Promise.all([getCartItems(), getAddresses()]);
@@ -73,10 +76,14 @@ export default async function CheckoutPage() {
     groupMap.set(key, g);
   }
 
+  const online = onlinePaymentsEnabled(tenant?.country_code);
+  const savedCards = online ? await listSavedCards().catch(() => []) : [];
+  const payNotice = sp.pay_error ? { kind: "error" as const, text: sp.pay_error.slice(0, 300) } : sp.pay === "pending" ? { kind: "info" as const, text: "We are still confirming your payment with the bank. Check My orders in a minute; if it does not appear, your money is refunded automatically." } : null;
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 max-md:pb-44">
       <h1 className="mb-4 text-xl font-semibold max-md:hidden">{t("checkout.title")}</h1>
-      <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} methodsByAddress={methodsByAddress} shipmentMethods={shipmentMethods} taxTotal={taxTotal} taxLabel={taxProfile.label} groups={[...groupMap.values()]} deliveryTaxPercent={deliveryTaxRate(tenant?.country_code)} />
+      <CheckoutForm addresses={addresses} items={items} subtotal={subtotal} blockedByAddress={blockedByAddress} methodsByAddress={methodsByAddress} shipmentMethods={shipmentMethods} taxTotal={taxTotal} taxLabel={taxProfile.label} groups={[...groupMap.values()]} deliveryTaxPercent={deliveryTaxRate(tenant?.country_code)} onlineEnabled={online} savedCards={savedCards} payNotice={payNotice} />
     </div>
   );
 }

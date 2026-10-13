@@ -33,11 +33,13 @@ export default function RefundDialog({ orderId, items, deliveryFee, deliveryRefu
 
   async function save(): Promise<string | void> {
     if (total <= 0) return "Choose what to refund: at least one item, or the delivery fee.";
-    await unwrapAction(refundOrder)(orderId, items.map((i) => ({ orderItemId: i.id, quantity: qty[i.id] ?? 0 })), delivery && canDelivery, reason);
+    const done = await unwrapAction(refundOrder)(orderId, items.map((i) => ({ orderItemId: i.id, quantity: qty[i.id] ?? 0 })), delivery && canDelivery, reason);
     setQty({});
     setDelivery(false);
     setReason("");
     router.refresh();
+    // The refund is recorded either way; if the money could not be sent back to the card, say so and keep the box open.
+    if (done?.cardNote && /could not|not configured/i.test(done.cardNote)) return `Refund recorded. ${done.cardNote}`;
   }
 
   return (

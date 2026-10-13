@@ -2,7 +2,7 @@
 
 
 import { errorText, unwrapAction } from "@/lib/errors";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { useMarket, usePricing } from "@/components/MoneyProvider";
 import { marketOffsetMinutes } from "@/lib/timezone";
 import AddressForm from "@/components/AddressForm";
@@ -16,8 +16,12 @@ import { useDeliveryLocation } from "@/components/delivery-location-context";
 import { marketUi } from "@/lib/market-ui";
 import { formatEta } from "@/lib/eta";
 import { formatDeliveryDate, splitDeliveryFee, standardDeliveryDate } from "@/lib/delivery-methods";
-import type { Address, CartItemWithVariant, DeliveryType, PaymentMethod } from "@/types/database";
+import type { Address, CartItemWithVariant, DeliveryType } from "@/types/database";
 import { useMoney } from "@/components/MoneyProvider";
+import PaymentOptions, { type PayChoice } from "@/components/PaymentOptions";
+import { hasErrors, validateCard, cvcProblem, type CardInput } from "@/lib/card";
+import { applePayAvailable, payWithApplePay, submitCard, type PaymentStart } from "@/lib/moyasar-browser";
+import { noteProviderPayment, payWithSavedCard, startOnlinePayment, type SavedCard } from "@/lib/actions/payments";
 
 const DELIVERY_OPTION_DEFS: { value: DeliveryType; labelKey: string; hintKey: string; feeKey: "express" | "standard" }[] = [
   { value: "express", labelKey: "checkout.express", hintKey: "checkout.minutes_15_30", feeKey: "express" },
@@ -25,12 +29,8 @@ const DELIVERY_OPTION_DEFS: { value: DeliveryType; labelKey: string; hintKey: st
   { value: "scheduled", labelKey: "checkout.scheduled", hintKey: "checkout.choose_datetime", feeKey: "standard" },
 ];
 
-// Card/Apple Pay are modeled in the schema (see PaymentMethod) but there is
-// no payment gateway wired up yet — selecting them would place an order
-// marked "authorized" without ever actually charging anyone. Until a real
-// gateway (Moyasar/HyperPay/Tap/PayTabs) is integrated, checkout only
-// offers Cash on Delivery; placeOrder() also enforces this server-side.
-const PAYMENT_OPTIONS: { value: PaymentMethod }[] = [{ value: "cash_on_delivery" }];
+// Cash on Delivery places the order straight away. Card, saved card and Apple Pay go through Moyasar: the money is confirmed first and
+// only then are the orders created (see src/lib/payment-finalize.ts). Online options show only where a provider is set up.
 
 
 export default function CheckoutForm({
@@ -44,10 +44,18 @@ export default function CheckoutForm({
   taxLabel = "VAT",
   groups = [],
   deliveryTaxPercent = 0,
+  onlineEnabled = false,
+  savedCards = [],
+  payNotice = null,
 }: {
   addresses: Address[];
   items: CartItemWithVariant[];
   subtotal: number;
+  /** Card, saved card and Apple Pay are offered (a payment provider is set up for this market). */
+  onlineEnabled?: boolean;
+  savedCards?: SavedCard[];
+  /** A message from the payment return page (declined, refunded, still confirming). */
+  payNotice?: { kind: "error" | "info"; text: string } | null;
   blockedByAddress?: Record<string, string[]>;
   taxTotal?: number;
   taxLabel?: string;
@@ -78,10 +86,19 @@ export default function CheckoutForm({
   // The only choice left is to schedule the order for later.
   const [scheduleLater, setScheduleLater] = useState(false);
   const [scheduledFor, setScheduledFor] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash_on_delivery");
+  // Start on the shopper's default saved card, if they have one.
+  const [payChoice, setPayChoice] = useState<PayChoice>(() => {
+    const d = onlineEnabled ? (savedCards.find((c) => c.isDefault) ?? savedCards[0]) : undefined;
+    return d ? `saved:${d.id}` : "cod";
+  });
+  const [cardDraft, setCardDraft] = useState<CardInput>({ name: "", number: "", expiry: "", cvc: "" });
+  const [saveCard, setSaveCard] = useState(true);
+  const [savedCvc, setSavedCvc] = useState("");
+  const [savedCvcError, setSavedCvcError] = useState<string | null>(null);
+  const appleAvailable = useSyncExternalStore(() => () => {}, applePayAvailable, () => false);
   const [notes, setNotes] = useState("");
   const [showAddresses, setShowAddresses] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(payNotice?.kind === "error" ? payNotice.text : null);
   const [pending, startTransition] = useTransition();
   // Offers: a coupon the shopper types, or an automatic offer the shop applies by itself. The database decides what it is worth.
   const [quote, setQuote] = useState<OfferQuote | null>(null);
@@ -174,22 +191,62 @@ export default function CheckoutForm({
       setError(t("checkout.cant_deliver_items", { items: blockedItems.join(locale === "ar" ? "، " : ", ") }));
       return;
     }
+    const shared = {
+      addressId,
+      // Express/Standard are decided per shipment on the server; only "scheduled" is the shopper's choice.
+      deliveryType: scheduleLater ? ("scheduled" as const) : deliveryType,
+      scheduledFor: scheduleLater ? scheduledFor : undefined,
+      notes: notes.trim() || undefined,
+      offerCode: quote?.code ?? null,
+    };
+
+    // Online payment: check the card here first, so a typing mistake is explained before anything is sent.
+    if (payChoice === "card") {
+      const problems = validateCard(cardDraft);
+      if (hasErrors(problems)) {
+        setError(Object.values(problems)[0] ?? "Check your card details.");
+        return;
+      }
+    }
+    if (payChoice.startsWith("saved:")) {
+      const saved = savedCards.find((c) => `saved:${c.id}` === payChoice);
+      const problem = cvcProblem(savedCvc, saved?.brand === "amex" ? "amex" : "visa");
+      setSavedCvcError(problem);
+      if (problem) return;
+    }
+
     startTransition(async () => {
       try {
-        const result = await unwrapAction(placeOrder)({
-          addressId,
-          // Express/Standard are decided per shipment on the server; only "scheduled" is the shopper's choice.
-          deliveryType: scheduleLater ? "scheduled" : deliveryType,
-          scheduledFor: scheduleLater ? scheduledFor : undefined,
-          paymentMethod,
-          notes: notes.trim() || undefined,
-          offerCode: quote?.code ?? null,
-        });
-        if (result?.error) setError(result.error);
+        if (payChoice === "cod") {
+          const result = await unwrapAction(placeOrder)({ ...shared, paymentMethod: "cash_on_delivery" });
+          if (result?.error) setError(result.error);
+          return;
+        }
+        if (payChoice === "card") {
+          const start = (await unwrapAction(startOnlinePayment)(shared, saveCard)) as PaymentStart;
+          const { paymentId, next } = await submitCard(start, cardDraft, saveCard);
+          await unwrapAction(noteProviderPayment)(start.sessionId, paymentId).catch(() => {});
+          window.location.href = next;
+          return;
+        }
+        if (payChoice === "apple") {
+          const { next } = await payWithApplePay({
+            displayTotal: total,
+            saveCard: false,
+            start: async () => (await unwrapAction(startOnlinePayment)(shared, false)) as PaymentStart,
+          });
+          window.location.href = next;
+          return;
+        }
+        // A saved card: charged by our server with the code just typed, then the bank confirms.
+        const cardId = payChoice.slice("saved:".length);
+        const out = (await unwrapAction(payWithSavedCard)(shared, cardId, savedCvc)) as { redirectUrl: string };
+        window.location.href = out.redirectUrl;
       } catch (err) {
         // Next.js redirect() throws an object with a NEXT_REDIRECT digest — rethrow so navigation still happens.
         const digest = (err as { digest?: string } | null)?.digest;
         if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) throw err;
+        if (err instanceof Error && err.message === "cancelled") return;
         setError(errorText(err, t("checkout.could_not_place_order")));
       }
     });
@@ -403,25 +460,30 @@ export default function CheckoutForm({
           {/* payment */}
           <section className={card}>
             <h2 className="mb-3 text-base font-extrabold tracking-tight">{t("checkout.payment")}</h2>
-            {PAYMENT_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setPaymentMethod(opt.value)}
-                className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-start ${
-                  paymentMethod === opt.value ? "border-brand-600 bg-brand-50 ring-1 ring-brand-600" : "border-neutral-200"
-                }`}
-              >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm ring-1 ring-neutral-100">
-                  💵
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold text-neutral-900">{t("checkout_ui.cod_title")}</span>
-                  <span className="block text-xs text-neutral-500">{t("checkout_ui.cod_hint")}</span>
-                </span>
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-700 text-xs text-white">✓</span>
-              </button>
-            ))}
+            {payNotice?.kind === "info" && <p className="mb-3 rounded-xl bg-brand-50 p-3 text-sm text-brand-900">{payNotice.text}</p>}
+            <PaymentOptions
+              codTitle={t("checkout_ui.cod_title")}
+              codHint={t("checkout_ui.cod_hint")}
+              onlineEnabled={onlineEnabled}
+              appleAvailable={appleAvailable}
+              savedCards={savedCards}
+              value={payChoice}
+              onChange={(v) => {
+                setPayChoice(v);
+                setError(null);
+              }}
+              card={cardDraft}
+              onCard={setCardDraft}
+              errors={validateCard(cardDraft)}
+              saveCard={saveCard}
+              onSaveCard={setSaveCard}
+              savedCvc={savedCvc}
+              onSavedCvc={(v) => {
+                setSavedCvc(v);
+                setSavedCvcError(null);
+              }}
+              savedCvcError={savedCvcError}
+            />
           </section>
 
           {/* note for the rider */}
@@ -542,7 +604,7 @@ export default function CheckoutForm({
               disabled={pending || blockedItems.length > 0}
               className="mt-4 hidden h-12 w-full rounded-full bg-brand-700 font-extrabold text-white shadow-lg shadow-brand-700/25 hover:bg-brand-800 disabled:opacity-50 lg:block"
             >
-              {pending ? t("checkout.placing_order") : t("checkout.place_order_with_total", { total: money(total) })}
+              {pending ? (payChoice === "cod" ? t("checkout.placing_order") : "Processing payment…") : payChoice === "cod" ? t("checkout.place_order_with_total", { total: money(total) }) : `Pay ${money(total)}`}
             </button>
             {blockedItems.length > 0 && (
               <p className="mt-2 text-center text-xs text-red-600">
@@ -574,7 +636,7 @@ export default function CheckoutForm({
             disabled={pending || blockedItems.length > 0}
             className="h-12 shrink-0 rounded-full bg-brand-700 px-8 text-sm font-extrabold text-white shadow-lg shadow-brand-700/25 transition hover:bg-brand-800 active:scale-95 disabled:opacity-50"
           >
-            {pending ? t("checkout.placing_order") : t("checkout.place_order")}
+            {pending ? (payChoice === "cod" ? t("checkout.placing_order") : "Processing payment…") : payChoice === "cod" ? t("checkout.place_order") : "Pay now"}
           </button>
         </div>
       </div>

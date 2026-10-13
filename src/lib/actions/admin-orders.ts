@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { notifyOrderStatusChange, notifyUsers, notifyNearbyRidersOfNewOrder } from "@/lib/push";
 import { dispatchExpressOrder } from "@/lib/dispatch";
+import { refundOnlinePayment } from "@/lib/online-refund";
 import { sendOrderStatusEmail, sendOrderCancelledSellerEmails, sendRefundEmail } from "@/lib/email-notifications";
 import type { OrderStatus } from "@/types/database";
 
@@ -28,6 +29,8 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   if (status === "cancelled" && previous?.status !== "cancelled") {
     await notifySellersOfCancellation(orderId);
     await restockCancelledOrder(orderId);
+    // Paid by card or Apple Pay: the money goes back to the customer's card.
+    await refundOnlinePayment(orderId).catch(() => null);
   }
   if (status === "ready_for_pickup") await notifyNearbyRidersOfNewOrder(orderId);
   else if (status === "preparing") await dispatchExpressOrder(orderId);
@@ -102,11 +105,11 @@ async function restockCancelledOrder(orderId: string) {
   }
 }
 
-// No payment gateway exists yet (only Cash on Delivery is supported), so a refund is a record of money returned to the customer outside
-// the app. It is itemised: the admin chooses which items and how many (and whether the delivery fee goes back). The database reverses
+// A refund is recorded here; for an order paid by card or Apple Pay the amount is also sent back to the card (refundOnlinePayment), and for Cash
+// on Delivery it is a record of money returned to the customer outside the app. It is itemised: the admin chooses which items and how many (and whether the delivery fee goes back). The database reverses
 // what the supplier was paid, FasTrack's commission, any supplier-funded discount and the tax inside, in the same proportion,
 // and the customer is told on every channel.
-export async function refundOrder(orderId: string, items: { orderItemId: string; quantity: number }[], refundDelivery: boolean, reason: string): Promise<{ amount: number; full: boolean }> {
+export async function refundOrder(orderId: string, items: { orderItemId: string; quantity: number }[], refundDelivery: boolean, reason: string): Promise<{ amount: number; full: boolean; cardNote?: string }> {
   try {
     const supabase = await createClient();
     const chosen = items.filter((i) => i.quantity > 0).map((i) => ({ order_item_id: i.orderItemId, quantity: i.quantity }));
@@ -124,7 +127,9 @@ export async function refundOrder(orderId: string, items: { orderItemId: string;
       url: `/orders/${orderId}`,
     });
     await sendRefundEmail(orderId, reason.trim());
-    return { amount: Number(r.amount), full: !!r.full };
+    // Paid by card or Apple Pay: send this amount back to the card too (Cash on Delivery orders have nothing to return online).
+    const cardNote = await refundOnlinePayment(orderId, Number(r.amount));
+    return { amount: Number(r.amount), full: !!r.full, ...(cardNote ? { cardNote } : {}) };
   } catch (e) {
     return failure(e) as never;
   }
