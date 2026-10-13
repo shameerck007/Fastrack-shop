@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { notifyUsers } from "@/lib/push";
+import { processWebhookQueue } from "@/lib/webhooks";
 
 // Called every minute by the cron worker (cron-worker/). Moves quick-delivery offers along: expires old ones, offers
 // waiting Express orders to the next nearest rider, and alerts the market's admins about an order nobody could take.
@@ -18,6 +19,8 @@ function authorised(request: Request): boolean {
 
 export async function POST(request: Request) {
   if (!authorised(request)) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  // Supplier webhooks first, so a problem in the dispatch below never holds the messages back.
+  const webhooks = await processWebhookQueue().catch(() => ({ sent: 0, failed: 0 }));
   const db = createServiceClient();
   const { data, error } = await db.rpc("sweep_express_dispatch");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -56,5 +59,5 @@ export async function POST(request: Request) {
 
   // Standard routes: route anything missed, drop cancelled orders, close empty routes (no-op before migration 0066).
   const swept = await db.rpc("sweep_standard_routes");
-  return NextResponse.json({ ok: true, offered, alerted, routed: swept.error ? 0 : swept.data });
+  return NextResponse.json({ ok: true, offered, alerted, routed: swept.error ? 0 : swept.data, webhooks });
 }
