@@ -3,18 +3,35 @@ import { createClient } from "@/lib/supabase/server";
 import ApiKeysCard, { type KeyRow } from "@/components/merchant/ApiKeysCard";
 import ProductImport from "@/components/merchant/ProductImport";
 import WebhookCard, { type WebhookEventRow, type WebhookSettings } from "@/components/merchant/WebhookCard";
+import IntegrationsTabs from "@/components/merchant/IntegrationsTabs";
+import { PRODUCT_COLUMNS } from "@/lib/product-template";
 
 export const metadata = { title: "Import & API" };
 
-const sample = (base: string) => `# List your products
+const ENDPOINTS: [string, string, string][] = [
+  ["GET", "/api/v1/products", "List your products with packs, prices and stock (page, size up to 100)."],
+  ["POST", "/api/v1/products", "Create or update products. Up to 100 items per call."],
+  ["PATCH", "/api/v1/inventory", "Update price and stock of products that already exist. Never creates."],
+  ["GET", "/api/v1/orders", "Orders that contain your items (since, status, limit)."],
+];
+
+const EVENTS: [string, string][] = [
+  ["order.created", "A customer placed an order with your items."],
+  ["order.picked_up", "The rider collected it and is on the way."],
+  ["order.delivered", "It reached the customer."],
+  ["order.cancelled", "The order was cancelled."],
+  ["return.requested", "A customer asked to return one of your items."],
+];
+
+const curl = (base: string) => `# List your products
 curl -H "Authorization: Bearer ftk_YOUR_KEY" "${base}/api/v1/products?page=1&size=50"
 
-# Create or update products (up to 100 items per call)
+# Create or update products
 curl -X POST -H "Authorization: Bearer ftk_YOUR_KEY" -H "Content-Type: application/json" \\
   -d '{"items":[{"sku":"RICE-5KG","name":"Basmati Rice","category":"grocery","variant_label":"5 kg","unit":"kg","quantity":5,"price":45,"stock":120}]}' \\
   ${base}/api/v1/products
 
-# Update only price and stock of products that already exist
+# Update only price and stock
 curl -X PATCH -H "Authorization: Bearer ftk_YOUR_KEY" -H "Content-Type: application/json" \\
   -d '{"items":[{"sku":"RICE-5KG","variant_label":"5 kg","stock":97,"price":46}]}' \\
   ${base}/api/v1/inventory
@@ -36,64 +53,119 @@ x-fastrack-signature: sha256=9a3b...    (HMAC-SHA256 of "<timestamp>.<body>" wit
 const expected = "sha256=" + crypto.createHmac("sha256", SECRET).update(timestamp + "." + rawBody).digest("hex");
 if (expected !== signatureHeader) return res.status(401).end();   // also reject old timestamps (over 5 minutes)`;
 
-const FIELDS: [string, string][] = [
-  ["sku", "Your own product code. Required. Rows with the same sku are packs of one product."],
-  ["name, name_ar, brand, description, image_url (https)", "Product details. name and category are required for a new product. Products from the shared catalog keep their shared details."],
-  ["category", "A category name or slug from the shop, for example grocery."],
-  ["variant_label", "The pack, for example 1 kg or 500 g. Default: 1 unit. Identifies the pack within the sku."],
-  ["unit, quantity", "For example kg and 5."],
-  ["price", "Selling price, above 0. Required for a new pack."],
-  ["compare_at_price, compare_at_until", "Old price shown crossed out (must be higher than price) and the last day of the offer, like 2026-12-31."],
-  ["stock", "Units in stock, 0 or more. Required for a new pack."],
-  ["tax_rate, active", "Tax percent, and yes or no to show or hide the product."],
-];
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+      <h2 className="text-base font-semibold text-neutral-900">{title}</h2>
+      <div className="mt-3 text-sm text-neutral-600">{children}</div>
+    </section>
+  );
+}
+
+const code = "rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[12px] text-neutral-800";
 
 export default async function IntegrationsPage() {
   const supabase = await createClient();
-  const { data } = await supabase.from("supplier_api_keys" as never).select("id, name, key_prefix, created_at, last_used_at, revoked_at").order("created_at", { ascending: false });
+  const { data: keyRows } = await supabase.from("supplier_api_keys" as never).select("id, name, key_prefix, created_at, last_used_at, revoked_at").order("created_at", { ascending: false });
   const { data: wh } = await supabase.from("supplier_webhooks" as never).select("url, secret, enabled").maybeSingle();
   const { data: evs } = await supabase.from("supplier_webhook_events" as never).select("id, event, status, attempts, last_status, last_error, created_at, orders(order_number)").order("created_at", { ascending: false }).limit(15);
   const events = ((evs ?? []) as unknown as (Omit<WebhookEventRow, "order_number"> & { orders: { order_number: string } | null })[]).map((e) => ({ ...e, order_number: e.orders?.order_number ?? null }));
+  const keys = (keyRows ?? []) as unknown as KeyRow[];
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "shop.fastrack.cloud";
   const base = `${host.startsWith("localhost") ? "http" : "https"}://${host}`;
+  const activeKeys = keys.filter((k) => !k.revoked_at).length;
+
+  const guide = (
+    <div className="flex flex-col gap-4">
+      <Section title="Before you start">
+        <p>
+          Make a key in the <b>API keys</b> tab and send it with every call as <code className={code}>Authorization: Bearer ftk_…</code>. Bodies are JSON. A key only ever reaches your own store. Each call handles up to 100 items and each key can make 60 calls a minute. Every
+          item is checked on its own, and the answer says what happened to each one: created, updated, unchanged, or what the problem was.
+        </p>
+      </Section>
+
+      <Section title="Endpoints">
+        <ul className="divide-y divide-neutral-100">
+          {ENDPOINTS.map(([m, p, d]) => (
+            <li key={m + p} className="flex flex-col gap-1 py-2.5 sm:flex-row sm:items-baseline sm:gap-4">
+              <span className="flex shrink-0 items-center gap-2 sm:w-64">
+                <span className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${m === "GET" ? "bg-emerald-50 text-emerald-700" : m === "POST" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{m}</span>
+                <code className="font-mono text-xs text-neutral-900">{p}</code>
+              </span>
+              <span>{d}</span>
+            </li>
+          ))}
+        </ul>
+        <pre className="mt-3 overflow-x-auto rounded-xl bg-neutral-900 p-4 text-xs leading-relaxed text-neutral-100">{curl(base)}</pre>
+      </Section>
+
+      <Section title="Product fields">
+        <p className="mb-2">The Excel template columns and the API item fields are the same.</p>
+        <div className="overflow-x-auto rounded-xl border border-neutral-200">
+          <table className="w-full min-w-[520px] text-xs">
+            <thead className="bg-neutral-50 text-left text-neutral-600">
+              <tr>
+                <th className="px-3 py-2">Field</th>
+                <th className="px-3 py-2">Needed</th>
+                <th className="px-3 py-2">What to send</th>
+              </tr>
+            </thead>
+            <tbody>
+              {PRODUCT_COLUMNS.map((c) => (
+                <tr key={c.key} className="border-t border-neutral-100 align-top">
+                  <td className="px-3 py-2 font-mono text-neutral-900">{c.key}</td>
+                  <td className="px-3 py-2 whitespace-nowrap">{c.required}</td>
+                  <td className="px-3 py-2">{c.what}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section title="Webhook messages">
+        <ul className="mb-3 grid gap-1.5 sm:grid-cols-2">
+          {EVENTS.map(([e, d]) => (
+            <li key={e} className="flex items-baseline gap-2">
+              <code className={code}>{e}</code>
+              <span className="text-xs">{d}</span>
+            </li>
+          ))}
+        </ul>
+        <p>
+          Each message is a POST with a JSON body that lists only your items. Answer with any 2xx within 8 seconds. If you do not, FasTrack tries again after 1 minute, 10 minutes, 1 hour and 6 hours, then gives up. The same message can arrive twice, so use its{" "}
+          <code className={code}>id</code> to ignore repeats.
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-xl bg-neutral-900 p-4 text-xs leading-relaxed text-neutral-100">{webhookSample}</pre>
+      </Section>
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-5">
-      <div>
-        <h1 className="text-xl font-semibold">Import &amp; API</h1>
-        <p className="mt-1 text-sm text-neutral-500">Put many products on FasTrack at once, or connect your own system so price and stock stay in step.</p>
-      </div>
+      <header className="rounded-2xl bg-gradient-to-br from-blue-700 to-blue-900 p-5 text-white sm:p-6">
+        <div className="flex items-start gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-2xl" aria-hidden>🔌</span>
+          <div>
+            <h1 className="text-xl font-bold leading-tight">Import &amp; API</h1>
+            <p className="mt-1 max-w-2xl text-sm text-blue-100">Put many products on FasTrack at once, keep price and stock in step with your own system, and get new orders the moment they are placed.</p>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+          <span className="rounded-full bg-white/15 px-3 py-1">{activeKeys} active API key{activeKeys === 1 ? "" : "s"}</span>
+          <span className="rounded-full bg-white/15 px-3 py-1">Webhook {wh && (wh as WebhookSettings).enabled ? "on" : "off"}</span>
+        </div>
+      </header>
 
-      <ProductImport />
-      <ApiKeysCard keys={(data ?? []) as unknown as KeyRow[]} />
-      <WebhookCard webhook={(wh as WebhookSettings | null) ?? null} events={events} />
-
-      <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-semibold">API guide</h2>
-        <p className="mt-1 text-sm text-neutral-500">
-          Send your key as <code className="rounded bg-neutral-100 px-1">Authorization: Bearer ftk_…</code>. Bodies are JSON. Each call handles up to 100 items, and each key can make 60 calls a minute. Every item is checked on its own, and the answer says what
-          happened to each one (created, updated, unchanged or the problem).
-        </p>
-        <pre className="mt-3 overflow-x-auto rounded-xl bg-neutral-900 p-4 text-xs leading-relaxed text-neutral-100">{sample(base)}</pre>
-
-        <h3 className="mt-5 text-sm font-semibold">Webhook messages</h3>
-        <p className="mt-1 text-sm text-neutral-500">
-          Events: <code className="rounded bg-neutral-100 px-1">order.created</code>, <code className="rounded bg-neutral-100 px-1">order.picked_up</code>, <code className="rounded bg-neutral-100 px-1">order.delivered</code>,{" "}
-          <code className="rounded bg-neutral-100 px-1">order.cancelled</code>, <code className="rounded bg-neutral-100 px-1">return.requested</code>. Each is a POST with a JSON body that lists only your items. Answer with any 2xx within 8 seconds. If you do not, FasTrack tries again after
-          1 minute, 10 minutes, 1 hour and 6 hours, then gives up. The same message can arrive twice, so use the <code className="rounded bg-neutral-100 px-1">id</code> to ignore repeats.
-        </p>
-        <pre className="mt-3 overflow-x-auto rounded-xl bg-neutral-900 p-4 text-xs leading-relaxed text-neutral-100">{webhookSample}</pre>
-        <h3 className="mt-5 text-sm font-semibold">Fields (CSV columns and API item fields are the same)</h3>
-        <dl className="mt-2 divide-y divide-neutral-100 text-sm">
-          {FIELDS.map(([k, v]) => (
-            <div key={k} className="grid gap-1 py-2 sm:grid-cols-[14rem_1fr]">
-              <dt className="font-mono text-xs text-neutral-800">{k}</dt>
-              <dd className="text-neutral-600">{v}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
+      <IntegrationsTabs
+        tabs={[
+          { id: "excel", label: "Excel upload", icon: "📊", hint: "Many products at once", content: <ProductImport /> },
+          { id: "api", label: "API keys", icon: "🔑", hint: "Connect your system", content: <ApiKeysCard keys={keys} /> },
+          { id: "webhook", label: "Webhook", icon: "🔔", hint: "Orders sent to you", content: <WebhookCard webhook={(wh as WebhookSettings | null) ?? null} events={events} /> },
+          { id: "guide", label: "Developer guide", icon: "📘", hint: "Endpoints and examples", content: guide },
+        ]}
+      />
     </div>
   );
 }
