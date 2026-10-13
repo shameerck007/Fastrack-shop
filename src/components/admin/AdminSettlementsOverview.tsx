@@ -9,6 +9,7 @@ import { buildXlsx } from "@/lib/xlsx-lite";
 import { downloadXlsx } from "@/lib/product-template";
 import type { AdminSettlementOverviewRow, MonthlyPoint } from "@/lib/settlements";
 import SettlementChart from "@/components/settlement/SettlementChart";
+import PortalPageHeader from "@/components/ui/PortalPageHeader";
 import RecordPayoutForm from "@/components/admin/RecordPayoutForm";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -118,20 +119,16 @@ export default function AdminSettlementsOverview({ rows, monthly }: { rows: Admi
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-wrap items-start justify-between gap-3 rounded-2xl bg-gradient-to-br from-blue-700 via-blue-800 to-blue-950 p-5 text-white sm:p-6">
-        <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-2xl" aria-hidden>
-            📒
-          </span>
-          <div>
-            <h1 className="text-xl font-bold leading-tight">Settlement ledger</h1>
-            <p className="mt-1 max-w-2xl text-sm text-blue-100">What each supplier has sold, what FasTrack kept, what was paid, and what is still owed. Open a supplier to see every entry.</p>
-          </div>
-        </div>
-        <button onClick={payoutSheet} disabled={busy} className="h-10 rounded-full bg-white px-4 text-xs font-bold text-blue-900 transition hover:bg-blue-50 disabled:opacity-60">
-          {busy ? "Preparing…" : "⬇ Payouts to make (Excel)"}
-        </button>
-      </header>
+      <PortalPageHeader
+        icon="📒"
+        title="Supplier ledger"
+        subtitle="What each supplier has sold, what FasTrack kept, what was paid, and what is still owed. Open a supplier to see every entry."
+        actions={
+          <button onClick={payoutSheet} disabled={busy} className="h-10 rounded-full bg-blue-700 px-5 text-sm font-bold text-white transition hover:bg-blue-800 disabled:opacity-60">
+            {busy ? "Preparing…" : "⬇ Payouts to make (Excel)"}
+          </button>
+        }
+      />
       {err && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{err}</p>}
 
       <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">

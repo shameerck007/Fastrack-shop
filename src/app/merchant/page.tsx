@@ -1,5 +1,6 @@
 import Link from "@/components/Link";
-import { PageHeader, StatGrid, StatTile } from "@/components/admin/AdminUi";
+import { StatGrid, StatTile } from "@/components/admin/AdminUi";
+import PortalPageHeader from "@/components/ui/PortalPageHeader";
 import { getMerchantStats, getMyStore } from "@/lib/merchant";
 import { getMerchantOrders } from "@/lib/merchant-orders";
 import { getStoreSettlementSummary } from "@/lib/settlements";
@@ -36,7 +37,7 @@ export default async function MerchantDashboardPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
+      <PortalPageHeader
         icon="🏪"
         title={t("merchant.welcome_back", { name: store.name })}
         subtitle={t("merchant.storefront_intro")}
@@ -71,7 +72,7 @@ export default async function MerchantDashboardPage() {
       <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
           <h2 className="text-sm font-semibold text-neutral-800">Recent orders</h2>
-          <Link href="/merchant/orders" className="text-xs font-semibold text-blue-700 hover:underline">
+          <Link href="/merchant/orders" className="-my-2 inline-flex h-9 items-center text-xs font-semibold text-blue-700 hover:underline">
             {t("merchant.orders_nav")} →
           </Link>
         </div>
@@ -124,13 +125,13 @@ export default async function MerchantDashboardPage() {
               className="rounded-lg border border-neutral-200"
             />
             <div className="flex flex-col gap-2 text-sm">
-              <Link href={`/store/${store.id}`} className="text-blue-600 hover:underline">
+              <Link href={`/store/${store.id}`} className="inline-flex h-9 items-center text-blue-600 hover:underline">
                 {t("merchant.view_public_storefront")}
               </Link>
               <a
                 href={`/api/stores/${store.id}/qr`}
                 download={`${store.name}-qr-code.png`}
-                className="inline-flex w-fit items-center gap-1 rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-100"
+                className="inline-flex h-10 w-fit items-center gap-1 rounded-full border border-neutral-300 px-4 text-sm font-semibold hover:bg-neutral-100"
               >
                 {t("merchant.download_qr")}
               </a>

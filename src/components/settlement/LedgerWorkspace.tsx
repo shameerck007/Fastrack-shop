@@ -8,6 +8,7 @@ import { downloadXlsx } from "@/lib/product-template";
 import type { LedgerEntry, SettlementOrderRow, SettlementPayout, SettlementSummary } from "@/lib/settlements";
 import { monthlyFromLedger } from "@/lib/settlement-ledger-utils";
 import SettlementChart from "@/components/settlement/SettlementChart";
+import PortalPageHeader from "@/components/ui/PortalPageHeader";
 
 type TabId = "overview" | "ledger" | "orders" | "payouts" | "statements";
 type Kind = "all" | "sale" | "refund" | "payout";
@@ -143,24 +144,40 @@ export default function LedgerWorkspace({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* hero */}
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-blue-700 via-blue-800 to-blue-950 p-5 text-white shadow-sm sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      <PortalPageHeader
+        icon="📒"
+        title={role === "admin" ? storeName : "Supplier ledger"}
+        subtitle={role === "admin" ? "Supplier ledger: sales, FasTrack commission, payouts and the balance owed." : "Your sales, FasTrack's commission, payouts and what you are still owed."}
+        actions={headerActions}
+      />
+
+      {/* balance */}
+      <section className={`rounded-2xl border bg-white p-5 shadow-sm sm:p-6 ${owed ? "border-amber-200" : "border-emerald-200"}`}>
+        <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
           <div className="min-w-0">
-            <p className="text-sm text-blue-100">{role === "admin" ? `Settlement ledger · ${storeName}` : "Settlement ledger"}</p>
-            <p className="mt-1 break-words text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">{money(summary.balanceDue)}</p>
-            <p className="mt-1 text-sm text-blue-100">
-              {owed ? (role === "admin" ? "FasTrack owes this supplier" : "FasTrack owes you") : summary.balanceDue < -0.005 ? "Overpaid: this supplier has been paid more than they earned" : "Nothing owed right now"}
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Balance due</p>
+            <p className={`mt-1 break-words text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl ${owed ? "text-amber-700" : "text-emerald-700"}`}>{money(summary.balanceDue)}</p>
+            <p className="mt-1 text-sm text-neutral-500">
+              {owed ? (role === "admin" ? "FasTrack owes this supplier" : "FasTrack owes you") : summary.balanceDue < -0.005 ? "Overpaid: paid more than earned" : "Nothing owed right now"}
             </p>
-            <div className="mt-3 flex flex-wrap gap-2 text-xs">
-              <span className="rounded-full bg-white/15 px-3 py-1">{summary.deliveredOrderCount} delivered order{summary.deliveredOrderCount === 1 ? "" : "s"}</span>
-              <span className="rounded-full bg-white/15 px-3 py-1">Commission {summary.commissionRate}%</span>
-              {lastPayout && <span className="rounded-full bg-white/15 px-3 py-1">Last payout {money(lastPayout.amount)} · {dateFmt(lastPayout.createdAt)}</span>}
-            </div>
           </div>
-          {headerActions && <div className="flex flex-wrap items-center gap-2 [&_button]:!bg-white [&_button]:!text-blue-900 [&_button:hover]:!bg-blue-50">{headerActions}</div>}
+          <dl className="grid grid-cols-3 gap-x-6 gap-y-1 text-sm">
+            <div>
+              <dt className="text-xs text-neutral-500">Delivered orders</dt>
+              <dd className="font-semibold text-neutral-900">{summary.deliveredOrderCount}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-neutral-500">Commission</dt>
+              <dd className="font-semibold text-neutral-900">{summary.commissionRate}%</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-neutral-500">Last payout</dt>
+              <dd className="font-semibold text-neutral-900">{lastPayout ? money(lastPayout.amount) : "—"}</dd>
+              {lastPayout && <dd className="text-[11px] text-neutral-400">{dateFmt(lastPayout.createdAt)}</dd>}
+            </div>
+          </dl>
         </div>
-      </div>
+      </section>
 
       {/* tabs */}
       <div role="tablist" className="-mx-4 flex gap-1 overflow-x-auto border-b border-neutral-200 px-4 [scrollbar-width:none] md:mx-0 md:px-0">

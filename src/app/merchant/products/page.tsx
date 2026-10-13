@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "@/components/Link";
 import { getMyStore, getMyStoreProductsPage } from "@/lib/merchant";
-import { PageHeader } from "@/components/admin/AdminUi";
+import PortalPageHeader from "@/components/ui/PortalPageHeader";
 import { createClient } from "@/lib/supabase/server";
 import MerchantProductSearch from "@/components/merchant/MerchantProductSearch";
 import type { Category } from "@/types/database";
@@ -29,7 +29,7 @@ export default async function MerchantProductsPage({ searchParams }: { searchPar
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
+      <PortalPageHeader
         icon="📦"
         title={t("merchant.products")}
         subtitle={t("merchant.products_count_own", { count: total, plural: total === 1 ? "" : "s" })}

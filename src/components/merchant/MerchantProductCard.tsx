@@ -54,7 +54,7 @@ export default function MerchantProductCard({
                 router.refresh();
               })
             }
-            className={`shrink-0 rounded-full px-2 py-0.5 text-xs disabled:opacity-50 ${
+            className={`inline-flex h-8 shrink-0 items-center rounded-full px-3.5 text-xs font-semibold disabled:opacity-50 ${
               product.is_active ? "bg-blue-50 text-blue-700" : "bg-neutral-100 text-neutral-500"
             }`}
           >
@@ -87,7 +87,7 @@ export default function MerchantProductCard({
           )}
           <button
             onClick={() => setEditing(true)}
-            className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium hover:bg-neutral-50"
+            className="inline-flex h-9 items-center rounded-full border border-neutral-300 px-4 text-sm font-semibold hover:bg-neutral-50"
           >
             {t("addresses.edit")}
           </button>

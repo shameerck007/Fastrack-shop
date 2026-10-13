@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getMerchantStats, getMyStore } from "@/lib/merchant";
 import Link from "@/components/Link";
-import { PageHeader, StatGrid, StatTile } from "@/components/admin/AdminUi";
+import { StatGrid, StatTile } from "@/components/admin/AdminUi";
+import PortalPageHeader from "@/components/ui/PortalPageHeader";
 import { getMerchantOrders } from "@/lib/merchant-orders";
 
 import { localizedName } from "@/lib/i18n/localized";
@@ -46,9 +47,9 @@ export default async function MerchantOrdersPage({ searchParams }: { searchParam
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader icon="🧾" title={t("merchant.orders_title")} subtitle={t("merchant.orders_intro")} />
+      <PortalPageHeader icon="🧾" title={t("merchant.orders_title")} subtitle={t("merchant.orders_intro")} />
 
-      <StatGrid>
+      <StatGrid cols={3}>
         <StatTile icon="🔔" label={t("merchant.new_orders")} value={stats.newOrders} accent="#d97706" />
         <StatTile icon="👨‍🍳" label={t("merchant.preparing_orders")} value={stats.preparing} accent="#2563eb" />
         <StatTile icon="✅" label={t("merchant.ready_orders")} value={stats.ready} accent="#059669" />

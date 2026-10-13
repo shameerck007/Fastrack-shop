@@ -4,6 +4,7 @@ import ApiKeysCard, { type KeyRow } from "@/components/merchant/ApiKeysCard";
 import ProductImport from "@/components/merchant/ProductImport";
 import WebhookCard, { type WebhookEventRow, type WebhookSettings } from "@/components/merchant/WebhookCard";
 import IntegrationsTabs from "@/components/merchant/IntegrationsTabs";
+import PortalPageHeader, { MetaChip } from "@/components/ui/PortalPageHeader";
 import ExcelStarters, { type CategoryOption } from "@/components/merchant/ExcelStarters";
 import { PRODUCT_COLUMNS } from "@/lib/product-template";
 
@@ -155,19 +156,17 @@ export default async function IntegrationsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="rounded-2xl bg-gradient-to-br from-blue-700 to-blue-900 p-5 text-white sm:p-6">
-        <div className="flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-2xl" aria-hidden>🔌</span>
-          <div>
-            <h1 className="text-xl font-bold leading-tight">Import &amp; API</h1>
-            <p className="mt-1 max-w-2xl text-sm text-blue-100">Put many products on FasTrack at once, keep price and stock in step with your own system, and get new orders the moment they are placed.</p>
-          </div>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-white/15 px-3 py-1">{activeKeys} active API key{activeKeys === 1 ? "" : "s"}</span>
-          <span className="rounded-full bg-white/15 px-3 py-1">Webhook {wh && (wh as WebhookSettings).enabled ? "on" : "off"}</span>
-        </div>
-      </header>
+      <PortalPageHeader
+        icon="🔌"
+        title="Import & API"
+        subtitle="Put many products on FasTrack at once, keep price and stock in step with your own system, and get new orders the moment they are placed."
+        meta={
+          <>
+            <MetaChip tone={activeKeys > 0 ? "good" : "neutral"}>{activeKeys} active API key{activeKeys === 1 ? "" : "s"}</MetaChip>
+            <MetaChip tone={wh && (wh as WebhookSettings).enabled ? "good" : "neutral"}>Webhook {wh && (wh as WebhookSettings).enabled ? "on" : "off"}</MetaChip>
+          </>
+        }
+      />
 
       <IntegrationsTabs
         tabs={[

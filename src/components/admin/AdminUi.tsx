@@ -33,6 +33,6 @@ export function StatTile({ icon, label, value, hint, accent = "#2563eb" }: { ico
   );
 }
 
-export function StatGrid({ children }: { children: ReactNode }) {
-  return <div className="mb-4 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">{children}</div>;
+export function StatGrid({ children, cols = 4 }: { children: ReactNode; cols?: 3 | 4 }) {
+  return <div className={`mb-4 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 ${cols === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>{children}</div>;
 }

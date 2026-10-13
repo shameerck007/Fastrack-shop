@@ -3,7 +3,7 @@ import { getMyStore } from "@/lib/merchant";
 import { getStoreSettlementSummary, getStoreSettlementOrders, getStorePayouts, getStoreLedger } from "@/lib/settlements";
 import LedgerWorkspace from "@/components/settlement/LedgerWorkspace";
 
-export const metadata = { title: "Settlement ledger" };
+export const metadata = { title: "Supplier ledger" };
 
 export default async function MerchantSettlementsPage() {
   const store = await getMyStore();

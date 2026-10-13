@@ -6,7 +6,7 @@ import LedgerWorkspace from "@/components/settlement/LedgerWorkspace";
 import RecordPayoutForm from "@/components/admin/RecordPayoutForm";
 import StatementDialog from "@/components/StatementDialog";
 
-export const metadata = { title: "Supplier settlement" };
+export const metadata = { title: "Supplier ledger" };
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",

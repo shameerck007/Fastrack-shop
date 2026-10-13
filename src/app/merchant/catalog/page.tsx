@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { PageHeader } from "@/components/admin/AdminUi";
+import PortalPageHeader from "@/components/ui/PortalPageHeader";
 import CatalogBrowser from "@/components/merchant/CatalogBrowser";
 import { getMyStore } from "@/lib/merchant";
 import { getStoreMasterIds, searchMasterCatalog } from "@/lib/master-catalog";
@@ -25,7 +25,7 @@ export default async function MerchantCatalogPage({ searchParams }: { searchPara
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
+      <PortalPageHeader
         icon="📚"
         title="Product catalog"
         subtitle="Find your product, add it to your store, and set your price and stock. The name, photo and details are kept by FasTrack, so every listing looks right. Not in the catalog? Request it."

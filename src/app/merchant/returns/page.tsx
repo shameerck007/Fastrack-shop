@@ -1,3 +1,4 @@
+import PortalPageHeader from "@/components/ui/PortalPageHeader";
 import ReturnsInbox, { type InboxReturn } from "@/components/ReturnsInbox";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,13 +18,14 @@ export default async function MerchantReturnsPage() {
   }));
   return (
     <div>
-      <h1 className="text-xl font-semibold">Returns</h1>
-      <p className="mb-5 mt-1 text-sm text-neutral-500">Customers return individual items. When a rider brings one back to you, check it in here: good items go straight back into your stock.</p>
+      <PortalPageHeader icon="↩️" title="Returns" subtitle="Customers return individual items. When a rider brings one back to you, check it in here: good items go straight back into your stock." />
+      <div className="mt-5">
       {error ? (
         <p className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">Returns are not switched on yet. Ask FasTrack to run the latest database update.</p>
       ) : (
         <ReturnsInbox rows={rows} empty="No returns for your products." />
       )}
+      </div>
     </div>
   );
 }
