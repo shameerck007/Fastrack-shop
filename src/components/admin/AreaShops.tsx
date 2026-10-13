@@ -10,6 +10,7 @@ import Select from "@/components/ui/Select";
 import { Field, inputClass, primaryButton, secondaryButton } from "@/components/ui/Form";
 import { setWarehouseExpressOverride, setWarehouseLocation } from "@/lib/actions/admin-areas";
 import { BRAND } from "@/lib/brand";
+import MapPinIcon from "@/components/MapPinIcon";
 
 export interface AreaShopRow {
   id: string;
@@ -73,7 +74,7 @@ export default function AreaShops({ rows }: { rows: AreaShopRow[] }) {
                     {r.name} <span className="ms-1 rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold text-neutral-500">{r.kind === "supplier" ? "Supplier" : "FasTrack"}</span>
                   </p>
                   <p className="truncate text-xs text-neutral-500">
-                    {r.lat != null && r.lng != null ? `📍 ${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}` : "📍 No pin yet"}
+                    <MapPinIcon /> {r.lat != null && r.lng != null ? `${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}` : "No pin yet"}
                     {r.address ? ` · ${r.address}` : ""}
                   </p>
                 </div>

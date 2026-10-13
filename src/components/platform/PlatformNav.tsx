@@ -2,11 +2,12 @@
 
 import Link from "@/components/Link";
 import { usePathname } from "next/navigation";
+import MapPinIcon from "@/components/MapPinIcon";
 
 interface Item {
   href: string;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   /** Opens one of the existing market-admin screens (for the market you are viewing). */
   external?: boolean;
   /** Not tied to a country (the address is used as written). */
@@ -37,7 +38,7 @@ const SECTIONS: { title: string; items: Item[] }[] = [
       { href: "/admin/products", label: "Products", icon: "📦", external: true },
       { href: "/admin/settlements", label: "Supplier settlements", icon: "📒", external: true },
       { href: "/admin/rider-settlements", label: "Rider settlements", icon: "💵", external: true },
-      { href: "/admin/zones", label: "Delivery zones", icon: "📍", external: true },
+      { href: "/admin/zones", label: "Delivery zones", icon: <MapPinIcon />, external: true },
       { href: "/admin/settings", label: "Business settings", icon: "⚙️", external: true },
     ],
   },

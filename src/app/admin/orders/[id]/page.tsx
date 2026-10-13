@@ -16,6 +16,7 @@ import { getCurrentTenant, getMoney } from "@/lib/tenant-server";
 import LiveEtaChip from "@/components/LiveEtaChip";
 import { clockIn, liveEtaOf } from "@/lib/live-eta";
 import { timeZoneFor } from "@/lib/admin-dashboard";
+import MapPinIcon from "@/components/MapPinIcon";
 
 /** The current time, read outside the page so rendering stays predictable. */
 function currentMs(): number {
@@ -305,7 +306,7 @@ export default async function AdminOrderDetailPage({
                     rel="noreferrer"
                     className="mt-1 inline-block text-brand-600 hover:underline"
                   >
-                    {t("admin.view_on_map")}
+                    <MapPinIcon /> {t("admin.view_on_map")}
                   </a>
                 )}
               </div>

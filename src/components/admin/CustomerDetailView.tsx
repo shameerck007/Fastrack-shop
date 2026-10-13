@@ -5,6 +5,7 @@ import { moneyFor } from "@/lib/money";
 import { getMoney } from "@/lib/tenant-server";
 import { BlockButton, ContactCard, NoteForm } from "@/components/admin/CustomerPanel";
 import { BRAND } from "@/lib/brand";
+import MapPinIcon from "@/components/MapPinIcon";
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -25,7 +26,7 @@ const ACTION_LABELS: Record<string, string> = {
   "customer.note": "Added a note",
 };
 
-function Card({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
+function Card({ title, children, className = "" }: { title: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
     <section className={`rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm ${className}`}>
       <h2 className="mb-3 text-sm font-extrabold tracking-tight text-neutral-800">{title}</h2>
@@ -98,7 +99,7 @@ export default async function CustomerDetailView({ id, backHref }: { id: string;
             <ContactCard id={c.id} phoneMasked={c.phone_masked} emailMasked={c.email_masked} canReveal={c.can_reveal} />
           </Card>
 
-          <Card title={`📍 Saved addresses (${c.addresses.length})`}>
+          <Card title={<><MapPinIcon /> Saved addresses ({c.addresses.length})</>}>
             {c.addresses.length === 0 ? (
               <p className="text-sm text-neutral-500">No saved addresses.</p>
             ) : (

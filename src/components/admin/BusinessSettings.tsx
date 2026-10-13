@@ -14,6 +14,7 @@ import { INDIAN_STATES } from "@/lib/india";
 import { updateCompanySettings } from "@/lib/actions/admin-settings";
 import { saveDefaultMaxOrderQty } from "@/lib/actions/admin-offers";
 import type { CompanySettings } from "@/lib/company-settings";
+import MapPinIcon from "@/components/MapPinIcon";
 
 /** Every setting as the text typed in a box (or a switch), so each popup edits a few keys and saves them all together. */
 interface Values {
@@ -80,7 +81,7 @@ function Row({ label, value }: { label: string; value: string | null | undefined
   );
 }
 
-function Card({ icon, title, hint, onEdit, children }: { icon: string; title: string; hint: string; onEdit: () => void; children: React.ReactNode }) {
+function Card({ icon, title, hint, onEdit, children }: { icon: React.ReactNode; title: string; hint: string; onEdit: () => void; children: React.ReactNode }) {
   return (
     <section className="flex min-w-0 flex-col rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="mb-2 flex items-start justify-between gap-3">
@@ -174,7 +175,7 @@ export default function BusinessSettings({ settings }: { settings: CompanySettin
           {isIndia && <Row label="State" value={v.state} />}
         </Card>
 
-        <Card icon="📍" title="Registered address" hint="Printed on invoices" onEdit={() => edit("address")}>
+        <Card icon={<MapPinIcon />} title="Registered address" hint="Printed on invoices" onEdit={() => edit("address")}>
           <Row label="Address" value={v.addressLine} />
           <Row label="District" value={v.district} />
           <Row label="City" value={v.city} />
@@ -250,7 +251,7 @@ export default function BusinessSettings({ settings }: { settings: CompanySettin
       )}
 
       {open === "address" && (
-        <FormDialog icon="📍" title="Registered address" subtitle="Printed on invoices" onClose={closeDialog} onSave={save}>
+        <FormDialog icon={<MapPinIcon />} title="Registered address" subtitle="Printed on invoices" onClose={closeDialog} onSave={save}>
           <DialogSection>
             <Field label="Address line" className="sm:col-span-2">
               <input value={draft.addressLine} onChange={(e) => set("addressLine", e.target.value)} className={inputClass} />

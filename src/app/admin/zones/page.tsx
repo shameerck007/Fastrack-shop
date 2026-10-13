@@ -12,6 +12,7 @@ import { areaAt, parseAreas } from "@/lib/delivery-areas";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { BRAND } from "@/lib/brand";
+import MapPinIcon from "@/components/MapPinIcon";
 
 const COLORS = [BRAND[700], "#059669", "#d97706", "#7c3aed", "#db2777", "#0891b2", "#65a30d", "#dc2626"];
 
@@ -35,7 +36,7 @@ function Stat({
   hint,
   accent,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: string | number;
   hint?: string;
@@ -243,7 +244,7 @@ export default async function AdminZonesPage() {
         <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 lg:grid-cols-4">
           <Stat icon="🗺️" label="Zones" value={areas.length} accent={BRAND[600]} />
           <Stat icon="🏪" label="Shops and warehouses" value={shopRows.length} accent="#059669" hint={shopsWithoutPin > 0 ? `${shopsWithoutPin} without a GPS pin` : "All have a GPS pin"} />
-          <Stat icon="📍" label="Inside a zone" value={shopRows.filter((r) => r.areaName).length} accent="#7c3aed" hint="Get Express and Standard" />
+          <Stat icon={<MapPinIcon />} label="Inside a zone" value={shopRows.filter((r) => r.areaName).length} accent="#7c3aed" hint="Get Express and Standard" />
           <Stat icon="⚠️" label="Outside every zone" value={shopsOutside} accent={shopsOutside > 0 ? "#d97706" : "#404040"} hint={shopsOutside > 0 ? "Standard only" : "None"} />
         </div>
 
@@ -275,7 +276,7 @@ export default async function AdminZonesPage() {
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3 border-b border-neutral-200 pb-5">
         <div className="flex items-start gap-3">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-xl shadow-sm">
-            📍
+            <MapPinIcon />
           </span>
           <div>
             <h1 className="text-xl font-semibold text-neutral-900">{t("admin.delivery_zones_title")}</h1>

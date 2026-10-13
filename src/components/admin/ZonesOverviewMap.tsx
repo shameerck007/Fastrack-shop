@@ -8,6 +8,8 @@ import { TILE_URL, TILE_OPTIONS, marketGeo } from "@/lib/map-config";
 import { useMarket } from "@/components/MoneyProvider";
 import { polygonAreaKm2, type LatLng } from "@/lib/geo-polygon";
 import { BRAND as BLUES } from "@/lib/brand";
+import MapPinIcon from "@/components/MapPinIcon";
+import { PIN_INLINE } from "@/lib/map-pin";
 
 export interface OverviewZone {
   id: string;
@@ -85,7 +87,7 @@ function popupHtml(z: OverviewZone): string {
         inAreas
           ? stat("🗺️", "Delivery area", esc(inAreas.areaName ?? (inAreas.hasPin ? "Outside every area" : "No pin yet"))) + stat("🚚", "Offers", esc(inAreas.offers))
           : stat("⚡", "Express area", z.polygon && z.polygon.length >= 3 ? `custom · ${area && area < 10 ? area.toFixed(1) : Math.round(area ?? 0)} km²` : z.radiusKm != null ? `${z.radiusKm} km` : "not set") +
-            stat("📌", "Customers inside", z.customers == null ? "—" : String(z.customers))
+            stat(PIN_INLINE, "Customers inside", z.customers == null ? "—" : String(z.customers))
       }
     </div>
     ${inAreas ? "" : `<div style="margin-top:8px;font-size:12px;color:#475569">${z.standardEnabled === false ? "Standard delivery is off" : `📦 Standard: ${z.standardRadiusKm ? `within ${z.standardRadiusKm} km` : "no distance limit"} · ${z.standardDays ?? 2} day${(z.standardDays ?? 2) === 1 ? "" : "s"}`}</div>`}
@@ -309,7 +311,7 @@ export default function ZonesOverviewMap({
           )}
           {customerPoints.length > 0 && (
           <button type="button" onClick={() => setShow((s) => ({ ...s, customers: !s.customers }))} className={chip(show.customers, "#7c3aed")} style={show.customers ? { background: "#7c3aed" } : undefined}>
-            📌 Customers <span className="rounded-full bg-white/25 px-1.5">{customerPoints.length}</span>{outsideCount > 0 && <span className="rounded-full bg-red-600 px-1.5 text-white">{outsideCount} outside</span>}
+            <MapPinIcon /> Customers <span className="rounded-full bg-white/25 px-1.5">{customerPoints.length}</span>{outsideCount > 0 && <span className="rounded-full bg-red-600 px-1.5 text-white">{outsideCount} outside</span>}
           </button>
           )}
         </div>

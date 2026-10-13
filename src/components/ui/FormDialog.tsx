@@ -22,7 +22,7 @@ export default function FormDialog({
 }: {
   title: string;
   subtitle?: string;
-  icon?: string;
+  icon?: React.ReactNode;
   size?: "md" | "xl";
   saveLabel?: string;
   onClose: () => void;

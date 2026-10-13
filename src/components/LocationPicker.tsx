@@ -7,6 +7,7 @@ import PlaceSearch from "@/components/PlaceSearch";
 import { TILE_URL, TILE_OPTIONS, MARKER_ICON, marketGeo, type PlaceResult } from "@/lib/map-config";
 import { useMarket } from "@/components/MoneyProvider";
 import { useLocale } from "@/components/LocaleProvider";
+import MapPinIcon from "@/components/MapPinIcon";
 
 
 export default function LocationPicker({
@@ -122,7 +123,7 @@ export default function LocationPicker({
           disabled={locating}
           className="shrink-0 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-50"
         >
-          {locating ? t("common.locating") : t("common.use_my_current_location")}
+          {locating ? t("common.locating") : <><MapPinIcon /> {t("common.use_my_current_location")}</>}
         </button>
       </div>
 

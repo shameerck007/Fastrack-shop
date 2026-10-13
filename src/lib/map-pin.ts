@@ -31,3 +31,6 @@ export function pinHtml(emoji: string): string {
     `</div>`
   );
 }
+
+/** The same pin as a tiny inline picture for text built as an HTML string (map popups); it takes the surrounding text size. */
+export const PIN_INLINE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34 46" width="9" height="12" style="display:inline-block;vertical-align:-1px"><path d="M17 1.5C8.4 1.5 1.5 8.3 1.5 16.8c0 11 12.6 26 14.7 27.5.5.4 1.3.4 1.7 0C20 42.8 32.5 27.8 32.5 16.8 32.5 8.3 25.6 1.5 17 1.5z" fill="${NAVY}" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><circle cx="17" cy="16.8" r="6.6" fill="#fff"/></svg>`;
