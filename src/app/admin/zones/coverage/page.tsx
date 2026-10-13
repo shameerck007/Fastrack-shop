@@ -95,13 +95,6 @@ export default async function CoveragePage() {
 
   return (
     <div>
-      <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-neutral-500">
-        <Link href="/admin/zones" className="text-brand-700 hover:underline">
-          Delivery zones
-        </Link>
-        <span aria-hidden>/</span>
-        <span>Coverage map</span>
-      </div>
       <CoverageExplorer zones={zones} shops={shops} />
     </div>
   );
