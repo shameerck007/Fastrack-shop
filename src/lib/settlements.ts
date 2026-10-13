@@ -143,3 +143,79 @@ export async function getAdminSettlementOverview(): Promise<AdminSettlementOverv
     ...toSummary(r),
   }));
 }
+
+export type LedgerKind = "sale" | "refund" | "payout";
+
+export interface LedgerEntry {
+  at: string | null;
+  kind: LedgerKind;
+  ref: string;
+  orderId: string | null;
+  description: string;
+  gross: number;
+  commission: number;
+  discount: number;
+  /** Money added to (+) or taken off (-) what FasTrack owes the supplier. */
+  amount: number;
+  /** What FasTrack owes the supplier after this entry. */
+  balance: number;
+}
+
+/** Every money movement for one store, oldest first, each with the running balance. Same access rule as the summary. Needs migration 0106; returns null before it. */
+export async function getStoreLedger(storeId: string): Promise<LedgerEntry[] | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("store_settlement_ledger" as never, { target_store_id: storeId } as never);
+  if (error) {
+    if (/store_settlement_ledger|does not exist|schema cache/i.test(error.message ?? "")) return null;
+    throw toUserError(error);
+  }
+  const rows = (data ?? []) as unknown as { entry_at: string | null; kind: LedgerKind; ref: string; order_id: string | null; description: string; gross: number; commission: number; discount: number; amount: number }[];
+  let balance = 0;
+  return rows.map((r) => {
+    balance += Number(r.amount);
+    return {
+      at: r.entry_at,
+      kind: r.kind,
+      ref: r.ref ?? "",
+      orderId: r.order_id,
+      description: r.description ?? "",
+      gross: Number(r.gross),
+      commission: Number(r.commission),
+      discount: Number(r.discount),
+      amount: Number(r.amount),
+      balance: Math.round(balance * 100) / 100,
+    };
+  });
+}
+
+export interface MonthlyPoint {
+  /** First day of the month, YYYY-MM-DD. */
+  month: string;
+  gross: number;
+  commission: number;
+  discount: number;
+  refunds: number;
+  net: number;
+  paidOut: number;
+}
+
+/** The same figures by month for every supplier of the market (admin). */
+export async function getAdminMonthly(): Promise<MonthlyPoint[] | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_settlement_monthly" as never);
+  if (error) {
+    if (/admin_settlement_monthly|does not exist|schema cache/i.test(error.message ?? "")) return null;
+    throw toUserError(error);
+  }
+  return ((data ?? []) as unknown as { month: string; gross: number; commission: number; discount: number; refunds: number; net: number; paid_out: number }[]).map((r) => ({
+    month: r.month,
+    gross: Number(r.gross),
+    commission: Number(r.commission),
+    discount: Number(r.discount),
+    refunds: Number(r.refunds),
+    net: Number(r.net),
+    paidOut: Number(r.paid_out),
+  }));
+}
+
+export { monthlyFromLedger } from "@/lib/settlement-ledger-utils";

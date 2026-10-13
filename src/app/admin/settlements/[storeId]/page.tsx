@@ -1,13 +1,12 @@
 import Link from "@/components/Link";
-import { getMoney } from "@/lib/tenant-server";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getStoreSettlementSummary, getStoreSettlementOrders, getStorePayouts } from "@/lib/settlements";
-import { SettlementSummaryCards, SettlementOrdersTable, SettlementPayoutsList } from "@/components/SettlementLedger";
+import { getStoreSettlementSummary, getStoreSettlementOrders, getStorePayouts, getStoreLedger } from "@/lib/settlements";
+import LedgerWorkspace from "@/components/settlement/LedgerWorkspace";
 import RecordPayoutForm from "@/components/admin/RecordPayoutForm";
 import StatementDialog from "@/components/StatementDialog";
-import { getServerLocale } from "@/lib/i18n/get-locale";
-import { translate } from "@/lib/i18n/t";
+
+export const metadata = { title: "Supplier settlement" };
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -16,78 +15,45 @@ const STATUS_STYLES: Record<string, string> = {
   suspended: "bg-neutral-100 text-neutral-500",
 };
 
-export default async function AdminSettlementDetailPage({
-  params,
-}: {
-  params: Promise<{ storeId: string }>;
-}) {
+export default async function AdminSettlementDetailPage({ params }: { params: Promise<{ storeId: string }> }) {
   const { storeId } = await params;
-  const locale = await getServerLocale();
-  const t = (key: string, vars?: Record<string, string | number>) => translate(locale, key, vars);
-  const money = await getMoney();
   const supabase = await createClient();
-
-  const { data: store } = await supabase.from("stores").select("id, name, status").eq("id", storeId).maybeSingle();
+  const { data: store } = await supabase.from("stores").select("id, name, status, city").eq("id", storeId).maybeSingle();
   if (!store) notFound();
 
-  const [summary, orders, payouts] = await Promise.all([
-    getStoreSettlementSummary(storeId),
-    getStoreSettlementOrders(storeId),
-    getStorePayouts(storeId),
-  ]);
+  const [summary, orders, payouts, entries] = await Promise.all([getStoreSettlementSummary(storeId), getStoreSettlementOrders(storeId), getStorePayouts(storeId), getStoreLedger(storeId)]);
+  if (!summary) notFound();
 
   return (
     <div>
-      <Link href="/admin/settlements" className="text-sm text-blue-600 hover:underline">
-        ← {t("admin.settlement_ledger")}
-      </Link>
-
-      <div className="mb-5 mt-2 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold">{store.name}</h1>
-            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[store.status] ?? "bg-neutral-100"}`}>
-              {store.status}
-            </span>
-          </div>
-          <p className="mt-1 text-xs text-neutral-500">
-            {summary && summary.deliveredOrderCount > 0 ? <>FasTrack kept <b className="text-neutral-800">{summary.commissionRate}%</b> on average from delivered sales (rates are set by category). </> : null}
-            <Link href="/admin/commission" className="font-semibold text-blue-600 hover:underline">
-              Manage in Commission rates →
-            </Link>
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatementDialog storeId={store.id} />
-          {summary && <RecordPayoutForm storeId={store.id} balanceDue={summary.balanceDue} />}
-        </div>
+      <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+        <Link href="/admin/settlements" className="text-blue-600 hover:underline">
+          ← All suppliers
+        </Link>
+        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[store.status] ?? "bg-neutral-100"}`}>{store.status}</span>
+        {store.city && <span className="text-neutral-500">{store.city}</span>}
+        <Link href="/admin/commission" className="text-neutral-500 hover:text-blue-600 hover:underline">
+          Commission rates →
+        </Link>
+        <Link href={`/admin/merchants/${store.id}`} className="text-neutral-500 hover:text-blue-600 hover:underline">
+          Supplier profile →
+        </Link>
       </div>
-
-      {summary && (
-        <div className="mb-5">
-          <SettlementSummaryCards summary={summary} t={t} money={money} />
-        </div>
-      )}
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-            <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-700">
-              {t("merchant.delivered_orders_count", { count: orders.length })}
-            </h2>
-            <SettlementOrdersTable orders={orders} t={t} locale={locale} money={money} />
-          </section>
-        </div>
-
-        <div>
-          <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-            <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-700">
-              {t("merchant.payout_history_count", { count: payouts.length })}
-            </h2>
-            <SettlementPayoutsList payouts={payouts} t={t} locale={locale} money={money} />
-          </section>
-        </div>
-      </div>
+      <LedgerWorkspace
+        storeId={store.id}
+        storeName={store.name}
+        role="admin"
+        summary={summary}
+        entries={entries}
+        orders={orders}
+        payouts={payouts}
+        headerActions={
+          <>
+            <StatementDialog storeId={store.id} />
+            <RecordPayoutForm storeId={store.id} balanceDue={summary.balanceDue} />
+          </>
+        }
+      />
     </div>
   );
 }

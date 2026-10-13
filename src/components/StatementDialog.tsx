@@ -63,7 +63,7 @@ export default function StatementDialog({ storeId, label = "Statement" }: { stor
       .finally(() => setLoading(false));
   }
 
-  const link = (format: "pdf" | "csv") => `/api/settlements/statement?store=${storeId}&from=${from}&to=${to}&format=${format}`;
+  const link = (format: "pdf" | "xlsx") => `/api/settlements/statement?store=${storeId}&from=${from}&to=${to}&format=${format}`;
   return (
     <>
       <button type="button" onClick={openIt} className={secondaryButton}>
@@ -118,8 +118,8 @@ export default function StatementDialog({ storeId, label = "Statement" }: { stor
                 )}
               </section>
               <div className="flex flex-wrap justify-end gap-2">
-                <a href={error || !data ? undefined : link("csv")} className={`${secondaryButton} ${error || !data ? "pointer-events-none opacity-50" : ""}`}>
-                  ⬇ Spreadsheet (CSV)
+                <a href={error || !data ? undefined : link("xlsx")} className={`${secondaryButton} ${error || !data ? "pointer-events-none opacity-50" : ""}`}>
+                  ⬇ Excel
                 </a>
                 <a href={error || !data ? undefined : link("pdf")} className={`${primaryButton} ${error || !data ? "pointer-events-none opacity-50" : ""}`}>
                   ⬇ Download PDF
