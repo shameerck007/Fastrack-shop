@@ -409,20 +409,12 @@ export default function OrderTrackingHero({
             )}
 
             <div className="mt-5">
-              {/* The road from the rider to the customer: the shop on the way, the FasTrack rider on the tarmac, the home at the end. */}
+              {/* The road from the rider to the customer: the FasTrack rider on the tarmac, the home at the end. */}
               <div className="relative h-[5.25rem]">
                 <div className="absolute inset-x-0 bottom-2 h-6 overflow-hidden rounded-full bg-brand-950 shadow-inner">
                   <div className="absolute inset-y-0 start-0 rounded-full bg-brand-600/60 transition-[width] duration-[1500ms] ease-out" style={{ width: `calc(1.5rem + (100% - 3rem) * ${journey.pos / 100})` }} />
                   <div className="absolute inset-x-3 top-1/2 h-[2px] -translate-y-1/2 opacity-80" style={{ backgroundImage: "repeating-linear-gradient(90deg,#fff 0 10px,transparent 10px 20px)" }} />
                 </div>
-                {/* the shop: the FasTrack mark on a pin, standing beside the road */}
-                <span className="absolute bottom-9 flex -translate-x-1/2 flex-col items-center" style={{ left: "25%" }} aria-hidden>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md ring-2 ring-brand-300">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/fastrack-logo-mark.png" alt="" className="h-5 w-auto" />
-                  </span>
-                  <span className="h-2 w-0.5 bg-brand-300" />
-                </span>
                 {/* the customer's home at the end of the road */}
                 <span className="absolute bottom-9 end-1 flex flex-col items-center" aria-hidden>
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg shadow-md ring-2 ring-brand-300">🏠</span>
