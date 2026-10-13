@@ -8,7 +8,9 @@ import DashSalesChart from "@/components/merchant/DashSalesChart";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { localizedName } from "@/lib/i18n/localized";
-import { getMoney } from "@/lib/tenant-server";
+import { getCurrentTenant, getMoney } from "@/lib/tenant-server";
+import { timeZoneFor } from "@/lib/admin-dashboard";
+import { dayPart, hello, localClock, PART_ICON, quoteFor } from "@/lib/greeting";
 
 const STATUS_BADGE: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700",
@@ -90,6 +92,11 @@ export default async function MerchantDashboardPage() {
     getReturnsWaiting(store.id).catch(() => 0),
   ]);
 
+  const tenant = await getCurrentTenant().catch(() => null);
+  const clock = localClock(timeZoneFor(tenant?.country_code));
+  const part = dayPart(clock.hour);
+  const today = sales?.days[sales.days.length - 1];
+  const openOrders = stats.newOrders + stats.preparing + stats.ready;
   const accepting = store.accepting_orders ?? true;
   const attention: { href: string; tone: "amber" | "red" | "blue"; icon: string; text: string }[] = [];
   if (!accepting) attention.push({ href: "#your-store", tone: "red", icon: "⏸️", text: "Your store is paused: customers cannot order from you right now" });
@@ -102,6 +109,34 @@ export default async function MerchantDashboardPage() {
 
   return (
     <div className="flex flex-col gap-5">
+      {/* welcome */}
+      <section className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+          <div className="flex min-w-0 items-center gap-3.5">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-3xl ring-1 ring-amber-100" aria-hidden>
+              {PART_ICON[part]}
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-neutral-500">{hello(part, locale)},</p>
+              <h1 className="break-words text-2xl font-extrabold leading-tight tracking-tight text-neutral-900">{store.name}</h1>
+              <p className="mt-0.5 text-xs text-neutral-500">
+                {clock.weekday}, {clock.dateLine}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
+            <span className="rounded-full bg-white px-3 py-1.5 text-neutral-700 ring-1 ring-neutral-200">
+              Today: <b className="text-neutral-900">{today ? today.orders : 0}</b> order{today?.orders === 1 ? "" : "s"} · <b className="text-neutral-900">{money(today?.sales ?? 0)}</b>
+            </span>
+            <span className="rounded-full bg-white px-3 py-1.5 text-neutral-700 ring-1 ring-neutral-200">
+              <b className="text-neutral-900">{openOrders}</b> open now
+            </span>
+            <span className={`rounded-full px-3 py-1.5 ${accepting ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{accepting ? "● Accepting orders" : "● Paused"}</span>
+          </div>
+        </div>
+        <blockquote className="border-s-4 border-blue-200 ps-4 text-sm italic leading-relaxed text-neutral-600">“{quoteFor(part, clock.dayOfYear, locale)}”</blockquote>
+      </section>
+
       {/* needs attention */}
       {attention.length > 0 ? (
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
