@@ -119,7 +119,7 @@ export default async function CartPage() {
           </div>
           <Link
             href="/checkout"
-            className="ms-auto flex h-12 flex-1 items-center justify-center rounded-full bg-brand-700 px-6 text-center font-extrabold text-white shadow-lg shadow-brand-700/25 hover:bg-brand-800"
+            className="ms-auto inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-brand-700 px-10 text-center text-[15px] font-bold text-white shadow-md shadow-brand-700/25 hover:bg-brand-800"
           >
             {t("cart.proceed_to_checkout")}
           </Link>
