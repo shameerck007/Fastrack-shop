@@ -33,6 +33,7 @@ import { getRequestCountryCode } from "@/lib/get-request-country";
 import { cookies } from "next/headers";
 import { TENANT_COOKIE } from "@/lib/tenant";
 import { getServerLocale } from "@/lib/i18n/get-locale";
+import type { Locale } from "@/lib/i18n/config";
 import { dirFor } from "@/lib/i18n/config";
 import "./globals.css";
 
@@ -88,41 +89,33 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default async function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const locale = await getServerLocale();
-  const ipCountry = await getRequestCountryCode();
-  const marketSuggestion = await getMarketSuggestion().catch(() => null);
-  const tenant = await getCurrentTenant().catch(() => null);
+/**
+ * The page frame: header, footer, bottom bar and the providers that need the market and company settings from the database.
+ * It is its own component inside a Suspense boundary so the page can start streaming (the <html>, the loading screen) before
+ * these database lookups finish. Done together rather than one after another, they are the only wait left before the app appears.
+ */
+async function AppFrame({ locale, children }: { locale: Locale; children: React.ReactNode }) {
+  const [ipCountry, marketSuggestion, tenant, company, cookieStore] = await Promise.all([
+    getRequestCountryCode(),
+    getMarketSuggestion().catch(() => null),
+    getCurrentTenant().catch(() => null),
+    getCompanySettings().catch(() => null),
+    cookies(),
+  ]);
   const currency = tenant?.currency ?? "SAR";
   const marketCountry = tenant?.country_code ?? "SA";
-  const company = await getCompanySettings().catch(() => null);
   const etaSettings = {
     prepMinutes: Number(company?.prep_minutes ?? DEFAULT_ETA_SETTINGS.prepMinutes),
     speedKmh: Number(company?.rider_speed_kmh ?? DEFAULT_ETA_SETTINGS.speedKmh),
     bufferMinutes: Number(company?.eta_buffer_minutes ?? DEFAULT_ETA_SETTINGS.bufferMinutes),
   };
   // Phone fields start on the chosen market's country code; before a market is chosen, on the visitor's own country.
-  const marketChosen = !!(await cookies()).get(TENANT_COOKIE)?.value;
+  const marketChosen = !!cookieStore.get(TENANT_COOKIE)?.value;
   const countryCode = marketChosen ? marketCountry : ipCountry;
 
   return (
-    <html lang={locale} dir={dirFor(locale)}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${tajawal.variable} overscroll-none font-sans antialiased bg-neutral-50 text-neutral-900`}
-      >
-        <AppSplash />
-        <SplashGate />
-        <ChunkErrorReload />
-        <GlobalErrorToast />
-        <MarketToast />
-        <Suspense fallback={null}>
-          <NavProgress />
-        </Suspense>
-        <LocaleProvider locale={locale}>
+    <>
+      <LocaleProvider locale={locale}>
         <MoneyProvider currency={currency} countryCode={marketCountry} pricing={pricingFromSettings(marketCountry, company)} defaultMaxQty={Number(company?.default_max_order_qty ?? 2)} showShops={company?.show_shops ?? null}>
         <DefaultCountryProvider countryCode={countryCode}>
         <LoginModalProvider>
@@ -156,7 +149,35 @@ export default async function RootLayout({
         </LoginModalProvider>
         </DefaultCountryProvider>
         </MoneyProvider>
-        </LocaleProvider>
+      </LocaleProvider>
+    </>
+  );
+}
+
+export default async function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  // Only the language (from a cookie and a header, no database) is needed to start the page; the loading screen goes out at once.
+  const locale = await getServerLocale();
+
+  return (
+    <html lang={locale} dir={dirFor(locale)}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${tajawal.variable} overscroll-none font-sans antialiased bg-neutral-50 text-neutral-900`}
+      >
+        <AppSplash />
+        <SplashGate />
+        <ChunkErrorReload />
+        <GlobalErrorToast />
+        <MarketToast />
+        <Suspense fallback={null}>
+          <NavProgress />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AppFrame locale={locale}>{children}</AppFrame>
+        </Suspense>
       </body>
     </html>
   );

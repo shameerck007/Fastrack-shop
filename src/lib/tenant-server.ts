@@ -20,10 +20,10 @@ async function getActiveTenantsImpl(): Promise<Tenant[]> {
 /** The market this request is working in. Asks the database (same rule the security policies use):
  * staff are pinned to their own tenant, shoppers get the market they chose, else the default. */
 async function getCurrentTenantImpl(): Promise<Tenant | null> {
-  const tenants = await getActiveTenants();
-  if (tenants.length === 0) return null;
+  // The market list and the "which market am I in" question go out together: this runs before anything is sent to the phone.
   const supabase = await createClient();
-  const { data: dbTenantId } = await supabase.rpc("current_tenant_id" as never);
+  const [tenants, { data: dbTenantId }] = await Promise.all([getActiveTenants(), supabase.rpc("current_tenant_id" as never)]);
+  if (tenants.length === 0) return null;
   const fromDb = typeof dbTenantId === "string" ? tenants.find((t) => t.id === dbTenantId) : undefined;
   if (fromDb) return fromDb;
   const chosen = (await cookies()).get(TENANT_COOKIE)?.value;

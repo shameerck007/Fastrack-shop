@@ -133,9 +133,13 @@ function Rider() {
       {/* ground shadow */}
       <ellipse cx="62" cy="80" rx="46" ry="3.2" fill="#000a20" opacity=".3" />
       {/* delivery box */}
-      <rect x="6" y="22" width="36" height="28" rx="5" fill="#005fb0" />
-      <rect x="6" y="22" width="36" height="7" rx="4" fill="#0070d0" />
-      <path d="M24 34 l7 10 h-4.2 l-2.8 -4 l-2.8 4 h-4.2 z" fill="#fff" />
+      <rect x="0" y="14" width="46" height="36" rx="6" fill="#005fb0" />
+      <rect x="0" y="14" width="46" height="8" rx="5" fill="#0070d0" />
+      <rect x="4" y="27" width="38" height="17" rx="3.5" fill="#fff" />
+      {/* the FasTrack logo on the box */}
+      <image href="/fastrack-logo-wordmark.png" x="6.5" y="31" width="33" height="5.1" />
+      <path d="M16 39.5 h14" stroke="#0070d0" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M19 41.6 h8" stroke="#7fb6ea" strokeWidth="1.2" strokeLinecap="round" />
       {/* scooter body */}
       <path d="M20 56 Q20 44 36 44 L58 44 L58 58 Z" fill="#0070d0" />
       <path d="M44 58 H88 L84 50 H52 Z" fill="#005fb0" />
