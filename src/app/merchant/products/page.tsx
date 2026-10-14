@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "@/components/Link";
-import { getMyStore, getMyStoreProductsPage } from "@/lib/merchant";
+import { getMyStore, getMyStoreProductsPage, type ProductSort, type ProductView } from "@/lib/merchant";
 import PortalPageHeader from "@/components/ui/PortalPageHeader";
 import { createClient } from "@/lib/supabase/server";
 import MerchantProductSearch from "@/components/merchant/MerchantProductSearch";
@@ -10,7 +10,7 @@ import { translate } from "@/lib/i18n/t";
 
 const PAGE_SIZE = 24;
 
-export default async function MerchantProductsPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
+export default async function MerchantProductsPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string; view?: string; cat?: string; sort?: string }> }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
   const locale = await getServerLocale();
@@ -19,13 +19,16 @@ export default async function MerchantProductsPage({ searchParams }: { searchPar
   if (!store) redirect("/sell");
 
   const supabase = await createClient();
-  const [{ items: products, total }, { data: categories }] = await Promise.all([
-    getMyStoreProductsPage(store.id, { q: sp.q, page, pageSize: PAGE_SIZE }),
-    supabase.from("categories").select("*").order("sort_order"),
-  ]);
+  const { data: categories } = await supabase.from("categories").select("*").order("sort_order");
   const categoryList = (categories as Category[]) ?? [];
+  const view = (["active", "inactive", "low", "out"].includes(sp.view ?? "") ? sp.view : "all") as ProductView;
+  const sort = (["oldest", "name"].includes(sp.sort ?? "") ? sp.sort : "new") as ProductSort;
+  // A parent category includes its sub-categories.
+  const cat = sp.cat && categoryList.some((c) => c.id === sp.cat) ? sp.cat : "";
+  const categoryIds = cat ? [cat, ...categoryList.filter((c) => c.parent_id === cat).map((c) => c.id)] : [];
+  const { items: products, total } = await getMyStoreProductsPage(store.id, { q: sp.q, page, pageSize: PAGE_SIZE, view, categoryIds, sort });
 
-  const searching = !!(sp.q ?? "").trim();
+  const searching = !!(sp.q ?? "").trim() || view !== "all" || !!cat;
 
   return (
     <div className="flex flex-col gap-5">
@@ -49,7 +52,7 @@ export default async function MerchantProductsPage({ searchParams }: { searchPar
           </Link>
         </div>
       ) : (
-        <MerchantProductSearch products={products} categories={categoryList} total={total} page={page} pageSize={PAGE_SIZE} q={sp.q ?? ""} />
+        <MerchantProductSearch products={products} categories={categoryList} total={total} page={page} pageSize={PAGE_SIZE} q={sp.q ?? ""} view={view} cat={cat} sort={sort} />
       )}
     </div>
   );

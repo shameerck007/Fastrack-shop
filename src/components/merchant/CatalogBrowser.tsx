@@ -69,17 +69,22 @@ export default function CatalogBrowser({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
+      <div className="sticky top-14 z-20 -mx-4 flex flex-col gap-2 border-b border-neutral-200/80 bg-neutral-50/95 px-4 pb-3 pt-2 backdrop-blur sm:flex-row sm:flex-wrap sm:items-center md:static md:mx-0 md:rounded-2xl md:border md:border-neutral-200 md:bg-white md:p-3 md:shadow-sm">
         <CatalogSearch categories={categories} q={list.state.q} cat={list.state.cat} loading={list.loading} onChange={(c) => list.update(c)} placeholder="Search by name, brand or barcode…" />
-        <button type="button" onClick={() => setRequesting(true)} className="ms-auto h-10 rounded-full border border-brand-600 bg-white px-4 text-sm font-bold text-brand-700 hover:bg-brand-50">
+        <button type="button" onClick={() => setRequesting(true)} className="h-10 w-full rounded-full border border-brand-600 bg-white px-4 text-sm font-bold text-brand-700 hover:bg-brand-50 sm:ms-auto sm:w-auto">
           Can&apos;t find it? Request a product
         </button>
       </div>
 
       {requests.length > 0 && (
-        <section className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-2 text-sm font-bold text-neutral-800">My requests</h2>
-          <ul className="divide-y divide-neutral-100">
+        <details className="group rounded-2xl border border-neutral-200 bg-white shadow-sm" open={requests.some((r) => r.status === "rejected")}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 text-sm font-bold text-neutral-800 [&::-webkit-details-marker]:hidden">
+            <span>
+              My requests <span className="ms-1 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-bold text-neutral-600">{requests.length}</span>
+            </span>
+            <span aria-hidden className="text-neutral-400 transition group-open:rotate-90 rtl:-scale-x-100">›</span>
+          </summary>
+          <ul className="divide-y divide-neutral-100 px-4 pb-3">
             {requests.map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                 <span className="min-w-0">
@@ -92,7 +97,7 @@ export default function CatalogBrowser({
               </li>
             ))}
           </ul>
-        </section>
+        </details>
       )}
 
       {rows.length === 0 ? (

@@ -127,18 +127,18 @@ export function CatalogSearch({
 }) {
   const parents = categories.filter((c) => !c.parent_id);
   return (
-    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-      <div className="relative min-w-[14rem] flex-1 sm:max-w-sm">
+    <div className="grid min-w-0 flex-1 grid-cols-1 items-center gap-2 sm:flex sm:flex-wrap">
+      <div className="relative min-w-0 sm:min-w-[14rem] sm:flex-1 sm:max-w-sm">
         <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm text-neutral-500">🔍</span>
         <input
           type="search"
           value={q}
           onChange={(e) => onChange({ q: e.target.value })}
           placeholder={placeholder}
-          className="h-10 w-full rounded-full border border-neutral-300 bg-white pe-4 ps-9 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="h-11 w-full rounded-full border border-neutral-300 bg-white pe-4 ps-9 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 sm:h-10"
         />
       </div>
-      <Select value={cat} onChange={(e) => onChange({ cat: e.target.value })} className="min-w-[12rem]">
+      <Select value={cat} onChange={(e) => onChange({ cat: e.target.value })} className="w-full sm:min-w-[12rem] sm:w-auto">
         <option value="all">All categories</option>
         {parents.map((p) => {
           const kids = categories.filter((c) => c.parent_id === p.id);

@@ -5,9 +5,22 @@ import { useCustomerHeaderState } from "@/lib/hooks/useCustomerHeaderState";
 import { useLocale } from "@/components/LocaleProvider";
 import NotificationBell from "@/components/NotificationBell";
 import { useLoginModal } from "@/components/LoginModalProvider";
+import NavIcon from "@/components/ui/NavIcon";
+import { dashboardPathForRole } from "@/lib/landing";
+
+// The way back to their own portal, for accounts that are more than a shopper (supplier, rider, admin, warehouse, platform owner).
+const PORTAL_LABEL: Record<string, { label: string; icon: string }> = {
+  merchant: { label: "Supplier", icon: "merchants" },
+  rider: { label: "Rider", icon: "delivery" },
+  admin: { label: "Admin", icon: "dashboard" },
+  super_admin: { label: "Platform", icon: "dashboard" },
+  store_staff: { label: "Warehouse", icon: "box" },
+};
 
 export default function UserHeaderActions() {
-  const { loaded, signedIn, firstName, cartCount } = useCustomerHeaderState();
+  const { loaded, signedIn, firstName, cartCount, role } = useCustomerHeaderState();
+  const portalHref = dashboardPathForRole(role);
+  const portal = role ? PORTAL_LABEL[role] : undefined;
   const { openLogin } = useLoginModal();
   const { t } = useLocale();
 
@@ -15,6 +28,12 @@ export default function UserHeaderActions() {
     <div className="flex items-center gap-2 text-sm lg:gap-3">
       {/* Not in the mobile bottom nav (unlike Orders/Cart/Account above),
           so unlike those this stays visible at every width. */}
+      {loaded && signedIn && portalHref && portal && (
+        <Link href={portalHref} prefetch={false} aria-label={`Open your ${portal.label.toLowerCase()} account`} title={`Back to your ${portal.label.toLowerCase()} account`} className="flex h-10 items-center justify-center gap-1.5 rounded-full bg-brand-50 text-[13px] font-bold text-brand-800 ring-1 ring-brand-100 transition hover:bg-brand-100 max-sm:w-10 sm:px-3.5">
+          <NavIcon name={portal.icon} className="h-[18px] w-[18px]" />
+          <span className="hidden sm:inline">{portal.label}</span>
+        </Link>
+      )}
       {loaded && signedIn && <NotificationBell />}
       {/* Already in the mobile bottom nav (Orders tab) — showing it here too
           just crowds the header on a phone screen with no extra value. */}

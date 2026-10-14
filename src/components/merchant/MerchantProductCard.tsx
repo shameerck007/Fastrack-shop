@@ -30,20 +30,21 @@ export default function MerchantProductCard({
 
   return (
     <>
-    <div className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition hover:shadow-md">
-      <div className="flex h-36 items-center justify-center bg-neutral-50">
+    {/* On a phone the card is a compact row (photo on the side); from tablet width up it is a card with the photo on top. */}
+    <div className={`flex flex-row overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:shadow-md sm:flex-col ${product.is_active ? "" : "opacity-80"}`}>
+      <div className="flex w-24 shrink-0 items-center justify-center self-stretch bg-neutral-50 sm:h-36 sm:w-full sm:self-auto">
         {product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
         ) : (
-          <span className="text-4xl">📦</span>
+          <span className="text-3xl sm:text-4xl">📦</span>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-3">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-3 sm:gap-2">
         <div className="flex items-start justify-between gap-2">
-          <div>
-            <p className="text-sm font-medium leading-tight">{product.name}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold leading-tight">{product.name}</p>
             {product.brand && <p className="text-xs text-neutral-500">{product.brand}</p>}
           </div>
           <button
@@ -87,7 +88,7 @@ export default function MerchantProductCard({
           )}
           <button
             onClick={() => setEditing(true)}
-            className="inline-flex h-9 items-center rounded-full border border-neutral-300 px-4 text-sm font-semibold hover:bg-neutral-50"
+            className="inline-flex h-10 items-center rounded-full border border-neutral-300 px-4 text-sm font-semibold hover:bg-neutral-50 sm:h-9"
           >
             {t("addresses.edit")}
           </button>

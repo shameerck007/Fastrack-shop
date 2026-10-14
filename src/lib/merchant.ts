@@ -63,27 +63,42 @@ export async function getMyStoreProducts(storeId: string): Promise<MerchantProdu
 }
 
 /** One page of the supplier's own products, searched on the server so a big range never has to load at once. */
+/** What the supplier's product list can show: everything, only active or switched-off products, or by stock. */
+export type ProductView = "all" | "active" | "inactive" | "low" | "out";
+export type ProductSort = "new" | "oldest" | "name";
+export const LOW_STOCK_UNITS = 5;
+
 export async function getMyStoreProductsPage(
   storeId: string,
-  opts: { q?: string; page?: number; pageSize?: number } = {}
+  opts: { q?: string; page?: number; pageSize?: number; view?: ProductView; categoryIds?: string[]; sort?: ProductSort } = {}
 ): Promise<{ items: MerchantProduct[]; total: number }> {
   const supabase = await createClient();
   const pageSize = opts.pageSize ?? 24;
   const page = Math.max(1, opts.page ?? 1);
+  // Filtering by stock needs the stock rows to take part in the query (an inner join); otherwise they are just fetched along.
+  const stockView = opts.view === "low" || opts.view === "out";
+  const variants = stockView ? "product_variants!inner" : "product_variants";
+  const inventory = stockView ? "inventory!inner" : "inventory";
   let q = supabase
     .from("products")
     .select(
-      "id, name, name_ar, brand, brand_ar, sku, description, description_ar, tax_rate, hsn_code, max_order_qty, image_url, is_active, category_id, category:categories(name), product_variants(id, label, label_ar, unit, quantity, price, compare_at_price, compare_at_until, inventory(id, stock, min_stock))",
+      `id, name, name_ar, brand, brand_ar, sku, description, description_ar, tax_rate, hsn_code, max_order_qty, image_url, is_active, category_id, category:categories(name), ${variants}(id, label, label_ar, unit, quantity, price, compare_at_price, compare_at_until, ${inventory}(id, stock, min_stock))`,
       { count: "exact" }
     )
     .eq("store_id", storeId);
+  if (opts.view === "active") q = q.eq("is_active", true);
+  else if (opts.view === "inactive") q = q.eq("is_active", false);
+  else if (opts.view === "out") q = q.lte("product_variants.inventory.stock", 0);
+  else if (opts.view === "low") q = q.gt("product_variants.inventory.stock", 0).lte("product_variants.inventory.stock", LOW_STOCK_UNITS);
+  if (opts.categoryIds && opts.categoryIds.length > 0) q = q.in("category_id", opts.categoryIds);
   const needle = (opts.q ?? "").trim().replace(/[,()*%\\"]/g, " ").replace(/\s+/g, " ").trim();
   if (needle) {
     const like = `%${needle}%`;
     q = q.or(`name.ilike.${like},name_ar.ilike.${like},brand.ilike.${like},sku.ilike.${like}`);
   }
   const from = (page - 1) * pageSize;
-  const { data, error, count } = await q.order("created_at", { ascending: false }).range(from, from + pageSize - 1);
+  const order = opts.sort === "name" ? q.order("name", { ascending: true }) : opts.sort === "oldest" ? q.order("created_at", { ascending: true }) : q.order("created_at", { ascending: false });
+  const { data, error, count } = await order.range(from, from + pageSize - 1);
   if (error) throw toUserError(error);
   return { items: (data as unknown as MerchantProduct[]) ?? [], total: count ?? 0 };
 }

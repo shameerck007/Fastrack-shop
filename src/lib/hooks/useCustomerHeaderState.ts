@@ -9,6 +9,8 @@ export interface CustomerHeaderState {
   loaded: boolean;
   signedIn: boolean;
   firstName: string | null;
+  /** The account's role (admin, merchant, rider...), so the shop header can offer a way back to their portal. */
+  role: string | null;
   cartCount: number;
   cartTotal: number;
   /** Sum of (compare-at price - price) over the cart: what the shopper saves. */
@@ -21,6 +23,7 @@ const INITIAL_STATE: CustomerHeaderState = {
   loaded: false,
   signedIn: false,
   firstName: null,
+  role: null,
   cartCount: 0,
   cartTotal: 0,
   cartSavings: 0,
@@ -60,7 +63,7 @@ export function useFetchCustomerState(): CustomerHeaderState {
       }
 
       const [{ data: profile }, { data: cart }] = await Promise.all([
-        supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("full_name, role").eq("id", user.id).maybeSingle(),
         supabase.from("carts").select("id").eq("user_id", user.id).maybeSingle(),
       ]);
       if (cancelled) return;
@@ -93,6 +96,7 @@ export function useFetchCustomerState(): CustomerHeaderState {
           loaded: true,
           signedIn: true,
           firstName: profile?.full_name?.split(" ")[0] ?? null,
+          role: (profile as { role?: string | null } | null)?.role ?? null,
           cartCount,
           cartTotal,
           cartSavings,
