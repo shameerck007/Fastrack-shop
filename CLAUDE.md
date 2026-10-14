@@ -13,4 +13,4 @@ New work must follow the system's colours and patterns. Look at the nearest exis
 
 ## Loading screen
 
-`src/components/AppSplash.tsx` (inline SVG and CSS) and `SplashGate.tsx` (4 s minimum, plays on every launch except refresh/back). The root layout streams it before the database lookups, which live in `AppFrame` inside a Suspense boundary. Do not add awaited database work to `RootLayout` itself, or the blank white screen at app launch comes back.
+`src/components/AppSplash.tsx` (inline SVG and CSS) and `SplashGate.tsx` (4 s minimum; plays only when the app or site is opened: no referrer or the Android app. Never on refresh, Back or in-shop page loads). The root layout streams it before the database lookups, which live in `AppFrame` inside a Suspense boundary. Do not add awaited database work to `RootLayout` itself, or the blank white screen at app launch comes back.
