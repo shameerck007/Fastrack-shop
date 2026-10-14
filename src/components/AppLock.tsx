@@ -79,7 +79,7 @@ export default function AppLock() {
     setBusy(true);
     setMessage(null);
     try {
-      const begin = (await unwrapAction(beginAppUnlock)(settings.credentialId)) as { challengeId: string; options: Record<string, unknown> };
+      const begin = (await unwrapAction(beginAppUnlock)()) as { challengeId: string; options: Record<string, unknown> };
       const { credentialId, proof } = await getPasskeyAssertion(begin.options);
       await unwrapAction(finishAppUnlock)(begin.challengeId, credentialId, proof);
       try {
@@ -91,7 +91,7 @@ export default function AppLock() {
       setLocked(false);
     } catch (e) {
       const text = e instanceof Error ? e.message : "";
-      if (/logged in|no passkey|no longer saved|does not belong/i.test(text)) {
+      if (/logged in|no passkey|no longer saved|not saved|does not belong/i.test(text)) {
         // Signed out, or the passkey was removed: there is nothing to lock any more.
         writeAppLock(null);
         setLocked(false);

@@ -167,16 +167,21 @@ export async function finishPasskeyLogin(challengeId: string, credentialId: stri
 
 // ---- app lock ------------------------------------------------------------------------------------------------------
 
-/** The signed-in shopper's passkeys, for the lock screen: it asks the phone to confirm with this device's own passkey. */
-export async function beginAppUnlock(credentialId: string) {
+/**
+ * The lock screen asks the phone to confirm with one of the signed-in shopper's passkeys. The phone picks the one it has: a passkey
+ * saved in Safari is the same one the home-screen app uses (they share the phone's keychain), though their local storage is separate,
+ * so the lock must not depend on remembering which passkey this browser registered.
+ */
+export async function beginAppUnlock() {
   try {
     const { user } = await currentUser();
     const { rpId } = await site();
     const db = createServiceClient();
-    const { data } = await db.from("user_passkeys").select("credential_id").eq("user_id", user.id).eq("credential_id", credentialId).maybeSingle();
-    if (!data) throw new UserError("No passkey on this device.");
+    const { data } = await db.from("user_passkeys").select("credential_id").eq("user_id", user.id);
+    const ids = ((data ?? []) as { credential_id: string }[]).map((p) => p.credential_id);
+    if (ids.length === 0) throw new UserError("No passkey is saved for this account.");
     const c = await newChallenge("unlock", user.id);
-    return { challengeId: c.id, options: { challenge: c.challenge, rpId, userVerification: "required", allowCredentials: [{ type: "public-key", id: credentialId }], timeout: 60000 } };
+    return { challengeId: c.id, options: { challenge: c.challenge, rpId, userVerification: "required", allowCredentials: ids.map((id) => ({ type: "public-key", id })), timeout: 60000 } };
   } catch (e) {
     return failure(e) as never;
   }

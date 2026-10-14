@@ -97,13 +97,14 @@ export interface AppLockSettings {
   enabled: boolean;
   /** Minutes in the background before the lock comes back; 0 = every time the app is opened or returned to. */
   delayMin: number;
-  credentialId: string;
+  /** Not needed: the phone offers its own passkey for this site. Kept only for older saved settings. */
+  credentialId?: string;
 }
 const KEY = "ft_applock";
 export function readAppLock(): AppLockSettings | null {
   try {
     const v = JSON.parse(localStorage.getItem(KEY) ?? "null") as AppLockSettings | null;
-    return v && v.enabled && v.credentialId ? v : null;
+    return v && v.enabled ? v : null;
   } catch {
     return null;
   }

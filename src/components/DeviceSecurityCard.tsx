@@ -65,6 +65,9 @@ export default function DeviceSecurityCard({ passkeys }: { passkeys: PasskeyInfo
 
   // This device is added when one of the saved passkeys is the one this browser remembers.
   const hereKnown = !!hereId && passkeys.some((p) => p.credentialId === hereId);
+  // The phone's keychain is shared by Safari and the home-screen app, but their local storage is not: so "has a passkey" (on the
+  // account) is what allows the app lock, not "this browser remembers registering it".
+  const hasPasskey = passkeys.length > 0;
 
   function addThisDevice() {
     setMessage(null);
@@ -82,7 +85,8 @@ export default function DeviceSecurityCard({ passkeys }: { passkeys: PasskeyInfo
         setMessage({ kind: "ok", text: "Done. You can now sign in with this phone's face, fingerprint, PIN or pattern." });
         router.refresh();
       } catch (e) {
-        if (!passkeyCancelled(e)) setMessage({ kind: "error", text: passkeyErrorText(e) });
+        if (e instanceof DOMException && e.name === "InvalidStateError") setMessage({ kind: "ok", text: "This phone already has a FasTrack passkey (Safari and the home-screen app share it). You can turn on App lock below." });
+        else if (!passkeyCancelled(e)) setMessage({ kind: "error", text: passkeyErrorText(e) });
       }
     });
   }
@@ -110,8 +114,8 @@ export default function DeviceSecurityCard({ passkeys }: { passkeys: PasskeyInfo
   }
 
   function setAppLock(enabled: boolean, delayMin: number) {
-    if (!hereId) return;
-    writeAppLock(enabled ? { enabled: true, delayMin, credentialId: hereId } : null);
+    if (!hasPasskey) return;
+    writeAppLock(enabled ? { enabled: true, delayMin } : null);
     // Turning it on counts as unlocked for this visit.
     if (enabled) {
       try {
@@ -174,14 +178,14 @@ export default function DeviceSecurityCard({ passkeys }: { passkeys: PasskeyInfo
             <h2 className="text-base font-extrabold tracking-tight text-neutral-900">App lock</h2>
             <p className="mt-1 text-sm text-neutral-500">Ask for your face, fingerprint, PIN or pattern when you open FasTrack on this phone, so nobody else can use your account.</p>
           </div>
-          <label className={`relative inline-flex h-7 w-12 shrink-0 items-center ${hereKnown ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
-            <input type="checkbox" role="switch" aria-label="App lock" checked={lock.enabled && hereKnown} disabled={!hereKnown} onChange={(e) => setAppLock(e.target.checked, lock.delayMin)} className="peer sr-only" />
+          <label className={`relative inline-flex h-7 w-12 shrink-0 items-center ${hasPasskey ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}>
+            <input type="checkbox" role="switch" aria-label="App lock" checked={lock.enabled && hasPasskey} disabled={!hasPasskey} onChange={(e) => setAppLock(e.target.checked, lock.delayMin)} className="peer sr-only" />
             <span className="absolute inset-0 rounded-full bg-neutral-300 transition peer-checked:bg-brand-700 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500/40" />
             <span className="absolute start-1 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5 rtl:peer-checked:-translate-x-5" />
           </label>
         </div>
-        {!hereKnown && <p className="mt-3 text-xs text-neutral-500">Enable sign-in on this device above first.</p>}
-        {hereKnown && lock.enabled && (
+        {!hasPasskey && <p className="mt-3 text-xs text-neutral-500">Enable sign-in on this phone above first.</p>}
+        {hasPasskey && lock.enabled && (
           <div className="mt-4 max-w-xs">
             <label className="mb-1.5 block text-xs font-semibold text-neutral-700" htmlFor="applock-delay">
               Lock
