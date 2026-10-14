@@ -37,8 +37,9 @@ export default async function Footer() {
     },
   ];
 
+  // Phones show no footer (the policy links and company details are at the bottom of the account page instead); desktop keeps it.
   return (
-    <footer className="mt-16 border-t border-brand-100 bg-brand-50/60">
+    <footer className="mt-16 hidden border-t border-brand-100 bg-brand-50/60 md:block">
       <div className="mx-auto max-w-6xl px-4 py-10">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
           {columns.map((col) => (

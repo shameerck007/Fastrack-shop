@@ -13,6 +13,7 @@ import LandingPreference from "@/components/LandingPreference";
 import { dashboardPathForRole } from "@/lib/landing";
 import LanguageToggle from "@/components/LanguageToggle";
 import MapPinIcon from "@/components/MapPinIcon";
+import AccountLegal from "@/components/AccountLegal";
 
 export const metadata = { title: "Your account" };
 
@@ -209,6 +210,8 @@ export default async function AccountPage() {
           </span>
         </button>
       </form>
+
+      <AccountLegal />
     </div>
   );
 }
