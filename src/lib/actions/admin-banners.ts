@@ -109,6 +109,34 @@ export async function deleteBanner(id: string): Promise<{ error?: string }> {
   }
 }
 
+/**
+ * Adds the shop's built-in slides (welcome, fresh today, deals, free delivery) as editable automatic banners, at the end of the list, so the
+ * admin can reword, recolour, reorder, schedule or switch them off. Only the ones not already in the list are added.
+ */
+export async function addBuiltInBanners(): Promise<{ error?: string; added?: number }> {
+  try {
+    const supabase = await db();
+    const { data: existing, error: readError } = await supabase.from("home_banners").select("auto_type, sort_order").order("sort_order", { ascending: false });
+    if (readError) return await { error: missing(readError.code) ? MISSING : friendlyMessage(readError) };
+    const have = new Set(((existing ?? []) as { auto_type: string | null }[]).map((b) => b.auto_type));
+    let next = (((existing ?? []) as { sort_order: number }[])[0]?.sort_order ?? -1) + 1;
+    const wanted: { type: AutoBannerType; theme: BannerTheme }[] = [
+      { type: "welcome", theme: "blue" },
+      { type: "fresh_today", theme: "green" },
+      { type: "deals", theme: "orange" },
+      { type: "free_delivery", theme: "teal" },
+    ];
+    const rows = wanted.filter((w) => !have.has(w.type)).map((w) => ({ kind: "auto", auto_type: w.type, theme: w.theme, photos: [], sort_order: next++, is_active: true }));
+    if (rows.length === 0) return await { added: 0 };
+    const { error } = await supabase.from("home_banners").insert(rows);
+    if (error) return await { error: friendlyMessage(error) };
+    refresh();
+    return await { added: rows.length };
+  } catch (e) {
+    return failure(e) as never;
+  }
+}
+
 /** Saves the slider order: the ids in the order they should appear. */
 export async function reorderBanners(ids: string[]): Promise<{ error?: string }> {
   try {

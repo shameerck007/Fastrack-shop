@@ -6,10 +6,10 @@ import FormDialog, { DialogSection } from "@/components/ui/FormDialog";
 import ImageUploader from "@/components/ImageUploader";
 import ArabicInput from "@/components/ui/ArabicInput";
 import Select from "@/components/ui/Select";
-import { Field, inputClass, primaryButton } from "@/components/ui/Form";
+import { Field, inputClass, primaryButton, secondaryButton } from "@/components/ui/Form";
 import { useDialogs } from "@/components/ui/Dialogs";
 import { unwrapAction } from "@/lib/errors";
-import { deleteBanner, reorderBanners, saveBanner, setBannerActive } from "@/lib/actions/admin-banners";
+import { addBuiltInBanners, deleteBanner, reorderBanners, saveBanner, setBannerActive } from "@/lib/actions/admin-banners";
 import BannerPreview from "@/components/admin/BannerPreview";
 import type { HeroSlide } from "@/components/HomeHero";
 import { AUTO_BANNER_TYPES, BANNER_THEMES, bannerSlide, bannerStatus, type AutoBannerType, type BannerRow, type BannerStatus, type BannerTheme } from "@/lib/home-banners-utils";
@@ -101,6 +101,8 @@ export default function BannersManager({ banners, autoSlides, disabled }: { bann
   }
 
   const liveCount = banners.filter((b) => bannerStatus(b) === "live").length;
+  // The shop's own slides (welcome, fresh today, deals, free delivery) can be added as banners, so they can be edited like any other.
+  const builtInMissing = (['welcome', 'fresh_today', 'deals', 'free_delivery'] as const).some((t) => !banners.some((b) => b.kind === "auto" && b.auto_type === t));
 
   return (
     <div className="flex flex-col gap-4">
@@ -115,9 +117,16 @@ export default function BannersManager({ banners, autoSlides, disabled }: { bann
           <p className="text-sm text-neutral-600">
             {banners.length === 0 ? "The shop shows its built-in slides." : liveCount > 0 ? <><b>{liveCount}</b> live. Shoppers see these instead of the built-in slides.</> : "None is live right now, so the shop shows its built-in slides."}
           </p>
-          <button type="button" disabled={disabled} onClick={() => setEditing({ ...blank })} className={primaryButton}>
-            + New banner
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {builtInMissing && (
+              <button type="button" disabled={disabled || pending} onClick={() => act(() => unwrapAction(addBuiltInBanners)(), "The built-in slides were added. You can edit, reorder or switch them off now.")} className={secondaryButton} title="Adds the slides the shop shows today as banners you can change">
+                Edit the built-in slides
+              </button>
+            )}
+            <button type="button" disabled={disabled} onClick={() => setEditing({ ...blank })} className={primaryButton}>
+              + New banner
+            </button>
+          </div>
         </div>
 
         {banners.length === 0 ? (
