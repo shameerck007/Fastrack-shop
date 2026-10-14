@@ -411,7 +411,14 @@ export default function OrderTrackingHero({
             ? t("tracking.title_pickup")
             : status === "preparing" || status === "ready_for_pickup"
               ? t("tracking.title_preparing")
-              : t("tracking.title_placed");
+              : status === "pending"
+                ? t("tracking.title_waiting")
+                : t("tracking.title_placed");
+  // Like Instamart and Noon: until the shop accepts the order there is no rider, no distance and no moving vehicle, so the card says
+  // what is really happening (waiting for the shop) instead of counting down a delivery time. The rider appears once one is assigned.
+  const waitingForShop = status === "pending";
+  const riderOn = status === "rider_assigned" || status === "out_for_delivery";
+  const overdueWaiting = waitingForShop && !!promisedAt && now > new Date(promisedAt).getTime() + 10 * 60_000;
 
   return (
     <section className="isolate -mx-4 -mt-6 mb-6 md:mx-0 md:mt-0 md:overflow-hidden md:rounded-3xl md:border md:border-neutral-200 md:shadow-sm">
@@ -424,7 +431,7 @@ export default function OrderTrackingHero({
               {t("tracking.live")}
             </span>
           )}
-          {etaMinutes != null && (
+          {etaMinutes != null && !waitingForShop && (
             <span className="absolute end-3 top-3 z-[500] rounded-full bg-brand-700 px-3 py-1.5 text-xs font-extrabold text-white shadow-lg">
               {t("tracking.arriving_in", { min: etaMinutes })}
             </span>
@@ -446,7 +453,23 @@ export default function OrderTrackingHero({
           )}
         </div>
 
-        {etaMinutes != null && !done && (
+        {waitingForShop && (
+          <div className="mt-4 rounded-2xl border border-brand-100 bg-brand-50 p-4 text-neutral-900 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-brand-700 shadow-sm ring-1 ring-brand-100">
+                <span className="absolute inset-0 animate-ping rounded-full bg-brand-400/30" />
+                <span className="relative"><StepIcon step="step_preparing" /></span>
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-extrabold">{overdueWaiting ? t("tracking.waiting_slow") : t("tracking.waiting_title")}</p>
+                <p className="mt-0.5 text-xs text-neutral-600">{overdueWaiting ? t("tracking.waiting_slow_hint") : t("tracking.waiting_hint")}</p>
+              </div>
+            </div>
+            {!overdueWaiting && arrival && <p className="mt-3 rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-neutral-800 ring-1 ring-brand-100">{t("tracking.waiting_eta", { time: arrival })}</p>}
+          </div>
+        )}
+
+        {etaMinutes != null && !done && !waitingForShop && (
           <div className="mt-4 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 p-4 text-neutral-900 shadow-sm">
             <div className="flex items-end justify-between gap-3">
               <div>
@@ -488,12 +511,18 @@ export default function OrderTrackingHero({
                   style={{ left: `calc(1.5rem + (100% - 3rem) * ${journey.pos / 100})` }}
                   aria-hidden
                 >
-                  <span className="block" dangerouslySetInnerHTML={{ __html: riderIconSvg(44) }} />
+                  {riderOn ? (
+                    <span className="block" dangerouslySetInnerHTML={{ __html: riderIconSvg(44) }} />
+                  ) : (
+                    <span className="mb-1 flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand-700 shadow ring-2 ring-brand-300">
+                      <StepIcon step="step_preparing" />
+                    </span>
+                  )}
                 </span>
               </div>
               <div className="mt-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-brand-700">
-                <span>{t("tracking.stage_rider")}</span>
-                <span>{journey.kmAway != null ? t("tracking.km_away", { km: journey.kmAway.toFixed(1) }) : ""}</span>
+                <span>{riderOn ? t("tracking.stage_rider") : t("tracking.stage_shop")}</span>
+                <span>{riderOn && journey.kmAway != null ? t("tracking.km_away", { km: journey.kmAway.toFixed(1) }) : ""}</span>
                 <span>{t("tracking.stage_you")}</span>
               </div>
             </div>
