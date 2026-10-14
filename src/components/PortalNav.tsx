@@ -200,13 +200,13 @@ export default function PortalNav({ items, rootHref, portal, tabs = [] }: { item
         href={item.href}
         title={compact ? labelOf(item) : undefined}
         aria-current={active ? "page" : undefined}
-        className={`relative flex items-center rounded-xl text-[13.5px] font-semibold transition ${compact ? "h-10 w-10 justify-center" : "h-10 gap-3 px-3 md:h-9"} ${
-          active ? "bg-brand-50 text-brand-800" : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+        className={`group relative flex items-center rounded-xl text-[14px] font-semibold transition ${compact ? "h-11 w-11 justify-center" : "h-10 gap-3 px-3"} ${
+          active ? "bg-brand-50 text-brand-800 shadow-[inset_0_0_0_1px_rgba(0,112,208,0.14)]" : "text-neutral-800 hover:bg-neutral-100 hover:text-neutral-950"
         }`}
       >
         {active && !compact && <span aria-hidden className="absolute inset-y-2 start-0 w-[3px] rounded-full bg-brand-600" />}
-        <span className={active ? "text-brand-700" : "text-neutral-500"}>
-          <NavIcon name={item.icon} />
+        <span className={active ? "text-brand-700" : "text-neutral-700 group-hover:text-neutral-900"}>
+          <NavIcon name={item.icon} className={compact ? "h-[22px] w-[22px]" : "h-5 w-5"} />
         </span>
         {!compact && <span className="min-w-0 flex-1 truncate">{labelOf(item)}</span>}
         {compact ? n > 0 && <span aria-hidden className="absolute end-1 top-1 h-2.5 w-2.5 rounded-full bg-rose-600 ring-2 ring-white" /> : <Badge n={n} />}
@@ -240,7 +240,7 @@ export default function PortalNav({ items, rootHref, portal, tabs = [] }: { item
               type="button"
               onClick={() => toggle(g.section as string, open)}
               aria-expanded={open}
-              className="flex h-8 w-full items-center justify-between rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800"
+              className="flex h-8 w-full items-center justify-between rounded-lg px-3 text-[11px] font-extrabold uppercase tracking-wider text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900"
             >
               <span className="flex items-center gap-2">
                 {g.section}
@@ -309,7 +309,7 @@ export default function PortalNav({ items, rootHref, portal, tabs = [] }: { item
           const active = item === current;
           const n = counts[item.href] ?? 0;
           return (
-            <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={`relative flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-[10.5px] font-semibold ${active ? "text-brand-700" : "text-neutral-500"}`}>
+            <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={`relative flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-[10.5px] font-semibold ${active ? "text-brand-700" : "text-neutral-600"}`}>
               <span className="relative">
                 <NavIcon name={item.icon} className="h-[22px] w-[22px]" />
                 {n > 0 && <Badge n={n} className="absolute -end-3 -top-2 !h-4 !min-w-[1rem] !px-1 !text-[10px]" />}

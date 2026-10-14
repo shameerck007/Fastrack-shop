@@ -32,11 +32,15 @@ const PATHS: Record<string, string> = {
   chevrons: "M13 7l-5 5 5 5 M18 7l-5 5 5 5",
 };
 
-export default function NavIcon({ name, className = "h-[18px] w-[18px]" }: { name: string; className?: string }) {
+// Plain line symbols (arrows, search, menu) stay as outlines; every other icon gets a soft tint of its own colour inside the lines (a "two-tone"
+// icon), which is what makes the set look finished and solid rather than thin.
+const OUTLINE_ONLY = new Set(["menu", "chevron", "chevrons", "close", "search", "returns", "transfers", "earnings", "commission", "settings", "api"]);
+
+export default function NavIcon({ name, className = "h-5 w-5" }: { name: string; className?: string }) {
   const d = PATHS[name];
   if (!d) return <span aria-hidden>{name}</span>;
   return (
-    <svg viewBox="0 0 24 24" className={`shrink-0 ${className}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 24 24" className={`shrink-0 ${className}`} fill={OUTLINE_ONLY.has(name) ? "none" : "currentColor"} fillOpacity={OUTLINE_ONLY.has(name) ? undefined : 0.14} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
       <path d={d} />
     </svg>
   );

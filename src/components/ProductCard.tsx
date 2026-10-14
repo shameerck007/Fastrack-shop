@@ -58,7 +58,7 @@ export default function ProductCard({
       <div className={`relative flex h-36 items-center justify-center bg-gradient-to-br ${theme.gradient}`}>
         {product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.image_url} alt={name} className={`h-full w-full object-cover ${storeClosed ? "grayscale" : ""}`} />
+          <img src={product.image_url} alt={name} loading="lazy" decoding="async" className={`h-full w-full object-cover ${storeClosed ? "grayscale" : ""}`} />
         ) : (
           <span className="text-5xl drop-shadow-sm transition group-hover:scale-110">
             {theme.emoji}

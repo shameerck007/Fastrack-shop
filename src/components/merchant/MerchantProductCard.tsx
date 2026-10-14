@@ -35,7 +35,7 @@ export default function MerchantProductCard({
       <div className="flex w-24 shrink-0 items-center justify-center self-stretch bg-neutral-50 sm:h-36 sm:w-full sm:self-auto">
         {product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+          <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
         ) : (
           <span className="text-3xl sm:text-4xl">📦</span>
         )}

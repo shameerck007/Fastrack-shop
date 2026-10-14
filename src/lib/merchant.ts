@@ -115,6 +115,13 @@ export interface MerchantStats {
 /** The dashboard numbers from small count queries (no product lists), all at once. */
 export async function getMerchantStats(storeId: string): Promise<MerchantStats> {
   const supabase = await createClient();
+  // One database call (migration 0111). Before it is run, the longer way below is used.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: fast, error: fastError } = await (supabase as any).rpc("merchant_stats", { p_store: storeId });
+  if (!fastError && fast) {
+    const f = fast as { products: number; active: number; low_stock: number; new_orders: number; preparing: number; ready: number };
+    return { products: Number(f.products), active: Number(f.active), lowStock: Number(f.low_stock), newOrders: Number(f.new_orders), preparing: Number(f.preparing), ready: Number(f.ready) };
+  }
   const [all, active, stockRows, openOrders] = await Promise.all([
     supabase.from("products").select("id", { count: "exact", head: true }).eq("store_id", storeId),
     supabase.from("products").select("id", { count: "exact", head: true }).eq("store_id", storeId).eq("is_active", true),

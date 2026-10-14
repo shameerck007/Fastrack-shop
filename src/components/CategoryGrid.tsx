@@ -46,7 +46,7 @@ export default function CategoryGrid({ categories }: { categories: CategoryWithC
               <div className="h-[4.5rem] w-[4.5rem] overflow-hidden rounded-full shadow-sm ring-2 ring-white transition group-hover:-translate-y-0.5 group-hover:shadow-md group-active:scale-95 sm:h-20 sm:w-20 md:mx-auto">
                 {categoryImageUrl(category) ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={categoryImageUrl(category) as string} alt={category.name} className="h-full w-full object-cover" />
+                  <img src={categoryImageUrl(category) as string} alt={category.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 ) : (
                   <div
                     className={`flex h-full w-full items-center justify-center bg-gradient-to-br text-3xl sm:text-4xl ${theme.gradient}`}

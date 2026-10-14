@@ -164,7 +164,6 @@ export default async function RootLayout({
 }>) {
   // Only the language (from a cookie and a header, no database) is needed to start the page; the loading screen goes out at once.
   const locale = await getServerLocale();
-
   return (
     <html lang={locale} dir={dirFor(locale)}>
       <body

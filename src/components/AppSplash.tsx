@@ -57,7 +57,7 @@ function seeded(seed: number) {
 const TILE_W = 600;
 
 /** One tile of skyline: buildings standing on the bottom edge, some with lit windows and aerials. Tiles repeat seamlessly. */
-function Skyline({ seed, minH, maxH, fill, windows, lit }: { seed: number; minH: number; maxH: number; fill: string[]; windows: string; lit: string }) {
+function Skyline({ seed, minH, maxH, fill, pattern }: { seed: number; minH: number; maxH: number; fill: string[]; pattern: string }) {
   const rnd = seeded(seed);
   const H = 300;
   const items: React.ReactNode[] = [];
@@ -69,18 +69,34 @@ function Skyline({ seed, minH, maxH, fill, windows, lit }: { seed: number; minH:
     const y = H - h;
     items.push(<rect key={`b${i}`} x={x} y={y} width={w} height={h} fill={fill[i % fill.length]} />);
     if (w > 30 && rnd() > 0.6) items.push(<rect key={`a${i}`} x={x + w / 2 - 1} y={y - 22} width="2.4" height="22" fill={fill[i % fill.length]} />);
-    for (let r = 0; r < Math.floor((h - 14) / 18); r++) {
-      for (let c = 0; c < Math.floor((w - 8) / 12); c++) {
-        const on = rnd() > 0.72;
-        items.push(<rect key={`w${i}-${r}-${c}`} x={x + 6 + c * 12} y={y + 10 + r * 18} width="6" height="9" rx="1" fill={on ? lit : windows} />);
-      }
-    }
+    // The windows are one patterned rectangle per building (the pattern is defined once, in WindowPatterns), not hundreds of small shapes.
+    if (w > 16 && h > 30) items.push(<rect key={`w${i}`} x={x + 5} y={y + 8} width={w - 10} height={h - 12} fill={`url(#${pattern})`} />);
     x += w + (rnd() > 0.7 ? 6 : 0);
     i++;
   }
   return (
     <svg viewBox={`0 0 ${TILE_W} ${H}`} preserveAspectRatio="xMinYMax meet" aria-hidden="true">
       {items}
+    </svg>
+  );
+}
+
+/** The window grids, defined once and used by every building of a layer: a 2 x 2 block of windows with one lit. */
+function WindowPatterns() {
+  const cell = (id: string, dim: string, lit: string) => (
+    <pattern key={id} id={id} width="24" height="36" patternUnits="userSpaceOnUse">
+      <rect x="2" y="2" width="6" height="9" rx="1" fill={dim} />
+      <rect x="14" y="2" width="6" height="9" rx="1" fill={lit} />
+      <rect x="2" y="20" width="6" height="9" rx="1" fill={dim} />
+      <rect x="14" y="20" width="6" height="9" rx="1" fill={dim} />
+    </pattern>
+  );
+  return (
+    <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true" focusable="false">
+      <defs>
+        {cell("ft-win-far", "#d9e9fa", "#fff")}
+        {cell("ft-win-mid", "#a8cbf0", "#ffe9a0")}
+      </defs>
     </svg>
   );
 }
@@ -195,14 +211,15 @@ export default function AppSplash() {
         <style>{"#ft-splash{display:none}"}</style>
       </noscript>
       <div id="ft-splash" aria-hidden="true">
+        <WindowPatterns />
         <Strip className="ft-clouds">
           <Clouds />
         </Strip>
         <Strip className="ft-far">
-          <Skyline seed={7} minH={120} maxH={250} fill={["#c3dcf6", "#b3d1f1", "#cde2f8"]} windows="#d9e9fa" lit="#fff" />
+          <Skyline seed={7} minH={120} maxH={250} fill={["#c3dcf6", "#b3d1f1", "#cde2f8"]} pattern="ft-win-far" />
         </Strip>
         <Strip className="ft-mid">
-          <Skyline seed={21} minH={90} maxH={210} fill={["#8dbbea", "#7eaee3", "#98c3ee"]} windows="#a8cbf0" lit="#ffe9a0" />
+          <Skyline seed={21} minH={90} maxH={210} fill={["#8dbbea", "#7eaee3", "#98c3ee"]} pattern="ft-win-mid" />
         </Strip>
         <Strip className="ft-near">
           <Posts />
