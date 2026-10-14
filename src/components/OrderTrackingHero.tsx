@@ -38,11 +38,51 @@ const ROAD_FACTOR = 1.3;
 const SPEED_KMH = 20;
 
 const STEPS = [
-  { key: "step_placed", icon: "🧾", statuses: ["pending", "confirmed"] },
-  { key: "step_preparing", icon: "🍳", statuses: ["preparing", "ready_for_pickup"] },
-  { key: "step_on_way", icon: "🛵", statuses: ["rider_assigned", "out_for_delivery"] },
-  { key: "step_delivered", icon: "✅", statuses: ["delivered"] },
+  { key: "step_placed", statuses: ["pending", "confirmed"] },
+  { key: "step_preparing", statuses: ["preparing", "ready_for_pickup"] },
+  { key: "step_on_way", statuses: ["rider_assigned", "out_for_delivery"] },
+  { key: "step_delivered", statuses: ["delivered"] },
 ] as const;
+
+/** One clean line icon per step (they take the colour of the circle: white once reached, grey before). */
+function StepIcon({ step }: { step: (typeof STEPS)[number]["key"] }) {
+  const common = { fill: "none", stroke: "currentColor", strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" focusable="false">
+      {step === "step_placed" && (
+        <g {...common}>
+          <path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z" />
+          <path d="M8 6H7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-1" />
+          <path d="M9 14.5l2 2 4-4.5" />
+        </g>
+      )}
+      {step === "step_preparing" && (
+        <g {...common}>
+          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
+          <path d="M4 7.5l8 4.5 8-4.5M12 12v9" />
+        </g>
+      )}
+      {step === "step_on_way" && (
+        <g {...common}>
+          <circle cx="6" cy="17" r="2.6" />
+          <circle cx="18" cy="17" r="2.6" />
+          <path d="M8.6 17h6.8l2-7.5H14M16 9.5l.8-3h2.2M5 17l1.6-5.5H12" />
+        </g>
+      )}
+      {step === "step_delivered" && (
+        <g {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8 12.5l3 3 5-6" />
+        </g>
+      )}
+    </svg>
+  );
+}
+
+/** A small FasTrack rider picture for inline text (replaces the scooter emoji). */
+function RiderBadge({ size = 16 }: { size?: number }) {
+  return <span className="inline-block align-[-0.25em]" dangerouslySetInnerHTML={{ __html: riderIconSvg(size) }} />;
+}
 
 function pin(emoji: string, tone: "blue" | "white", pulse = false) {
   const bg = tone === "blue" ? "background:#005fb0;color:#fff" : "background:#fff;color:#111";
@@ -419,35 +459,36 @@ export default function OrderTrackingHero({
               <div className="text-end">
                 {arrival && <p className="text-lg font-extrabold">{arrival}</p>}
                 <span className={`mt-1 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${lateBy > 0 ? "bg-amber-100 text-amber-900" : "bg-white text-emerald-700 ring-1 ring-emerald-200"}`}>
-                  <span aria-hidden>{lateBy > 0 ? "⏳" : "✓"}</span>
-                  {lateBy > 0 ? t("tracking.running_late", { min: lateBy }) : t("tracking.on_time")}
+                  <span aria-hidden>{lateBy > 0 ? "!" : "✓"}</span>
+                  {lateBy > 120 ? "Delayed" : lateBy > 0 ? t("tracking.running_late", { min: lateBy }) : t("tracking.on_time")}
                 </span>
               </div>
             </div>
 
             {stops > 1 && (
-              <p className="mt-3 rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-neutral-800 ring-1 ring-brand-100">🛵 {t("tracking.stops_before", { count: stops - 1, plural: stops - 1 === 1 ? "" : "s" })}</p>
+              <p className="mt-3 rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-neutral-800 ring-1 ring-brand-100"><RiderBadge size={18} /> {t("tracking.stops_before", { count: stops - 1, plural: stops - 1 === 1 ? "" : "s" })}</p>
             )}
 
             <div className="mt-5">
               {/* The road from the rider to the customer: the FasTrack rider on the tarmac, the home at the end. */}
-              <div className="relative h-[5.25rem]">
-                <div className="absolute inset-x-0 bottom-2 h-6 overflow-hidden rounded-full bg-brand-950 shadow-inner">
-                  <div className="absolute inset-y-0 start-0 rounded-full bg-brand-600/60 transition-[width] duration-[1500ms] ease-out" style={{ width: `calc(1.5rem + (100% - 3rem) * ${journey.pos / 100})` }} />
-                  <div className="absolute inset-x-3 top-1/2 h-[2px] -translate-y-1/2 opacity-80" style={{ backgroundImage: "repeating-linear-gradient(90deg,#fff 0 10px,transparent 10px 20px)" }} />
+              <div className="relative h-[4.75rem]">
+                {/* a slim road: tarmac, a dashed centre line, the covered part lit in brand blue */}
+                <div className="absolute inset-x-0 bottom-2 h-3 overflow-hidden rounded-full bg-brand-950">
+                  <div className="absolute inset-y-0 start-0 rounded-full bg-brand-500 transition-[width] duration-[1500ms] ease-out" style={{ width: `calc(1.5rem + (100% - 3rem) * ${journey.pos / 100})` }} />
+                  <div className="absolute inset-x-3 top-1/2 h-px -translate-y-1/2 opacity-70" style={{ backgroundImage: "repeating-linear-gradient(90deg,#fff 0 8px,transparent 8px 16px)" }} />
                 </div>
                 {/* the customer's home at the end of the road */}
-                <span className="absolute bottom-9 end-1 flex flex-col items-center" aria-hidden>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg shadow-md ring-2 ring-brand-300">🏠</span>
-                  <span className="h-2 w-0.5 bg-brand-300" />
+                <span className="absolute bottom-5 end-1 flex flex-col items-center" aria-hidden>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-base shadow ring-2 ring-brand-300">🏠</span>
+                  <span className="h-1.5 w-0.5 bg-brand-300" />
                 </span>
                 {/* the rider, wheels on the road */}
                 <span
-                  className="absolute bottom-[1.05rem] -translate-x-1/2 transition-[left] duration-[1500ms] ease-out"
+                  className="absolute bottom-[1.1rem] -translate-x-1/2 transition-[left] duration-[1500ms] ease-out"
                   style={{ left: `calc(1.5rem + (100% - 3rem) * ${journey.pos / 100})` }}
                   aria-hidden
                 >
-                  <span className="block drop-shadow-md" dangerouslySetInnerHTML={{ __html: riderIconSvg(48) }} />
+                  <span className="block" dangerouslySetInnerHTML={{ __html: riderIconSvg(44) }} />
                 </span>
               </div>
               <div className="mt-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-brand-700">
@@ -466,9 +507,9 @@ export default function OrderTrackingHero({
               const current = i === stepIndex && !done;
               return (
                 <li key={s.key} className="flex flex-col items-center gap-1.5 text-center">
-                  <span className={`relative flex h-11 w-11 items-center justify-center rounded-full text-xl transition ${reached ? "bg-brand-600 text-white shadow-md shadow-brand-600/30" : "bg-neutral-100 text-neutral-500"}`}>
+                  <span className={`relative flex h-11 w-11 items-center justify-center rounded-full transition ${reached ? "bg-brand-600 text-white shadow-md shadow-brand-600/30" : "bg-neutral-100 text-neutral-400"}`}>
                     {current && <span className="absolute inset-0 animate-ping rounded-full bg-brand-400/40" />}
-                    <span className={`relative ${reached ? "" : "opacity-50 grayscale"}`}>{s.icon}</span>
+                    <span className="relative"><StepIcon step={s.key} /></span>
                   </span>
                   <span className={`text-[11px] font-semibold leading-tight ${reached ? "text-neutral-900" : "text-neutral-500"}`}>{t(`tracking.${s.key}`)}</span>
                   <span className={`h-1 w-full rounded-full ${reached ? "bg-brand-600" : "bg-neutral-200"}`} />
@@ -498,7 +539,7 @@ export default function OrderTrackingHero({
                 {rider.deliveries ? <span>{rider.deliveries} deliveries</span> : null}
                 {rider.vehicle || rider.plateEnd ? (
                   <span>
-                    🛵 {rider.vehicle ?? "Bike"}
+                    <RiderBadge size={16} /> {rider.vehicle ?? "Bike"}
                     {rider.plateEnd ? ` · plate …${rider.plateEnd}` : ""}
                   </span>
                 ) : null}
