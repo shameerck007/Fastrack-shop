@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { dashboardPathForRole, SHOP_MODE_COOKIE } from "@/lib/landing";
 import { getMyStaffWarehouse } from "@/lib/warehouse-staff";
 import CategoryGrid from "@/components/CategoryGrid";
-import HomeHero, { type HeroImage, type HeroSlide, type HeroTile } from "@/components/HomeHero";
+import HomeHero, { type HeroTile } from "@/components/HomeHero";
 import ShopsRow from "@/components/ShopsRow";
 import { getMarketUi } from "@/lib/market-ui-server";
 import ProductSection from "@/components/ProductSection";
@@ -23,6 +23,8 @@ import { getProductRatingsMap } from "@/lib/reviews";
 import { getDefaultVariantStockMap } from "@/lib/inventory";
 import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
+import { getLiveHomeBanners } from "@/lib/home-banners";
+import { buildAutoSlides, builtInSlides, heroPhotos } from "@/lib/hero-slides";
 import HomeOffers from "@/components/HomeOffers";
 
 /** Riders, suppliers, admins and warehouse staff land on their own portal by
@@ -73,38 +75,11 @@ export default async function HomePage() {
 
   const freePricing = await getDeliveryPricing();
 
-  // Banner photos come from the live catalog, so the home page always shows what is actually for sale.
-  const photos = (list: typeof featured): HeroImage[] => list.filter((p) => p.image_url).slice(0, 4).map((p) => ({ src: p.image_url as string, alt: p.name }));
-  const dealPct = Math.max(
-    0,
-    ...offers.flatMap((p) => p.product_variants.map((v) => (v.compare_at_price && v.compare_at_price > v.price ? Math.round(((v.compare_at_price - v.price) / v.compare_at_price) * 100) : 0))),
-  );
-  // The welcome and free-delivery banners use the category photos (variety), the others use the products themselves.
-  const catPhotos = (from: number, n: number): HeroImage[] =>
-    categories.filter((c) => c.image_url).slice(from, from + n).map((c) => ({ src: c.image_url as string, alt: c.name }));
-  const heroSlides: HeroSlide[] = [
-    {
-      id: "welcome",
-      theme: "blue",
-      eyebrow: t("home.hero_eyebrow"),
-      title: t("home.hero_title"),
-      subtitle: t("home.hero_subtitle"),
-      chips: freePricing.freeEnabled ? [t("home.hero_chip_fast"), t("home.hero_chip_free", { amount: money(freePricing.freeOver) })] : [t("home.hero_chip_fast")],
-      cta: t("home.hero_cta"),
-      href: "#offers",
-      images: catPhotos(0, 3),
-      art: "🛵",
-    },
-    ...(freshToday.some((p) => p.image_url)
-      ? [{ id: "fresh", theme: "green" as const, eyebrow: t("home.hero_fresh_eyebrow"), title: t("home.hero_fresh_title"), subtitle: t("home.hero_fresh_sub"), cta: t("home.hero_fresh_cta"), href: "#fresh", images: photos(freshToday) }]
-      : []),
-    ...(offers.some((p) => p.image_url)
-      ? [{ id: "deals", theme: "orange" as const, eyebrow: t("home.hero_deals_eyebrow"), title: dealPct >= 5 ? t("home.hero_deals_title", { pct: dealPct }) : t("home.hero_deals_title_plain"), subtitle: t("home.hero_deals_sub"), cta: t("home.hero_deals_cta"), href: "#offers", images: photos(offers) }]
-      : []),
-    ...(freePricing.freeEnabled
-      ? [{ id: "free", theme: "teal" as const, eyebrow: t("home.hero_free_eyebrow"), title: t("home.hero_free_title", { amount: money(freePricing.freeOver) }), subtitle: t("home.hero_free_sub"), cta: t("home.hero_free_cta"), href: "#offers", images: catPhotos(3, 3), art: "🚚" }]
-      : []),
-  ];
+  const autoSlides = buildAutoSlides({ t, money, categories, featured, freshToday, offers, freeEnabled: freePricing.freeEnabled, freeOver: freePricing.freeOver });
+  const photos = heroPhotos;
+  // Banners the admin has set up replace the built-in slides; with none live, the built-in ones show.
+  const adminBanners = await getLiveHomeBanners(locale, autoSlides);
+  const heroSlides = adminBanners.length > 0 ? adminBanners : builtInSlides(autoSlides);
   const heroTiles: HeroTile[] = [
     ...(offers.some((p) => p.image_url) ? [{ id: "tile-deals", theme: "orange" as const, title: t("home.hero_tile_deals"), cta: t("home.hero_tile_cta"), href: "#offers", images: photos(offers) }] : []),
     ...(freshToday.some((p) => p.image_url) ? [{ id: "tile-fresh", theme: "green" as const, title: t("home.hero_tile_fresh"), cta: t("home.hero_tile_cta"), href: "#fresh", images: photos(freshToday) }] : []),
@@ -127,6 +102,7 @@ export default async function HomePage() {
         <ProductSection id="offers" promo title={t("home.offers")} products={offers} ratings={ratings} stock={stock} />
         <ProductSection id="fresh" title={t("home.fresh_today")} products={freshToday} ratings={ratings} stock={stock} />
         <ProductSection
+          id="best-sellers"
           title={t("home.best_sellers")}
           products={featured}
           ratings={ratings}

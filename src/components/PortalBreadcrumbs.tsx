@@ -27,6 +27,7 @@ const NAMES: Record<string, string> = {
   "/admin/returns": "Returns",
   "/admin/transfers": "Stock transfers",
   "/admin/offers": "Offers & coupons",
+  "/admin/banners": "Home banners",
   "/admin/delivery-fees": "Delivery fees",
   "/admin/commission": "Commission rates",
   "/admin/settlements": "Supplier ledger",
