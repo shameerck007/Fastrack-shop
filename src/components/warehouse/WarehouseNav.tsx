@@ -11,5 +11,5 @@ const NAV: PortalNavItem[] = [
 ];
 
 export default function WarehouseNav() {
-  return <PortalNav items={NAV} rootHref="/warehouse" />;
+  return <PortalNav items={NAV} rootHref="/warehouse" portal="warehouse" tabs={["/warehouse", "/warehouse/orders", "/warehouse/stock", "/warehouse/returns"]} />;
 }

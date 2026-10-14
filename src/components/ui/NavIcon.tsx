@@ -28,6 +28,8 @@ const PATHS: Record<string, string> = {
   menu: "M4 7h16 M4 12h16 M4 17h16",
   chevron: "M9 6l6 6-6 6",
   close: "M6 6l12 12 M18 6L6 18",
+  search: "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M20 20l-4-4",
+  chevrons: "M13 7l-5 5 5 5 M18 7l-5 5 5 5",
 };
 
 export default function NavIcon({ name, className = "h-[18px] w-[18px]" }: { name: string; className?: string }) {

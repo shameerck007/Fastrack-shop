@@ -13,5 +13,5 @@ const NAV: PortalNavItem[] = [
 ];
 
 export default function MerchantNav() {
-  return <PortalNav items={NAV} rootHref="/merchant" />;
+  return <PortalNav items={NAV} rootHref="/merchant" portal="merchant" tabs={["/merchant", "/merchant/orders", "/merchant/products", "/merchant/returns"]} />;
 }

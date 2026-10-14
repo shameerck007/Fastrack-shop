@@ -27,5 +27,5 @@ const NAV: PortalNavItem[] = [
 ];
 
 export default function AdminNav() {
-  return <PortalNav items={NAV} rootHref="/admin" />;
+  return <PortalNav items={NAV} rootHref="/admin" portal="admin" tabs={["/admin", "/admin/orders", "/admin/products", "/admin/returns"]} />;
 }

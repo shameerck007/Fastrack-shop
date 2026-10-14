@@ -25,8 +25,8 @@ export default async function MerchantLayout({ children }: { children: React.Rea
         logoutLabel={t("portal.log_out")}
       />
 
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 md:flex-row md:gap-6 md:py-5">
-        <aside className="shrink-0 md:sticky md:top-[4.25rem] md:max-h-[calc(100dvh-5rem)] md:w-52 md:self-start md:overflow-y-auto">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 max-md:pb-24 md:flex-row md:gap-6 md:py-5">
+        <aside className="shrink-0 md:sticky md:top-[4.25rem] md:max-h-[calc(100dvh-5rem)] md:self-start md:overflow-y-auto">
           <MerchantNav />
         </aside>
         <div className="min-w-0 flex-1"><PortalBreadcrumbs portal="merchant">{children}</PortalBreadcrumbs></div>
