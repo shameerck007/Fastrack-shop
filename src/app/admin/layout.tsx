@@ -44,7 +44,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       )}
 
       <div className="mx-auto flex max-w-[90rem] flex-col gap-3 px-4 py-4 md:flex-row md:gap-6 md:py-5">
-        <aside className="shrink-0 md:sticky md:top-[4.25rem] md:max-h-[calc(100dvh-5rem)] md:w-52 md:self-start md:overflow-y-auto">
+        <aside className="shrink-0 md:sticky md:top-[4.25rem] md:max-h-[calc(100dvh-5rem)] md:w-56 md:self-start md:overflow-y-auto">
           <AdminNav />
         </aside>
         <div className="min-w-0 flex-1"><PortalBreadcrumbs portal="admin">{children}</PortalBreadcrumbs></div>

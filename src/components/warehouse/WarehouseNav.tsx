@@ -1,38 +1,15 @@
 "use client";
 
-import Link from "@/components/Link";
-import { usePathname } from "next/navigation";
-import { useLocale } from "@/components/LocaleProvider";
+import PortalNav, { type PortalNavItem } from "@/components/PortalNav";
 
-const NAV: { href: string; labelKey?: string; label?: string; icon: string }[] = [
-  { href: "/warehouse", labelKey: "portal.dashboard", icon: "📊" },
-  { href: "/warehouse/orders", labelKey: "warehouse.orders_nav", icon: "🧾" },
-  { href: "/warehouse/stock", labelKey: "warehouse.stock_nav", icon: "📦" },
-  { href: "/warehouse/returns", label: "Returns", icon: "↩️" },
-  { href: "/warehouse/transfers", label: "Stock transfers", icon: "🔁" },
+const NAV: PortalNavItem[] = [
+  { href: "/warehouse", labelKey: "portal.dashboard", icon: "dashboard" },
+  { href: "/warehouse/orders", labelKey: "warehouse.orders_nav", icon: "orders" },
+  { href: "/warehouse/stock", labelKey: "warehouse.stock_nav", icon: "box" },
+  { href: "/warehouse/returns", label: "Returns", icon: "returns" },
+  { href: "/warehouse/transfers", label: "Stock transfers", icon: "transfers" },
 ];
 
 export default function WarehouseNav() {
-  const pathname = usePathname();
-  const { t } = useLocale();
-
-  return (
-    <nav className="flex flex-col gap-1">
-      {NAV.map((item) => {
-        const active = item.href === "/warehouse" ? pathname === item.href : pathname.startsWith(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
-              active ? "bg-brand-50 text-brand-700" : "text-neutral-700 hover:bg-neutral-100"
-            }`}
-          >
-            <span>{item.icon}</span>
-            {item.label ?? t(item.labelKey ?? "")}
-          </Link>
-        );
-      })}
-    </nav>
-  );
+  return <PortalNav items={NAV} rootHref="/warehouse" />;
 }
