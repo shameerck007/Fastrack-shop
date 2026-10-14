@@ -1,6 +1,7 @@
 import { toUserError } from "@/lib/errors";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { cachedPublic, type PublicDb } from "@/lib/public-cache";
 import { getNotLiveStoreIds, liveProductsFilter } from "@/lib/store-live";
 import type { Category, ProductWithVariants } from "@/types/database";
 
@@ -39,7 +40,11 @@ export interface CategoryWithChildren extends Category {
 // fetch) — used wherever the nav needs to show subcategories on hover, like
 // Amazon/Noon's category flyout menus.
 async function getCategoriesWithChildrenImpl(): Promise<CategoryWithChildren[]> {
-  const supabase = await createClient();
+  // The same for every visitor in a market: remembered for a minute (see public-cache.ts).
+  return cachedPublic("categories-tree", loadCategoriesWithChildren);
+}
+
+async function loadCategoriesWithChildren(supabase: PublicDb): Promise<CategoryWithChildren[]> {
   const { data, error } = await supabase.from("categories").select("*").order("sort_order", { ascending: true });
   if (error) throw toUserError(error);
 
@@ -53,57 +58,60 @@ async function getCategoriesWithChildrenImpl(): Promise<CategoryWithChildren[]> 
 }
 
 export async function getFeaturedProducts(limit = 8): Promise<ProductWithVariants[]> {
-  const supabase = await createClient();
   const live = liveProductsFilter(await getNotLiveStoreIds());
-  const { data, error } = await supabase
-    .from("products")
-    .select("*, category:categories(*), product_variants(*)")
-    .or(live)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  return cachedPublic(`featured:${limit}:${live}`, async (supabase) => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*, category:categories(*), product_variants(*)")
+      .or(live)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
-  if (error) throw toUserError(error);
-  return (data as ProductWithVariants[]) ?? [];
+    if (error) throw toUserError(error);
+    return (data as ProductWithVariants[]) ?? [];
+  });
 }
 
 export async function getFreshTodayProducts(limit = 8): Promise<ProductWithVariants[]> {
-  const supabase = await createClient();
   const live = liveProductsFilter(await getNotLiveStoreIds());
-  const { data, error } = await supabase
-    .from("products")
-    .select("*, category:categories(*), product_variants(*)")
-    .or(live)
-    .eq("is_active", true)
-    .eq("is_fresh", true)
-    .limit(limit);
+  return cachedPublic(`fresh:${limit}:${live}`, async (supabase) => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*, category:categories(*), product_variants(*)")
+      .or(live)
+      .eq("is_active", true)
+      .eq("is_fresh", true)
+      .limit(limit);
 
-  if (error) throw toUserError(error);
-  return (data as ProductWithVariants[]) ?? [];
+    if (error) throw toUserError(error);
+    return (data as ProductWithVariants[]) ?? [];
+  });
 }
 
 export async function getOfferProducts(limit = 8): Promise<ProductWithVariants[]> {
-  const supabase = await createClient();
   const live = liveProductsFilter(await getNotLiveStoreIds());
-  // product_variants.compare_at_price is only set on discounted variants, so an
-  // inner join here naturally filters to products that currently have an offer.
-  const { data, error } = await supabase
-    .from("products")
-    .select("*, category:categories(*), product_variants!inner(*)")
-    .or(live)
-    .eq("is_active", true)
-    .not("product_variants.compare_at_price", "is", null)
-    .limit(200);
+  return cachedPublic(`offers:${limit}:${live}`, async (supabase) => {
+    // product_variants.compare_at_price is only set on discounted variants, so an
+    // inner join here naturally filters to products that currently have an offer.
+    const { data, error } = await supabase
+      .from("products")
+      .select("*, category:categories(*), product_variants!inner(*)")
+      .or(live)
+      .eq("is_active", true)
+      .not("product_variants.compare_at_price", "is", null)
+      .limit(200);
 
-  if (error) throw toUserError(error);
-  // The database cannot compare two columns, so keep only real reductions here
-  // (the old price above the current one) and show the deepest cuts first.
-  const saving = (p: ProductWithVariants) =>
-    Math.max(0, ...p.product_variants.map((v) => (v.compare_at_price && v.compare_at_price > v.price ? (v.compare_at_price - v.price) / v.compare_at_price : 0)));
-  return ((data as ProductWithVariants[]) ?? [])
-    .filter((p) => saving(p) > 0)
-    .sort((x, y) => saving(y) - saving(x))
-    .slice(0, limit);
+    if (error) throw toUserError(error);
+    // The database cannot compare two columns, so keep only real reductions here
+    // (the old price above the current one) and show the deepest cuts first.
+    const saving = (p: ProductWithVariants) =>
+      Math.max(0, ...p.product_variants.map((v) => (v.compare_at_price && v.compare_at_price > v.price ? (v.compare_at_price - v.price) / v.compare_at_price : 0)));
+    return ((data as ProductWithVariants[]) ?? [])
+      .filter((p) => saving(p) > 0)
+      .sort((x, y) => saving(y) - saving(x))
+      .slice(0, limit);
+  });
 }
 
 export async function getProductsByCategory(slug: string): Promise<{
