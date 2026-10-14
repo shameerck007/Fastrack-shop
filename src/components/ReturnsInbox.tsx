@@ -43,7 +43,7 @@ export default function ReturnsInbox({ rows, empty }: { rows: InboxReturn[]; emp
             {r.photos.map((p) => (
               <a key={p} href={p} target="_blank" rel="noopener noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p} alt="Return photo" className="h-14 w-14 rounded-lg border border-neutral-200 object-cover" />
+                <img src={p} alt="Return photo" className="h-16 w-16 rounded-xl border border-neutral-200 object-cover" />
               </a>
             ))}
           </div>
@@ -51,7 +51,7 @@ export default function ReturnsInbox({ rows, empty }: { rows: InboxReturn[]; emp
         {r.resolution === "keep" && <p className="mt-2 text-xs text-neutral-500">The customer keeps this item. Nothing comes back.</p>}
         {r.received_note && <p className="mt-2 text-xs text-neutral-500">Note: {r.received_note}</p>}
         {r.stock_status === "awaiting_dropoff" && (
-          <button type="button" onClick={() => setReceiving(r)} className="mt-3 h-9 rounded-full bg-brand-700 px-4 text-sm font-bold text-white hover:bg-brand-800">
+          <button type="button" onClick={() => setReceiving(r)} className="mt-3 inline-flex h-12 w-full items-center justify-center rounded-full bg-brand-700 px-5 text-base font-extrabold text-white hover:bg-brand-800 sm:h-10 sm:w-auto sm:text-sm">
             📥 Mark received
           </button>
         )}

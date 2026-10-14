@@ -23,7 +23,7 @@ export default function MerchantOrderStatusAction({ orderId, status }: { orderId
   const labelKey = LABEL_KEY[status];
   if (!labelKey) {
     if (status === "ready_for_pickup") {
-      return <p className="text-xs font-medium text-brand-700">{t("merchant.awaiting_rider_pickup")}</p>;
+      return <p className="rounded-xl bg-brand-50 px-3 py-2.5 text-center text-sm font-semibold text-brand-800">{t("merchant.awaiting_rider_pickup")}</p>;
     }
     return null;
   }
@@ -41,16 +41,17 @@ export default function MerchantOrderStatusAction({ orderId, status }: { orderId
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col gap-1.5">
+      {/* A big button across the card: easy to hit with a thumb, even with wet hands in a busy shop. */}
       <button
         type="button"
         onClick={handleClick}
         disabled={pending}
-        className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
+        className="inline-flex h-12 w-full items-center justify-center rounded-full bg-brand-700 px-6 text-base font-extrabold text-white shadow-md shadow-brand-700/20 transition hover:bg-brand-800 active:scale-[0.99] disabled:opacity-60"
       >
-        {t(labelKey)}
+        {pending ? "Please wait…" : t(labelKey)}
       </button>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-sm font-medium text-rose-700">{error}</p>}
     </div>
   );
 }
