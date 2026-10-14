@@ -42,6 +42,10 @@ export default function PortalHeader({
             <span aria-hidden>🛍️</span>
             <span className="hidden md:inline">{backLabel}</span>
           </Link>
+          {/* Face / fingerprint sign-in and the app lock (the lock itself works on every page, portals included). */}
+          <Link href="/account/security" prefetch={false} aria-label="Login and security" title="Login and security" className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.5" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
+          </Link>
           {/* On a phone the language switch lives on the Account page, so the bar stays on one line. */}
           <LanguageToggle className="max-sm:hidden" />
           <NotificationBell />

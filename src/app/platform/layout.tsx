@@ -32,6 +32,9 @@ export default async function PlatformLayout({ children }: { children: React.Rea
             <Link href="/api/enter-shop" prefetch={false} className="flex items-center gap-1 text-neutral-500 hover:text-neutral-900">
               <span aria-hidden>🛍️</span> <span className="hidden sm:inline">Customer shop</span>
             </Link>
+            <Link href="/account/security" prefetch={false} className="text-neutral-500 hover:text-neutral-900">
+              Login and security
+            </Link>
             <span className="hidden rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 lg:inline">● {profile.full_name ?? "Platform owner"}</span>
             <form action={signOut}>
               <button className="text-neutral-500 hover:text-neutral-900">Log out</button>

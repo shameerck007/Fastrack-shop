@@ -47,6 +47,9 @@ export default function RiderMenu({ backToShop, logOut }: { backToShop: string; 
           <Link href="/rider/returns" onClick={() => setOpen(false)} className={item}>
             <span>↩️</span> Return pickups
           </Link>
+          <Link href="/account/security" prefetch={false} onClick={() => setOpen(false)} className={item}>
+            <span>🔒</span> Login and security
+          </Link>
           <Link href="/api/enter-shop" prefetch={false} className={item}>
             <span>🛍️</span> {backToShop}
           </Link>
