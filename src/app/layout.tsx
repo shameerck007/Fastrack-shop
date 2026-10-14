@@ -30,6 +30,7 @@ import DefaultCountryProvider from "@/components/DefaultCountryProvider";
 import LoginModalProvider from "@/components/LoginModalProvider";
 import DialogProvider from "@/components/ui/Dialogs";
 import MobileBottomSpacer from "@/components/MobileBottomSpacer";
+import AppLock from "@/components/AppLock";
 import { getRequestCountryCode } from "@/lib/get-request-country";
 import { cookies } from "next/headers";
 import { TENANT_COOKIE } from "@/lib/tenant";
@@ -171,6 +172,7 @@ export default async function RootLayout({
       >
         <AppSplash />
         <SplashGate />
+        <AppLock />
         <ChunkErrorReload />
         <GlobalErrorToast />
         <MarketToast />

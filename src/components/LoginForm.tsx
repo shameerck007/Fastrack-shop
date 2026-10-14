@@ -2,7 +2,7 @@
 
 
 import { unwrapAction } from "@/lib/errors";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "@/components/Link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -11,6 +11,8 @@ import Wordmark from "@/components/Wordmark";
 import { COUNTRIES, findCountry, validatePhone } from "@/lib/countries";
 import { useLocale } from "@/components/LocaleProvider";
 import { CART_CHANGED_EVENT } from "@/lib/cart-events";
+import { beginPasskeyLogin, finishPasskeyLogin } from "@/lib/actions/passkeys";
+import { getPasskeyAssertion, passkeyCancelled, passkeyErrorText, passkeysAvailable } from "@/lib/passkey-client";
 
 type Mode = "password" | "otp";
 type Step = "identifier" | "password" | "phone-password" | "phone-code" | "phone-new";
@@ -76,6 +78,35 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
   const [error, setError] = useState<string | null>(null);
   const [noAccountEmail, setNoAccountEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Sign in with this phone's own face, fingerprint, PIN or pattern (a passkey), where the device can do it.
+  const [passkeyOk, setPasskeyOk] = useState(false);
+  useEffect(() => {
+    let live = true;
+    passkeysAvailable().then((a) => live && setPasskeyOk(a));
+    return () => {
+      live = false;
+    };
+  }, []);
+  async function handlePasskey() {
+    setError(null);
+    setLoading(true);
+    try {
+      const begin = (await unwrapAction(beginPasskeyLogin)()) as { challengeId: string; options: Record<string, unknown> };
+      const { credentialId, proof } = await getPasskeyAssertion(begin.options);
+      await unwrapAction(finishPasskeyLogin)(begin.challengeId, credentialId, proof);
+      try {
+        localStorage.setItem("ft_passkey_here", credentialId);
+      } catch {
+        /* ignore */
+      }
+      await finish();
+    } catch (e) {
+      if (!passkeyCancelled(e)) setError(passkeyErrorText(e));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // standalone "Sign in with a code" (email) mode
   const [otpEmail, setOtpEmail] = useState("");
@@ -319,6 +350,23 @@ function LoginFormInner({ defaultCountryCode, modal = false, onDone, onRegister 
               >
                 {t("auth.sign_in_with_code")}
               </button>
+
+              {passkeyOk && (
+                <button
+                  type="button"
+                  onClick={handlePasskey}
+                  disabled={loading}
+                  className="flex h-12 items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white text-sm font-bold text-neutral-800 active:scale-[0.98] disabled:opacity-60"
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 text-brand-700" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 3a6 6 0 0 0-6 6v2" />
+                    <path d="M18 11V9a6 6 0 0 0-9.5-4.9" />
+                    <path d="M9 21c0-4 1.5-5 1.5-9a1.5 1.5 0 0 1 3 0c0 3-.5 6.5-2 9" />
+                    <path d="M15 21c1-3 1.5-5.5 1.5-9" />
+                  </svg>
+                  Sign in with face, fingerprint or screen lock
+                </button>
+              )}
 
               <p className="text-center text-[11px] leading-snug text-neutral-500">{t("auth.terms_notice")}</p>
             </form>

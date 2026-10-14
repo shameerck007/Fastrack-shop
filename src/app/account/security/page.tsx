@@ -4,6 +4,8 @@ import { getServerLocale } from "@/lib/i18n/get-locale";
 import { translate } from "@/lib/i18n/t";
 import { getDefaultPhoneCountry } from "@/lib/get-request-country";
 import AccountSecurityForm from "@/components/AccountSecurityForm";
+import DeviceSecurityCard from "@/components/DeviceSecurityCard";
+import { listPasskeys } from "@/lib/actions/passkeys";
 
 export const metadata = { title: "Login and security" };
 
@@ -23,6 +25,8 @@ export default async function AccountSecurityPage() {
     .eq("id", user.id)
     .maybeSingle();
   const defaultCountryCode = await getDefaultPhoneCountry();
+  // Empty until migration 0110 (passkeys) is in.
+  const passkeys = await listPasskeys().catch(() => []);
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
@@ -33,6 +37,7 @@ export default async function AccountSecurityPage() {
         email={user.email ?? ""}
         defaultCountryCode={defaultCountryCode}
       />
+      <DeviceSecurityCard passkeys={passkeys} />
     </div>
   );
 }
